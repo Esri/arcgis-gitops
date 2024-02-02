@@ -1,0 +1,48 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "/opt/software/archives",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "${s3bucket}",
+        "region": "${region}"
+      },
+      "files": {
+        "ArcGIS_Server_Linux_112_188327.tar.gz": {
+          "subfolder": "software/arcgis/11.2",
+          "sha256": "202FCDE1992BC08F790C9228959625921304E8D90A9329828E8F3A7EE439916D"
+        },
+        "Portal_for_ArcGIS_Linux_112_188338.tar.gz": {
+          "subfolder": "software/arcgis/11.2",
+          "sha256": "CB9E9E1B836CA55DB88AB9124E22650B6971E0F05114EDFB881BCAF283692099"
+        },
+        "Portal_for_ArcGIS_Web_Styles_Linux_112_188339.tar.gz": {
+          "subfolder": "software/arcgis/11.2",
+          "sha256": "BD5E5D95E5C6A3B9AE85AA0C4D2C8543E0A24035C2DDB6AAD03562B2CACC2641"
+        },
+        "ArcGIS_DataStore_Linux_112_188340.tar.gz": {
+          "subfolder": "software/arcgis/11.2",
+          "sha256": "654C468F13A7EA2A546954DC1EBEFEED9FC732BB0B927DBE213BA9ACECF9725C"
+        },
+        "ArcGIS_Web_Adaptor_Java_Linux_112_188341.tar.gz": {
+          "subfolder": "software/arcgis/11.2",
+          "sha256": "AA4DBFC91CE7ABBE156E25D8ECFCD662F1D0771EF40D1B06B06A95E7DB88254E"
+        },
+        "apache-tomcat-9.0.48.tar.gz": {
+          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.48/bin/apache-tomcat-9.0.48.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "9CA3AD448505E05E6D057A9D71C120FBED3F042975A4B000C7135017C96B00AA"
+        },
+        "jdk-11.0.20.tar.gz": {
+          "url": "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20.1%2B1/OpenJDK11U-jdk_x64_linux_hotspot_11.0.20.1_1.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "398a64bff002f0e3b0c01ecd24a1a32c83cb72a5255344219e9757d4ddd9f857"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
+}

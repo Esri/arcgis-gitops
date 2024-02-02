@@ -1,0 +1,67 @@
+name: arcgis-enterprise-base-aws-infrastructure
+
+on: 
+  workflow_dispatch:
+    inputs:
+      terraform_command:
+        description: 'Terraform Command'
+        type: choice
+        options:
+        - apply
+        - plan
+
+env:
+  TERRAFORM_VERSION: 1.5.7
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  PLATFORM: ${{ vars.PLATFORM || 'windows' }}
+
+concurrency:
+  group: ${{ github.ref_name }}
+  
+jobs:
+  infrastructure:
+    name: arcgis-enterprise-base/infrastructure
+    runs-on: ubuntu-20.04
+    outputs:
+      alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
+    defaults:
+      run:
+        working-directory: aws/arcgis-enterprise-base/${{ env.PLATFORM }}/infrastructure
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+          terraform_version: $TERRAFORM_VERSION
+          terraform_wrapper: false
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Install boto3
+      id: install-boto3
+      run: pip install boto3
+    - name: Terraform Init
+      id: init
+      run: |
+        SITE_ID=$(jq -r '.site_id' ../config/infrastructure.tfvars.json)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' ../config/infrastructure.tfvars.json)
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+    - name: Terraform Apply
+      id: apply
+      if: github.event.inputs.terraform_command == 'apply'
+      run: terraform apply -var-file ../config/infrastructure.tfvars.json -auto-approve
+    - name: Terraform Plan
+      id: plan
+      if: github.event.inputs.terraform_command == 'plan'
+      run: terraform plan -var-file ../config/infrastructure.tfvars.json 
+    - name: Terraform Output
+      id: output  
+      run: echo alb_dns_name=$(terraform output alb_dns_name) >> $GITHUB_OUTPUT
+

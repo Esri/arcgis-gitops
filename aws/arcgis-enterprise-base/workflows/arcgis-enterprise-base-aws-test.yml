@@ -1,0 +1,39 @@
+name: arcgis-enterprise-base-aws-test
+
+on: 
+  workflow_dispatch:
+ 
+env:
+  PYTHONPATH: ${{ github.workspace }}/aws/tests
+  APPLICATION_CONFIG_FILE: ${{ github.workspace }}/aws/arcgis-enterprise-base/${{ vars.PLATFORM || 'windows' }}/config/application.tfvars.json
+
+jobs:
+  application:
+    name: arcgis-enterprise-base/test
+    runs-on: ubuntu-20.04
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/aws/tests
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Setup Conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-activate-base: true
+        activate-environment: ""    
+    - name: Install arcgis # Install ArcGIS API for Python
+      id: install-arcgis
+      run: conda install -c esri arcgis
+    - name: Run Test
+      id: test
+      run: |
+        DOMAIN_NAME=$(jq -r '.domain_name' $APPLICATION_CONFIG_FILE)
+        ADMIN_USERNAME=$(jq -r '.admin_username' $APPLICATION_CONFIG_FILE)
+        ADMIN_PASSWORD=$(jq -r '.admin_password' $APPLICATION_CONFIG_FILE)
+        /usr/share/miniconda/bin/python arcgis-enterprise-base-test.py -a https://$DOMAIN_NAME/portal -u $ADMIN_USERNAME -p $ADMIN_PASSWORD

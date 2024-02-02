@@ -1,0 +1,68 @@
+name: arcgis-enterprise-base-aws-application
+
+on: 
+  workflow_dispatch:
+    inputs:
+      terraform_command:
+        description: 'Terraform Command'
+        type: choice
+        options:
+        - apply
+        - plan
+
+env:
+  TERRAFORM_VERSION: 1.5.7
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
+  ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  PLATFORM: ${{ vars.PLATFORM || 'windows' }}
+
+concurrency:
+  group: ${{ github.ref_name }}
+
+jobs:
+  application:
+    name: arcgis-enterprise-base/application
+    runs-on: ubuntu-20.04
+    outputs:
+      arcgis_portal_url: ${{ steps.output.outputs.arcgis_portal_url }}
+    defaults:
+      run:
+        working-directory: aws/arcgis-enterprise-base/${{ env.PLATFORM }}/application
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Setup Terraform
+      uses: hashicorp/setup-terraform@v3
+      with:
+          terraform_version: $TERRAFORM_VERSION
+          terraform_wrapper: false
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Install boto3
+      id: install-boto3
+      run: pip install boto3
+    - name: Terraform Init
+      id: init
+      run: |
+        SITE_ID=$(jq -r '.site_id' ../config/application.tfvars.json)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' ../config/application.tfvars.json)
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/application.tfstate" -backend-config="region=$AWS_DEFAULT_REGION"
+    - name: Terraform Apply
+      id: apply
+      if: github.event.inputs.terraform_command == 'apply'
+      run: terraform apply -var-file ../config/application.tfvars.json -var=arcgis_online_username=$ARCGIS_ONLINE_USERNAME -var=arcgis_online_password=$ARCGIS_ONLINE_PASSWORD -auto-approve
+    - name: Terraform Plan
+      id: plan
+      if: github.event.inputs.terraform_command == 'plan'
+      run: terraform plan -var-file ../config/application.tfvars.json -var=arcgis_online_username=$ARCGIS_ONLINE_USERNAME -var=arcgis_online_password=$ARCGIS_ONLINE_PASSWORD
+    - name: Terraform Output
+      id: output  
+      run: echo arcgis_portal_url=$(terraform output arcgis_portal_url) >> $GITHUB_OUTPUT

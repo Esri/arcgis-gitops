@@ -1,0 +1,63 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "C:\\Software\\Archives",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "${s3bucket}",
+        "region": "${region}"        
+      },      
+      "files": {
+        "ArcGIS_Server_Windows_111_185208.exe": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "c8701f2a1613e6a1cab73123f88f1934b04899f5da7d8aad3cf20c1acb9ec01b"
+        },
+        "Portal_for_ArcGIS_Windows_111_185219.exe": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "49942f72a99c267ac48cfcaa218c7615cd3451fa447d9268172299a17783d28f"
+        },
+        "Portal_for_ArcGIS_Web_Styles_Windows_111_185220.exe": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "16977f54d1e7c253e94791be254a096ac49e448d2e4fa7cb2374281c1502a474"
+        },
+        "ArcGIS_DataStore_Windows_111_185221.exe": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "2eab65a8b52098237e22d6142bdfc73e361d23ac000a041635f95d96e310fac3"
+        },
+        "ArcGIS_Web_Adaptor_for_Microsoft_IIS_111_185222.exe": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "1f63665ef210691dc61103f844359b2a162589c3e437dc559a85fecb970be39b"
+        },
+        "dotnet-hosting-win.exe": {
+          "url": "https://download.visualstudio.microsoft.com/download/pr/eaa3eab9-cc21-44b5-a4e4-af31ee73b9fa/d8ad75d525dec0a30b52adc990796b11/dotnet-hosting-6.0.9-win.exe",
+          "subfolder": "thirdparty",
+          "sha256": "B53DA206F89D441075DBCE2F2173DC297511AAAA4ACAE6CCAD6AF316DADBFDFA"
+        },
+        "WebDeploy_amd64_en-US.msi": {
+          "url": "https://download.microsoft.com/download/0/1/D/01DC28EA-638C-4A22-A57B-4CEF97755C6C/WebDeploy_amd64_en-US.msi",
+          "subfolder": "thirdparty",
+          "sha256": "2150F9D1AB67E1B7B63559FB977BA9ADC49F2B064FE2669A2E70D313A36B9A3D"
+        },
+        "ArcGIS-111-S-MSCDF-Patch.msp": {
+          "url": "https://gisupdates.esri.com/QFE/S-111-P-940/ArcGIS-111-S-MSCDF-Patch.msp",
+          "subfolder": "QFE/S-111-P-940",
+          "sha256": "514EFA74A829DBE79CA864EE3E723CC846A1E65C4DF4D3CFBA6924EEF950F136"
+        },
+        "ArcGIS-111-S-PS-Patch.msp": {
+          "url": "https://gisupdates.esri.com/QFE/S-111-P-958/ArcGIS-111-S-PS-Patch.msp",
+          "subfolder": "QFE/S-111-P-958",
+          "sha256": "67D9119014BA8C976A9C833DBB128C62E1A1A866B75AEAC6749B0441771E0FD0"
+        },
+        "ArcGIS-111-S-HFSE-Patch.msp": {
+          "url": "https://gisupdates.esri.com/QFE/S-111-P-971/ArcGIS-111-S-HFSE-Patch.msp",
+          "subfolder": "QFE/S-111-P-971",
+          "sha256": "0FAC15C9D87CD0307852ECAC2C336DF4A2301B0644D1BDA07B7724C0773F768C" 
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
+}

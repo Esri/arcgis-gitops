@@ -1,0 +1,148 @@
+{
+    "schemaVersion": "2.2",
+    "description": "Deletes temporary files created by Chef runs.",
+    "parameters": {
+      "Directories": {
+        "type": "String",
+        "description": "Comma-separated list of local directories to clean up",
+        "default": ""
+      },
+      "Sysprep": {
+        "type": "String",
+        "description": "(Optional) Set to true to run Sysprep on Windows instances.",
+        "allowedValues": [
+          "true",
+          "false"
+        ],        
+        "default": "false"
+      },
+      "UninstallChefClient": {
+        "type": "String",
+        "description": "(Optional) Set to true to uninstall Chef/Cinc Client.",
+        "allowedValues": [
+          "true",
+          "false"
+        ],        
+        "default": "true"
+      },
+      "ExecutionTimeout": {
+        "type": "String",
+        "description": "(Optional) Execution timeout in seconds.",
+        "default": "600"
+      }
+    },
+    "mainSteps": [
+      {
+        "action": "aws:runShellScript",
+        "name": "CleanUpLinuxInstance",
+        "precondition": {
+          "StringEquals": [
+            "platformType",
+            "Linux"
+          ]
+        },
+        "inputs": {
+          "runCommand": [
+            "#!/bin/bash",
+            "function is_debian() {",
+            "  grep -E -i -c 'Debian|Ubuntu' /etc/issue 2>&1 &>/dev/null",
+            "  [ $? -eq 0 ] && echo \"true\" || echo \"false\"",
+            "}",
+            "",
+            "function is_redhat() {",
+            "  if [ -f \"/etc/system-release\" ] || [ -f \"/etc/redhat-release\" ]; then",
+            "    echo \"true\"",
+            "  else",
+            "    echo \"false\"",
+            "  fi",
+            "}",
+            "",
+            "function is_suse() {",
+            "  if type zypper > /dev/null; then",
+            "    echo \"true\"",
+            "  else",
+            "    echo \"false\"",
+            "  fi",
+            "}",
+            "",
+            "function uninstall_cinc() {",
+            "  if [ \"$(is_debian)\" == \"true\" ]; then",
+            "    dpkg -P cinc",
+            "  elif [ \"$(is_redhat)\" == \"true\" ]; then",
+            "    rpm -e cinc",
+            "  elif [ \"$(is_suse)\" == \"true\" ]; then",
+            "    rpm -e cinc",
+            "  else",
+            "    echo \"Unknown distribution\"",
+            "  fi",
+            "}",           
+            "",
+            "function main() {", 
+            "  IFS=',' read -ra ADDR <<< \"{{ Directories }}\"",
+            "  for i in \"${ADDR[@]}\"; do",
+            "    rm -r $i",
+            "  done",
+            "  if [ \"{{ UninstallChefClient }}\" == \"true\" ]; then",
+            "    uninstall_cinc",
+            "    rm -r ~/.cinc",
+            "    rm -r /var/chef",
+            "  fi",
+            "  exit 0",  
+            "}",
+            "",
+            "main \"$@\""
+  
+          ],
+          "timeoutSeconds": "{{ ExecutionTimeout }}"
+        }
+      },
+      {
+        "action": "aws:runPowerShellScript",
+        "name": "CleanUpWindowsInstance",
+        "precondition": {
+          "StringEquals": [
+            "platformType",
+            "Windows"
+          ]
+        },      
+        "inputs": {
+          "runCommand": [
+            "$directories = \"{{ Directories }}\" -split \",\"",
+            "foreach ($dir in $directories) {",
+            "  if ($dir) {",
+            "    Remove-Item -Recurse -Force -ErrorAction SilentlyContinue $dir",
+            "  }",
+            "}",
+            "if ('{{ UninstallChefClient }}' -eq 'true') {",
+            "  $tempfolderpath = (Join-Path $env:TEMP 'esri')",          
+            "  $chefClientMsi = (Join-Path $tempfolderpath 'chef-client.msi')",
+            "  if (Test-Path $chefClientMsi) {",
+            "    Start-Process -Wait -FilePath msiexec.exe -ArgumentList \"/x $chefClientMsi /qb\"",
+            "    Remove-Item -Force -Verbose $chefClientMsi",
+            "  }",
+            "  Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $env:USERPROFILE '.cinc')",
+            "  Remove-Item -Recurse -Force -Verbose -ErrorAction SilentlyContinue (Join-Path $env:SystemDrive 'chef')",
+            "}"
+          ],
+          "timeoutSeconds": "{{ ExecutionTimeout }}"
+        }
+      },
+      {
+        "action": "aws:runPowerShellScript",
+        "name": "SysprepWindowsInstance",
+        "precondition": {
+          "StringEquals": [
+            "{{ Sysprep }}",
+            "true"
+          ]
+        },      
+        "inputs": {
+          "runCommand": [
+            "& $Env:ProgramFiles\\Amazon\\EC2Launch\\EC2Launch.exe reset"
+          ],
+          "timeoutSeconds": "{{ ExecutionTimeout }}"
+        }
+      }    
+    ]
+  }
+  

@@ -1,0 +1,63 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "/opt/software/archives",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "${s3bucket}",
+        "region": "${region}"
+      },
+      "files": {
+        "ArcGIS_Server_Linux_111_185292.tar.gz": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "B76093569A5DE14D7AB4C86459CEF4D84083335B247EE4B0FB0C4E22FE429B37"
+        },
+        "Portal_for_ArcGIS_Linux_111_185303.tar.gz": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "78780363FEE63348785F9895053B534F1919CC522B70CDF31B403B99C64EEFFD"
+        },
+        "Portal_for_ArcGIS_Web_Styles_Linux_111_185304.tar.gz": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "88026CB579BDD9C5681DEDF34800664F8FC74164DF596C5810E1A06CDDF4A04D"
+        },
+        "ArcGIS_DataStore_Linux_111_185305.tar.gz": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "936750A7FEFFBFADB781C8018C8D69F58B08ECCC84CFD378D2F63BCF884EEE56"
+        },
+        "ArcGIS_Web_Adaptor_Java_Linux_111_185233.tar.gz": {
+          "subfolder": "software/arcgis/11.1",
+          "sha256": "763DB0056DFDFF262CF74BEB77CC2C5F570D2EC67A13707E556CD4D71C1ED6C5"
+        },
+        "apache-tomcat-9.0.48.tar.gz": {
+          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.48/bin/apache-tomcat-9.0.48.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "9CA3AD448505E05E6D057A9D71C120FBED3F042975A4B000C7135017C96B00AA"
+        },
+        "jdk-11.0.20.tar.gz": {
+          "url": "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20.1%2B1/OpenJDK11U-jdk_x64_linux_hotspot_11.0.20.1_1.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "398a64bff002f0e3b0c01ecd24a1a32c83cb72a5255344219e9757d4ddd9f857"
+        },
+        "ArcGIS-111-S-MSCDF-Patch-linux.tar": {
+          "url": "https://gisupdates.esri.com/QFE/S-111-P-940/ArcGIS-111-S-MSCDF-Patch-linux.tar",
+          "subfolder": "QFE/S-111-P-940",
+          "sha256": "AAA395BCCF6E0700FD78C05CABD2E3C8D9BB7040A200DC97DC47C25A48626985"
+        },
+        "ArcGIS-111-S-PS-Patch-linux.tar": { 
+          "url": "https://gisupdates.esri.com/QFE/S-111-P-958/ArcGIS-111-S-PS-Patch-linux.tar",
+          "subfolder": "QFE/S-111-P-958",
+          "sha256": "0725A6787FC6C2043DA69410EFE35D6989D5438A449E2BDDD6602A6AAA73053D"
+        },
+        "ArcGIS-111-S-HFSE-Patch-linux.tar": {
+          "url": "https://gisupdates.esri.com/QFE/S-111-P-971/ArcGIS-111-S-HFSE-Patch-linux.tar",
+          "subfolder": "QFE/S-111-P-971",
+          "sha256": "F1C5FA6017CBEF1B9777B8EC40CA9F742D692355A95CAA7807A997D1169184A4"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
+}

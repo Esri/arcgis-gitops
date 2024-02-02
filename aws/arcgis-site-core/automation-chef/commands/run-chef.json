@@ -1,0 +1,77 @@
+{
+  "schemaVersion": "2.2",
+  "description": "Runs Chef in solo ode with specified JSON attributes",
+  "parameters": {
+    "JsonAttributes": {
+      "type": "String",
+      "description": "Name of SSM parameter with machine role JSON attributes."
+    },
+    "ExecutionTimeout": {
+      "type": "String",
+      "description": "(Optional) Execution timeout in seconds.",
+      "default": "3600"
+    },
+    "LogLevel": {
+      "type": "String",
+      "description": "(Optional) Chef client log level.",
+      "default": "{{ssm:/chef/log_level}}"
+    }
+  },
+  "mainSteps": [
+    {
+      "action": "aws:runShellScript",
+      "name": "RunChefOnLinuxInstance",
+      "precondition": {
+        "StringEquals": [
+          "platformType",
+          "Linux"
+        ]
+      },
+      "inputs": {
+        "runCommand": [
+          "#!/bin/bash",
+          "export HOME=/root",
+          "cd /var/chef",
+          "aws ssm get-parameter --name '{{JsonAttributes}}' --with-decryption --query Parameter.Value --output text > attributes.json",
+          "ret=$?",
+          "if [ $ret -ne 0 ]; then",
+          "  echo \"Failed to get attributes from SSM parameter. Exit code: $ret\"",
+          "  exit $ret",
+          "fi",
+          "set -o pipefail",
+          "sudo cinc-client -z -j attributes.json -l {{LogLevel}} | tee /var/log/chef-run.log",
+          "ret=$?",
+          "rm -r /var/chef/nodes",
+          "rm attributes.json",
+          "exit $ret"
+        ],
+        "timeoutSeconds": "{{ ExecutionTimeout }}"
+      }
+    },
+    {
+      "action": "aws:runPowerShellScript",
+      "name": "RunChefOnWindowsInstance",
+      "precondition": {
+        "StringEquals": [
+          "platformType",
+          "Windows"
+        ]
+      },      
+      "inputs": {
+        "runCommand": [
+          "$Env:Path += [System.Environment]::GetEnvironmentVariable('Path','Machine')",
+          "Set-Location -Path 'C:\\chef'",
+          "if (! $?) { exit 1 }",
+          "& aws.exe ssm get-parameter --name '{{JsonAttributes}}' --with-decryption --query Parameter.Value --output text | Out-File attributes.json -Encoding ASCII", 
+          "if (! $?) { exit 1 }",          
+          "& cinc-client.bat -z -j attributes.json -l {{LogLevel}} | Tee-Object -FilePath chef-run.log -Append",
+          "$ret = $?",
+          "Remove-Item (Join-Path $env:SystemDrive 'chef\\nodes') -Recurse -ErrorAction SilentlyContinue",
+          "Remove-Item attributes.json",
+          "if (! $ret) { exit 1}"
+        ],
+        "timeoutSeconds": "{{ ExecutionTimeout }}"
+      }
+    }    
+  ]
+}

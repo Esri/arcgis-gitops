@@ -13,6 +13,8 @@ GitOps Templates for ArcGIS Enterprise contain GitHub Actions workflows that lev
 * Machine image building subsystems
 * Built-in observability and monitoring subsystems
 
+## Instructions
+
 Refer to the READMEs of the cloud platform templates for specific usage instructions:
 
 * [GitOps Templates for ArcGIS Enterprise on AWS](aws/README.md)

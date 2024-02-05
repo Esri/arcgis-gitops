@@ -1,0 +1,32 @@
+name: validate-settings-aws
+
+on: 
+  workflow_dispatch:
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
+  ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
+  ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
+  PLATFORM: ${{ vars.PLATFORM || 'windows' }}
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+
+jobs:
+  infrastructure_core:
+    name: Create core infrastructure
+    runs-on: ubuntu-20.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Test AWS credentials
+      id: test-aws-credentials
+      run: python -m test_aws_credentials -b $TERRAFORM_BACKEND_S3_BUCKET
+    - name: Test ArcGIS Online credentials
+      id: test-arcgis-online-credentials
+      run: python -m token_service_client 
+    - name: Validate PLATFORM
+      id: validate-platform
+      run: echo PLATFORM=$PLATFORM

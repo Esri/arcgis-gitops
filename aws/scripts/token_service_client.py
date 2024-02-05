@@ -1,6 +1,8 @@
 
 # ArcGIS Online token service client
 
+import argparse
+import os
 import json
 import ssl
 import urllib.parse
@@ -14,6 +16,12 @@ class TokenServiceClient:
 
     # Generates token for the specified username and password.
     def generate_token(self, username: str, password: str, referer='referer', expiration=600):
+        if username is None:
+            raise ValueError('ArcGIS Online user name is not specified.')
+
+        if password is None:
+            raise ValueError('ArcGIS Online user password is not specified.')
+
         request = urllib.request.Request(self.token_service_url)
         request.method = 'POST'
 
@@ -38,3 +46,39 @@ class TokenServiceClient:
             raise Exception(json_response['error']['message'])
 
         return json_response['token']
+
+if __name__ == '__main__':
+    parser = argparse.ArgumentParser(
+        prog='token_service_client.py',
+        description='Generates ArcGIS Online token for the specified user credentials.')
+
+    parser.add_argument('-u', dest='username', required=False,
+                        help='ArcGIS Online user name')
+    parser.add_argument('-p', dest='password', required=False,
+                        help='ArcGIS Online user password')
+
+    args = parser.parse_args()
+
+    if args.username:
+        username = args.username
+    elif 'ARCGIS_ONLINE_USERNAME' in os.environ:
+        username = os.environ['ARCGIS_ONLINE_USERNAME']
+    else:
+        raise ValueError('ArcGIS Online user name is not specified.')
+
+    if args.password:
+        password = args.password
+    elif 'ARCGIS_ONLINE_PASSWORD' in os.environ:
+        password = os.environ['ARCGIS_ONLINE_PASSWORD']
+    else:
+        raise ValueError('ArcGIS Online user password is not specified.')
+
+    token_service = TokenServiceClient()
+
+    try:
+        token = token_service.generate_token(username, password)
+        print('token=' + token)    
+    except Exception as e:
+        print(e)
+        exit(1)
+    

@@ -223,6 +223,23 @@ Helper functions used by scripts that run SSM commands:
 * wait_for_command_invocations() - Wait for the command invocations to complete.
 * print_command_output() - Retrieve from S3 and prints outputs of the command invocations.
 
+## test_aws_credentials
+
+Tests the AWS credentials configured in the system by accessing the specified S3 bucket.
+
+usage:
+
+```shell
+python -m test_aws_credentials [-h] [-b S3_BUCKET]
+```
+
+options:
+
+```shell
+  -h, --help            show this help message and exit
+  -b S3_BUCKET          Output S3 bucket
+```
+
 ## token_service_client
 
 ArcGIS Online token service client.

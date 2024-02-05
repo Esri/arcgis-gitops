@@ -56,7 +56,7 @@ Tests for ArcGIS Enterprise site web services are used to check availability of 
 
 > Note that the tests require the web services to be accessible from the GitHub Actions runners.
 
-## Getting Started
+## Instructions
 
 The specific guidance for using the templates depends on the use case and may involve various customizations. The following steps just demonstrate the typical use case.
 
@@ -80,7 +80,7 @@ Create a private S3 bucket for the [Terraform backend](https://developer.hashico
 
 ### 3. GitHub Repository Settings
 
-Github repository Settings gto to Security / Secrets and variables
+Configure secrets and variables for GitHub Actions in the repository settings.
 
 #### Secrets
 
@@ -99,11 +99,19 @@ Github repository Settings gto to Security / Secrets and variables
 | PLATFORM                    | Default platform (windows or linux) |
 | TERRAFORM_BACKEND_S3_BUCKET | Terraform backend S3 bucket         |
 
+Run validate-settings-aws GitHub Actions workflow to validate the settings.
+
 > If your GitHub subscription plan supports GitHub Actions Environments, consider [environment secrets](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) to use secrets specific to each environment.
+
+### 4. Use the Templates
+
+Follow the [arcgis-site-core](arcgis-site-core/README.md) template instructions to provision core AWS resources for the ArcGIS Enterprise site.
+
+Consult the README files of the other templates to create and operate the required ArcGIS Enterprise deployments.
 
 ## Disconnected Environments
 
-To prevent the EC2 deployments from accessing the internet, use "isolated" subnets for the EC2 instances. The isolated subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in specific AWS region. 
+To prevent the EC2 deployments from accessing the internet, use "isolated" subnets for the EC2 instances. The isolated subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in specific AWS region.
 
 The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, pollination services, and time services.
 

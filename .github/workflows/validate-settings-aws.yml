@@ -24,10 +24,9 @@ jobs:
     - name: Test AWS credentials
       id: test-aws-credentials
       run: python -m test_aws_credentials -b $TERRAFORM_BACKEND_S3_BUCKET
-    - name: Test My Esri credentials
-      id: test-myesri-credentials
+    - name: Test ArcGIS Online credentials
+      id: test-arcgis-online-credentials
       run: python -m token_service_client 
     - name: Validate PLATFORM
       id: validate-platform
-      run: echo $PLATFORM
-
+      run: echo PLATFORM=$PLATFORM

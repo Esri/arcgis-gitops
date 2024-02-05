@@ -16,11 +16,11 @@ class TokenServiceClient:
 
     # Generates token for the specified username and password.
     def generate_token(self, username: str, password: str, referer='referer', expiration=600):
-        if not username:
-            raise ValueError('My Esri user name is not specified.')
+        if username is None:
+            raise ValueError('ArcGIS Online user name is not specified.')
 
-        if not password:
-            raise ValueError('My Esri user password is not specified.')
+        if password is None:
+            raise ValueError('ArcGIS Online user password is not specified.')
 
         request = urllib.request.Request(self.token_service_url)
         request.method = 'POST'
@@ -50,12 +50,12 @@ class TokenServiceClient:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='token_service_client.py',
-        description='Generates My Esri token for the specified user credentials.')
+        description='Generates ArcGIS Online token for the specified user credentials.')
 
     parser.add_argument('-u', dest='username', required=False,
-                        help='My Esri user name')
+                        help='ArcGIS Online user name')
     parser.add_argument('-p', dest='password', required=False,
-                        help='My Esri user password')
+                        help='ArcGIS Online user password')
 
     args = parser.parse_args()
 
@@ -63,11 +63,15 @@ if __name__ == '__main__':
         username = args.username
     elif 'ARCGIS_ONLINE_USERNAME' in os.environ:
         username = os.environ['ARCGIS_ONLINE_USERNAME']
+    else:
+        raise ValueError('ArcGIS Online user name is not specified.')
 
     if args.password:
         password = args.password
     elif 'ARCGIS_ONLINE_PASSWORD' in os.environ:
         password = os.environ['ARCGIS_ONLINE_PASSWORD']
+    else:
+        raise ValueError('ArcGIS Online user password is not specified.')
 
     token_service = TokenServiceClient()
 

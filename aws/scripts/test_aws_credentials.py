@@ -19,27 +19,33 @@ if __name__ == '__main__':
 
     s3_client = boto3.client('s3')
 
-    print("Testing ListBucket, PutObject, and GetObject requests on S3 bucket '{0}'...".format(args.bucket_name))
+    print("Testing ListObjectsV2, PutObject, and GetObject requests on S3 bucket '{0}'...".format(args.bucket_name))
 
-    s3_client.list_objects_v2(
-        Bucket=args.bucket_name,
-        MaxKeys=1,
-        Prefix='test'
-    )
+    try:
+        s3_client.list_objects_v2(
+            Bucket=args.bucket_name,
+            MaxKeys=1,
+            Prefix='test'
+        )
 
-    print("ListBucket request succeeded.")
-    
-    s3_client.put_object(
-        Bucket=args.bucket_name,
-        Key='test.txt',
-        Body=b'test'
-    )
+        print("ListBucket test succeeded.")
+        
+        s3_client.put_object(
+            Bucket=args.bucket_name,
+            Key='test.txt',
+            Body=b'test'
+        )
 
-    print("PutObject request succeeded.")
-    
-    s3_client.get_object(   
-        Bucket=args.bucket_name,
-        Key='test.txt'
-    )
+        print("PutObject test succeeded.")
+        
+        s3_client.get_object(   
+            Bucket=args.bucket_name,
+            Key='test.txt'
+        )
 
-    print("GetObject request succeeded.")      
+        print("GetObject test succeeded.")      
+    except Exception as e:
+        print(e)
+        exit(1)
+
+    print("The test passed.")      

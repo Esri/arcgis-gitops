@@ -14,13 +14,20 @@ env:
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
 
 jobs:
-  infrastructure_core:
-    name: Create core infrastructure
+  validate_settings_aws:
+    name: Validate GitHub Actions secrets and variables
     runs-on: ubuntu-20.04
     permissions:
       contents: read
       pull-requests: write
     steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Install boto3
+      id: install-boto3
+      run: pip install boto3    
     - name: Test AWS credentials
       id: test-aws-credentials
       run: python -m test_aws_credentials -b $TERRAFORM_BACKEND_S3_BUCKET

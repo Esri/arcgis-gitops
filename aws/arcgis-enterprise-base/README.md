@@ -4,7 +4,7 @@ The template provides GitHub Actions workflows for [base ArcGIS Enterprise deplo
 
 Before running the template workflows:
 
-1. Configure the GitHub repository settings as described in the [Getting Started](../README.md#getting-started) section.
+1. Configure the GitHub repository settings as described in the [Getting Started](../README.md#instructions) section.
 2. Provision core AWS resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
 
 To enable the template's workflows, copy the .yml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
@@ -28,7 +28,7 @@ Required IAM policies:
 
 * ArcGISEnterpriseImage
 
-Steps:
+Instructions:
 
 1. If required, update `<platform>/config/arcgis-enterprise-s3files-<ArcGIS version>.json` file to include URLs of ArcGIS Enterprise patches that must be installed on the images.
 2. Set "arcgis_data_store_patches", "arcgis_portal_patches", "arcgis_server_patches", and "arcgis_web_adaptor_patches" properties in image.vars.json file to the lists of patch file names that must be installed on the images.
@@ -77,7 +77,7 @@ Workflow Outputs:
 
 * alb_dns_name - DNS name of the application load balancer
 
-Steps:
+Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property in infrastructure.tfvars.json file to the key pair name. Save the private key in a secure location.
 2. Provision or import SSL certificate for the base ArcGIS Enterprise domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property in infrastructure.tfvars.json file to the certificate ARN.
@@ -128,7 +128,7 @@ Outputs:
 
 * arcgis_portal_url - Portal for ArcGIS URL
 
-Steps:
+Instructions:
 
 1. Add Portal for ArcGIS and ArcGIS Server authorization files for the ArcGIS Enterprise version to `aws/arcgis-enterprise-base/data/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties in application.tfvars.json file to the file paths relative to `<platform>/application` directory.
 2. Set "domain_name" property in application.tfvars.json file to the base ArcGIS Enterprise deployment domain name.
@@ -176,7 +176,7 @@ GitHub Actions workflow **arcgis-enterprise-base-aws-test** tests base ArcGIS En
 
 The python [test script](../tests/arcgis-enterprise-base-test.py) uses [ArcGIS API for Python](https://developers.arcgis.com/python/) to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and admin credentials are retrieved from application.tfvars.json properties file.
 
-Steps:
+Instructions:
 
 1. Run arcgis-enterprise-base-aws-test workflow using the branch.
 
@@ -198,7 +198,7 @@ Required IAM policies:
 * TerraformBackend
 * ArcGISEnterpriseApplication
 
-Steps:
+Instructions:
 
 1. Set "admin_username" and "admin_password" properties in backup.tfvars.json file to the portal administrator user name and password respectively.
 2. (Windows only) Set "run_as_password" property in backup.tfvars.json file to the password of `arcgis` user account.
@@ -238,7 +238,7 @@ Required IAM policies:
 * TerraformBackend
 * ArcGISEnterpriseApplication
 
-Steps:
+Instructions:
 
 1. Set "admin_username" and "admin_password" properties in restore.tfvars.json file to the portal administrator user name and password respectively.
 2. (Windows only) Set "run_as_password" property in restore.tfvars.json file to the password of `arcgis` user account.
@@ -291,7 +291,7 @@ To activate the failover deployment:
 
 GitHub Actions workflow arcgis-enterprise-base-aws-application supports upgrade mode used to in-place patch or upgrade the base ArcGIS Enterprise applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Enterprise version was changed, it installs the new version of the ArcGIS Enterprise applications and re-configures the applications.
 
-Steps:
+Instructions:
 
 1. If required, update `<platform>/config/arcgis-enterprise-s3files-<ArcGIS version>.json` file to include URLs of all ArcGIS Enterprise patches that must be installed on the EC2 instances.
 2. Set "arcgis_data_store_patches", "arcgis_portal_patches", "arcgis_server_patches", and "arcgis_web_adaptor_patches" properties in application.tfvars.json file to the lists of patch file names that must be installed on the EC2 instances.
@@ -316,7 +316,7 @@ Required IAM policies:
 * TerraformBackend
 * ArcGISEnterpriseDestroy
 
-Steps:
+Instructions:
 
 1. Run arcgis-enterprise-base-aws-destroy workflow using the branch.
 

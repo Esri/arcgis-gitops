@@ -56,7 +56,7 @@ Tests for ArcGIS Enterprise site web services are used to check availability of 
 
 > Note that the tests require the web services to be accessible from the GitHub Actions runners.
 
-## Getting Started
+## Instructions
 
 The specific guidance for using the templates depends on the use case and may involve various customizations. The following steps just demonstrate the typical use case.
 

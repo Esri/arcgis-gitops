@@ -270,7 +270,7 @@ build {
           version = var.arcgis_version
           run_as_user = var.run_as_user
           repository = {
-            patches = "/opt/software/archives"
+            patches = "/opt/software/archives/patches"
           }
           portal = {
             install_dir = "/opt"

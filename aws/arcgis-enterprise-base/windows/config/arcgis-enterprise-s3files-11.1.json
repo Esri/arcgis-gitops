@@ -2,12 +2,29 @@
   "arcgis": {
     "repository": {
       "local_archives": "C:\\Software\\Archives",
+      "local_patches": "C:\\Software\\Archives\\Patches",
       "server": {
         "url": "https://downloads.arcgis.com",
         "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
         "s3bucket": "${s3bucket}",
-        "region": "${region}"        
-      },      
+        "region": "${region}"
+      },
+      "patch_notification": {
+        "products": [
+          "Portal for ArcGIS",
+          "ArcGIS Server",
+          "ArcGIS Data Store",
+          "ArcGIS Web Adaptor (IIS)"
+        ],
+        "versions": [
+          "11.1"
+        ],
+        "patches": [
+          "ArcGIS-111-*.msp",
+          "ArcGIS-PFA-111-ValidationRepair.exe"
+        ],
+        "subfolder": "software/arcgis/11.1/patches"
+      },
       "files": {
         "ArcGIS_Server_Windows_111_185208.exe": {
           "subfolder": "software/arcgis/11.1",
@@ -38,21 +55,6 @@
           "url": "https://download.microsoft.com/download/0/1/D/01DC28EA-638C-4A22-A57B-4CEF97755C6C/WebDeploy_amd64_en-US.msi",
           "subfolder": "thirdparty",
           "sha256": "2150F9D1AB67E1B7B63559FB977BA9ADC49F2B064FE2669A2E70D313A36B9A3D"
-        },
-        "ArcGIS-111-S-MSCDF-Patch.msp": {
-          "url": "https://gisupdates.esri.com/QFE/S-111-P-940/ArcGIS-111-S-MSCDF-Patch.msp",
-          "subfolder": "QFE/S-111-P-940",
-          "sha256": "514EFA74A829DBE79CA864EE3E723CC846A1E65C4DF4D3CFBA6924EEF950F136"
-        },
-        "ArcGIS-111-S-PS-Patch.msp": {
-          "url": "https://gisupdates.esri.com/QFE/S-111-P-958/ArcGIS-111-S-PS-Patch.msp",
-          "subfolder": "QFE/S-111-P-958",
-          "sha256": "67D9119014BA8C976A9C833DBB128C62E1A1A866B75AEAC6749B0441771E0FD0"
-        },
-        "ArcGIS-111-S-HFSE-Patch.msp": {
-          "url": "https://gisupdates.esri.com/QFE/S-111-P-971/ArcGIS-111-S-HFSE-Patch.msp",
-          "subfolder": "QFE/S-111-P-971",
-          "sha256": "0FAC15C9D87CD0307852ECAC2C336DF4A2301B0644D1BDA07B7724C0773F768C" 
         }
       }
     }

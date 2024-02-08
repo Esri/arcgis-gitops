@@ -102,7 +102,7 @@
           "function install_cli() {",
           "  get_contents \"https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip\" \"awscliv2.zip\"",
           "  exec_cmd \"unzip -q -o awscliv2.zip\"",
-          "  exec_cmd \"sudo ./aws/install --bin-dir /usr/sbin --install-dir /usr/aws-cli\"",
+          "  exec_cmd \"sudo ./aws/install --bin-dir /usr/local/bin --install-dir /usr/local/aws-cli\"",
           "  exec_cmd \"sudo rm awscliv2.zip\"",
           "}",
           "",

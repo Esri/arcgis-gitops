@@ -2,12 +2,28 @@
   "arcgis": {
     "repository": {
       "local_archives": "C:\\Software\\Archives",
+      "local_patches": "C:\\Software\\Archives\\Patches",
       "server": {
         "url": "https://downloads.arcgis.com",
         "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
         "s3bucket": "${s3bucket}",
-        "region": "${region}"        
-      },      
+        "region": "${region}"
+      },
+      "patch_notification": {
+        "products": [
+          "Portal for ArcGIS",
+          "ArcGIS Server",
+          "ArcGIS Data Store",
+          "ArcGIS Web Adaptor (IIS)"
+        ],
+        "versions": [
+          "11.0"
+        ],
+        "patches": [
+          "ArcGIS-110-*.msp"
+        ],
+        "subfolder": "software/arcgis/11.0/patches"
+      },
       "files": {
         "ArcGIS_Server_Windows_110_182874.exe": {
           "subfolder": "software/arcgis/11.0",
@@ -19,7 +35,7 @@
         },
         "Portal_for_ArcGIS_Web_Styles_Windows_110_182886.exe": {
           "subfolder": "software/arcgis/11.0",
-          "sha256": "D435EDF2DE2B36B03C499523E786904CBB8A3C2EB75B789545166DBFBE47ED80"          
+          "sha256": "D435EDF2DE2B36B03C499523E786904CBB8A3C2EB75B789545166DBFBE47ED80"
         },
         "ArcGIS_DataStore_Windows_110_182887.exe": {
           "subfolder": "software/arcgis/11.0",

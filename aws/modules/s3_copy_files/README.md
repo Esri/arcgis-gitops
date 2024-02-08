@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Terraform module s3_copy_files
 
-Terraform module s3_copy_files copies files from local file system, public URLs, and, My Esri repository to S3 bucket.
+Terraform module s3_copy_files copies files from local file system, public URLs, and, My Esri, and ArcGIS patch repositories to S3 bucket.
 
 The module uses s3_copy_files.py script to copy files defined in a JSON index file to an S3 bucket.
 

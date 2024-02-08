@@ -14,6 +14,10 @@ The scripts retrieve AWS credentials and region from environment variables:
 
 My Esri Downloads API repository client.
 
+## patch_notification
+
+Queries the Esri patch notification service for patches for a given set of products and versions.
+
 ## publish_artifact
 
 Retrieves AMI Id from packer-manifest.json file and saves in SSM parameter.
@@ -35,7 +39,7 @@ options:
 
 ## s3_copy_files
 
-Copies files from local file system, public URLs, and, My Esri repository to S3 bucket.
+Copies files from local file system, public URLs, and, My Esri, and ArcGIS patch repositories to S3 bucket.
 
 usage:
 

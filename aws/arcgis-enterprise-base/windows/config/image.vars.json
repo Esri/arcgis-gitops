@@ -1,9 +1,15 @@
 {
-    "arcgis_data_store_patches": [],
+    "arcgis_data_store_patches": [
+        "ArcGIS-112-DS-*.msp"
+    ],
     "arcgis_online_password": null,
     "arcgis_online_username": null,
-    "arcgis_portal_patches": [],
-    "arcgis_server_patches": [],
+    "arcgis_portal_patches": [
+        "ArcGIS-112-PFA-*.msp"
+    ],
+    "arcgis_server_patches": [
+        "ArcGIS-112-S-*.msp"
+    ],
     "arcgis_version": "11.2",
     "arcgis_web_adaptor_patches": [],
     "deployment_id": "arcgis-enterprise-base",    

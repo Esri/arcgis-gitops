@@ -294,7 +294,7 @@ build {
         arcgis = {
           version = var.arcgis_version
           repository = {
-            patches = "C:\\Software\\Archives"
+            patches = "C:\\Software\\Archives\\Patches"
           }
           portal = {
             patches = var.arcgis_portal_patches

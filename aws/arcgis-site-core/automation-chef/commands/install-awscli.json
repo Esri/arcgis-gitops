@@ -165,7 +165,7 @@
           "  echo_options",
           "  update_packages",
           "  update_cli",
-          "  /usr/sbin/aws --version",
+          "  /usr/local/bin/aws --version",
           "  exit 0",
           "}",
           "",

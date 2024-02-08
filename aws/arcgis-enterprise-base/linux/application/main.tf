@@ -188,6 +188,8 @@ locals {
 
   keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}/${basename(var.keystore_file_path)}" : ""
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
+
+  timestamp     = formatdate("YYYYMMDDhhmm", timestamp())
 }
 
 # Copy ArcGIS Enterprise setup archives of the ArcGIS Enterprise version to the private repository S3 bucket
@@ -609,11 +611,11 @@ module "arcgis_enterprise_primary" {
         types                       = "tileCache,relational"
         tilecache = {
           backup_type     = "s3"
-          backup_location = "type=s3;location=${nonsensitive(data.aws_ssm_parameter.s3_backup.value)}/tilecache;name=tc_default;region=${data.aws_region.current.name}"
+          backup_location = "type=s3;location=${nonsensitive(data.aws_ssm_parameter.s3_backup.value)}/tilecache-${local.timestamp};name=tc_default;region=${data.aws_region.current.name}"
         }
         relational = {
           backup_type     = "s3"
-          backup_location = "type=s3;location=${nonsensitive(data.aws_ssm_parameter.s3_backup.value)}/relational;name=re_default;region=${data.aws_region.current.name}"
+          backup_location = "type=s3;location=${nonsensitive(data.aws_ssm_parameter.s3_backup.value)}/relational-${local.timestamp};name=re_default;region=${data.aws_region.current.name}"
         }
       }
       portal = {

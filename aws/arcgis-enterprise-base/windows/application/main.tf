@@ -188,6 +188,8 @@ locals {
     "11.1" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
     "11.2" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
   }
+
+  timestamp = formatdate("YYYYMMDDHHmmss", timestamp())
 }
 
 module "s3_copy_files" {
@@ -609,13 +611,21 @@ module "arcgis_enterprise_primary" {
         preferredidentifier         = "ip"
         types                       = "tileCache,relational"
         tilecache = {
-          backup_type     = "fs"
-          backup_location = "\\\\${local.fileserver_hostname}\\arcgisbackup\\tilecache"
+          backup_type     = "s3"
+          backup_location = "type=s3;location=${nonsensitive(data.aws_ssm_parameter.s3_backup.value)}/tilecache-${local.timestamp};name=tc_default;region=${data.aws_region.current.name}"
         }
         relational = {
-          backup_type     = "fs"
-          backup_location = "\\\\${local.fileserver_hostname}\\arcgisbackup\\relational"
+          backup_type     = "s3"
+          backup_location = "type=s3;location=${nonsensitive(data.aws_ssm_parameter.s3_backup.value)}/relational-${local.timestamp};name=re_default;region=${data.aws_region.current.name}"
         }
+        # tilecache = {
+        #   backup_type     = "fs"
+        #   backup_location = "\\\\${local.fileserver_hostname}\\arcgisbackup\\tilecache"
+        # }
+        # relational = {
+        #   backup_type     = "fs"
+        #   backup_location = "\\\\${local.fileserver_hostname}\\arcgisbackup\\relational"
+        # }
       }
       portal = {
         hostname                    = local.primary_hostname

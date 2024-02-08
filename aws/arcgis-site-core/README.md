@@ -2,7 +2,7 @@
 
 The template provides workflows for provisioning networking, storage, and identity AWS resource shared across multiple deployments of an ArcGIS Enterprise site as well as AWS resources required for ArcGIS Enterprise site configuration management using [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/).
 
-Before running the template workflows, configure the GitHub repository settings as described in the [Getting Started](../README.md#instructions) section.
+Before running the template workflows, configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
 
 To enable the template's workflows, copy the .yml files from the template's `workflows` directory to `/.github/workflows` directory in the `main` branch, commit the changes, and push the branch to GitHub.
 

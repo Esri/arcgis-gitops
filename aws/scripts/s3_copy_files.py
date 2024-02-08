@@ -173,11 +173,15 @@ if __name__ == '__main__':
         username = args.username
     elif 'ARCGIS_ONLINE_USERNAME' in os.environ:
         username = os.environ['ARCGIS_ONLINE_USERNAME']
+    else:
+        username = None
 
     if args.password:
         password = args.password
     elif 'ARCGIS_ONLINE_PASSWORD' in os.environ:
         password = os.environ['ARCGIS_ONLINE_PASSWORD']
+    else:
+        password = None
 
     ssm_client = boto3.client('ssm')
     s3 = boto3.resource('s3')

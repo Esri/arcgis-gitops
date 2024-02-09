@@ -85,7 +85,7 @@ locals {
         files = {
           collect_list = [
             {
-              file_path = "/var/log/syslog"
+              file_path = "/var/log/messages"
               log_group_name = aws_cloudwatch_log_group.deployment.name
               log_stream_name = "{instance_id}-system"
               timestamp_format = "%b %-d %H:%M:%S"

@@ -123,10 +123,10 @@ The module uses the following SSM parameters:
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-base"` | no |
 | fileserver_instance_type | EC2 instance type of fileserver | `string` | `"m6i.xlarge"` | no |
 | fileserver_volume_size | Root EBS volume size in GB of fileserver EC2 instance | `number` | `100` | no |
-| instance_type | EC2 instance type | `string` | `"m6i.xlarge"` | no |
+| instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | os | Operating system id (windows2022) | `string` | `"windows2022"` | no |
-| root_volume_size | Root EBS volume size in GB of primary and standby EC2 instances | `number` | `100` | no |
+| root_volume_size | Root EBS volume size in GB of primary and standby EC2 instances | `number` | `1024` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis-enterprise"` | no |
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listener of the load balancer | `string` | n/a | yes |
 | subnet_type | Type of the EC2 instances subnets. Valid values are public, private, and isolated. Default is private. | `string` | `"private"` | no |

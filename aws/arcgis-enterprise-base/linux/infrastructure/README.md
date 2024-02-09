@@ -122,10 +122,10 @@ The module uses the following SSM parameters:
 |------|-------------|------|---------|:--------:|
 | client_cidr_blocks | Client CIDR blocks | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-base"` | no |
-| instance_type | EC2 instance type | `string` | `"m6i.xlarge"` | no |
+| instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | os | Operating system id (rhel8\|rhel9\|ubuntu20\|ubuntu22\|sles15) | `string` | `"rhel8"` | no |
-| root_volume_size | Root EBS volume size in GB | `number` | `100` | no |
+| root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listeners of the load balancer | `string` | n/a | yes |
 | subnet_type | Type of the EC2 instances subnets. Valid values are private and isolated. Default is private. | `string` | `"private"` | no |

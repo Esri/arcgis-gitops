@@ -57,13 +57,13 @@ variable "ssl_certificate_arn" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "m6i.xlarge"
+  default     = "m6i.2xlarge"
 }
 
 variable "root_volume_size" {
   description = "Root EBS volume size in GB"
   type        = number
-  default     = 100
+  default     = 1024
 
   validation {
     condition     = var.root_volume_size >= 100 && var.root_volume_size <= 16384

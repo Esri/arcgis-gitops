@@ -1,6 +1,6 @@
 # GitOps Templates for ArcGIS Enterprise
 
-GitOps is a set of practices and principles for managing and deploying infrastructure and applications in an automated manner using Git as the single source of truth. The term "GitOps" combines "Git," a widely used version control system, with "Ops," which refers to IT operations. GitOps ensures a transparent and auditable history of all changes made to the infrastructure and applications, facilitating compliance with regulatory requirements, consistency, traceability, and reproducibility.
+GitOps is a set of practices and principles for managing and deploying infrastructure and applications in an automated manner using Git as the single source of truth. The term "GitOps" combines "Git" a widely used version control system, with "Ops" which refers to IT operations. GitOps ensures a transparent and auditable history of all changes made to the infrastructure and applications, facilitating compliance with regulatory requirements, consistency, traceability, and reproducibility.
 
 GitOps Templates for ArcGIS Enterprise contain GitHub Actions workflows that leverage the GitOps methodology, ArcGIS system patterns, and best practices recommended by cloud providers for managing [ArcGIS Enterprise](https://enterprise.arcgis.com/) operations.
 

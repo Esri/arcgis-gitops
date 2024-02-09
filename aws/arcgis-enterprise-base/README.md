@@ -31,8 +31,9 @@ Required IAM policies:
 Instructions:
 
 1. Set "arcgis_data_store_patches", "arcgis_portal_patches", "arcgis_server_patches", and "arcgis_web_adaptor_patches" properties in image.vars.json file to the lists of patch file names that must be installed on the images.
-2. Commit the changes to a Git branch and push the branch to GitHub.
-3. Run arcgis-enterprise-base-aws-image workflow using the branch.
+2. (Windows only) Set "run_as_password" property in image.vars.json file to the password of `arcgis` user account.
+3. Commit the changes to a Git branch and push the branch to GitHub.
+4. Run arcgis-enterprise-base-aws-image workflow using the branch.
 
 Example image.vars.json properties file for base ArcGIS Enterprise 11.2 on Linux RHEL 8:
 

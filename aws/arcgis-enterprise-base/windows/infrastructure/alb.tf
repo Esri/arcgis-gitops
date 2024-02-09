@@ -164,7 +164,7 @@ resource "aws_lb_listener" "arcgis_portal_https" {
 
 # Default target group
 resource "aws_lb_target_group" "default" {
-  name     = "alb-default"
+  name     = "${var.deployment_id}-default"
   port     = 443
   protocol = "HTTPS"
   vpc_id   = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
@@ -175,7 +175,7 @@ resource "aws_lb_target_group" "default" {
 # Configure the target group to forward requests to /server HTTP contexts.
 module "server_http_alb_target" {
   source            = "../../../modules/alb_target_group"
-  name              = "server-http"
+  name              = "${var.deployment_id}-s-80"
   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTP"
@@ -195,7 +195,7 @@ module "server_http_alb_target" {
 # Configure the target group to forward requests to /portal HTTP contexts.
 module "portal_http_alb_target" {
   source            = "../../../modules/alb_target_group"
-  name              = "portal-http"
+  name              = "${var.deployment_id}-p-80"
   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTP"
@@ -215,7 +215,7 @@ module "portal_http_alb_target" {
 # Configure the target group to forward requests to /portal and /server HTTP contexts.
 module "server_https_alb_target" {
   source            = "../../../modules/alb_target_group"
-  name              = "server-https"
+  name              = "${var.deployment_id}-s-443"
   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
@@ -235,7 +235,7 @@ module "server_https_alb_target" {
 # Configure the target group to forward requests to /portal and /server HTTP contexts.
 module "portal_https_alb_target" {
   source            = "../../../modules/alb_target_group"
-  name              = "portal-https"
+  name              = "${var.deployment_id}-p-443"
   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
@@ -255,7 +255,7 @@ module "portal_https_alb_target" {
 # Configure the target group to forward requests to /arcgis HTTP contexts.
 module "private_server_https_alb_target" {
   source            = "../../../modules/alb_target_group"
-  name              = "arcgis-6443"
+  name              = "${var.deployment_id}-6443"
   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
@@ -270,12 +270,12 @@ module "private_server_https_alb_target" {
   ]
 }
 
-# Create Application Load Balancer target group for Portal for ArcGIS HTTPS port 443, attach 
+# Create Application Load Balancer target group for Portal for ArcGIS HTTPS port 7443, attach 
 # primary and standby instances to it, and add the target group to the load balancer. 
 # Configure the target group to forward requests to /arcgis HTTP contexts.
 module "private_portal_https_alb_target" {
   source            = "../../../modules/alb_target_group"
-  name              = "arcgis-7443"
+  name              = "${var.deployment_id}-7443"
   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"

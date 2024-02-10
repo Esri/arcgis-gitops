@@ -88,6 +88,10 @@ data "aws_ssm_parameter" "chef_client_url" {
   name  = "/arcgis/${var.site_id}/chef-client-url/${var.os}"
 }
 
+data "aws_ssm_parameter" "chef_cookbooks_url" {
+  name  = "/arcgis/${var.site_id}/cookbooks-url"
+}
+
 data "aws_ssm_parameter" "s3_repository" {
   name = "/arcgis/${var.site_id}/s3/repository"
 }
@@ -173,7 +177,7 @@ locals {
   authorization_files_dir = "C:\\Software\\AuthorizationFiles"
   certificates_dir        = "C:\\Software\\Certificates"
 
-  keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}\\${basename(var.keystore_file_path)}" : "${local.certificates_dir}\\keystore.pfx"
+  keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}\\${basename(var.keystore_file_path)}" : "C:\\chef\\keystore.pfx"
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}\\${basename(var.root_cert_file_path)}" : ""
 
   # ArcGIS version-specific attributes
@@ -588,7 +592,7 @@ module "arcgis_enterprise_primary" {
         admin_username                 = var.admin_username
         admin_password                 = var.admin_password
         authorization_file             = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
-        keystore_file                  = local.keystore_file
+        keystore_file                  = var.keystore_file_path != null ? local.keystore_file : ""
         keystore_password              = var.keystore_file_password
         root_cert                      = local.root_cert
         root_cert_alias                = "rootcert"
@@ -652,7 +656,7 @@ module "arcgis_enterprise_primary" {
         object_store         = data.aws_ssm_parameter.s3_content.value
         authorization_file   = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
         user_license_type_id = ""
-        keystore_file        = local.keystore_file
+        keystore_file        = var.keystore_file_path != null ? local.keystore_file : ""
         keystore_password    = var.keystore_file_password
         root_cert            = local.root_cert
         root_cert_alias      = "rootcert"
@@ -726,7 +730,7 @@ module "arcgis_enterprise_standby" {
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         authorization_file          = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
-        keystore_file               = local.keystore_file
+        keystore_file               = var.keystore_file_path != null ? local.keystore_file : ""
         keystore_password           = var.keystore_file_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
@@ -749,7 +753,7 @@ module "arcgis_enterprise_standby" {
         primary_machine_url         = "https://${local.primary_hostname}:7443"
         admin_username              = var.admin_username
         admin_password              = var.admin_password
-        keystore_file               = local.keystore_file
+        keystore_file               = var.keystore_file_path != null ? local.keystore_file : ""
         keystore_password           = var.keystore_file_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"

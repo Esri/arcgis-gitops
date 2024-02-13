@@ -299,12 +299,11 @@ GitHub Actions workflow arcgis-enterprise-base-aws-application supports upgrade 
 
 Instructions:
 
-1. If required, update `<platform>/config/arcgis-enterprise-s3files-<ArcGIS version>.json` file to include URLs of all ArcGIS Enterprise patches that must be installed on the EC2 instances.
-2. Set "arcgis_data_store_patches", "arcgis_portal_patches", "arcgis_server_patches", and "arcgis_web_adaptor_patches" properties in application.tfvars.json file to the lists of patch file names that must be installed on the EC2 instances.
-3. Add Portal for ArcGIS and ArcGIS Server authorization files for the new ArcGIS Enterprise version to `data/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties in application.tfvars.json file to the file paths relative to `<platform>/application` directory.
-4. Change "is_upgrade" property in application.tfvars.json file to `true`.
-5. Commit the changes to the Git branch and push the branch to GitHub.
-6. Run arcgis-enterprise-base-aws-application workflow using the branch.
+1. Set "arcgis_data_store_patches", "arcgis_portal_patches", "arcgis_server_patches", and "arcgis_web_adaptor_patches" properties in application.tfvars.json file to the lists of patch file names that must be installed on the EC2 instances.
+2. Add Portal for ArcGIS and ArcGIS Server authorization files for the new ArcGIS Enterprise version to `data/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties in application.tfvars.json file to the file paths relative to `<platform>/application` directory.
+3. Change "is_upgrade" property in application.tfvars.json file to `true`.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run arcgis-enterprise-base-aws-application workflow using the branch.
 
 > Back up the deployment and test the upgrade process on a test/failover deployment before upgrading the active deployment.
 

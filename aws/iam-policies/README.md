@@ -17,7 +17,7 @@ aws iam create-policy --policy-name ArcGISEnterpriseInfrastructure --policy-docu
 
 aws iam create-policy --policy-name ArcGISSiteCore --policy-document file://ArcGISSiteCore.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for arcgis-site-core-aws workflow"
 
-aws iam create-policy --policy-name ArcGISSiteCoreDestroy --policy-document file://ArcGISInfrastructureCoreDestroy.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for arcgis-site-core-aws-destroy workflow" 
+aws iam create-policy --policy-name ArcGISSiteCoreDestroy --policy-document file://ArcGISSiteCoreDestroy.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for arcgis-site-core-aws-destroy workflow" 
 
 aws iam create-policy --policy-name TerraformBackend --policy-document file://TerraformBackend.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for Terraform S3 backend"
 ```

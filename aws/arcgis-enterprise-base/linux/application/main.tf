@@ -228,7 +228,8 @@ module "arcgis_enterprise_files" {
   })
   execution_timeout = 1800
   depends_on = [
-    module.bootstrap_deployment
+    module.bootstrap_deployment,
+    module.s3_copy_files
   ]
 }
 

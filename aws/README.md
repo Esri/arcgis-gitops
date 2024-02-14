@@ -62,7 +62,7 @@ The specific guidance for using the templates depends on the use case and may in
 
 ### 1. Create GitHub Repository
 
-Create a new private GitHub repository from https://github.com/arcgis/arcgis-gitops template repository.
+[Create a new private GitHub repository](https://github.com/new?template_name=arcgis-gitops&template_owner=ArcGIS&description=ArcGIS%20Enterprise%20on%20AWS&name=arcgis-enterprise) from https://github.com/arcgis/arcgis-gitops template repository.
 
 Use separate GitHub repositories for each ArcGIS Enterprise site (organization) and separate branches for different  environments.
 

@@ -15,7 +15,7 @@
     "deployment_id": "arcgis-enterprise-base",    
     "instance_type": "m6i.2xlarge",
     "os": "windows2022",
-    "root_volume_size": 1024,
+    "root_volume_size": 100,
     "run_as_password": null,
     "run_as_username": "arcgis",
     "site_id": "arcgis-enterprise",

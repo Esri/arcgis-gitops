@@ -10,7 +10,6 @@ env:
   AWS_MAX_ATTEMPTS: 400
   ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
   ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
-  PACKER_VERSION: "latest"
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
   PLATFORM: ${{ vars.PLATFORM || 'windows' }}
 
@@ -34,11 +33,6 @@ jobs:
       - name: Install boto3
         id: install-boto3
         run: pip install boto3
-      - name: Setup `packer`
-        uses: hashicorp/setup-packer@main
-        id: setup
-        with:
-          version: ${{ env.PACKER_VERSION }}
       - name: Run `packer init`
         id: init
         run: packer init .

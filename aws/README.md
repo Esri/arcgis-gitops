@@ -14,8 +14,8 @@ The workflows require:
 
 The workflows use:
 
-* [Packer by HashiCorp](https://www.packer.io/) to build ArcGIS Enterprise EC2 AMIs
-* [Terraform by HashiCorp](https://www.terraform.io/) to provision infrastructure in AWS
+* [Packer by HashiCorp](https://developer.hashicorp.com/packer) to build ArcGIS Enterprise EC2 AMIs
+* [Terraform CLI by HashiCorp](https://developer.hashicorp.com/terraform/cli) to provision infrastructure in AWS
 * [AWS Systems Manager (SSM)](https://aws.amazon.com/systems-manager/) to remotely manage system and application configuration of the EC2 instances
 * Python scripts with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) to invoke AWS services and download installation media
 * [Cinc Client](https://cinc.sh/) and [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/) to install and configure ArcGIS Enterprise applications

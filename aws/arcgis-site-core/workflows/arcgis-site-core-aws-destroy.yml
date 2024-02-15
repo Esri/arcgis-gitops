@@ -16,7 +16,7 @@ concurrency:
 jobs:
   infrastructure_core:
     name: Destroy core infrastructure
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: aws/arcgis-site-core/infrastructure-core
@@ -39,7 +39,7 @@ jobs:
       run: terraform destroy -var-file ../config/infrastructure-core.tfvars.json -auto-approve
   automation_chef:
     name: Destroy Chef automation infrastructure 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: aws/arcgis-site-core/automation-chef

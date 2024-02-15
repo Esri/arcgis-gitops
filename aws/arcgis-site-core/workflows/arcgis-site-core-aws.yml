@@ -16,7 +16,7 @@ concurrency:
 jobs:
   infrastructure_core:
     name: Create core infrastructure
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       deployment_s3_bucket: ${{ steps.output.outputs.deployment_s3_bucket }}
       vpc_id: ${{ steps.output.outputs.vpc_id }}
@@ -46,7 +46,7 @@ jobs:
         echo vpc_id=$(terraform output -json | jq -r .vpc_id.value) >> $GITHUB_OUTPUT
   automation_chef:
     name: Create Chef automation infrastructure 
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: aws/arcgis-site-core/automation-chef

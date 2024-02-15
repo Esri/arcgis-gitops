@@ -26,7 +26,7 @@ concurrency:
 jobs:
   application:
     name: arcgis-enterprise-base/application
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       arcgis_portal_url: ${{ steps.output.outputs.arcgis_portal_url }}
     defaults:

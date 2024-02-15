@@ -19,7 +19,7 @@ concurrency:
 jobs:
   application-destroy:
     name: application-destroy
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: aws/arcgis-enterprise-base/${{ env.PLATFORM }}/application
@@ -45,7 +45,7 @@ jobs:
       run: terraform destroy -var-file ../config/application.tfvars.json -var=arcgis_online_username=$ARCGIS_ONLINE_USERNAME -var=arcgis_online_password=$ARCGIS_ONLINE_PASSWORD -auto-approve
   infrastructure-destroy:
     name: infrastructure-destroy
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: aws/arcgis-enterprise-base/${{ env.PLATFORM }}/infrastructure

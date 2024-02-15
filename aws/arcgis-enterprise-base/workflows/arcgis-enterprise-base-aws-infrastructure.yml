@@ -24,7 +24,7 @@ concurrency:
 jobs:
   infrastructure:
     name: arcgis-enterprise-base/infrastructure
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     outputs:
       alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
     defaults:

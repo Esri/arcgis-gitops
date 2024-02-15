@@ -24,7 +24,7 @@ concurrency:
 jobs:
   application:
     name: arcgis-enterprise-base/restore
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-latest
     defaults:
       run:
         working-directory: aws/arcgis-enterprise-base/${{ env.PLATFORM }}/restore

@@ -232,7 +232,7 @@ build {
             setup_options = "-f Relational,TileCache"
             data_dir = "/gisdata/arcgisdatastore"
             configure_autostart = true
-            preferredidentifier = "hostname"
+            preferredidentifier = "ip"
             install_system_requirements = true
           }
           portal = {

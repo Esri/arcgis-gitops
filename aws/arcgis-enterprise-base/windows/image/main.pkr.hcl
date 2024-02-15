@@ -259,7 +259,7 @@ build {
             setup_options = "ADDLOCAL=relational,tilecache"
             data_dir = "C:\\arcgisdatastore"
             install_system_requirements = true
-            preferredidentifier = "hostname"
+            preferredidentifier = "ip"
           }
           portal = {
             install_dir = "C:\\Program Files\\ArcGIS\\Portal"

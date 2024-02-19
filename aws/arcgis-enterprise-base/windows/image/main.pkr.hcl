@@ -315,7 +315,7 @@ build {
       }))
     }
 
-    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.main_machine_role} -j /arcgis/${var.site_id}/attributes/arcgis-enterprise-base/image/${var.arcgis_version}/${var.os}/patches -b ${data.amazon-parameterstore.s3_logs.value} -e 1200"
+    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.main_machine_role} -j /arcgis/${var.site_id}/attributes/arcgis-enterprise-base/image/${var.arcgis_version}/${var.os}/patches -b ${data.amazon-parameterstore.s3_logs.value} -e 3600"
   }
 
   # Clean up

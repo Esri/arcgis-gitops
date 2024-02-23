@@ -656,7 +656,7 @@ module "arcgis_enterprise_primary" {
         }
         object_store         = data.aws_ssm_parameter.s3_content.value
         authorization_file   = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
-        user_license_type_id = ""
+        user_license_type_id = var.portal_user_license_type_id
         keystore_file        = var.keystore_file_path != null ? local.keystore_file : ""
         keystore_password    = var.keystore_file_password
         root_cert            = local.root_cert

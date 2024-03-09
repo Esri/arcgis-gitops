@@ -29,7 +29,9 @@ jobs:
         activate-environment: ""    
     - name: Install arcgis # Install ArcGIS API for Python
       id: install-arcgis
-      run: conda install -c esri arcgis
+      run: |
+        conda install python=3.10 jupyter
+        conda install -c esri arcgis
     - name: Run Test
       id: test
       run: |

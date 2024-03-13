@@ -2,18 +2,20 @@
 
 ## Description
 
-The templates provide GitHub Actions workflows for ArcGIS Enterprise operations on [Amazon Web Services (AWS)](https://aws.amazon.com/).
+The templates provide GitHub Actions workflows for ArcGIS Enterprise operations on [Amazon Web Services (AWS)](https://aws.amazon.com/) for Windows, Linus, and Kubernetes platforms.
 
 The workflows require:
 
 * GitHub.com user account or GitHub Enterprise Server with enabled GitHub Actions
 * Amazon Web Services (AWS) account
-* ArcGIS Online user account (to download ArcGIS Enterprise installation media from [MyEsri](https://my.esri.com))
-* Authorization files for ArcGIS Enterprise applications
+* ArcGIS Online user account to download ArcGIS Enterprise installation media from [MyEsri](https://my.esri.com)
+* Authorization files for ArcGIS Enterprise software
 * SSL certificates for the ArcGIS Enterprise site domain names
+* Docker Hub account that has access to private repositories with ArcGIS Enterprise on Kubernetes container images.
 
 The workflows use:
 
+* [AWS CLI](https://aws.amazon.com/cli/) to manage AWS resources
 * [Packer by HashiCorp](https://developer.hashicorp.com/packer) to build ArcGIS Enterprise EC2 AMIs
 * [Terraform CLI by HashiCorp](https://developer.hashicorp.com/terraform/cli) to provision infrastructure in AWS
 * [AWS Systems Manager (SSM)](https://aws.amazon.com/systems-manager/) to remotely manage system and application configuration of the EC2 instances
@@ -37,6 +39,7 @@ The following templates are available for AWS:
 
 * [arcgis-site-core](arcgis-site-core/README.md) - Provision core AWS resources for ArcGIS Enterprise site
 * [arcgis-enterprise-base](arcgis-enterprise-base/README.md) - Base ArcGIS Enterprise deployment operations
+* [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment operations
 
 ### IAM Policies
 
@@ -86,10 +89,22 @@ Configure secrets and variables for GitHub Actions in the repository settings.
 
 | Name                   | Description                 |
 |------------------------|-----------------------------|
-| ARCGIS_ONLINE_PASSWORD | ArcGIS Online user password |
-| ARCGIS_ONLINE_USERNAME | ArcGIS Online user name     |
 | AWS_ACCESS_KEY_ID      | AWS access key Id           |
 | AWS_SECRET_ACCESS_KEY  | AWS secret access key       |
+
+For ArcGIS Enterprise on Windows and Linux:
+
+| Name                   | Description                 |
+|------------------------|-----------------------------|
+| ARCGIS_ONLINE_USERNAME | ArcGIS Online user name     |
+| ARCGIS_ONLINE_PASSWORD | ArcGIS Online user password |
+
+For ArcGIS Enterprise on Kubernetes:
+
+| Name                        | Description              |
+|-----------------------------|--------------------------|
+| CONTAINER_REGISTRY_USER     | Docker Hub user name     |
+| CONTAINER_REGISTRY_PASSWORD | Docker Hub user password |
 
 #### Variables
 

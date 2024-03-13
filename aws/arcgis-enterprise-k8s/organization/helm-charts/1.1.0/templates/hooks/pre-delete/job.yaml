@@ -1,0 +1,50 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  annotations:
+    "helm.sh/hook": "pre-delete"
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+    "helm.sh/hook-weight": "4"
+  labels:
+    arcgis-helm/siteName: "{{ .Release.Name }}"
+  name: "{{ .Release.Name }}-pre-delete-hook-job"
+spec:
+  backoffLimit: 0
+  template:
+    metadata:
+      labels:
+        arcgis-helm/siteName: "{{ .Release.Name }}"
+        cluster-autoscaler.kubernetes.io/safe-to-evict: "false"
+    spec:
+      serviceAccountName: "{{ .Release.Name }}-pre-delete-hook-service-account"
+      containers:
+        - name: pre-delete-container
+          image: {{ printf "%s/%s/%s:%v" .Values.image.registry .Values.image.repository "enterprise-admin-tools" .Values.image.tag }}
+          imagePullPolicy: Always
+          command: [ '/arcgis/framework/helm/undeploy-from-helm.sh' ]
+          args:
+            {{- if .Values.common.verbose }}
+            - -v
+            {{- end }}
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "1Gi"
+            limits:
+              cpu: "1"
+              memory: "2Gi"
+          volumeMounts:
+            - mountPath: /arcgisusr/user-inputs
+              name: user-inputs
+            - mountPath: /arcgistmp   # do we need this ?
+              name: arcgistmp
+      restartPolicy: Never
+      terminationGracePeriodSeconds: 0
+      volumes:
+        - name: user-inputs
+          secret:
+            secretName: "{{ .Release.Name }}-pre-delete-hook-user-inputs-secret"
+        - name: arcgistmp   # do we need this ?
+          emptyDir: {}
+      # imagePullSecrets:
+      #   - name: "{{ .Release.Name }}-pre-delete-hook-container-registry-secret"

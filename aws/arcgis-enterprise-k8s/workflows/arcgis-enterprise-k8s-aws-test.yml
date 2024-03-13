@@ -1,0 +1,42 @@
+name: arcgis-enterprise-k8s-aws-test
+
+on: 
+  workflow_dispatch:
+ 
+env:
+  PYTHONPATH: ${{ github.workspace }}/aws/tests
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/organization.tfvars.json
+
+jobs:
+  test:
+    name: arcgis-enterprise-k8s/test
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/aws/tests
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Setup Conda
+      uses: conda-incubator/setup-miniconda@v3
+      with:
+        auto-activate-base: true
+        activate-environment: ""    
+    - name: Install arcgis # Install ArcGIS API for Python
+      id: install-arcgis
+      run: |
+        conda install python=3.10 jupyter
+        conda install -c esri arcgis
+    - name: Run Test
+      id: test
+      run: |
+        ARCGIS_ENTERPRISE_FQDN=$(jq -r '.arcgis_enterprise_fqdn' $CONFIG_FILE)
+        ARCGIS_ENTERPRISE_CONTEXT=$(jq -r '.arcgis_enterprise_context' $CONFIG_FILE)
+        ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
+        ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
+        /usr/share/miniconda/bin/python arcgis-enterprise-base-test.py -a https://$ARCGIS_ENTERPRISE_FQDN/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD

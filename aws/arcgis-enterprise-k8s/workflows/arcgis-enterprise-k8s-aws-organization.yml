@@ -1,0 +1,61 @@
+name: arcgis-enterprise-k8s-aws-organization
+
+on: 
+  workflow_dispatch:
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}  
+  AWS_MAX_ATTEMPTS: 400
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/organization.tfvars.json
+
+concurrency:
+  group: ${{ github.ref_name }}
+  
+jobs:
+  organization:
+    name: arcgis-enterprise-k8s/organization
+    runs-on: ubuntu-latest
+    outputs:
+      arcgis_enterprise_manager_url: ${{ steps.output.outputs.arcgis_enterprise_manager_url }}
+      arcgis_enterprise_portal_url: ${{ steps.output.outputs.arcgis_enterprise_portal_url }}
+    defaults:
+      run:
+        working-directory: aws/arcgis-enterprise-k8s/organization
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Link config directory
+        id: symlink
+        run: ln -s ${{ github.workspace }}/config ~/config
+      - name: Update kubeconfig
+        id: update-kubeconfig
+        run: |
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
+      - name: Run Terraform
+        id: terraform
+        run: |
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+          terraform apply -var-file $CONFIG_FILE -auto-approve 
+      - name: Retrieve Logs
+        id: retrieve-logs
+        continue-on-error: true
+        if: always()
+        run: |
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+          POD_NAME=$(kubectl get pods --namespace $DEPLOYMENT_ID --selector=job-name=arcgis-pre-install-hook-job --output=jsonpath='{.items[*].metadata.name}')
+          echo "POD_NAME=$POD_NAME"
+          kubectl logs --namespace $DEPLOYMENT_ID -f $POD_NAME || true
+      - name: Terraform Output
+        id: output  
+        run: |
+          echo arcgis_enterprise_manager_url=$(terraform output arcgis_enterprise_manager_url) >> $GITHUB_OUTPUT
+          echo arcgis_enterprise_portal_url=$(terraform output arcgis_enterprise_portal_url) >> $GITHUB_OUTPUT
+        

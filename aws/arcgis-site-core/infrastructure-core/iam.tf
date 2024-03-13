@@ -1,4 +1,4 @@
-# IAM role of instance profile of the site's SSM managed EC2 instances
+# IAM role of the site's SSM managed EC2 instances
 resource "aws_iam_role" "arcgis_enterprise_role" {
   name_prefix = "ArcGISEnterpriseRole"
   description = "Permissions required for SSM managed instances and ArcGIS Enterprise apps"

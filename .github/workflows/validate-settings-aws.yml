@@ -10,7 +10,8 @@ env:
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
   ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
   ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
-  PLATFORM: ${{ vars.PLATFORM || 'windows' }}
+  CONTAINER_REGISTRY_USER: ${{ secrets.CONTAINER_REGISTRY_USER }}
+  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
 
 jobs:
@@ -34,6 +35,7 @@ jobs:
     - name: Test ArcGIS Online credentials
       id: test-arcgis-online-credentials
       run: python -m token_service_client 
-    - name: Validate PLATFORM
-      id: validate-platform
-      run: echo PLATFORM=$PLATFORM
+    - name: Test Docker Hub credentials
+      if: ${{ env.CONTAINER_REGISTRY_USER }} 
+      id: test-docker-hub-credentials
+      run: echo $CONTAINER_REGISTRY_PASSWORD | docker login --username $CONTAINER_REGISTRY_USER --password-stdin

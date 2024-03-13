@@ -2,7 +2,7 @@
 
 ## Description
 
-The templates provide GitHub Actions workflows for ArcGIS Enterprise operations on [Amazon Web Services (AWS)](https://aws.amazon.com/) for Windows, Linus, and Kubernetes platforms.
+The templates provide GitHub Actions workflows for ArcGIS Enterprise operations on [Amazon Web Services (AWS)](https://aws.amazon.com/) for Windows, Linux, and Kubernetes platforms.
 
 The workflows require:
 

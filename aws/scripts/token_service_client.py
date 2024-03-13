@@ -50,12 +50,18 @@ class TokenServiceClient:
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='token_service_client.py',
-        description='Generates ArcGIS Online token for the specified user credentials.')
+        description='Generates token for the specified user credentials.')
 
+    parser.add_argument('-s', dest='token_service_url', required=False,
+                        default='https://www.arcgis.com/sharing/rest/generateToken',
+                        help='Token service URL')
     parser.add_argument('-u', dest='username', required=False,
-                        help='ArcGIS Online user name')
+                        help='User name')
     parser.add_argument('-p', dest='password', required=False,
-                        help='ArcGIS Online user password')
+                        help='User password')
+    parser.add_argument('-e', dest='expiration', required=False,
+                        default=600, type=int,
+                        help='Token expiration in seconds')
 
     args = parser.parse_args()
 
@@ -64,20 +70,20 @@ if __name__ == '__main__':
     elif 'ARCGIS_ONLINE_USERNAME' in os.environ:
         username = os.environ['ARCGIS_ONLINE_USERNAME']
     else:
-        raise ValueError('ArcGIS Online user name is not specified.')
+        raise ValueError('User name is not specified.')
 
     if args.password:
         password = args.password
     elif 'ARCGIS_ONLINE_PASSWORD' in os.environ:
         password = os.environ['ARCGIS_ONLINE_PASSWORD']
     else:
-        raise ValueError('ArcGIS Online user password is not specified.')
+        raise ValueError('User password is not specified.')
 
-    token_service = TokenServiceClient()
+    token_service = TokenServiceClient(args.token_service_url)
 
     try:
-        token = token_service.generate_token(username, password)
-        print('token=' + token)    
+        token = token_service.generate_token(username, password, 'referer', args.expiration)
+        print(token)    
     except Exception as e:
         print(e)
         exit(1)

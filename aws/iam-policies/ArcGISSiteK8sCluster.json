@@ -1,0 +1,97 @@
+{
+    "Version": "2012-10-17",
+    "Statement": [
+        {
+            "Effect": "Allow",
+            "Action":[
+                "ec2:DescribeSubnets",
+                "ec2:CreateLaunchTemplate",
+                "ec2:CreateLaunchTemplateVersion",
+                "ec2:ModifyLaunchTemplate",
+                "ec2:RunInstances",
+                "ec2:CreateTags"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "eks:*",
+                "iam:AttachRolePolicy",
+                "iam:CreateOpenIDConnectProvider",
+                "iam:CreateRole",
+                "iam:DeleteRole",
+                "iam:GetOpenIDConnectProvider",
+                "iam:GetRole",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListInstanceProfilesForRole",
+                "iam:ListOpenIDConnectProviders",
+                "iam:ListPolicies",
+                "iam:ListRolePolicies",
+                "iam:ListRoles",
+                "iam:ListUsers",
+                "iam:TagOpenIDConnectProvider",
+                "iam:TagRole",
+                "iam:UpdateAssumeRolePolicy"
+            ],
+            "Resource": "*"
+        },      
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/EKSClusterRole*",
+                "arn:aws:iam::*:role/EKSWorkerNodeRole*",
+                "arn:aws:iam::*:role/AmazonEKS_EBS_CSI_DriverRole*",
+                "arn:aws:iam::*:role/AmazonEKSLoadBalancerControllerRole*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:CreateServiceLinkedRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/aws-service-role/scraper.aps.amazonaws.com/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:GetParameter",
+                "ssm:GetParametersByPath"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "kms:TagResource",
+                "kms:CreateKey",
+                "kms:ListResourceTags",
+                "kms:ListAliases",
+                "kms:DescribeKey",
+                "kms:GetKeyPolicy",
+                "kms:GetKeyRotationStatus",
+                "kms:ScheduleKeyDeletion",
+                "kms:CreateGrant"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action":[
+                "logs:CreateLogGroup",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "logs:GetLogEvents",
+                "logs:ListTagsLogGroup",
+                "logs:PutRetentionPolicy",
+                "logs:TagLogGroup"
+            ],
+            "Resource": "*"
+        }
+    ]
+}

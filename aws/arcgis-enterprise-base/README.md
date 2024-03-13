@@ -4,7 +4,7 @@ The template provides GitHub Actions workflows for [base ArcGIS Enterprise deplo
 
 Before running the template workflows:
 
-1. Configure the GitHub repository settings as described in the [Instruction](../README.md#instructions) section.
+1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
 2. Provision core AWS resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
 
 To enable the template's workflows, copy the .yml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.

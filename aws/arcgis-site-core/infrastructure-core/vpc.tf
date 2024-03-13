@@ -292,6 +292,7 @@ resource "aws_subnet" "private_subnet_1" {
 
   tags = {
     Name = "${var.site_id}/private-subnet-1"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -303,6 +304,7 @@ resource "aws_subnet" "private_subnet_2" {
 
   tags = {
     Name = "${var.site_id}/private-subnet-2"
+    "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
@@ -316,6 +318,7 @@ resource "aws_subnet" "public_subnet_1" {
 
   tags = {
     Name = "${var.site_id}/public-subnet-1"
+    "kubernetes.io/role/elb" = "1"    
   }
 }
 
@@ -327,6 +330,7 @@ resource "aws_subnet" "public_subnet_2" {
 
   tags = {
     Name = "${var.site_id}/public-subnet-2"
+    "kubernetes.io/role/elb" = "1"
   }
 }
 

@@ -6,11 +6,11 @@ The template provides workflows for provisioning:
 * AWS resources required for ArcGIS Enterprise site configuration management using [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/), and
 * Amazon Elastic Kubernetes Service (EKS) cluster that meets ArcGIS Enterprise on Kubernetes system requirements.
 
-Before running the template workflows, configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
+Before running the template workflows, configure the GitHub repository settings as described in the general [Instructions](../README.md#instructions) section.
 
 To enable the template's workflows, copy the .yml files from the template's `workflows` directory to `/.github/workflows` directory in the `main` branch, commit the changes, and push the branch to GitHub.
 
-> To prevent accidental destruction of the resources, don't enable arcgis-site-core-aws-destroy workflow until it is necessary.
+> To prevent accidental destruction of the resources, don't enable arcgis-site-core-aws-destroy and arcgis-site-k8s-cluster-aws-destroy workflows until it is necessary.
 
 > Refer to READMEs of the Terraform modules and Packer templates for descriptions of the configuration properties.
 

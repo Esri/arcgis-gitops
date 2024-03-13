@@ -56,6 +56,8 @@ Instructions:
 }
 ```
 
+> The value of "deployment_id" property defines the deployment's Kubernetes namespace.
+
 > See [Elastic Load Balancing SSL negotiation configuration](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) for the list of SSL policies.
 
 ### 2. Copy Container Images to Amazon ECR
@@ -94,15 +96,14 @@ Outputs:
 
 Instructions:
 
-1. Set "arcgis_version" property in the config file to the required ArcGIS Enterprise on Kubernetes version.
-2. Set "helm_charts_version" property to the Helm Charts for ArcGIS Enterprise on Kubernetes version that is compatible with the ArcGIS Enterprise on Kubernetes version.
-3. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/aws/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file paths.
-4. Set "system_arch_profile" property to the required ArcGIS Enterprise on Kubernetes architecture profile.
-5. Set "arcgis_enterprise_fqdn" property to the ArcGIS Enterprise deployment fully qualified domain name.
-6. Set "admin_username", "admin_password", "admin_first_name", "admin_last_name", "admin_email", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
-7. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
-8. Commit the changes to the Git branch and push the branch to GitHub.
-9. Run arcgis-enterprise-k8s-aws-organization workflow using the branch.
+1. Set "helm_charts_version" property to the Helm Charts for ArcGIS Enterprise on Kubernetes version that is compatible with the ArcGIS Enterprise on Kubernetes version.
+2. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/aws/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file paths.
+3. Set "system_arch_profile" property to the required ArcGIS Enterprise on Kubernetes architecture profile.
+4. Set "arcgis_enterprise_fqdn" property to the ArcGIS Enterprise deployment fully qualified domain name.
+5. Set "admin_username", "admin_password", "admin_first_name", "admin_last_name", "admin_email", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
+6. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
+7. Commit the changes to the Git branch and push the branch to GitHub.
+8. Run arcgis-enterprise-k8s-aws-organization workflow using the branch.
 
 Example organization.tfvars.json properties file for ArcGIS Enterprise on Kubernetes 11.2:
 
@@ -214,11 +215,11 @@ GitHub Actions workflow arcgis-enterprise-k8s-aws-organization supports [updates
 Instructions:
 
 1. (For updates) Update manifest file of the current ArcGIS Enterprise on Kubernetes version in /config/aws/arcgis-enterprise-k8s/manifests directory to the one that includes container images required by the update.
-2. (For upgrades) for Change "arcgis_version" property in organization.tfvars.json file to the new ArcGIS Enterprise on Kubernetes version.
+2. (For upgrades) Change "arcgis_version" property in organization.tfvars.json file to the new ArcGIS Enterprise on Kubernetes version.
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run arcgis-enterprise-k8s-aws-image workflow using the branch.
 5. (For upgrades) Add ArcGIS Enterprise on Kubernetes authorization files for the new ArcGIS Enterprise version to `/config/aws/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file paths.
-6. Set "helm_charts_version" property to the Helm Charts for ArcGIS Enterprise on Kubernetes version compatible with the new ArcGIS Enterprise on Kubernetes version.
+6. Set "helm_charts_version" property to the Helm Charts version compatible with the new ArcGIS Enterprise on Kubernetes version (see "Chart Version Compatibility" section in the charts' READMEs).
 7. Set "upgrade_token" property to a long lived (>= 6 hours expiration time) token generated for ArcGIS Enterprise organization administrator account through the `https://<arcgis_enterprise_fqdn>/<arcgis_enterprise_fqdn>/sharing/rest/generateToken` endpoint.
 8. Commit the changes to the Git branch and push the branch to GitHub.
 9. Run arcgis-enterprise-k8s-aws-organization workflow using the branch.

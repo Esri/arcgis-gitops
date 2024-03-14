@@ -1,0 +1,38 @@
+name: arcgis-enterprise-base-windows-aws-image
+
+on: 
+  workflow_dispatch:
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  AWS_MAX_ATTEMPTS: 400
+  ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
+  ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/image.vars.json
+
+concurrency:
+  group: ${{ github.ref_name }}
+  
+jobs:
+  packer:
+    name: Create AMIs
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: aws/arcgis-enterprise-base-windows/image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Install boto3
+        id: install-boto3
+        run: pip install boto3
+      - name: Run Packer
+        id: packer
+        run: |
+          packer init .
+          packer build -var-file=$CONFIG_FILE -var=arcgis_online_username=$ARCGIS_ONLINE_USERNAME -var=arcgis_online_password=$ARCGIS_ONLINE_PASSWORD .

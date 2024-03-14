@@ -31,30 +31,6 @@ Instructions:
 2. Commit the changes to a Git branch and push the branch to GitHub.
 3. Run arcgis-enterprise-base-linux-aws-image workflow using the branch.
 
-Example image.vars.json properties file for base ArcGIS Enterprise 11.2 on Linux RHEL 8:
-
-```json
-{
-    "arcgis_data_store_patches": [
-        "ArcGIS-112-DS-*-linux.tar"
-    ],
-    "arcgis_portal_patches": [
-        "ArcGIS-112-PFA-*-linux.tar"
-    ],
-    "arcgis_server_patches": [
-        "ArcGIS-112-S-*-linux.tar"
-    ],
-    "arcgis_version": "11.2",
-    "arcgis_web_adaptor_patches": [],
-    "deployment_id": "arcgis-enterprise-base",
-    "instance_type": "m7i.xlarge",
-    "os": "rhel8",
-    "root_volume_size": 100,
-    "run_as_user": "arcgis",
-    "site_id": "arcgis-enterprise"
-}
-```
-
 > In the configuration files, "os" and "arcgis_version" properties values for the same deployment must match across all the configuration files of the deployment.
 
 ### 2. Provision AWS Resources
@@ -85,24 +61,6 @@ Instructions:
 5. Run arcgis-enterprise-base-linux-aws-infrastructure workflow using the branch.
 6. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
 
-Example infrastructure.tfvars.json properties file for base ArcGIS Enterprise on Linux RHEL 8:
-
-```json
-{
-  "client_cidr_blocks": [
-    "0.0.0.0/0"
-  ],
-  "deployment_id": "arcgis-enterprise-base",
-  "instance_type": "m7i.xlarge",
-  "key_name": "<my key>",
-  "os": "rhel8",
-  "root_volume_size": 100,
-  "site_id": "arcgis-enterprise",
-  "ssl_certificate_arn": "arn:aws:acm:us-east-1:XXXXXXXXXXXX:certificate/XXXXXXXX",
-  "subnet_type": "private"
-}
-```
-
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 
 ### 3. Configure Applications
@@ -132,38 +90,6 @@ Instructions:
 4. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties in application.tfvars.json file to the file paths. Set "keystore_file_password" property to password of the keystore file.
 5. Commit the changes to the Git branch and push the branch to GitHub.
 6. Run arcgis-enterprise-base-linux-aws-application workflow using the branch.
-
-Example application.tfvars.json properties file for base ArcGIS Enterprise 11.2 on Linux RHEL 8:
-
-```json
-{
-  "admin_description": "Initial account administrator",
-  "admin_email": "siteadmin@domain.com",
-  "admin_full_name": "Administrator",
-  "admin_password": "<admin_password>",
-  "admin_username": "siteadmin",
-  "arcgis_data_store_patches": [],
-  "arcgis_portal_patches": [],
-  "arcgis_server_patches": [],
-  "arcgis_version": "11.2",
-  "arcgis_web_adaptor_patches": [],
-  "deployment_id": "arcgis-enterprise-base",
-  "domain_name": "domain.com",
-  "is_upgrade": false,
-  "keystore_file_password": "<keystore_file_password>",
-  "keystore_file_path": "~/config/certificates/keystore.pfx",
-  "log_level": "INFO",
-  "os": "rhel8",
-  "portal_authorization_file_path": "~/config/authorization/11.2/portal_112.json",
-  "portal_user_license_type_id": "",
-  "root_cert_file_path": "~/config/certificates/root.crt",
-  "run_as_user": "arcgis",
-  "security_question_answer": "<security_question_answer>",
-  "security_question": "What city were you born in?",
-  "server_authorization_file_path": "~/config/authorization/11.2/server_112.ecp",
-  "site_id": "arcgis-enterprise"
-}
-```
 
 > '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
@@ -202,21 +128,6 @@ Instructions:
 
 > Base ArcGIS Enterprise deployments in a site use the same S3 bucket for backups. Run backups only for the active deployment branch.
 
-Example backup.tfvars.json properties file for base ArcGIS Enterprise on Linux:
-
-```json
-{
-  "admin_password": "<admin_password>",
-  "admin_username": "siteadmin",
-  "backup_restore_mode": "backup",
-  "deployment_id": "arcgis-enterprise-base",
-  "execution_timeout": 36000,
-  "portal_admin_url": "https://localhost:7443/arcgis",
-  "run_as_user": "arcgis",
-  "site_id": "arcgis-enterprise"
-}
-```
-
 ### Restore from Backups
 
 GitHub Actions workflow **arcgis-enterprise-base-linux-aws-restore** restores base ArcGIS Enterprise from backup using WebGISDR utility.
@@ -233,21 +144,6 @@ Instructions:
 1. Set "admin_username" and "admin_password" properties in restore.tfvars.json file to the portal administrator user name and password respectively.
 2. Commit the changes to the Git branch and push the branch to GitHub.
 3. Run arcgis-enterprise-base-linux-aws-restore workflow using the branch.
-
-Example restore.tfvars.json properties file for base ArcGIS Enterprise on Linux:
-
-```json
-{
-  "admin_password": "<admin_password>",
-  "admin_username": "siteadmin",
-  "backup_restore_mode": "backup",
-  "deployment_id": "arcgis-enterprise-base",
-  "execution_timeout": 36000,
-  "portal_admin_url": "https://localhost:7443/arcgis",
-  "run_as_user": "arcgis",
-  "site_id": "arcgis-enterprise"
-}
-```
 
 ### Failover Deployment
 

@@ -32,31 +32,6 @@ Instructions:
 3. Commit the changes to a Git branch and push the branch to GitHub.
 4. Run arcgis-enterprise-base-windows-aws-image workflow using the branch.
 
-Example image.vars.json properties file for base ArcGIS Enterprise 11.2:
-
-```json
-{
-    "arcgis_data_store_patches": [
-        "ArcGIS-112-DS-*.msp"
-    ],
-    "arcgis_portal_patches": [
-        "ArcGIS-112-PFA-*.msp"
-    ],
-    "arcgis_server_patches": [
-        "ArcGIS-112-S-*.msp"
-    ],
-    "arcgis_version": "11.2",
-    "arcgis_web_adaptor_patches": [],
-    "deployment_id": "arcgis-enterprise-base",
-    "instance_type": "m7i.xlarge",
-    "os": "windows2022",
-    "root_volume_size": 100,
-    "run_as_user": "arcgis",
-    "run_as_password": "<run_as_password>",
-    "site_id": "arcgis-enterprise"
-}
-```
-
 > In the configuration files, "os" and "arcgis_version" properties values for the same deployment must match across all the configuration files of the deployment.
 
 ### 2. Provision AWS Resources
@@ -87,24 +62,6 @@ Instructions:
 5. Run arcgis-enterprise-base-windows-aws-infrastructure workflow using the branch.
 6. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
 
-Example infrastructure.tfvars.json properties file for base ArcGIS Enterprise:
-
-```json
-{
-  "client_cidr_blocks": [
-    "0.0.0.0/0"
-  ],
-  "deployment_id": "arcgis-enterprise-base",
-  "instance_type": "m7i.xlarge",
-  "key_name": "<my key>",
-  "os": "windows2022",
-  "root_volume_size": 100,
-  "site_id": "arcgis-enterprise",
-  "ssl_certificate_arn": "arn:aws:acm:us-east-1:XXXXXXXXXXXX:certificate/XXXXXXXX",
-  "subnet_type": "private"
-}
-```
-
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 
 ### 3. Configure Applications
@@ -131,39 +88,6 @@ Instructions:
 5. Set "run_as_password" property in application.tfvars.json file to the password of `arcgis` user account.
 6. Commit the changes to the Git branch and push the branch to GitHub.
 7. Run arcgis-enterprise-base-windows-aws-application workflow using the branch.
-
-Example application.tfvars.json properties file for base ArcGIS Enterprise 11.2:
-
-```json
-{
-  "admin_description": "Initial account administrator",
-  "admin_email": "siteadmin@domain.com",
-  "admin_full_name": "Administrator",
-  "admin_password": "<admin_password>",
-  "admin_username": "siteadmin",
-  "arcgis_data_store_patches": [],
-  "arcgis_portal_patches": [],
-  "arcgis_server_patches": [],
-  "arcgis_version": "11.2",
-  "arcgis_web_adaptor_patches": [],
-  "deployment_id": "arcgis-enterprise-base",
-  "domain_name": "domain.com",
-  "is_upgrade": false,
-  "keystore_file_password": "<keystore_file_password>",
-  "keystore_file_path": "~/config/certificates/keystore.pfx",
-  "log_level": "INFO",
-  "os": "windows2022",
-  "portal_authorization_file_path": "~/config/authorization/11.2/portal_112.json",
-  "portal_user_license_type_id": "",
-  "root_cert_file_path": "~/config/certificates/root.crt",
-  "run_as_user": "arcgis",
-  "run_as_password": "<run_as_password>",
-  "security_question_answer": "<security_question_answer>",
-  "security_question": "What city were you born in?",
-  "server_authorization_file_path": "~/config/authorization/11.2/server_112.ecp",
-  "site_id": "arcgis-enterprise"
-}
-```
 
 ### 4. Test Base ArcGIS Enterprise Deployment
 
@@ -201,22 +125,6 @@ Instructions:
 
 > Base ArcGIS Enterprise deployments in a site use the same S3 bucket for backups. Run backups only for the active deployment branch.
 
-Example backup.tfvars.json properties file for base ArcGIS Enterprise:
-
-```json
-{
-  "admin_password": "<admin_password>",
-  "admin_username": "siteadmin",
-  "backup_restore_mode": "backup",
-  "deployment_id": "arcgis-enterprise-base",
-  "execution_timeout": 36000,
-  "portal_admin_url": "https://localhost:7443/arcgis",
-  "run_as_user": "arcgis",
-  "run_as_password": "<run_as_password>",
-  "site_id": "arcgis-enterprise"
-}
-```
-
 ### Restore from Backups
 
 GitHub Actions workflow **arcgis-enterprise-base-windows-aws-restore** restores base ArcGIS Enterprise from backup using WebGISDR utility.
@@ -234,22 +142,6 @@ Instructions:
 2. Set "run_as_password" property in restore.tfvars.json file to the password of `arcgis` user account.
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run arcgis-enterprise-base-windows-aws-restore workflow using the branch.
-
-Example restore.tfvars.json properties file for base ArcGIS Enterprise:
-
-```json
-{
-  "admin_password": "<admin_password>",
-  "admin_username": "siteadmin",
-  "backup_restore_mode": "backup",
-  "deployment_id": "arcgis-enterprise-base",
-  "execution_timeout": 36000,
-  "portal_admin_url": "https://localhost:7443/arcgis",
-  "run_as_user": "arcgis",
-  "run_as_password": "<run_as_password>",
-  "site_id": "arcgis-enterprise"
-}
-```
 
 ### Failover Deployment
 

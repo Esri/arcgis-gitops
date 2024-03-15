@@ -1,4 +1,4 @@
-name: arcgis-enterprise-k8s-aws-ingress
+name: enterprise-k8s-aws-ingress
 
 on: 
   workflow_dispatch:
@@ -16,7 +16,7 @@ concurrency:
   
 jobs:
   ingress:
-    name: arcgis-enterprise-k8s/ingress
+    name: Ingress Controller
     runs-on: ubuntu-latest
     outputs:
       alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}

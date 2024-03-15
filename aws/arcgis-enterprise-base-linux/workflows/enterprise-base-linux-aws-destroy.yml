@@ -1,4 +1,4 @@
-name: arcgis-enterprise-base-linux-aws-destroy
+name: enterprise-base-linux-aws-destroy
 
 on:
   workflow_dispatch:
@@ -19,7 +19,7 @@ concurrency:
 
 jobs:
   destroy:
-    name: application-destroy
+    name: Destroy Deployment
     runs-on: ubuntu-latest
     permissions:
       contents: read

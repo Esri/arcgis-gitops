@@ -1,4 +1,4 @@
-name: arcgis-site-k8s-cluster-aws-destroy
+name: site-k8s-cluster-aws-destroy
 
 on: 
   workflow_dispatch:

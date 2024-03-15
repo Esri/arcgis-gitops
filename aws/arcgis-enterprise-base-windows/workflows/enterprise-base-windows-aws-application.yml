@@ -1,4 +1,4 @@
-name: arcgis-enterprise-base-linux-aws-application
+name: enterprise-base-windows-aws-application
 
 on: 
   workflow_dispatch:
@@ -11,20 +11,21 @@ env:
   ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
   ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-linux/application.tfvars.json
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/application.tfvars.json
+
 
 concurrency:
   group: ${{ github.ref_name }}
 
 jobs:
   application:
-    name: arcgis-enterprise-base-linux/application
+    name: Configure Applications
     runs-on: ubuntu-latest
     outputs:
       arcgis_portal_url: ${{ steps.output.outputs.arcgis_portal_url }}
     defaults:
       run:
-        working-directory: aws/arcgis-enterprise-base-linux/application
+        working-directory: aws/arcgis-enterprise-base-windows/application
     permissions:
       contents: read
       pull-requests: write
@@ -36,10 +37,10 @@ jobs:
     - name: Link config directory
       id: symlink
       run: ln -s ${{ github.workspace }}/config ~/config
-    - name: Install boto3
+    - name: Install Boto3
       id: install-boto3
       run: pip install boto3
-    - name: Run Terraform 
+    - name: Run Terraform
       id: terraform
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)

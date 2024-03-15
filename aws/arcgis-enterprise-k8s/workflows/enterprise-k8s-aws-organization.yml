@@ -1,4 +1,4 @@
-name: arcgis-enterprise-k8s-aws-organization
+name: enterprise-k8s-aws-organization
 
 on: 
   workflow_dispatch:
@@ -16,7 +16,7 @@ concurrency:
   
 jobs:
   organization:
-    name: arcgis-enterprise-k8s/organization
+    name: ArcGIS Enterprise Organization
     runs-on: ubuntu-latest
     outputs:
       arcgis_enterprise_manager_url: ${{ steps.output.outputs.arcgis_enterprise_manager_url }}

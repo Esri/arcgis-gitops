@@ -1,4 +1,4 @@
-name: arcgis-enterprise-base-windows-aws-infrastructure
+name: enterprise-base-windows-aws-infrastructure
 
 on: 
   workflow_dispatch:
@@ -23,7 +23,7 @@ concurrency:
   
 jobs:
   infrastructure:
-    name: arcgis-enterprise-base-windows/infrastructure
+    name: Provision AWS Resources
     runs-on: ubuntu-latest
     outputs:
       alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
@@ -38,7 +38,7 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ github.ref_name }}
-    - name: Install boto3
+    - name: Install Boto3
       id: install-boto3
       run: pip install boto3
     - name: Terraform Init

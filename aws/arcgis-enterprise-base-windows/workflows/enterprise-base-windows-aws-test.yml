@@ -1,4 +1,4 @@
-name: arcgis-enterprise-base-windows-aws-test
+name: enterprise-base-windows-aws-test
 
 on: 
   workflow_dispatch:
@@ -8,8 +8,8 @@ env:
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/application.tfvars.json
 
 jobs:
-  application:
-    name: arcgis-enterprise-base-windows/test
+  applicatesttion:
+    name: Test Deployment
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,7 +27,7 @@ jobs:
       with:
         auto-activate-base: true
         activate-environment: ""    
-    - name: Install arcgis # Install ArcGIS API for Python
+    - name: Install ArcGIS API for Python
       id: install-arcgis
       run: |
         conda install python=3.10 jupyter

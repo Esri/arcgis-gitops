@@ -1,4 +1,4 @@
-name: arcgis-enterprise-base-linux-aws-image
+name: enterprise-base-windows-aws-image
 
 on: 
   workflow_dispatch:
@@ -11,18 +11,18 @@ env:
   ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
   ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-linux/image.vars.json
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/image.vars.json
 
 concurrency:
   group: ${{ github.ref_name }}
   
 jobs:
-  packer:
-    name: Create AMIs
+  image:
+    name: Build Images
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: aws/arcgis-enterprise-base-linux/image
+        working-directory: aws/arcgis-enterprise-base-windows/image
     steps:
       - name: Checkout
         uses: actions/checkout@v4

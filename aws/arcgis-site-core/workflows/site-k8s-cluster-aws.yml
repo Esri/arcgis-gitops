@@ -1,4 +1,4 @@
-name: arcgis-site-k8s-cluster-aws
+name: site-k8s-cluster-aws
 
 on: 
   workflow_dispatch:

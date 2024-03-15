@@ -1,28 +1,26 @@
-name: arcgis-enterprise-base-windows-aws-backup
+name: enterprise-base-windows-aws-restore
 
 on: 
   workflow_dispatch:
-  # schedule:
-  #   - cron: '0 0 * * *'
-      
+
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/backup.tfvars.json
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/restore.tfvars.json
 
 concurrency:
   group: ${{ github.ref_name }}
 
 jobs:
-  backup:
-    name: arcgis-enterprise-base-windows/backup
+  restore:
+    name: Restore from Backup
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: aws/arcgis-enterprise-base-windows/backup
+        working-directory: aws/arcgis-enterprise-base-windows/restore
     permissions:
       contents: read
       pull-requests: write
@@ -31,13 +29,14 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ github.ref_name }}
-    - name: Install boto3
+    - name: Install Boto3
       id: install-boto3
       run: pip install boto3
-    - name: Run Terraform 
-      id: terraform
+    - name: Terraform Init
+      id: init
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/backup.tfstate" -backend-config="region=$AWS_DEFAULT_REGION"
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/restore.tfstate" -backend-config="region=$AWS_DEFAULT_REGION"
         terraform apply -var-file $CONFIG_FILE -auto-approve
+

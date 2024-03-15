@@ -1,4 +1,4 @@
-name: arcgis-enterprise-k8s-aws-image
+name: enterprise-k8s-aws-image
 
 on: 
   workflow_dispatch:
@@ -18,8 +18,8 @@ concurrency:
   group: ${{ github.ref_name }}
   
 jobs:
-  copy-images-to-ecr:
-    name: Copy container images to ECR
+  image:
+    name: Copy Container Images to Amazon ECR
     runs-on: ubuntu-latest
     defaults:
       run:

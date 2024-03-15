@@ -1,4 +1,4 @@
-name: arcgis-site-core-aws
+name: site-core-aws-destroy
 
 on: 
   workflow_dispatch:
@@ -15,17 +15,15 @@ concurrency:
 
 jobs:
   infrastructure_core:
-    name: Create core infrastructure
+    name: Destroy core infrastructure
     runs-on: ubuntu-latest
-    outputs:
-      deployment_s3_bucket: ${{ steps.output.outputs.deployment_s3_bucket }}
-      vpc_id: ${{ steps.output.outputs.vpc_id }}
     defaults:
       run:
         working-directory: aws/arcgis-site-core/infrastructure-core
     permissions:
       contents: read
       pull-requests: write
+    needs: automation_chef      
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -36,16 +34,11 @@ jobs:
       run: |
         SITE_ID=$(jq -r '.site_id' ../config/infrastructure-core.tfvars.json)
         terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/infrastructure-core.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
-    - name: Terraform Apply
-      id: apply
-      run: terraform apply -var-file ../config/infrastructure-core.tfvars.json -auto-approve
-    - name: Terraform Output
-      id: output
-      run: |
-        echo deployment_s3_bucket=$(terraform output -json | jq -r .deployment_s3_bucket.value) >> $GITHUB_OUTPUT
-        echo vpc_id=$(terraform output -json | jq -r .vpc_id.value) >> $GITHUB_OUTPUT
+    - name: Terraform Destroy
+      id: destroy
+      run: terraform destroy -var-file ../config/infrastructure-core.tfvars.json -auto-approve
   automation_chef:
-    name: Create Chef automation infrastructure 
+    name: Destroy Chef automation infrastructure 
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -53,7 +46,6 @@ jobs:
     permissions:
       contents: read
       pull-requests: write
-    needs: infrastructure_core
     steps:
     - name: Setup Terraform
       uses: hashicorp/setup-terraform@v3
@@ -72,7 +64,7 @@ jobs:
       run: |
         SITE_ID=$(jq -r '.site_id' ../config/automation-chef.tfvars.json)
         terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/automation-chef.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
-    - name: Terraform Apply
-      id: apply
-      run: terraform apply -var-file ../config/automation-chef.tfvars.json -auto-approve
+    - name: Terraform Destroy
+      id: destroy 
+      run: terraform destroy -var-file ../config/automation-chef.tfvars.json -auto-approve
             

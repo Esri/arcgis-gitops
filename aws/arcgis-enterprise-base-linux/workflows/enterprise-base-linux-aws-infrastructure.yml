@@ -1,4 +1,4 @@
-name: arcgis-enterprise-base-linux-aws-infrastructure
+name: enterprise-base-linux-aws-infrastructure
 
 on: 
   workflow_dispatch:
@@ -23,7 +23,7 @@ concurrency:
   
 jobs:
   infrastructure:
-    name: arcgis-enterprise-base-linux/infrastructure
+    name: Provision AWS Resources
     runs-on: ubuntu-latest
     outputs:
       alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}

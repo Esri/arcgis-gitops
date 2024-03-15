@@ -1,4 +1,4 @@
-name: arcgis-enterprise-k8s-aws-destroy
+name: enterprise-k8s-aws-destroy
 
 on: 
   workflow_dispatch:
@@ -23,7 +23,7 @@ concurrency:
   
 jobs:
   destroy:
-    name: arcgis-enterprise-k8s/destroy
+    name: Destroy Deployment
     runs-on: ubuntu-latest
     outputs:
       alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}

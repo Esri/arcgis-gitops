@@ -1,4 +1,4 @@
-name: arcgis-enterprise-k8s-aws-test
+name: enterprise-k8s-aws-test
 
 on: 
   workflow_dispatch:
@@ -9,7 +9,7 @@ env:
 
 jobs:
   test:
-    name: arcgis-enterprise-k8s/test
+    name: Test Deployment
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -27,7 +27,7 @@ jobs:
       with:
         auto-activate-base: true
         activate-environment: ""    
-    - name: Install arcgis # Install ArcGIS API for Python
+    - name: Install ArcGIS API for Python
       id: install-arcgis
       run: |
         conda install python=3.10 jupyter

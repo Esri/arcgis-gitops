@@ -44,18 +44,6 @@ Instructions:
 4. Run arcgis-enterprise-k8s-aws-ingress workflow using the branch.
 5. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
-```json
-{
-  "arcgis_enterprise_context": "arcgis",
-  "arcgis_enterprise_fqdn": "my.domain.com",
-  "deployment_id": "arcgis-enterprise-k8s",
-  "scheme": "internet-facing",
-  "site_id": "arcgis-enterprise",
-  "ssl_certificate_arn": "arn:aws:acm:us-east-1:XXXXXXXXXXXX:certificate/XXXXXXXX",
-  "ssl_policy": "ELBSecurityPolicy-TLS13-1-2-2021-06"
-}
-```
-
 > The value of "deployment_id" property defines the deployment's Kubernetes namespace.
 
 > See [Elastic Load Balancing SSL negotiation configuration](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) for the list of SSL policies.
@@ -104,81 +92,6 @@ Instructions:
 6. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
 7. Commit the changes to the Git branch and push the branch to GitHub.
 8. Run arcgis-enterprise-k8s-aws-organization workflow using the branch.
-
-Example organization.tfvars.json properties file for ArcGIS Enterprise on Kubernetes 11.2:
-
-```json
-{
-  "admin_email": "siteadmin@my.domain.com",
-  "admin_first_name": "System",
-  "admin_last_name": "Administrator",
-  "admin_password": "<admin_password>",
-  "admin_username": "siteadmin",
-  "arcgis_enterprise_context": "arcgis",
-  "arcgis_enterprise_fqdn": "my.domain.com",
-  "arcgis_version": "11.2.0",
-  "configure_enterprise_org": true,
-  "deployment_id": "arcgis-enterprise-k8s",
-  "helm_charts_version": "1.2.0",
-  "authorization_file_path": "~/config/authorization/11.2/arcgis_enterprise_k8s_112.json",
-  "license_type_id": "creatorUT",
-  "security_question_answer": "<security_question_answer>",
-  "security_question_index": 1,
-  "site_id": "arcgis-enterprise",
-  "system_arch_profile": "standard-availability",
-  "storage": {
-    "indexer": {
-      "class": "gp3",
-      "label1": "",
-      "label2": "",
-      "size": "16Gi",
-      "type": "DYNAMIC"
-    },
-    "memory": {
-      "class": "gp3",
-      "label1": "",
-      "label2": "",
-      "size": "16Gi",
-      "type": "DYNAMIC"
-    },
-    "object": {
-      "class": "gp3",
-      "label1": "",
-      "label2": "",
-      "size": "32Gi",
-      "type": "DYNAMIC"
-    },
-    "prometheus": {
-      "class": "gp3",
-      "label1": "",
-      "label2": "",
-      "size": "30Gi",
-      "type": "DYNAMIC"
-    },
-    "queue": {
-      "class": "gp3",
-      "label1": "",
-      "label2": "",
-      "size": "16Gi",
-      "type": "DYNAMIC"
-    },
-    "relational": {
-      "class": "gp3",
-      "label1": "",
-      "label2": "",
-      "size": "16Gi",
-      "type": "DYNAMIC"
-    },
-    "sharing": {
-      "class": "gp3",
-      "label1": "",
-      "label2": "",
-      "size": "16Gi",
-      "type": "DYNAMIC"
-    }
-  }
-}
-```
 
 > '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 

@@ -1,0 +1,61 @@
+name: arcgis-enterprise-base-linux-aws-infrastructure
+
+on: 
+  workflow_dispatch:
+    inputs:
+      terraform_command:
+        description: 'Terraform Command'
+        type: choice
+        options:
+        - apply
+        - plan
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-linux/infrastructure.tfvars.json
+
+concurrency:
+  group: ${{ github.ref_name }}
+  
+jobs:
+  infrastructure:
+    name: arcgis-enterprise-base-linux/infrastructure
+    runs-on: ubuntu-latest
+    outputs:
+      alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
+    defaults:
+      run:
+        working-directory: aws/arcgis-enterprise-base-linux/infrastructure
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Install boto3
+      id: install-boto3
+      run: pip install boto3
+    - name: Terraform Init
+      id: init
+      run: |
+        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+    - name: Terraform Apply
+      id: apply
+      if: github.event.inputs.terraform_command == 'apply'
+      run: terraform apply -var-file $CONFIG_FILE -auto-approve
+    - name: Terraform Plan
+      id: plan
+      if: github.event.inputs.terraform_command == 'plan'
+      run: terraform plan -var-file $CONFIG_FILE 
+    - name: Terraform Output
+      id: output  
+      run: echo alb_dns_name=$(terraform output alb_dns_name) >> $GITHUB_OUTPUT
+

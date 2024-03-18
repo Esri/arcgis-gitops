@@ -53,10 +53,9 @@ Instructions:
 3. Commit the changes to the `main` branch and push the branch to GitHub.
 4. Run site-automation-chef-aws workflow using the `main` branch.
 
-## Deploy EKS Cluster
+## Deploy K8s Cluster
 
-GitHub Actions workflow **site-k8s-cluster-aws** deploys Amazon EKS cluster
-that meets ArcGIS Enterprise on Kubernetes system requirements.
+GitHub Actions workflow **site-k8s-cluster-aws** deploys Amazon EKS cluster that meets ArcGIS Enterprise on Kubernetes system requirements.
 
 The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8s-cluster.tfvars.json](../../config/aws/arcgis-site-core/k8s-cluster.tfvars.json) config file.
 
@@ -73,7 +72,7 @@ Instructions:
 4. Commit the changes to the `main` branch and push the branch to GitHub.
 5. Run site-k8s-cluster-aws workflow using the `main` branch.
 
-## Destroy EKS Cluster
+## Destroy K8s Cluster
 
 GitHub Actions workflow **site-k8s-cluster-aws-destroy** destroys Amazon EKS cluster created by site-k8s-cluster-aws workflow.
 

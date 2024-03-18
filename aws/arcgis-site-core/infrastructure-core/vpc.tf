@@ -3,7 +3,9 @@ data "aws_availability_zones" "available" {
 }
 
 locals {
-  availability_zones = length(var.availability_zones) < 2 ? data.aws_availability_zones.available.names : var.availability_zones
+  zones = data.aws_availability_zones.available.names
+  # Use the first two available zones if the availability zones are not specified.
+  availability_zones = length(var.availability_zones) < 2 ? [local.zones[0], local.zones[1]] : var.availability_zones
 }
 
 # VPC
@@ -45,7 +47,7 @@ resource "aws_eip" "nat" {
 # NAT gateway
 resource "aws_nat_gateway" "nat" {
   allocation_id = aws_eip.nat.id
-  subnet_id     = aws_subnet.public_subnet_1.id
+  subnet_id     = aws_subnet.public_subnets[0].id
 
   tags = {
     Name = "${var.site_id}/nat"
@@ -60,7 +62,7 @@ resource "aws_nat_gateway" "nat" {
 
 resource "aws_security_group" "vpc_endpoints_sg" {
   name        = "${var.site_id}-vpc-endpoints"
-  description = "Allow traffic to the VPC endpoints"
+  description = "Allow traffic to interface VPC endpoints"
   vpc_id      = aws_vpc.vpc.id
 
   ingress {
@@ -84,40 +86,25 @@ resource "aws_security_group" "vpc_endpoints_sg" {
   }
 }
 
-resource "aws_vpc_endpoint" "s3" {
-  count = var.isolated_subnets ? 1 : 0
+resource "aws_vpc_endpoint" "gateway" {
+  count             = length(var.gateway_vpc_endpoints)
   vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.${var.gateway_vpc_endpoints[count.index]}"
   vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.rtb_isolated[0].id]
+  route_table_ids   = [aws_route_table.rtb_isolated.id]
 
   tags = {
-    Name = "${var.site_id}-s3"
+    Name = "${var.site_id}-${var.gateway_vpc_endpoints[count.index]}"
   }
 }
 
-resource "aws_vpc_endpoint" "dynamodb" {
-  count = var.isolated_subnets ? 1 : 0
+resource "aws_vpc_endpoint" "interface" {
+  count             = length(var.interface_vpc_endpoints)
   vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.dynamodb"
-  vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.rtb_isolated[0].id]
-
-  tags = {
-    Name = "${var.site_id}-dynamodb"
-  }
-}
-
-resource "aws_vpc_endpoint" "ssm" {
-  count = var.isolated_subnets ? 1 : 0
-  vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.ssm"
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.${var.interface_vpc_endpoints[count.index]}"
   vpc_endpoint_type = "Interface"
 
-  subnet_ids = [
-    aws_subnet.isolated_subnet_1[0].id,
-    aws_subnet.isolated_subnet_2[0].id
-  ]
+  subnet_ids = aws_subnet.isolated_subnets[*].id
 
   security_group_ids = [
     aws_security_group.vpc_endpoints_sg.id
@@ -126,101 +113,12 @@ resource "aws_vpc_endpoint" "ssm" {
   private_dns_enabled = true
 
   tags = {
-    Name = "${var.site_id}-ssm"
-  }
-}
-
-resource "aws_vpc_endpoint" "ec2messages" {
-  count = var.isolated_subnets ? 1 : 0
-  vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.ec2messages"
-  vpc_endpoint_type = "Interface"
-
-  subnet_ids = [
-    aws_subnet.isolated_subnet_1[0].id,
-    aws_subnet.isolated_subnet_2[0].id
-  ]
-
-  security_group_ids = [
-    aws_security_group.vpc_endpoints_sg.id
-  ]
-
-  private_dns_enabled = true
-
-  tags = {
-    Name = "${var.site_id}-ec2messages"
-  }
-}
-
-resource "aws_vpc_endpoint" "ssmmessages" {
-  count = var.isolated_subnets ? 1 : 0
-  vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.ssmmessages"
-  vpc_endpoint_type = "Interface"
-
-  subnet_ids = [
-    aws_subnet.isolated_subnet_1[0].id,
-    aws_subnet.isolated_subnet_2[0].id
-  ]
-
-  security_group_ids = [
-    aws_security_group.vpc_endpoints_sg.id
-  ]
-
-  private_dns_enabled = true
-
-  tags = {
-    Name = "${var.site_id}-ssmmessages"
-  }
-}
-
-resource "aws_vpc_endpoint" "monitoring" {
-  count = var.isolated_subnets ? 1 : 0
-  vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.monitoring"
-  vpc_endpoint_type = "Interface"
-
-  subnet_ids = [
-    aws_subnet.isolated_subnet_1[0].id,
-    aws_subnet.isolated_subnet_2[0].id
-  ]
-
-  security_group_ids = [
-    aws_security_group.vpc_endpoints_sg.id
-  ]
-
-  private_dns_enabled = true
-
-  tags = {
-    Name = "${var.site_id}-monitoring"
-  }
-}
-
-resource "aws_vpc_endpoint" "logs" {
-  count = var.isolated_subnets ? 1 : 0
-  vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.logs"
-  vpc_endpoint_type = "Interface"
-
-  subnet_ids = [
-    aws_subnet.isolated_subnet_1[0].id,
-    aws_subnet.isolated_subnet_2[0].id
-  ]
-
-  security_group_ids = [
-    aws_security_group.vpc_endpoints_sg.id
-  ]
-
-  private_dns_enabled = true
-
-  tags = {
-    Name = "${var.site_id}-logs"
+    Name = "${var.site_id}-${var.interface_vpc_endpoints[count.index]}"
   }
 }
 
 # Route table for isolated subnets
 resource "aws_route_table" "rtb_isolated" {
-  count = var.isolated_subnets ? 1 : 0
   vpc_id = aws_vpc.vpc.id
 
   tags = {
@@ -258,113 +156,65 @@ resource "aws_route_table" "rtb_public" {
 
 # Isolated subnets are routed to VPC endpoints only
 
-resource "aws_subnet" "isolated_subnet_1" {
-  count = var.isolated_subnets ? 1 : 0
+resource "aws_subnet" "isolated_subnets" {
+  count                   = length(local.availability_zones)
   vpc_id                  = aws_vpc.vpc.id
-  availability_zone       = local.availability_zones[0]
-  cidr_block              = var.isolated_subnet1_cidr_block
+  availability_zone       = local.availability_zones[count.index]
+  cidr_block              = var.isolated_subnets_cidr_blocks[count.index]
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.site_id}/isolated-subnet-1"
-  }
-}
-
-resource "aws_subnet" "isolated_subnet_2" {
-  count = var.isolated_subnets ? 1 : 0
-  vpc_id                  = aws_vpc.vpc.id
-  availability_zone       = local.availability_zones[1]
-  cidr_block              = var.isolated_subnet2_cidr_block
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "${var.site_id}/isolated-subnet-2"
+    Name = "${var.site_id}/isolated-subnet-${count.index + 1}"
   }
 }
 
 # Private subnets
 
-resource "aws_subnet" "private_subnet_1" {
+resource "aws_subnet" "private_subnets" {
+  count                   = length(local.availability_zones)
   vpc_id                  = aws_vpc.vpc.id
-  availability_zone       = local.availability_zones[0]
-  cidr_block              = var.private_subnet1_cidr_block
+  availability_zone       = local.availability_zones[count.index]
+  cidr_block              = var.private_subnets_cidr_blocks[count.index]
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.site_id}/private-subnet-1"
-    "kubernetes.io/role/internal-elb" = "1"
-  }
-}
-
-resource "aws_subnet" "private_subnet_2" {
-  vpc_id                  = aws_vpc.vpc.id
-  availability_zone       = local.availability_zones[1]
-  cidr_block              = var.private_subnet2_cidr_block
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "${var.site_id}/private-subnet-2"
+    Name                              = "${var.site_id}/private-subnet-${count.index + 1}"
     "kubernetes.io/role/internal-elb" = "1"
   }
 }
 
 # Public subnets
 
-resource "aws_subnet" "public_subnet_1" {
+resource "aws_subnet" "public_subnets" {
+  count                   = length(local.availability_zones)
   vpc_id                  = aws_vpc.vpc.id
-  availability_zone       = local.availability_zones[0]
-  cidr_block              = var.public_subnet1_cidr_block
+  availability_zone       = local.availability_zones[count.index]
+  cidr_block              = var.public_subnets_cidr_blocks[count.index]
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.site_id}/public-subnet-1"
-    "kubernetes.io/role/elb" = "1"    
-  }
-}
-
-resource "aws_subnet" "public_subnet_2" {
-  vpc_id                  = aws_vpc.vpc.id
-  availability_zone       = local.availability_zones[1]
-  cidr_block              = var.public_subnet2_cidr_block
-  map_public_ip_on_launch = false
-
-  tags = {
-    Name = "${var.site_id}/public-subnet-2"
+    Name                     = "${var.site_id}/public-subnet-${count.index + 1}"
     "kubernetes.io/role/elb" = "1"
   }
 }
 
 # Subnet to route table associations
 
-resource "aws_route_table_association" "rta_isolated_subnet_1" {
-  count = var.isolated_subnets ? 1 : 0  
-  subnet_id      = aws_subnet.isolated_subnet_1[0].id
-  route_table_id = aws_route_table.rtb_isolated[0].id
+resource "aws_route_table_association" "rta_isolated_subnets" {
+  count          = length(aws_subnet.isolated_subnets)
+  subnet_id      = aws_subnet.isolated_subnets[count.index].id
+  route_table_id = aws_route_table.rtb_isolated.id
 }
 
-resource "aws_route_table_association" "rta_isolated_subnet_2" {
-  count = var.isolated_subnets ? 1 : 0
-  subnet_id      = aws_subnet.isolated_subnet_2[0].id
-  route_table_id = aws_route_table.rtb_isolated[0].id
-}
-
-resource "aws_route_table_association" "rta_private_subnet_1" {
-  subnet_id      = aws_subnet.private_subnet_1.id
+resource "aws_route_table_association" "rta_private_subnets" {
+  count          = length(aws_subnet.private_subnets)
+  subnet_id      = aws_subnet.private_subnets[count.index].id
   route_table_id = aws_route_table.rtb_private.id
 }
 
-resource "aws_route_table_association" "rta_private_subnet_2" {
-  subnet_id      = aws_subnet.private_subnet_2.id
-  route_table_id = aws_route_table.rtb_private.id
-}
-
-resource "aws_route_table_association" "rta_public_subnet_1" {
-  subnet_id      = aws_subnet.public_subnet_1.id
-  route_table_id = aws_route_table.rtb_public.id
-}
-
-resource "aws_route_table_association" "rta_public_subnet_2" {
-  subnet_id      = aws_subnet.public_subnet_2.id
+resource "aws_route_table_association" "rta_public_subnets" {
+  count          = length(aws_subnet.public_subnets)
+  subnet_id      = aws_subnet.public_subnets[count.index].id
   route_table_id = aws_route_table.rtb_public.id
 }
 

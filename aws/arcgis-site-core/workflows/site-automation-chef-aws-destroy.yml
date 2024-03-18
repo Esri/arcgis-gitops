@@ -1,4 +1,4 @@
-name: site-core-aws-destroy
+name: site-automation-chef-aws-destroy
 
 on: 
   workflow_dispatch:
@@ -8,18 +8,19 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-site-core/infrastructure-core.tfvars.json
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-site-core/automation-chef.tfvars.json
 
 concurrency:
   group: ${{ github.ref_name }}
 
 jobs:
   destroy:
-    name: Destroy Core AWS Infrastructure
+    name: Destroy Chef Automation
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: aws/arcgis-site-core/infrastructure-core
+        working-directory: aws/arcgis-site-core/automation-chef
     permissions:
       contents: read
       pull-requests: write
@@ -28,9 +29,13 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ github.ref_name }}
+    - name: Install Boto3
+      id: install-boto3
+      run: pip install boto3
     - name: Run Terraform Destroy
       id: terraform-destroy
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/infrastructure-core.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/automation-chef.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
         terraform destroy -var-file $CONFIG_FILE -auto-approve
+            

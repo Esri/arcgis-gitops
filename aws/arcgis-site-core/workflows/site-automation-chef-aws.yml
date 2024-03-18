@@ -1,4 +1,4 @@
-name: site-core-aws
+name: site-automation-chef-aws
 
 on: 
   workflow_dispatch:
@@ -15,20 +15,19 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-site-core/infrastructure-core.tfvars.json
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-site-core/automation-chef.tfvars.json
 
 concurrency:
   group: ${{ github.ref_name }}
 
 jobs:
-  infrastructure_core:
-    name: Core AWS Infrastructure
+  automation_chef:
+    name: Chef Automation 
     runs-on: ubuntu-latest
-    outputs:
-      vpc_id: ${{ steps.output.outputs.vpc_id }}
     defaults:
       run:
-        working-directory: aws/arcgis-site-core/infrastructure-core
+        working-directory: aws/arcgis-site-core/automation-chef
     permissions:
       contents: read
       pull-requests: write
@@ -37,11 +36,14 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ github.ref_name }}
+    - name: Install Boto3
+      id: install-boto3
+      run: pip install boto3
     - name: Terraform Init
       id: terraform-init
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/infrastructure-core.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/automation-chef.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
     - name: Terraform Apply
       id: terraform-apply
       if: github.event.inputs.terraform_command == 'apply'
@@ -50,7 +52,5 @@ jobs:
       id: terraform-plan
       if: github.event.inputs.terraform_command == 'plan'
       run: terraform plan -var-file $CONFIG_FILE
-    - name: Terraform Output
-      id: terraform-output
-      run: |
-        echo vpc_id=$(terraform output -json | jq -r .vpc_id.value) >> $GITHUB_OUTPUT
+
+            

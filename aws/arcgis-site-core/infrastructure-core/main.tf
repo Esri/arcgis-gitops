@@ -14,12 +14,9 @@
  * | --- | --- |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id of ArcGIS Enterprise site |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | Private hosted zone Id of ArcGIS Enterprise site |
- * | /arcgis/${var.site_id}/vpc/isolated-subnet-1 | Id of isolated VPC subnet 1 |
- * | /arcgis/${var.site_id}/vpc/isolated-subnet-2 | Id of isolated VPC subnet 2 |
- * | /arcgis/${var.site_id}/vpc/private-subnet-1 | Id of private VPC subnet 1 |
- * | /arcgis/${var.site_id}/vpc/private-subnet-2 | Id of private VPC subnet 2 |
- * | /arcgis/${var.site_id}/vpc/public-subnet-1 | Id of public VPC subnet 1 |
- * | /arcgis/${var.site_id}/vpc/public-subnet-2 | Id of public VPC subnet 2 |
+ * | /arcgis/${var.site_id}/vpc/isolated-subnet-<N> | Id of isolated VPC subnet <N> |
+ * | /arcgis/${var.site_id}/vpc/private-subnet-<N> | Id of private VPC subnet <N> |
+ * | /arcgis/${var.site_id}/vpc/public-subnet-<N> | Id of public VPC subnet <N> |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | Name of IAM instance profile |
  * | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket of private repository |

@@ -37,74 +37,79 @@ variable "vpc_cidr_block" {
   }
 }
 
-variable "public_subnet1_cidr_block" {
-  description = "CIDR block for public subnet 1"
-  type        = string
-  default     = "10.0.0.0/24"
+variable "public_subnets_cidr_blocks" {
+  description = "CIDR blocks of public subnets"
+  type        = list(string)
+  default = [
+    "10.0.0.0/24",
+    "10.0.1.0/24",
+    "10.0.2.0/24"
+  ]
 
   validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.public_subnet1_cidr_block))
-    error_message = "The public_subnet1_cidr_block value must be in IPv4 CIDR block format."
+    condition = alltrue([
+      for b in var.public_subnets_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+    ])
+    error_message = "All elements in public_subnets_cidr_blocks list must be in IPv4 CIDR block format."
   }
 }
 
-variable "public_subnet2_cidr_block" {
-  description = "CIDR block for public subnet 2"
-  type        = string
-  default     = "10.0.1.0/24"
+variable "private_subnets_cidr_blocks" {
+  description = "CIDR blocks of private subnets"
+  type        = list(string)
+  default = [
+    "10.0.64.0/24",
+    "10.0.65.0/24",
+    "10.0.66.0/24"
+  ]
 
   validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.public_subnet2_cidr_block))
-    error_message = "The public_subnet2_cidr_block value must be in IPv4 CIDR block format."
+    condition = alltrue([
+      for b in var.private_subnets_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+    ])
+    error_message = "All elements in private_subnets_cidr_blocks list must be in IPv4 CIDR block format."
   }
 }
 
-variable "private_subnet1_cidr_block" {
-  description = "CIDR block for private subnet 1"
-  type        = string
-  default     = "10.0.2.0/24"
+variable "isolated_subnets_cidr_blocks" {
+  description = "CIDR blocks of isolated subnets"
+  type        = list(string)
+  default = [
+    "10.0.128.0/24",
+    "10.0.129.0/24",
+    "10.0.130.0/24"
+  ]
 
   validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.private_subnet1_cidr_block))
-    error_message = "The private_subnet1_cidr_block value must be in IPv4 CIDR block format."
+    condition = alltrue([
+      for b in var.isolated_subnets_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+    ])
+    error_message = "All elements in isolated_subnets_cidr_blocks list must be in IPv4 CIDR block format."
   }
 }
 
-variable "private_subnet2_cidr_block" {
-  description = "CIDR block for private subnet 2"
-  type        = string
-  default     = "10.0.3.0/24"
-
-  validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.private_subnet2_cidr_block))
-    error_message = "The private_subnet2_cidr_block value must be in IPv4 CIDR block format."
-  }
+variable "gateway_vpc_endpoints" {
+  description = "List of gateway VPC endpoints to create"
+  type        = list(string)
+  default = [
+    "dynamodb",
+    "s3"
+  ]
 }
 
-variable "isolated_subnet1_cidr_block" {
-  description = "CIDR block for isolated subnet 1"
-  type        = string
-  default     = "10.0.4.0/24"
-
-  validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.isolated_subnet1_cidr_block))
-    error_message = "The isolated_subnet1_cidr_block value must be in IPv4 CIDR block format."
-  }
-}
-
-variable "isolated_subnet2_cidr_block" {
-  description = "CIDR block for isolated subnet 2"
-  type        = string
-  default     = "10.0.5.0/24"
-
-  validation {
-    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.isolated_subnet2_cidr_block))
-    error_message = "The isolated_subnet2_cidr_block value must be in IPv4 CIDR block format."
-  }
-}
-
-variable "isolated_subnets" {
-  description = "Create isolated subnets and VPC endpoints"
-  type        = bool
-  default     = false
+variable "interface_vpc_endpoints" {
+  description = "List of interface VPC endpoints to create"
+  type        = list(string)
+  default = [
+    "ec2",
+    "ec2messages",
+    "ecr.api",
+    "ecr.dkr",
+    "elasticloadbalancing",
+    "logs",
+    "monitoring",
+    "ssm",
+    "ssmmessages",
+    "sts"
+  ]
 }

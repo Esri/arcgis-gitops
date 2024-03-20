@@ -3,7 +3,7 @@
  *
  * The Terraform module configures or upgrades applications of highly available base ArcGIS Enterprise deployment on Linux platform.
  *
- * ![Base ArcGIS Enterprise on Linux](images/arcgis-enterprise-base-linux-application.png "Base ArcGIS Enterprise on Linux")
+ * ![Base ArcGIS Enterprise on Linux](arcgis-enterprise-base-linux-application.png "Base ArcGIS Enterprise on Linux")
  *
  * First, the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment.
  *

@@ -1,0 +1,140 @@
+# -----------------------------------------------
+# IMAGE REGISTRY AND REPOSITORY DETAILS
+# -----------------------------------------------
+image:
+  registry: docker.io
+  username:
+  password:
+  repository: esridocker
+  tag: 11.1.0.3923
+
+# -----------------------------------------------
+# INSTALL INPUTS
+# -----------------------------------------------
+install:
+  #
+  # The fully qualified domain name (FQDN) to access ArcGIS Enterprise on
+  # Kubernetes. This FQDN points to a load balancer, reverse proxy, edge
+  # router, or other web front-end configured to route traffic to the ingress
+  # controller. For example: <hostname>.<Domain>.com
+  enterpriseFQDN:
+  #
+  # Enter the context path to be used in the URL for ArcGIS Enterprise on
+  # Kubernetes. For example, the context path of 'https://<FQDN>/arcgis/admin'
+  # would be 'arcgis'. The path needs to be single level; more than one level
+  # is not supported.
+  context: arcgis
+  #
+  # Set allowedPrivilegedContainers to false if you cannot run a privileged
+  # container. Additionally, you will need to set vm.max_map_count to 262144
+  # on each node.
+  allowedPrivilegedContainers: true
+
+  # When configure.enabled=true, an additional validation check is performed
+  # on the enterprise admin url to ensure it is accessible prior to configuring
+  # an organization. In some cloud environments it may take several minutes
+  # before the ingress controller is recognized, so adjust this value in minutes, 
+  # as needed.
+  validationTimeout: 15
+
+  ingress:
+    #
+    # Ingress controller service type
+    #
+    # Possible values for ingressType:
+    #
+    #   NodePort        - Exposes the Service on each Node's IP at a static
+    #                     port (the NodePort).
+    #                     You'll be able to contact the NodePort Service from
+    #                     outside the cluster by requesting <NodeIP>:<NodePort>.
+    #   LoadBalancer    - Exposes the Service externally using a cloud
+    #                     provider's load balancer.
+    #                     The load balancer is created and configured
+    #                     automatically as a part of the deployment.
+    ingressType: NodePort
+    #
+    # Possible values for loadBalancerType (Must choose one if you plan to
+    # provision a cloud load balancer, else leave it blank):
+    #
+    #   azure-external   - Azure Load Balancer (External)
+    #   azure-internal   - Azure Load Balancer (Internal)
+    #   aws-nlb-external - AWS Network Load Balancer (External)
+    #   aws-nlb-internal - AWS Network Load Balancer (Internal)
+    #   gcp-external     - Google Cloud Platform TCP Load Balancer (External)
+    #   gcp-internal     - Google Cloud Platform TCP Load Balancer (Internal)
+    loadBalancerType:
+    #
+    # Use a pre-configured static public IP address and DNS label with the
+    # load balancer (optional).
+    loadBalancerIP:
+    #
+    # NodePort value in the range 30000-32767. Leave it blank if you want
+    # Kubernetes Control Plane to assign an available port.
+    nodePortHttps:
+    #
+    # Set useOpenShiftRoute to true if you use an OpenShift route for incoming
+    # traffic.
+    useOpenshiftRoute: false
+    #
+    tls:
+      # TLS Certificate Option 1: Use an existing Kubernetes TLS secret that
+      # contains a private key and a certificate. Enter the name of the
+      # existing TLS secret.
+      secretName:
+      #
+      # TLS Certificate Option 4: Generate a self-signed certificate. Enter
+      # the common name for the self-signed certificate.
+      selfSignCN:
+
+    # HTTP Strict Transport Security
+    hstsEnabled: false
+
+    # TLS protocol supported
+    sslProtocols: "TLSv1.2 TLSv1.3"
+
+    # Supported Cipher Suites
+    sslCiphers: "ECDHE-RSA-AES256-GCM-SHA384:ECDHE-RSA-AES256-SHA384:ECDHE-RSA-AES256-SHA:ECDHE-RSA-CHACHA20-POLY1305:AES256-GCM-SHA384:AES256-SHA256:AES256-SHA:ECDHE-RSA-AES128-GCM-SHA256:ECDHE-RSA-AES128-SHA256:ECDHE-RSA-AES128-SHA:AES128-GCM-SHA256:AES128-SHA256:AES128-SHA:ECDHE-ECDSA-AES256-GCM-SHA384:ECDHE-ECDSA-AES256-SHA384:ECDHE-ECDSA-AES256-SHA:ECDHE-ECDSA-CHACHA20-POLY1305:ECDHE-ECDSA-AES128-GCM-SHA256:ECDHE-ECDSA-AES128-SHA256:ECDHE-ECDSA-AES128-SHA"
+
+
+  # If your Kubernetes cluster has a domain name other than cluster.local, use
+  # install.k8sClusterDomain to specify the domain name
+  k8sClusterDomain: cluster.local
+
+# -----------------------------------------------
+# RUN CONFIGURE AFTER DEPLOYMENT
+# -----------------------------------------------
+configure:
+  enabled: true
+
+
+# -----------------------------------------------
+# UPGRADE
+# -----------------------------------------------
+upgrade:
+  
+  # ArcGIS Token - A long lived token, of at least 6 hours, generated through the https://enterpriseFQDN/context/sharing/rest/generateToken endpoint.
+  token: add_token_here
+
+  # If an ArcGIS Enterprise release upgrade has a required update then the patch ID of the required update goes here.
+  mandatoryUpdateTargetId:
+
+  # Patch ID of ArcGIS Enterprise 11.1 on Kubernetes Q4 2023 Bug Fix Update.
+  # It's not recommended to change this. Instead download and run helm-charts for different targetIds. 
+  targetId: pat_30112023_4115
+
+  # ------------------------------------
+  # LICENSE PROPERTIES
+  #
+  # NOTE: Helm does not support accessing files from outside the Chart folder.
+  # For this reason you need to copy your ArcGIS Enterprise on Kubernetes 
+  # license file to the ./user-inputs/ folder and reference that file here.
+  # ------------------------------------
+  licenseFile: user-inputs/placeholder-license-file.json
+  
+
+# -----------------------------------------------
+# COMMON OPTIONS FOR DEPLOYMENT SCRIPTS
+# -----------------------------------------------
+common:
+  verbose: false
+

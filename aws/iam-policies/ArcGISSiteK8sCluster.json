@@ -4,6 +4,15 @@
         {
             "Effect": "Allow",
             "Action":[
+                "ecr:CreatePullThroughCacheRule",
+                "ecr:DeletePullThroughCacheRule",
+                "ecr:DescribePullThroughCacheRules"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action":[
                 "ec2:DescribeSubnets",
                 "ec2:CreateLaunchTemplate",
                 "ec2:CreateLaunchTemplateVersion",
@@ -77,6 +86,19 @@
                 "kms:GetKeyRotationStatus",
                 "kms:ScheduleKeyDeletion",
                 "kms:CreateGrant"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "secretsmanager:CreateSecret",
+                "secretsmanager:TagResource",
+                "secretsmanager:DescribeSecret",
+                "secretsmanager:GetResourcePolicy",
+                "secretsmanager:DeleteSecret",
+                "secretsmanager:PutSecretValue",
+                "secretsmanager:GetSecretValue"
             ],
             "Resource": "*"
         },

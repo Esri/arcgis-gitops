@@ -34,7 +34,6 @@ Instructions:
 3. Commit the changes to the `main` branch and push the branch to GitHub.
 4. Run site-core-aws workflow using the `main` branch.
 
-
 ## Create Chef Automation Resources
 
 GitHub Actions workflow **site-automation-chef-aws** creates resources required for ArcGIS Enterprise deployments configuration management using Chef Cookbooks for ArcGIS.
@@ -68,9 +67,11 @@ Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property in the config file to the key pair name. Save the private key in a secure location.
 2. Set "eks_version" property to the required EKS version.
-3. Set "node_groups" property to the required node groups configuration.
-4. Commit the changes to the `main` branch and push the branch to GitHub.
-5. Run site-k8s-cluster-aws workflow using the `main` branch.
+3. If specific subnets, or more than two subnets of each type are required for EKS cluster, set "subnet_ids" property to the list of subnet IDs in the selected AWS region. By defult, the first two public, private, and isolated VPC subnets specified by the SSM parameters are used.
+4. Set "node_groups" property to the required node groups configuration.
+5. Set "pull_through_cache" property to `false` to tufn off configuration of ECR pull through cache.
+6. Commit the changes to the `main` branch and push the branch to GitHub.
+7. Run site-k8s-cluster-aws workflow using the `main` branch.
 
 ## Destroy K8s Cluster
 

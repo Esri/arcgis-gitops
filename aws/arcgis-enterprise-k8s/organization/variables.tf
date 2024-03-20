@@ -20,25 +20,14 @@ variable "deployment_id" {
   }
 }
 
-variable "arcgis_version" {
-  description = "ArcGIS Enterprise version"
-  type        = string
-  default     = "11.2.0"
-
-  validation {
-    condition     = contains(["11.1.0", "11.2.0"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.1.0 and 11.2.0."
-  }
-}
-
 variable "helm_charts_version" {
   description = "Helm Charts for ArcGIS Enterprise on Kubernetes version"
   type        = string
   default     = "1.2.0"
 
   validation {
-    condition     = contains(["1.1.0", "1.2.0"], var.helm_charts_version)
-    error_message = "Valid values for helm_charts_version variable are 1.1.0 and 1.2.0."
+    condition     = contains(["1.1.0", "1.1.4", "1.2.0", "1.2.1"], var.helm_charts_version)
+    error_message = "Valid values for helm_charts_version variable are 1.1.0, 1.1.4, 1.2.0, and 1.2.1."
   }
 }
 
@@ -55,30 +44,11 @@ variable "mandatory_update_target_id" {
   default     = ""
 }
 
-# variable "registry_host" {
-#   description = "The fully qualified domain name (FQDN) of the container registry host (for example, docker.io). ECR registry in the current AWS account and region is used if the value is not specified."
-#   type        = string
-#   default     = null
-# }
-
-variable "registry_repo" {
-  description = "Container registry context"
+variable "image_repository_prefix" {
+  description = "Prefix of images in ECR repositories"
   type        = string
-  default     = "esridocker"
+  default     = "docker-hub/esridocker"
 }
-
-# variable "container_registry_username" {
-#   description = "Container registry username"
-#   type        = string
-#   default     = null
-# }
-
-# variable "container_registry_password" {
-#   description = "Container registry password"
-#   type        = string
-#   sensitive   = true
-#   default     = null
-# }
 
 variable "arcgis_enterprise_fqdn" {
   description = "The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes"

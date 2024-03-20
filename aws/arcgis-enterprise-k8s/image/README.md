@@ -2,7 +2,7 @@
 
 Amazon ECR is a fully managed container registry that provides a secure, scalable, and reliable registry for container images on AWS.
 
-Script image-copy-ecr copies the ArcGIS Enterprise on Kubernetes container images from DockerHub to AWS Elastic Container Registry (ECR) repositories in specific AWS account and region.
+Script image-copy-ecr copies the ArcGIS Enterprise on Kubernetes container images from Docker Hub to AWS Elastic Container Registry (ECR) repositories in specific AWS account and region.
 
 ## Requirements
 
@@ -14,6 +14,8 @@ On the machine where the script is run, the following tools must be installed:
 The AWS CLI must be configured with the appropriate AWS credentials and region must be set by AWS_DEFAULT_REGION environment variable.
 
 The DockerHub credentials must be set by environment variables `CONTAINER_REGISTRY_USER` and `CONTAINER_REGISTRY_PASSWORD`. The DockerHub container registry organization must be set by environment variable `CONTAINER_REGISTRY_ORG`.
+
+`ECR_REPOSITORY_PREFIX` environment variable must be set to the prefix of the ECR repository name that matches the value "of ecr_repository_prefix" setting used for the k8s-cluster configuration.
 
 The script requires at least 20GB of free disk space on the machine to temporary store the container images.
 

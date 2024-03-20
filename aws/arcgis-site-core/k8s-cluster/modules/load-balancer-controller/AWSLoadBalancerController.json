@@ -16,6 +16,9 @@
         {
             "Effect": "Allow",
             "Action": [
+                "ecr:CreatePullThroughCacheRule",
+                "ecr:BatchImportUpstreamImage",
+                "ecr:CreateRepository",
                 "ec2:DescribeAccountAttributes",
                 "ec2:DescribeAddresses",
                 "ec2:DescribeAvailabilityZones",

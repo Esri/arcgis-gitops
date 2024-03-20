@@ -6,6 +6,15 @@
  *
  * The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.2.0/deploy-guide).
  *
+ * The following table explains the compatibility of chart versions and ArcGIS Enterprise on Kubernetes.
+ * 
+ * Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description |
+ * --- | --- | --- | --- | --- | --- |
+ * v1.1.0 | 11.1.0.3923 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.1 or upgrading 11.0 to 11.1 |
+ * v1.1.4 | 11.1.0.4115 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.1 Q4 2023 Bug Fix Update |
+ * v1.2.0 | 11.2.0.5207 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.2 or upgrading 11.1 to 11.2 | 
+ * v1.2.1 | 11.2.0.5500 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Help Language Pack Update |
+ *
  * ## Requirements
  * 
  * On the machine where Terraform is executed:
@@ -53,10 +62,6 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
 locals {
-  # container_registry = var.registry_host != null ? var.registry_host : "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com"
-  # container_registry_username = var.container_registry_username != null ? var.container_registry_username : "AWS"
-  # container_registry_password = var.container_registry_password != null ? var.container_registry_password : "AWS"
-  
   # Currently only ECR with IAM authentication is supported by the modified Helm chart
   container_registry = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com"
   container_registry_username = "AWS"
@@ -65,27 +70,27 @@ locals {
 
 resource "local_sensitive_file" "license_file" {
   content  = file(var.authorization_file_path)
-  filename = "./helm-charts/${var.helm_charts_version}/user-inputs/license.json"
+  filename = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/license.json"
 }
 
 resource "local_sensitive_file" "cloud_config_json_file" {
   count = var.cloud_config_json_file_path == null ? 0 : 1
   content  = file(var.cloud_config_json_file_path)
-  filename = "./helm-charts/${var.helm_charts_version}/user-inputs/cloud-config.json"
+  filename = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/cloud-config.json"
 }
 
 resource "helm_release" "arcgis_enterprise" {
   name      = "arcgis"
-  chart     = "./helm-charts/${var.helm_charts_version}"
+  chart     = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}"
   namespace = var.deployment_id
   timeout   = 21600 # 6 hours
 
   values = [
-    "${file("./helm-charts/${var.helm_charts_version}/configure.yaml")}",
+    "${file("./helm-charts/arcgis-enterprise/${var.helm_charts_version}/configure.yaml")}",
     nonsensitive(yamlencode({
       image = {
         registry = local.container_registry
-        repository = var.registry_repo
+        repository = var.image_repository_prefix
         username = local.container_registry_username
         password = local.container_registry_password
       }

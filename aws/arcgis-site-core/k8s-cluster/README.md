@@ -6,6 +6,9 @@ that meets ArcGIS Enterprise on Kubernetes system requirements.
 
 See: https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm
 
+Optionally, the module also configures pull through cache rules for Amazon Elastic Container Registry (ECR)
+to sync the contents of source Docker Hub registry with Amazon ECR private registry.
+
 ## Requirements
 
 On the machine where Terraform is executed:
@@ -15,14 +18,14 @@ On the machine where Terraform is executed:
 
 ## SSM Parameters
 
-The module uses the following SSM parameters:
+If subnet IDs of the EKS cluter and node groups are not specified by input variables,
+thesubnet IDs are retrieved from the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/vpc/private-subnet-1 | Private VPC subnet 1 Id |
-| /arcgis/${var.site_id}/vpc/private-subnet-2 | Private VPC subnet 2 Id |
-| /arcgis/${var.site_id}/vpc/public-subnet-1 | Public VPC subnet 1 Id |
-| /arcgis/${var.site_id}/vpc/public-subnet-2 | Public VPC subnet 2 Id |
+| /arcgis/${var.site_id}/vpc/public-subnet-* | Public VPC subnets Ids |
+| /arcgis/${var.site_id}/vpc/private-subnet-* | Private VPC subnets Ids |
+| /arcgis/${var.site_id}/vpc/isolated-subnet-* | Isolated VPC subnets Ids |
 
 ## Providers
 
@@ -43,6 +46,7 @@ The module uses the following SSM parameters:
 | Name | Type |
 |------|------|
 | [aws_cloudwatch_log_group.eks_cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
+| [aws_ecr_pull_through_cache_rule.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_pull_through_cache_rule) | resource |
 | [aws_eks_cluster.cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster) | resource |
 | [aws_eks_node_group.node_groups](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group) | resource |
 | [aws_iam_openid_connect_provider.eks_oidc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_openid_connect_provider) | resource |
@@ -50,22 +54,28 @@ The module uses the following SSM parameters:
 | [aws_iam_role.eks_worker_node_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_kms_key.eks](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/kms_key) | resource |
 | [aws_launch_template.node_groups](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/launch_template) | resource |
-| [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
+| [aws_secretsmanager_secret.aws_ecrpullthroughcache](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
+| [aws_secretsmanager_secret_version.aws_ecrpullthroughcache](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.private_subnet1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.private_subnet2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.public_subnet1](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.public_subnet2](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.isolated_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.private_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.public_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [tls_certificate.cluster](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/data-sources/certificate) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| container_registry_password | Source container registry user password | `string` | `null` | no |
+| container_registry_url | Source container registry URL | `string` | `"registry-1.docker.io"` | no |
+| container_registry_user | Source container registry user name | `string` | `null` | no |
+| ecr_repository_prefix | The repository name prefix to use when caching images from the source registry | `string` | `"docker-hub"` | no |
 | eks_version | The desired Kubernetes version for the EKS cluster | `string` | `"1.28"` | no |
 | key_name | EC2 key pair name | `string` | `null` | no |
-| node_groups | EKS Node Groups configuration | ```list(object({ name = string instance_type = string root_volume_size = number desired_size = number max_size = number min_size = number }))``` | ```[ { "desired_size": 3, "instance_type": "m6i.2xlarge", "max_size": 5, "min_size": 3, "name": "default", "root_volume_size": 1024 } ]``` | no |
+| node_groups | <p>EKS node groups configuration properties:</p>   <ul>   <li>name - Name of the node group</li>   <li>instance_type -Type of EC2 instance to use for the node group</li>   <li>root_volume_size - Size of the root volume in GB</li>   <li>desired_size - Number of nodes to start with</li>   <li>max_size - Maximum number of nodes in the node group</li>   <li>min_size - Minimum number of nodes in the node group</li>   <li>subnet_ids - List of subnet IDs to use for the node group (the first two private subnets are used by default)</li>   </ul> | ```list(object({ name = string instance_type = string root_volume_size = number desired_size = number max_size = number min_size = number subnet_ids = list(string) }))``` | ```[ { "desired_size": 4, "instance_type": "m6i.2xlarge", "max_size": 8, "min_size": 4, "name": "default", "root_volume_size": 1024, "subnet_ids": [] } ]``` | no |
+| pull_through_cache | Configure ECR pull through cache rules | `bool` | `true` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| subnet_ids | EKS cluster subnet IDs (by default, the first two public, two private, and two isolated VPC subnets are used) | `list(string)` | `[]` | no |
 
 ## Outputs
 

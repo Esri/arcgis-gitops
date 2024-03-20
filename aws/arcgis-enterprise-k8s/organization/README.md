@@ -6,6 +6,15 @@ and creates an ArcGIS Enterprise organization.
 
 The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.2.0/deploy-guide).
 
+The following table explains the compatibility of chart versions and ArcGIS Enterprise on Kubernetes.
+
+Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description |
+--- | --- | --- | --- | --- | --- |
+v1.1.0 | 11.1.0.3923 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.1 or upgrading 11.0 to 11.1 |
+v1.1.4 | 11.1.0.4115 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.1 Q4 2023 Bug Fix Update |
+v1.2.0 | 11.2.0.5207 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.2 or upgrading 11.1 to 11.2 |
+v1.2.1 | 11.2.0.5500 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Help Language Pack Update |
+
 ## Requirements
 
 On the machine where Terraform is executed:
@@ -43,7 +52,6 @@ On the machine where Terraform is executed:
 | admin_username | ArcGIS Enterprise on Kubernetes organization administrator account username | `string` | `"siteadmin"` | no |
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
 | arcgis_enterprise_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"11.2.0"` | no |
 | authorization_file_path | ArcGIS Enterprise on Kubernetes authorization file path | `string` | n/a | yes |
 | cloud_config_json_file_path | ArcGIS Enterprise on Kubernetes cloud configuration JSON file path | `string` | `null` | no |
 | common_verbose | Enable verbose install logging | `bool` | `false` | no |
@@ -51,12 +59,12 @@ On the machine where Terraform is executed:
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
 | helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.2.0"` | no |
+| image_repository_prefix | Prefix of images in ECR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |
 | license_type_id | User type ID for the primary administrator account | `string` | `"creatorUT"` | no |
 | log_retention_max_days | Number of days logs will be retained by the organization | `number` | `60` | no |
 | log_setting | ArcGIS Enterprise on Kubernetes log level | `string` | `"INFO"` | no |
 | mandatory_update_target_id | Patch ID of required update | `string` | `""` | no |
-| registry_repo | Container registry context | `string` | `"esridocker"` | no |
 | security_question_answer | ArcGIS Enterprise on Kubernetes organization administrator account security question answer | `string` | n/a | yes |
 | security_question_index | ArcGIS Enterprise on Kubernetes organization administrator account security question index | `number` | `1` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |

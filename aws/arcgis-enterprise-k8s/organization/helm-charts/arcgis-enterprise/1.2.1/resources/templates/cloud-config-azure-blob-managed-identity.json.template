@@ -1,0 +1,20 @@
+[{
+	"name": "AZURE",
+	"credential": {
+		"type": "MANAGED-IDENTITY",
+		"secret": {
+			"storageAccountName": "XXXXXXX"
+		}
+	},
+	"cloudServices": [{
+		"name": "Azure Blob Store",
+		"type": "objectStore",
+		"usage": "DEFAULT",
+		"connection": {
+			"containerName": "XXXXXX",
+			"rootDir": "XXXXXX"
+		},
+		"category": "storage"
+	}]
+}]
+

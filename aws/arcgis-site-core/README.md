@@ -67,7 +67,7 @@ Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property in the config file to the key pair name. Save the private key in a secure location.
 2. Set "eks_version" property to the required EKS version.
-3. If specific subnets, or more than two subnets of each type are required for EKS cluster, set "subnet_ids" property to the list of subnet IDs in the selected AWS region. By default, the first two public, private, and isolated VPC subnets specified by the SSM parameters are used.
+3. If specific subnets, or more than two subnets of each type are required for the EKS cluster, set "subnet_ids" property to the list of subnet IDs in the selected AWS region. By default, the first two subnets of each type (public, private, and isolated) specified by the SSM parameters are used.
 4. Set "node_groups" property to the required node groups configuration.
 5. If the AWS region does not support [ECR pull through cache](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html), change "pull_through_cache" property value to `false`.
 6. Commit the changes to the `main` branch and push the branch to GitHub.
@@ -107,7 +107,7 @@ Instructions:
 
 GitHub Actions workflow **site-core-aws-destroy** destroys the AWS resources created by site-core-aws workflow.
 
-The workflow uses [infrastructure-core](infrastructure-core/README.md) and [automation-chef](automation-chef/README.md) Terraform modules with [infrastructure-core.tfvars.json](config/infrastructure-core.tfvars.json) and [automation-chef.tfvars.json](config/automation-chef.tfvars.json) configuration files.
+The workflow uses [infrastructure-core](infrastructure-core/README.md) Terraform module with [infrastructure-core.tfvars.json](config/infrastructure-core.tfvars.json) config file.
 
 Required IAM policies:
 

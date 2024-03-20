@@ -14,7 +14,7 @@ To enable the template's workflows, copy the .yml files from the template's `wor
 
 > Refer to READMEs of the Terraform modules for descriptions of specific configuration properties.
 
-![Platform Dependencies](images/platform-dependencies.png "Platform Dependencies")  
+![Platform Dependencies](platform-dependencies.png "Platform Dependencies")  
 
 ## Create Core AWS Resources
 
@@ -67,9 +67,9 @@ Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property in the config file to the key pair name. Save the private key in a secure location.
 2. Set "eks_version" property to the required EKS version.
-3. If specific subnets, or more than two subnets of each type are required for EKS cluster, set "subnet_ids" property to the list of subnet IDs in the selected AWS region. By defult, the first two public, private, and isolated VPC subnets specified by the SSM parameters are used.
+3. If specific subnets, or more than two subnets of each type are required for EKS cluster, set "subnet_ids" property to the list of subnet IDs in the selected AWS region. By default, the first two public, private, and isolated VPC subnets specified by the SSM parameters are used.
 4. Set "node_groups" property to the required node groups configuration.
-5. Set "pull_through_cache" property to `false` to tufn off configuration of ECR pull through cache.
+5. If the AWS region does not support [ECR pull through cache](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html), change "pull_through_cache" property value to `false`.
 6. Commit the changes to the `main` branch and push the branch to GitHub.
 7. Run site-k8s-cluster-aws workflow using the `main` branch.
 

@@ -3,7 +3,7 @@
 
 The Terraform module creates AWS resources for highly available base ArcGIS Enterprise deployment on Windows platform.
 
-![Base ArcGIS Enterprise on Windows / Infrastructure](images/arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
+![Base ArcGIS Enterprise on Windows / Infrastructure](arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
 
 The module launches three SSM managed EC2 instances in the private or isolated VPC subnets created by infrastructure-core Terraform module.
 The primary and standby instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main' SSM parameter.

@@ -3,7 +3,7 @@
 
 The Terraform module configures or upgrades applications of highly available base ArcGIS Enterprise deployment on Windows platform.
 
-![Base ArcGIS Enterprise on Windows](images/arcgis-enterprise-base-windows-application.png "Base ArcGIS Enterprise on Windows")
+![Base ArcGIS Enterprise on Windows](arcgis-enterprise-base-windows-application.png "Base ArcGIS Enterprise on Windows")
 
 First, the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment.
 

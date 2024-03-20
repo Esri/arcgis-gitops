@@ -54,6 +54,15 @@
         },
         {
             "Effect": "Allow",
+            "Action": [
+                "secretsmanager:DescribeSecret",
+                "secretsmanager:GetResourcePolicy",
+                "secretsmanager:DeleteSecret"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
             "Action":[
                 "logs:DeleteLogGroup",
                 "logs:DescribeLogGroups",

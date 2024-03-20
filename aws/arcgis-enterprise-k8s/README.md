@@ -18,9 +18,33 @@ To enable the template's workflows, copy the .yml files from the template's `wor
 
 ## Initial Deployment
 
-Initial deployment of ArcGIS Enterprise on Kubernete includes: creating ingress controller, copying container images to Amazon ECR,  creating ArcGIS Enterprise organization, and testing the deployment web services.
+Initial deployment of ArcGIS Enterprise on Kubernetes includes: creating ingress controller creating ArcGIS Enterprise organization, and testing the deployment web services.
 
-### 1. Create Ingress Controller
+> If pull through cache rules are not configured for Amazon ECR, The container images must be copied to the Amazon ECR private repositories.
+
+> The IAM principal used by the templates's workflows must have the EKS cluster administrator permissions. The IAM principal used to create the EKS cluster has the cluster administrator permissions by default.
+
+### 1. Copy Container Images to Amazon ECR
+
+GitHub Actions workflow **enterprise-k8s-aws-image** copies the ArcGIS Enterprise on Kubernetes container images from DockerHub to private AWS Elastic Container Registry (ECR) repositories.
+
+In advance copying of images is not required if [pull through cache rules](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html) are configured for Amazon ECR private repositories. But for some AWS regions, such as AWS GovCloud and China, pull through cache rules are not supported.
+
+The workflow uses [image-copy-ecr](image/README.md) script with [image.vars.json](../../config/aws/arcgis-enterprise-k8s/image.vars.json) config file.
+
+Required IAM policies:
+
+* ArcGISEnterpriseK8s
+
+Instructions:
+
+1. Change "arcgis_version" property in the config file to the required ArcGIS Enterprise on Kubernetes version.
+2. Commit the changes to the Git branch and push the branch to GitHub.
+3. Run enterprise-k8s-aws-image workflow using the branch.
+
+> The workflow run may take several hours.
+
+### 2. Create Ingress Controller
 
 GitHub Actions workflow **enterprise-k8s-aws-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on
 Kubernetes deployment in Amazon EKS cluster and a cluster-level ingress controller that routes traffic to the deployment.
@@ -48,24 +72,6 @@ Instructions:
 
 > See [Elastic Load Balancing SSL negotiation configuration](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) for the list of SSL policies.
 
-### 2. Copy Container Images to Amazon ECR
-
-GitHub Actions workflow **enterprise-k8s-aws-image** copies the ArcGIS Enterprise on Kubernetes container images from DockerHub to AWS Elastic Container Registry (ECR) repositories.
-
-The workflow uses [image-copy-ecr](image/README.md) script with [organization.tfvars.json](../../config/aws/arcgis-enterprise-k8s/organization.tfvars.json) config file.
-
-Required IAM policies:
-
-* ArcGISEnterpriseK8s
-
-Instructions:
-
-1. Change "arcgis_version" property in the config file to the required ArcGIS Enterprise on Kubernetes version.
-2. Commit the changes to the Git branch and push the branch to GitHub.
-3. Run enterprise-k8s-aws-image workflow using the branch.
-
-> Copying of container images may take several hours.
-
 ### 3. Create ArcGIS Enterprise organization
 
 GitHub Actions workflow **enterprise-k8s-aws-organization** deploys ArcGIS Enterprise on Kubernetes in Amazon EKS cluster and creates an ArcGIS Enterprise organization.
@@ -84,7 +90,7 @@ Outputs:
 
 Instructions:
 
-1. Set "helm_charts_version" property to the Helm Charts for ArcGIS Enterprise on Kubernetes version that is compatible with the ArcGIS Enterprise on Kubernetes version.
+1. Set "helm_charts_version" property to the Helm Charts for ArcGIS Enterprise on Kubernetes version for the ArcGIS Enterprise on Kubernetes version.
 2. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/aws/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file paths.
 3. Set "system_arch_profile" property to the required ArcGIS Enterprise on Kubernetes architecture profile.
 4. Set "arcgis_enterprise_fqdn" property to the ArcGIS Enterprise deployment fully qualified domain name.
@@ -104,6 +110,8 @@ The python [test script](../tests/arcgis-enterprise-base-test.py) uses [ArcGIS A
 Instructions:
 
 1. Run enterprise-k8s-aws-test workflow using the branch.
+
+> Note: enterprise-k8s-aws-test requires the ArcGIS Enterprise deployment to be accessible from the GitHub Actions runner.
 
 ## Backups and Disaster Recovery
 
@@ -127,15 +135,12 @@ GitHub Actions workflow enterprise-k8s-aws-organization supports [updates and up
 
 Instructions:
 
-1. (For updates) Update manifest file of the current ArcGIS Enterprise on Kubernetes version in /config/aws/arcgis-enterprise-k8s/manifests directory to the one that includes container images required by the update.
-2. (For upgrades) Change "arcgis_version" property in organization.tfvars.json file to the new ArcGIS Enterprise on Kubernetes version.
-3. Commit the changes to the Git branch and push the branch to GitHub.
-4. Run enterprise-k8s-aws-image workflow using the branch.
-5. (For upgrades) Add ArcGIS Enterprise on Kubernetes authorization files for the new ArcGIS Enterprise version to `/config/aws/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file paths.
-6. Set "helm_charts_version" property to the Helm Charts version compatible with the new ArcGIS Enterprise on Kubernetes version (see "Chart Version Compatibility" section in the charts' READMEs).
-7. Set "upgrade_token" property to a long lived (>= 6 hours expiration time) token generated for ArcGIS Enterprise organization administrator account through the `https://<arcgis_enterprise_fqdn>/<arcgis_enterprise_fqdn>/sharing/rest/generateToken` endpoint.
-8. Commit the changes to the Git branch and push the branch to GitHub.
-9. Run enterprise-k8s-aws-organization workflow using the branch.
+1. If pull through cache is not configured, copy the container images of the new ArcGIS Enterprise version to Amazon ECR.
+2. In case of upgrade to a new version, add ArcGIS Enterprise on Kubernetes authorization files for the new ArcGIS Enterprise version to `/config/aws/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property in [organization.tfvars.json](../../config/aws/arcgis-enterprise-k8s/organization.tfvars.json) config file to the file paths.
+3. Set "helm_charts_version" property to the Helm Charts version of the new ArcGIS Enterprise on Kubernetes version (see "Chart Version Compatibility" section in the charts' READMEs).
+4. Set "upgrade_token" property to a long lived (>= 6 hours expiration time) token generated for ArcGIS Enterprise organization administrator account through the `https://<arcgis_enterprise_fqdn>/<arcgis_enterprise_fqdn>/sharing/rest/generateToken` endpoint.
+5. Commit the changes to the Git branch and push the branch to GitHub.
+6. Run enterprise-k8s-aws-organization workflow using the branch.
 
 > Make a backup of your organization before performing an update or upgrade.
 

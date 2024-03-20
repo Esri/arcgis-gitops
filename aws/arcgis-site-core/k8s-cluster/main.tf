@@ -6,6 +6,9 @@
  *
  * See: https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm
  *
+ * Optionally, the module also configures pull through cache rules for Amazon Elastic Container Registry (ECR) 
+ * to sync the contents of source Docker Hub registry with Amazon ECR private registry.
+ *
  * ## Requirements
  * 
  * On the machine where Terraform is executed:
@@ -15,14 +18,14 @@
  *
  * ## SSM Parameters
  *
- * The module uses the following SSM parameters: 
+ * If subnet IDs of the EKS cluter and node groups are not specified by input variables,
+ * thesubnet IDs are retrieved from the following SSM parameters: 
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/vpc/private-subnet-1 | Private VPC subnet 1 Id |
- * | /arcgis/${var.site_id}/vpc/private-subnet-2 | Private VPC subnet 2 Id |
- * | /arcgis/${var.site_id}/vpc/public-subnet-1 | Public VPC subnet 1 Id |
- * | /arcgis/${var.site_id}/vpc/public-subnet-2 | Public VPC subnet 2 Id |
+ * | /arcgis/${var.site_id}/vpc/public-subnet-* | Public VPC subnets Ids |
+ * | /arcgis/${var.site_id}/vpc/private-subnet-* | Private VPC subnets Ids |
+ * | /arcgis/${var.site_id}/vpc/isolated-subnet-* | Isolated VPC subnets Ids |
  */
 
 terraform {
@@ -47,29 +50,32 @@ terraform {
 provider "aws" {
   default_tags {
     tags = {
-      ArcGISSiteId       = var.site_id
+      ArcGISSiteId = var.site_id
     }
   }
 }
 
-data "aws_ssm_parameter" "public_subnet1" {
-  name = "/arcgis/${var.site_id}/vpc/public-subnet-1"
+data "aws_ssm_parameter" "public_subnets" {
+  count = local.subnets_count
+  name  = "/arcgis/${var.site_id}/vpc/public-subnet-${count.index + 1}"
 }
 
-data "aws_ssm_parameter" "public_subnet2" {
-  name = "/arcgis/${var.site_id}/vpc/public-subnet-2"
+data "aws_ssm_parameter" "private_subnets" {
+  count = local.subnets_count
+  name  = "/arcgis/${var.site_id}/vpc/private-subnet-${count.index + 1}"
 }
 
-data "aws_ssm_parameter" "private_subnet1" {
-  name = "/arcgis/${var.site_id}/vpc/private-subnet-1"
-}
-
-data "aws_ssm_parameter" "private_subnet2" {
-  name = "/arcgis/${var.site_id}/vpc/private-subnet-2"
+data "aws_ssm_parameter" "isolated_subnets" {
+  count = local.subnets_count
+  name  = "/arcgis/${var.site_id}/vpc/isolated-subnet-${count.index + 1}"
 }
 
 data "tls_certificate" "cluster" {
   url = aws_eks_cluster.cluster.identity.0.oidc.0.issuer
+}
+
+locals {
+  subnets_count = 2 # Number of VPC subnets of each type to use for the EKS cluster by default
 }
 
 # Create Key Management Service (KMS) key.
@@ -103,14 +109,13 @@ resource "aws_eks_cluster" "cluster" {
   }
 
   vpc_config {
-    endpoint_private_access = false
+    endpoint_private_access = true
     endpoint_public_access  = true
-    subnet_ids = [
-      data.aws_ssm_parameter.public_subnet1.value,
-      data.aws_ssm_parameter.public_subnet2.value,
-      data.aws_ssm_parameter.private_subnet1.value,
-      data.aws_ssm_parameter.private_subnet2.value
-    ]
+    subnet_ids = length(var.subnet_ids) < 2 ? concat(
+      data.aws_ssm_parameter.public_subnets[*].value,
+      data.aws_ssm_parameter.private_subnets[*].value,
+      data.aws_ssm_parameter.isolated_subnets[*].value
+    ) : var.subnet_ids
   }
 
   enabled_cluster_log_types = ["api", "audit"]
@@ -155,13 +160,15 @@ resource "aws_eks_node_group" "node_groups" {
   cluster_name    = aws_eks_cluster.cluster.name
   node_group_name = var.node_groups[count.index].name
   node_role_arn   = aws_iam_role.eks_worker_node_role.arn
-  subnet_ids = [
-    data.aws_ssm_parameter.private_subnet1.value,
-    data.aws_ssm_parameter.private_subnet2.value
-  ]
+
+  # Use the first two private subnets if the subnets list of the node group 
+  # contains less then 2 elements.
+  subnet_ids = (length(var.node_groups[count.index].subnet_ids) < 2 ? 
+    data.aws_ssm_parameter.private_subnets[*].value : 
+    var.node_groups[count.index].subnet_ids)
 
   launch_template {
-    id = aws_launch_template.node_groups[count.index].id
+    id      = aws_launch_template.node_groups[count.index].id
     version = "$Latest"
   }
 
@@ -194,4 +201,28 @@ module "ebs_csi_driver" {
   depends_on = [
     module.load_balancer_controller
   ]
+}
+
+resource "aws_secretsmanager_secret" "aws_ecrpullthroughcache" {
+  count                   = var.pull_through_cache ? 1 : 0
+  name                    = "ecr-pullthroughcache/${var.site_id}"
+  description             = "Secret for ECR pull-through cache"
+  recovery_window_in_days = 0
+}
+
+resource "aws_secretsmanager_secret_version" "aws_ecrpullthroughcache" {
+  count     = var.pull_through_cache ? 1 : 0
+  secret_id = aws_secretsmanager_secret.aws_ecrpullthroughcache[0].id
+  secret_string = jsonencode({
+    username    = var.container_registry_user
+    accessToken = var.container_registry_password
+    }
+  )
+}
+
+resource "aws_ecr_pull_through_cache_rule" "arcgis_enterprise" {
+  count                 = var.pull_through_cache ? 1 : 0
+  ecr_repository_prefix = var.ecr_repository_prefix
+  upstream_registry_url = var.container_registry_url
+  credential_arn        = aws_secretsmanager_secret.aws_ecrpullthroughcache[0].arn
 }

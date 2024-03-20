@@ -10,10 +10,12 @@
  * On the machine where terraform is executed must be installed AWS CLI, kubectl, and helm.
  */
 
+data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 locals {
   oidc_provider = "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${split("/", var.oidc_arn)[3]}"
+  # image_repository = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/eks/aws-load-balancer-controller"
 }
 
 resource "aws_iam_policy" "locad_balancer_controller" {
@@ -55,7 +57,12 @@ resource "aws_iam_role_policy_attachment" "aws_eks_load_balancer_controller" {
   policy_arn = aws_iam_policy.locad_balancer_controller.arn
 }
 
-resource "local_file" "foo" {
+# resource "aws_ecr_pull_through_cache_rule" "eks" {
+#   ecr_repository_prefix = "eks"
+#   upstream_registry_url = "public.ecr.aws"
+# }
+
+resource "local_file" "service_account" {
   content = templatefile("${path.module}/service-account.yml.tftpl",
   { role_arn = aws_iam_role.aws_eks_load_balancer_controller.arn })
 
@@ -93,7 +100,7 @@ resource "null_resource" "service_account" {
   }
 
   depends_on = [
-    local_file.foo,
+    local_file.service_account,
     null_resource.update_kubeconfig
   ]
 }
@@ -113,6 +120,7 @@ resource "null_resource" "helm_install" {
 
   provisioner "local-exec" {
     command = "helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=${var.cluster_name} --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller"
+    # --set image.repository=${local.image_repository}
   }
 
   depends_on = [

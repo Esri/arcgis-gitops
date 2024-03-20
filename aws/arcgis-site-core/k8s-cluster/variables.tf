@@ -19,8 +19,26 @@ variable "eks_version" {
   }
 }
 
+variable "subnet_ids" {
+  description = "EKS cluster subnet IDs (by default, the first two public, two private, and two isolated VPC subnets are used)"
+  type        = list(string)
+  default     = []
+}
+
 variable "node_groups" {
-  description = "EKS Node Groups configuration"
+  # description = "EKS Node Groups configuration"
+  description = <<EOT
+  <p>EKS node groups configuration properties:</p>
+  <ul>
+  <li>name - Name of the node group</li>
+  <li>instance_type -Type of EC2 instance to use for the node group</li>
+  <li>root_volume_size - Size of the root volume in GB</li>
+  <li>desired_size - Number of nodes to start with</li>
+  <li>max_size - Maximum number of nodes in the node group</li>
+  <li>min_size - Minimum number of nodes in the node group</li>
+  <li>subnet_ids - List of subnet IDs to use for the node group (the first two private subnets are used by default)</li>
+  </ul>
+  EOT  
   type = list(object({
     name             = string
     instance_type    = string
@@ -28,6 +46,7 @@ variable "node_groups" {
     desired_size     = number
     max_size         = number
     min_size         = number
+    subnet_ids       = list(string)
   }))
   default = [
     {
@@ -37,6 +56,7 @@ variable "node_groups" {
       desired_size     = 4
       max_size         = 8
       min_size         = 4
+      subnet_ids       = []
     }
   ]
 }
@@ -44,5 +64,36 @@ variable "node_groups" {
 variable "key_name" {
   description = "EC2 key pair name"
   type        = string
+  default     = null
+}
+
+variable "pull_through_cache" {
+  description = "Configure ECR pull through cache rules"
+  type        = bool
+  default     = true
+}
+
+variable "container_registry_url" {
+  description = "Source container registry URL"
+  type        = string
+  default     = "registry-1.docker.io"
+}
+
+variable "ecr_repository_prefix" {
+  description = "The repository name prefix to use when caching images from the source registry"
+  type        = string
+  default     = "docker-hub"
+}
+
+variable "container_registry_user" {
+  description = "Source container registry user name"
+  type        = string
+  default     = null
+}
+
+variable "container_registry_password" {
+  description = "Source container registry user password"
+  type        = string
+  sensitive   = true
   default     = null
 }

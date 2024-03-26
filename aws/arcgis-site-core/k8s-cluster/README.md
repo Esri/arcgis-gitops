@@ -7,7 +7,7 @@ that meets ArcGIS Enterprise on Kubernetes system requirements.
 See: https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm
 
 Optionally, the module also configures pull through cache rules for Amazon Elastic Container Registry (ECR)
-to sync the contents of source Docker Hub registry with Amazon ECR private registry.
+to sync the contents of source Docker Hub and Public Amazon ECR registries with private Amazon ECR registry.
 
 ## Requirements
 
@@ -46,7 +46,8 @@ thesubnet IDs are retrieved from the following SSM parameters:
 | Name | Type |
 |------|------|
 | [aws_cloudwatch_log_group.eks_cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_ecr_pull_through_cache_rule.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_pull_through_cache_rule) | resource |
+| [aws_ecr_pull_through_cache_rule.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_pull_through_cache_rule) | resource |
+| [aws_ecr_pull_through_cache_rule.public_ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_pull_through_cache_rule) | resource |
 | [aws_eks_cluster.cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster) | resource |
 | [aws_eks_node_group.node_groups](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_node_group) | resource |
 | [aws_iam_openid_connect_provider.eks_oidc](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_openid_connect_provider) | resource |
@@ -71,6 +72,7 @@ thesubnet IDs are retrieved from the following SSM parameters:
 | container_registry_user | Source container registry user name | `string` | `null` | no |
 | ecr_repository_prefix | The repository name prefix to use when caching images from the source registry | `string` | `"docker-hub"` | no |
 | eks_version | The desired Kubernetes version for the EKS cluster | `string` | `"1.28"` | no |
+| enable_waf | Enable WAF addons for ALB | `bool` | `true` | no |
 | key_name | EC2 key pair name | `string` | `null` | no |
 | node_groups | <p>EKS node groups configuration properties:</p>   <ul>   <li>name - Name of the node group</li>   <li>instance_type -Type of EC2 instance to use for the node group</li>   <li>root_volume_size - Size of the root volume in GB</li>   <li>desired_size - Number of nodes to start with</li>   <li>max_size - Maximum number of nodes in the node group</li>   <li>min_size - Minimum number of nodes in the node group</li>   <li>subnet_ids - List of subnet IDs to use for the node group (the first two private subnets are used by default)</li>   </ul> | ```list(object({ name = string instance_type = string root_volume_size = number desired_size = number max_size = number min_size = number subnet_ids = list(string) }))``` | ```[ { "desired_size": 4, "instance_type": "m6i.2xlarge", "max_size": 8, "min_size": 4, "name": "default", "root_volume_size": 1024, "subnet_ids": [] } ]``` | no |
 | pull_through_cache | Configure ECR pull through cache rules | `bool` | `true` | no |

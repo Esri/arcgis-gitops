@@ -97,3 +97,9 @@ variable "container_registry_password" {
   sensitive   = true
   default     = null
 }
+
+variable "enable_waf" {
+  description = "Enable WAF and Shield addons for ALB"
+  type        = bool
+  default     = true
+}

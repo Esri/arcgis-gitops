@@ -15,7 +15,16 @@ data "aws_region" "current" {}
 
 locals {
   oidc_provider = "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${split("/", var.oidc_arn)[3]}"
-  # image_repository = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/eks/aws-load-balancer-controller"
+  helm_values = {
+    "clusterName" = var.cluster_name
+    "serviceAccount.create" = false
+    "serviceAccount.name" = "aws-load-balancer-controller"
+    "image.repository" = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/ecr-public/eks/aws-load-balancer-controller"
+    "enableShield" = var.enable_waf
+    "enableWaf" = var.enable_waf
+    "enableWafv2" = var.enable_waf
+  }
+  helm_values_str = join(" ", [for key, value in local.helm_values : "--set ${key}=${value}"])
 }
 
 resource "aws_iam_policy" "locad_balancer_controller" {
@@ -56,11 +65,6 @@ resource "aws_iam_role_policy_attachment" "aws_eks_load_balancer_controller" {
   role       = aws_iam_role.aws_eks_load_balancer_controller.name
   policy_arn = aws_iam_policy.locad_balancer_controller.arn
 }
-
-# resource "aws_ecr_pull_through_cache_rule" "eks" {
-#   ecr_repository_prefix = "eks"
-#   upstream_registry_url = "public.ecr.aws"
-# }
 
 resource "local_file" "service_account" {
   content = templatefile("${path.module}/service-account.yml.tftpl",
@@ -119,8 +123,7 @@ resource "null_resource" "helm_install" {
   }
 
   provisioner "local-exec" {
-    command = "helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system --set clusterName=${var.cluster_name} --set serviceAccount.create=false --set serviceAccount.name=aws-load-balancer-controller"
-    # --set image.repository=${local.image_repository}
+    command = "helm upgrade --install aws-load-balancer-controller eks/aws-load-balancer-controller -n kube-system ${local.helm_values_str}"
   }
 
   depends_on = [

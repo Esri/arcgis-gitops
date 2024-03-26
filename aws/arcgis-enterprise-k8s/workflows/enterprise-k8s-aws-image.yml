@@ -34,7 +34,7 @@ jobs:
           sudo rm -rf "/usr/local/share/boost"
           sudo rm -rf "$AGENT_TOOLSDIRECTORY"
           docker rmi node:16 node:18 node:20 > /dev/null 2>&1
-      - name: Copy images to ECR
+      - name: Copy Docker Hub images
         run: |
           ARCGIS_VERSION=$(jq -r '.arcgis_version' $CONFIG_FILE)
           export CONTAINER_REGISTRY_ORG=$(jq -r '.container_registry_org' $CONFIG_FILE)
@@ -43,6 +43,10 @@ jobs:
           echo "Container registry org: $CONTAINER_REGISTRY_ORG"
           echo "ECR repository prefix: $ECR_REPOSITORY_PREFIX"
           MANIFEST_PATH=./manifests/$ARCGIS_VERSION.dat
-          # Run the image copy script
-          chmod +x ./image-copy-ecr.sh
-          ./image-copy-ecr.sh $MANIFEST_PATH
+          chmod +x ./copy-docker-hub-images.sh
+          ./copy-docker-hub-images.sh $MANIFEST_PATH
+      - name: Copy Public ECR images
+        run: |
+          chmod +x ./copy-public-ecr-images.sh
+          ./copy-public-ecr-images.sh
+  

@@ -22,8 +22,8 @@ The script requires at least 20GB of free disk space on the machine to temporary
 ## Usage
 
 ```bash
-chmod +x ./image-copy-ecr.sh
-./image-copy-ecr.sh <manifest file path>
+chmod +x ./copy-docker-hub-images.sh
+./copy-docker-hub-images.sh <manifest file path>
 ```
 
 The Esri-published version manifest is a JSON file that contains a list of images for a specific ArcGIS Enterprise on Kubernetes version, which are to be copied to ECR. This manifest file can be downloaded from a URL specified by the VERSION_MANIFEST_URL property in the `arcgis-enterprise/<version>/setup/.install/arcgis-enterprise/arcgis-enterprise.properties` file, located within the ArcGIS Enterprise on Kubernetes setup scripts for that particular version of ArcGIS Enterprise on Kubernetes.

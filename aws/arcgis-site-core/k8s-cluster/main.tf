@@ -7,7 +7,7 @@
  * See: https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm
  *
  * Optionally, the module also configures pull through cache rules for Amazon Elastic Container Registry (ECR) 
- * to sync the contents of source Docker Hub registry with Amazon ECR private registry.
+ * to sync the contents of source Docker Hub and Public Amazon ECR registries with private Amazon ECR registry.
  *
  * ## Requirements
  * 
@@ -185,6 +185,7 @@ module "load_balancer_controller" {
 
   cluster_name = aws_eks_cluster.cluster.name
   oidc_arn     = aws_iam_openid_connect_provider.eks_oidc.arn
+  enable_waf   = var.enable_waf
 
   depends_on = [
     aws_eks_cluster.cluster
@@ -203,6 +204,8 @@ module "ebs_csi_driver" {
   ]
 }
 
+# Configure pull through cache rules for Amazon ECR
+
 resource "aws_secretsmanager_secret" "aws_ecrpullthroughcache" {
   count                   = var.pull_through_cache ? 1 : 0
   name                    = "ecr-pullthroughcache/${var.site_id}"
@@ -220,9 +223,15 @@ resource "aws_secretsmanager_secret_version" "aws_ecrpullthroughcache" {
   )
 }
 
-resource "aws_ecr_pull_through_cache_rule" "arcgis_enterprise" {
+resource "aws_ecr_pull_through_cache_rule" "docker_hub" {
   count                 = var.pull_through_cache ? 1 : 0
   ecr_repository_prefix = var.ecr_repository_prefix
   upstream_registry_url = var.container_registry_url
   credential_arn        = aws_secretsmanager_secret.aws_ecrpullthroughcache[0].arn
+}
+
+resource "aws_ecr_pull_through_cache_rule" "public_ecr" {
+  count                 = var.pull_through_cache ? 1 : 0
+  ecr_repository_prefix = "ecr-public"
+  upstream_registry_url = "public.ecr.aws"
 }

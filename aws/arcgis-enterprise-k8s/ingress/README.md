@@ -7,6 +7,9 @@ a cluster-level ingress controller that routes traffic to the deployment.
 
 See: https://enterprise-k8s.arcgis.com/en/latest/deploy/use-a-cluster-level-ingress-controller-with-eks.htm
 
+If a Route 53 hosted zone ID is provided, a CNAME record is created in the hosted zone
+that points the deployment's FQDN to the load balancer's DNS name.
+
 ## Requirements
 
 On the machine where Terraform is executed:
@@ -19,12 +22,14 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
+| aws | ~> 5.22 |
 | kubernetes | ~> 2.26 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [aws_route53_record.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [kubernetes_ingress_v1.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_namespace.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 
@@ -35,6 +40,7 @@ On the machine where Terraform is executed:
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
 | arcgis_enterprise_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
+| hosted_zone_id | The Route 53 hosted zone ID for the domain | `string` | `null` | no |
 | scheme | The scheme for the load balancer. Set to 'internet-facing' for public access. | `string` | `"internet-facing"` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listeners of the load balancer | `string` | n/a | yes |

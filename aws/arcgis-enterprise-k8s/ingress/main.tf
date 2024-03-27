@@ -7,6 +7,9 @@
  *
  * See: https://enterprise-k8s.arcgis.com/en/latest/deploy/use-a-cluster-level-ingress-controller-with-eks.htm
  *
+ * If a Route 53 hosted zone ID is provided, a CNAME record is created in the hosted zone
+ * that points the deployment's FQDN to the load balancer's DNS name.
+ * 
  * ## Requirements
  * 
  * On the machine where Terraform is executed:
@@ -26,6 +29,10 @@ terraform {
       source  = "hashicorp/kubernetes"
       version = "~> 2.26"
     }
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.22"
+    }   
   }
 
   required_version = ">= 1.1.9"
@@ -84,4 +91,13 @@ resource "kubernetes_ingress_v1" "arcgis_enterprise" {
   depends_on = [
     kubernetes_namespace.arcgis_enterprise
   ]
+}
+
+resource "aws_route53_record" "arcgis_enterprise" {
+  count = var.hosted_zone_id != null ? 1 : 0
+  zone_id = var.hosted_zone_id
+  name    = "${var.arcgis_enterprise_fqdn}."
+  type    = "CNAME"
+  ttl     = 300
+  records = [kubernetes_ingress_v1.arcgis_enterprise.status.0.load_balancer.0.ingress.0.hostname]
 }

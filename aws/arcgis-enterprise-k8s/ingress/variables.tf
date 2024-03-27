@@ -67,3 +67,14 @@ variable "arcgis_enterprise_context" {
     error_message = "The arcgis_enterprise_context value must be an alphanumeric string."
   }
 }
+
+variable "hosted_zone_id" {
+  description = "The Route 53 hosted zone ID for the domain"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = can(regex("^Z[0-9A-Z]{14,}$", var.hosted_zone_id)) || var.hosted_zone_id == null
+    error_message = "The hosted_zone_id value must be a valid Route 53 hosted zone ID."
+  }
+}

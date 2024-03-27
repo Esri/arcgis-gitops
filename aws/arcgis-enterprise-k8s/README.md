@@ -64,9 +64,10 @@ Instructions:
 
 1. Provision or import SSL certificate for the ArcGIS Enterprise domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property in the config file to the certificate ARN.
 2. Set "arcgis_enterprise_fqdn" property to the ArcGIS Enterprise deployment domain name.
-3. Commit the changes to a Git branch and push the branch to GitHub.
-4. Run enterprise-k8s-aws-ingress workflow using the branch.
-5. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
+3. If Route53 DNS is used, set "hosted_zone_id" property to the Route 53 hosted zone ID of the ArcGIS Enterprise domain name.
+4. Commit the changes to a Git branch and push the branch to GitHub.
+5. Run enterprise-k8s-aws-ingress workflow using the branch.
+6. If "hosted_zone_id" property was not specified, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
 > The value of "deployment_id" property defines the deployment's Kubernetes namespace.
 

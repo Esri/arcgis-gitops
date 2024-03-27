@@ -4,17 +4,17 @@
         {
             "Effect": "Allow",
             "Action": [
-                "ecr:TagResource",
                 "ecr:BatchCheckLayerAvailability",
                 "ecr:CompleteLayerUpload",
                 "ecr:CreateRepository",
                 "ecr:DeleteRepository",
-                "ecr:DescribeRepositories",
                 "ecr:DescribeImages",
+                "ecr:DescribeRepositories",
                 "ecr:GetAuthorizationToken",
                 "ecr:InitiateLayerUpload",
                 "ecr:ListTagsForResource",
                 "ecr:PutImage",
+                "ecr:TagResource",
                 "ecr:UploadLayerPart"
             ],
             "Resource": "*"

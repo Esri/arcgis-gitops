@@ -3,15 +3,17 @@
     "Statement": [
         {
             "Effect": "Allow",
-            "Action":[
-                "ec2:DescribeSubnets",
-                "ec2:DeleteLaunchTemplate"
+            "Action": [
+                "ec2:DeleteLaunchTemplate",
+                "ec2:DescribeLaunchTemplates",
+                "ec2:DescribeLaunchTemplateVersions",
+                "ec2:DescribeSubnets"
             ],
             "Resource": "*"
         },
         {
             "Effect": "Allow",
-            "Action":[
+            "Action": [
                 "eks:*"
             ],
             "Resource": "*"
@@ -19,19 +21,31 @@
         {
             "Effect": "Allow",
             "Action": [
-                "iam:DeleteRole",
-                "iam:DeleteOpenIDConnectProvider",
-                "iam:DetachRolePolicy",
-                "iam:ListRoles",
-                "iam:ListUsers",
-                "iam:ListAttachedRolePolicies",
-                "iam:ListInstanceProfilesForRole",
-                "iam:ListRolePolicies",
-                "iam:GetRole",
-                "iam:GetOpenIDConnectProvider"
+                "ecr:DeletePullThroughCacheRule",
+                "ecr:DescribePullThroughCacheRules"
             ],
             "Resource": "*"
-        },      
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "iam:DeleteOpenIDConnectProvider",
+                "iam:DeletePolicy",
+                "iam:DeleteRole",
+                "iam:DetachRolePolicy",
+                "iam:GetOpenIDConnectProvider",
+                "iam:GetPolicy",
+                "iam:GetPolicyVersion",
+                "iam:GetRole",
+                "iam:ListAttachedRolePolicies",
+                "iam:ListInstanceProfilesForRole",
+                "iam:ListPolicyVersions",
+                "iam:ListRolePolicies",
+                "iam:ListRoles",
+                "iam:ListUsers"
+            ],
+            "Resource": "*"
+        },
         {
             "Effect": "Allow",
             "Action": [
@@ -43,27 +57,28 @@
         {
             "Effect": "Allow",
             "Action": [
-                "kms:TagResource",
-                "kms:ListResourceTags",
                 "kms:DescribeKey",
                 "kms:GetKeyPolicy",
                 "kms:GetKeyRotationStatus",
-                "kms:ScheduleKeyDeletion"
+                "kms:ListResourceTags",
+                "kms:ScheduleKeyDeletion",
+                "kms:TagResource"
             ],
             "Resource": "*"
         },
         {
             "Effect": "Allow",
             "Action": [
+                "secretsmanager:DeleteSecret",
                 "secretsmanager:DescribeSecret",
                 "secretsmanager:GetResourcePolicy",
-                "secretsmanager:DeleteSecret"
+                "secretsmanager:GetSecretValue"
             ],
             "Resource": "*"
         },
         {
             "Effect": "Allow",
-            "Action":[
+            "Action": [
                 "logs:DeleteLogGroup",
                 "logs:DescribeLogGroups",
                 "logs:DescribeLogStreams",

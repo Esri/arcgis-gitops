@@ -3,7 +3,7 @@
     "Statement": [
         {
             "Effect": "Allow",
-            "Action":[
+            "Action": [
                 "ecr:CreatePullThroughCacheRule",
                 "ecr:DeletePullThroughCacheRule",
                 "ecr:DescribePullThroughCacheRules"
@@ -12,13 +12,16 @@
         },
         {
             "Effect": "Allow",
-            "Action":[
-                "ec2:DescribeSubnets",
+            "Action": [
                 "ec2:CreateLaunchTemplate",
                 "ec2:CreateLaunchTemplateVersion",
+                "ec2:CreateTags",
+                "ec2:DeleteLaunchTemplate",
+                "ec2:DescribeLaunchTemplates",
+                "ec2:DescribeLaunchTemplateVersions",
+                "ec2:DescribeSubnets",
                 "ec2:ModifyLaunchTemplate",
-                "ec2:RunInstances",
-                "ec2:CreateTags"
+                "ec2:RunInstances"
             ],
             "Resource": "*"
         },
@@ -28,23 +31,29 @@
                 "eks:*",
                 "iam:AttachRolePolicy",
                 "iam:CreateOpenIDConnectProvider",
+                "iam:CreatePolicy",
                 "iam:CreateRole",
+                "iam:DeletePolicy",
                 "iam:DeleteRole",
                 "iam:GetOpenIDConnectProvider",
+                "iam:GetPolicy",
+                "iam:GetPolicyVersion",
                 "iam:GetRole",
                 "iam:ListAttachedRolePolicies",
                 "iam:ListInstanceProfilesForRole",
                 "iam:ListOpenIDConnectProviders",
                 "iam:ListPolicies",
+                "iam:ListPolicyVersions",
                 "iam:ListRolePolicies",
                 "iam:ListRoles",
                 "iam:ListUsers",
                 "iam:TagOpenIDConnectProvider",
+                "iam:TagPolicy",
                 "iam:TagRole",
                 "iam:UpdateAssumeRolePolicy"
             ],
             "Resource": "*"
-        },      
+        },
         {
             "Effect": "Allow",
             "Action": [
@@ -77,15 +86,15 @@
         {
             "Effect": "Allow",
             "Action": [
-                "kms:TagResource",
+                "kms:CreateGrant",
                 "kms:CreateKey",
-                "kms:ListResourceTags",
-                "kms:ListAliases",
                 "kms:DescribeKey",
                 "kms:GetKeyPolicy",
                 "kms:GetKeyRotationStatus",
+                "kms:ListAliases",
+                "kms:ListResourceTags",
                 "kms:ScheduleKeyDeletion",
-                "kms:CreateGrant"
+                "kms:TagResource"
             ],
             "Resource": "*"
         },
@@ -93,18 +102,18 @@
             "Effect": "Allow",
             "Action": [
                 "secretsmanager:CreateSecret",
-                "secretsmanager:TagResource",
+                "secretsmanager:DeleteSecret",
                 "secretsmanager:DescribeSecret",
                 "secretsmanager:GetResourcePolicy",
-                "secretsmanager:DeleteSecret",
+                "secretsmanager:GetSecretValue",
                 "secretsmanager:PutSecretValue",
-                "secretsmanager:GetSecretValue"
+                "secretsmanager:TagResource"
             ],
             "Resource": "*"
         },
         {
             "Effect": "Allow",
-            "Action":[
+            "Action": [
                 "logs:CreateLogGroup",
                 "logs:DescribeLogGroups",
                 "logs:DescribeLogStreams",

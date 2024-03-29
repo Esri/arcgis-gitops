@@ -117,8 +117,8 @@ The module uses the following SSM parameters:
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"11.2"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
+| deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"arcgis-enterprise-base"` | no |
-| domain_name | Deployment domain name | `string` | n/a | yes |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
 | keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |

@@ -41,7 +41,7 @@ On the machine where Terraform is executed:
 | arcgis_enterprise_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
 | hosted_zone_id | The Route 53 hosted zone ID for the domain | `string` | `null` | no |
-| scheme | The scheme for the load balancer. Set to 'internet-facing' for public access. | `string` | `"internet-facing"` | no |
+| internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listeners of the load balancer | `string` | n/a | yes |
 | ssl_policy | Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers | `string` | `"ELBSecurityPolicy-TLS13-1-2-2021-06"` | no |

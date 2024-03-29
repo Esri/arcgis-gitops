@@ -35,7 +35,7 @@ jobs:
     - name: Run Test
       id: test
       run: |
-        DOMAIN_NAME=$(jq -r '.domain_name' $CONFIG_FILE)
+        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
         ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
         ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
-        /usr/share/miniconda/bin/python arcgis-enterprise-base-test.py -a https://$DOMAIN_NAME/portal -u $ADMIN_USERNAME -p $ADMIN_PASSWORD
+        /usr/share/miniconda/bin/python arcgis-enterprise-base-test.py -a https://$DEPLOYMENT_FQDN/portal -u $ADMIN_USERNAME -p $ADMIN_PASSWORD

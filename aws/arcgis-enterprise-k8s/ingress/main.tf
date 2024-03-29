@@ -54,7 +54,7 @@ resource "kubernetes_ingress_v1" "arcgis_enterprise" {
     namespace = var.deployment_id
     name = "arcgis-enterprise-ingress"
     annotations = {
-      "alb.ingress.kubernetes.io/scheme" = var.scheme
+      "alb.ingress.kubernetes.io/scheme" = var.internal_load_balancer ? "internal" : "internet-facing"
       "alb.ingress.kubernetes.io/target-type" = "ip"
       "alb.ingress.kubernetes.io/backend-protocol" = "HTTPS"
       "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTPS\":443}]"

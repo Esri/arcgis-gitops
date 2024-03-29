@@ -20,15 +20,10 @@ variable "deployment_id" {
   }
 }
 
-variable "scheme" {
-  description = "The scheme for the load balancer. Set to 'internet-facing' for public access."
-  type        = string
-  default     = "internet-facing"
- 
-  validation {
-    condition     = can(regex("^(internet-facing|internal)$", var.scheme))
-    error_message = "The scheme value must be either 'internet-facing' or 'internal'."
-  }
+variable "internal_load_balancer" {
+  description = "If true, the load balancer scheme is set to 'internal'"
+  type        = bool
+  default     = false
 }
 
 variable "ssl_certificate_arn" {

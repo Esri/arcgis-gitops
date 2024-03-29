@@ -39,6 +39,18 @@ variable "client_cidr_blocks" {
   }
 }
 
+variable "subnet_ids" {
+  description = "EC2 instances subnet IDs (by default, the first two private VPC subnets are used)"
+  type        = list(string)
+  default     = []
+}
+
+variable "internal_load_balancer" {
+  description = "If true, the load balancer scheme is set to 'internal'"
+  type        = bool
+  default     = false
+}
+
 variable "ssl_certificate_arn" {
   description = "SSL certificate ARN for HTTPS listener of the load balancer"
   type        = string
@@ -46,6 +58,34 @@ variable "ssl_certificate_arn" {
   validation {
     condition     = can(regex("^arn:.+:acm:.+:\\d+:certificate\\/.+$", var.ssl_certificate_arn))
     error_message = "The ssl_certificate_arn value must be an ACM certificate ARN."
+  }
+}
+
+variable "ssl_policy" {
+  description = "Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers"
+  type        = string
+  default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+}
+
+variable "deployment_fqdn" {
+  description = "Fully qualified domain name of the base ArcGIS Enterprise deployment"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn)) || var.deployment_fqdn == null
+    error_message = "The deployment_fqdn value must be a valid domain name."
+  }
+}
+
+variable "hosted_zone_id" {
+  description = "The Route 53 hosted zone ID for the deployment FQDN"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = can(regex("^Z[0-9A-Z]{14,}$", var.hosted_zone_id)) || var.hosted_zone_id == null
+    error_message = "The hosted_zone_id value must be a valid Route 53 hosted zone ID."
   }
 }
 
@@ -86,14 +126,4 @@ variable "fileserver_volume_size" {
 variable "key_name" {
   description = "EC2 key pair name"
   type        = string
-}
-
-variable "subnet_type" {
-  description = "Type of the EC2 instances subnets. Valid values are public, private, and isolated. Default is private."
-  type        = string
-  default     = "private"
-  validation {
-    condition     = contains(["public", "private", "isolated"], var.subnet_type)
-    error_message = "Valid values for the subnet_type variable are public, private, and isolated"
-  }
 }

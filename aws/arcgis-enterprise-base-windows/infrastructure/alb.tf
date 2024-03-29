@@ -1,15 +1,3 @@
-data "aws_ssm_parameter" "alb_subnet_1" {
-  name = "/arcgis/${var.site_id}/vpc/public-subnet-1"
-}
-
-data "aws_ssm_parameter" "alb_subnet_2" {
-  name = "/arcgis/${var.site_id}/vpc/public-subnet-2"
-}
-
-data "aws_ssm_parameter" "s3_repository" {
-  name = "/arcgis/${var.site_id}/s3/repository"
-}
-
 # EC2 security group for Application Load Balancer
 resource "aws_security_group" "arcgis_alb" {
   name        = "${var.deployment_id}-alb"
@@ -84,14 +72,13 @@ resource "aws_security_group_rule" "allow_arcgis_portal_https" {
 # Application Load Balancer (ALB)
 resource "aws_lb" "alb" {
   name               = var.deployment_id
-  internal           = false
+  internal           = var.internal_load_balancer
   load_balancer_type = "application"
   security_groups    = [aws_security_group.arcgis_alb.id]
 
-  subnets = [
-    nonsensitive(data.aws_ssm_parameter.alb_subnet_1.value),
-    nonsensitive(data.aws_ssm_parameter.alb_subnet_2.value)
-  ]
+  subnets = (var.internal_load_balancer ?
+    data.aws_ssm_parameter.private_subnets[*].value :
+    data.aws_ssm_parameter.public_subnets[*].value)
 
   drop_invalid_header_fields = true
 
@@ -124,7 +111,7 @@ resource "aws_lb_listener" "https" {
   load_balancer_arn = aws_lb.alb.arn
   port              = "443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  ssl_policy        = var.ssl_policy
   certificate_arn   = var.ssl_certificate_arn
 
   default_action {
@@ -138,7 +125,7 @@ resource "aws_lb_listener" "arcgis_server_https" {
   load_balancer_arn = aws_lb.alb.arn
   port              = "6443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  ssl_policy        = var.ssl_policy
   certificate_arn   = var.ssl_certificate_arn
 
   default_action {
@@ -152,7 +139,7 @@ resource "aws_lb_listener" "arcgis_portal_https" {
   load_balancer_arn = aws_lb.alb.arn
   port              = "7443"
   protocol          = "HTTPS"
-  ssl_policy        = "ELBSecurityPolicy-2016-08"
+  ssl_policy        = var.ssl_policy
   certificate_arn   = var.ssl_certificate_arn
 
   default_action {
@@ -288,4 +275,15 @@ module "private_portal_https_alb_target" {
   depends_on = [
     aws_lb_listener.arcgis_portal_https
   ]
+}
+
+# Create Route 53 record for the Application Load Balancer 
+# if the hosted zone ID and domain name are provided.
+resource "aws_route53_record" "arcgis_enterprise" {
+  count = var.hosted_zone_id != null && var.deployment_fqdn != null ? 1 : 0
+  zone_id = var.hosted_zone_id
+  name    = "${var.deployment_fqdn}."
+  type    = "CNAME"
+  ttl     = 300
+  records = [aws_lb.alb.dns_name]
 }

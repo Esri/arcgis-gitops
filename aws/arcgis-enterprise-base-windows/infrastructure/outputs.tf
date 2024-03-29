@@ -12,6 +12,3 @@ output "alb_arn" {
   description = "ARN of appication load balancer"
   value       = aws_lb.alb.arn
 }
-
-
-

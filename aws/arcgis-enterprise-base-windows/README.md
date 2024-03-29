@@ -82,7 +82,7 @@ Outputs:
 Instructions:
 
 1. Add Portal for ArcGIS and ArcGIS Server authorization files for the ArcGIS Enterprise version to `config/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties in application.tfvars.json file to the file paths.
-2. Set "domain_name" property in application.tfvars.json file to the base ArcGIS Enterprise deployment domain name.
+2. Set "deployment_fqdn" property in application.tfvars.json file to the base ArcGIS Enterprise deployment fully qualified domain name.
 3. Set "admin_username", "admin_password", "admin_full_name", "admin_description", "admin_email", "security_question", and "security_question_answer" in application.tfvars.json file to the initial ArcGIS Enterprise administrator account properties.
 4. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties in application.tfvars.json file to the file paths. Set "keystore_file_password" property to password of the keystore file.
 5. Set "run_as_password" property in application.tfvars.json file to the password of `arcgis` user account.

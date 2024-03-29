@@ -51,7 +51,7 @@ On the machine where Terraform is executed:
 | admin_password | ArcGIS Enterprise on Kubernetes organization administrator account password | `string` | n/a | yes |
 | admin_username | ArcGIS Enterprise on Kubernetes organization administrator account username | `string` | `"siteadmin"` | no |
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
-| arcgis_enterprise_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
+| deployment_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | authorization_file_path | ArcGIS Enterprise on Kubernetes authorization file path | `string` | n/a | yes |
 | cloud_config_json_file_path | ArcGIS Enterprise on Kubernetes cloud configuration JSON file path | `string` | `null` | no |
 | common_verbose | Enable verbose install logging | `bool` | `false` | no |

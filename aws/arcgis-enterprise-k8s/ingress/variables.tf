@@ -20,15 +20,10 @@ variable "deployment_id" {
   }
 }
 
-variable "scheme" {
-  description = "The scheme for the load balancer. Set to 'internet-facing' for public access."
-  type        = string
-  default     = "internet-facing"
- 
-  validation {
-    condition     = can(regex("^(internet-facing|internal)$", var.scheme))
-    error_message = "The scheme value must be either 'internet-facing' or 'internal'."
-  }
+variable "internal_load_balancer" {
+  description = "If true, the load balancer scheme is set to 'internal'"
+  type        = bool
+  default     = false
 }
 
 variable "ssl_certificate_arn" {
@@ -47,13 +42,13 @@ variable "ssl_policy" {
   default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
 }
 
-variable "arcgis_enterprise_fqdn" {
+variable "deployment_fqdn" {
   description = "The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes"
   type        = string
 
   validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.arcgis_enterprise_fqdn))
-    error_message = "The arcgis_enterprise_fqdn value must be a valid domain name."
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
+    error_message = "The deployment_fqdn value must be a valid domain name."
   }
 }
 

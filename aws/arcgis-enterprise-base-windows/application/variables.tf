@@ -4,13 +4,13 @@ variable "os" {
   default     = "windows2022"
 }
 
-variable "domain_name" {
-  description = "Deployment domain name"
+variable "deployment_fqdn" {
+  description = "Fully qualified domain name of the base ArcGIS Enterprise deployment"
   type        = string
 
   validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.domain_name))
-    error_message = "The domain_name value must be a valid domain name."
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
+    error_message = "The deployment_fqdn value must be a valid domain name."
   }
 }
 

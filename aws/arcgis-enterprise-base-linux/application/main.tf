@@ -561,7 +561,7 @@ module "arcgis_enterprise_primary" {
   machine_roles  = ["primary"]
   json_attributes = jsonencode({
     tomcat = {
-      domain_name       = var.domain_name
+      domain_name       = var.deployment_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
       keystore_password = var.keystore_file_password
@@ -570,7 +570,7 @@ module "arcgis_enterprise_primary" {
       version     = var.arcgis_version
       run_as_user = var.run_as_user
       hosts = {
-        "${var.domain_name}" = ""
+        "${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = "/opt/software/archives"
@@ -581,8 +581,8 @@ module "arcgis_enterprise_primary" {
       }
       server = {
         install_dir                    = "/opt"
-        private_url                    = "https://${var.domain_name}:6443/arcgis"
-        web_context_url                = "https://${var.domain_name}/server"
+        private_url                    = "https://${var.deployment_fqdn}:6443/arcgis"
+        web_context_url                = "https://${var.deployment_fqdn}/server"
         hostname                       = local.primary_hostname
         admin_username                 = var.admin_username
         admin_password                 = var.admin_password
@@ -600,7 +600,7 @@ module "arcgis_enterprise_primary" {
         wa_name                        = "server"
         services_dir_enabled           = true
         system_properties = {
-          WebContextURL = "https://${var.domain_name}/server"
+          WebContextURL = "https://${var.deployment_fqdn}/server"
         }
       }
       data_store = {
@@ -620,7 +620,7 @@ module "arcgis_enterprise_primary" {
         }
       }
       portal = {
-        private_url              = "https://${var.domain_name}:7443/arcgis"
+        private_url              = "https://${var.deployment_fqdn}:7443/arcgis"
         hostname                 = local.primary_hostname
         hostidentifier           = local.primary_hostname
         install_dir              = "/opt"
@@ -649,8 +649,8 @@ module "arcgis_enterprise_primary" {
         install_system_requirements = true
         wa_name                     = "portal"
         system_properties = {
-          privatePortalURL = "https://${var.domain_name}:7443/arcgis"
-          WebContextURL    = "https://${var.domain_name}/portal"
+          privatePortalURL = "https://${var.deployment_fqdn}:7443/arcgis"
+          WebContextURL    = "https://${var.deployment_fqdn}/portal"
         }
       }
       web_adaptor = {
@@ -690,7 +690,7 @@ module "arcgis_enterprise_standby" {
   machine_roles  = ["standby"]
   json_attributes = jsonencode({
     tomcat = {
-      domain_name       = var.domain_name
+      domain_name       = var.deployment_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
       keystore_password = var.keystore_file_password
@@ -699,7 +699,7 @@ module "arcgis_enterprise_standby" {
       version     = var.arcgis_version
       run_as_user = var.run_as_user
       hosts = {
-        "${var.domain_name}" = ""
+        "${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = "/opt/software/archives"

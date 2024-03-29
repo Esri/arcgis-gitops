@@ -35,8 +35,8 @@ jobs:
     - name: Run Test
       id: test
       run: |
-        ARCGIS_ENTERPRISE_FQDN=$(jq -r '.arcgis_enterprise_fqdn' $CONFIG_FILE)
+        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
         ARCGIS_ENTERPRISE_CONTEXT=$(jq -r '.arcgis_enterprise_context' $CONFIG_FILE)
         ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
         ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
-        /usr/share/miniconda/bin/python arcgis-enterprise-base-test.py -a https://$ARCGIS_ENTERPRISE_FQDN/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD
+        /usr/share/miniconda/bin/python arcgis-enterprise-base-test.py -a https://$DEPLOYMENT_FQDN/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD

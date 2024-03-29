@@ -572,14 +572,14 @@ module "arcgis_enterprise_primary" {
       run_as_password            = var.run_as_password
       configure_windows_firewall = true
       hosts = {
-        "${var.domain_name}" = ""
+        "${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = "C:\\Software\\Archives"
         setups   = "C:\\Software\\Setups"
       }
       iis = {
-        domain_name           = var.domain_name
+        domain_name           = var.deployment_fqdn
         keystore_file         = local.keystore_file
         keystore_password     = var.keystore_file_password
         replace_https_binding = true
@@ -587,8 +587,8 @@ module "arcgis_enterprise_primary" {
       server = {
         install_dir                    = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements    = true
-        private_url                    = "https://${var.domain_name}:6443/arcgis"
-        web_context_url                = "https://${var.domain_name}/server"
+        private_url                    = "https://${var.deployment_fqdn}:6443/arcgis"
+        web_context_url                = "https://${var.deployment_fqdn}/server"
         hostname                       = local.primary_hostname
         admin_username                 = var.admin_username
         admin_password                 = var.admin_password
@@ -605,7 +605,7 @@ module "arcgis_enterprise_primary" {
         wa_name                        = "server"
         services_dir_enabled           = true
         system_properties = {
-          WebContextURL = "https://${var.domain_name}/server"
+          WebContextURL = "https://${var.deployment_fqdn}/server"
         }
       }
       data_store = {
@@ -637,7 +637,7 @@ module "arcgis_enterprise_primary" {
         hostidentifier              = local.primary_hostname
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
         install_system_requirements = true
-        private_url                 = "https://${var.domain_name}:7443/arcgis"
+        private_url                 = "https://${var.deployment_fqdn}:7443/arcgis"
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         admin_email                 = var.admin_email
@@ -663,8 +663,8 @@ module "arcgis_enterprise_primary" {
         root_cert_alias      = "rootcert"
         wa_name              = "portal"
         system_properties = {
-          privatePortalURL = "https://${var.domain_name}:7443/arcgis"
-          WebContextURL    = "https://${var.domain_name}/portal"
+          privatePortalURL = "https://${var.deployment_fqdn}:7443/arcgis"
+          WebContextURL    = "https://${var.deployment_fqdn}/portal"
         }
       }
       web_adaptor = {
@@ -711,14 +711,14 @@ module "arcgis_enterprise_standby" {
       run_as_password            = var.run_as_password
       configure_windows_firewall = true
       hosts = {
-        "${var.domain_name}" = ""
+        "${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = "C:\\Software\\Archives"
         setups   = "C:\\Software\\Setups"
       }
       iis = {
-        domain_name           = var.domain_name
+        domain_name           = var.deployment_fqdn
         keystore_file         = local.keystore_file
         keystore_password     = var.keystore_file_password
         replace_https_binding = true

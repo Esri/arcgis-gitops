@@ -18,10 +18,10 @@ resource "aws_iam_role" "arcgis_enterprise_role" {
   })
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
-    "arn:aws:iam::aws:policy/AmazonS3FullAccess",
-    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy"
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonDynamoDBFullAccess",
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonS3FullAccess",
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    "arn:${local.arn_identifier}:iam::aws:policy/CloudWatchAgentServerPolicy"
   ]
 
   tags = {

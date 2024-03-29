@@ -14,6 +14,8 @@ data "aws_region" "current" {}
 
 locals {
   oidc_provider = "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${split("/", var.oidc_arn)[3]}"
+  is_gov_cloud = contains(["us-gov-east-1", "us-gov-west-1"], data.aws_region.current.name)
+  arn_identifier = local.is_gov_cloud ? "aws-us-gov" : "aws"  
 }
 
 # IAM role that provides permission for Amazon EBS CSI plugin to make calls to AWS APIs. 
@@ -41,7 +43,7 @@ resource "aws_iam_role" "aws_ebs_csi_driver" {
   })
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
+    "arn:${local.arn_identifier}:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
   ]
 
   tags = {

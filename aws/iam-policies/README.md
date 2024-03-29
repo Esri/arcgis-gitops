@@ -4,6 +4,8 @@ User managed IAM policies for GitHub Actions workflows.
 
 > The policies use conditions that restrict access to resources tagged with Key=ArcGISSiteId,Value=arcgis-enterprise. If the site id is not arcgis-enterprise or the policy will be used with more than one site, then the policy documents must be updated to use the site Ids.
 
+> The ARNs in the policy documents must be updated to use the correct ARN format for the region where the policies will be used. In particular, in AWS GovCloud (US) Regions, ARNs have an identifier that is different from the one in other standard AWS Regions. For all other standard regions, ARNs begin with: `arn:aws`. In the AWS GovCloud (US) Regions, ARNs begin with:`arn:aws-us-gov`.
+
 ## Creating IAM Policies using AWS CLI
 
 ```shell

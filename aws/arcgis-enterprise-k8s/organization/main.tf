@@ -95,13 +95,13 @@ resource "helm_release" "arcgis_enterprise" {
         password = local.container_registry_password
       }
       install = {
-        enterpriseFQDN = var.arcgis_enterprise_fqdn
+        enterpriseFQDN = var.deployment_fqdn
         context = var.arcgis_enterprise_context
         allowedPrivilegedContainers = true
         configureWaitTimeMin = var.configure_wait_time_min
         ingress = {
           tls = {
-            selfSignCN = var.arcgis_enterprise_fqdn
+            selfSignCN = var.deployment_fqdn
           }
         }
         k8sClusterDomain = var.k8s_cluster_domain

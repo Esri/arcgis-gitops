@@ -70,7 +70,7 @@ resource "kubernetes_ingress_v1" "arcgis_enterprise" {
   spec {
     ingress_class_name  = "alb"
     rule {
-      host = var.arcgis_enterprise_fqdn
+      host = var.deployment_fqdn
       http {
         path {
           path = "/${var.arcgis_enterprise_context}"
@@ -96,7 +96,7 @@ resource "kubernetes_ingress_v1" "arcgis_enterprise" {
 resource "aws_route53_record" "arcgis_enterprise" {
   count = var.hosted_zone_id != null ? 1 : 0
   zone_id = var.hosted_zone_id
-  name    = "${var.arcgis_enterprise_fqdn}."
+  name    = "${var.deployment_fqdn}."
   type    = "CNAME"
   ttl     = 300
   records = [kubernetes_ingress_v1.arcgis_enterprise.status.0.load_balancer.0.ingress.0.hostname]

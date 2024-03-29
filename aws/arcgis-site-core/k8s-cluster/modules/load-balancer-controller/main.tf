@@ -67,10 +67,10 @@ resource "aws_iam_role_policy_attachment" "aws_eks_load_balancer_controller" {
 }
 
 resource "local_file" "service_account" {
-  content = templatefile("${path.module}/service-account.yml.tftpl",
+  content = templatefile("${path.module}/service-account.yaml.tftpl",
   { role_arn = aws_iam_role.aws_eks_load_balancer_controller.arn })
 
-  filename = "${path.module}/service-account.yml"
+  filename = "${path.module}/service-account.yaml"
 
   depends_on = [
     aws_iam_role.aws_eks_load_balancer_controller
@@ -100,7 +100,7 @@ resource "null_resource" "service_account" {
   }
 
   provisioner "local-exec" {
-    command = "kubectl apply -f ${path.module}/service-account.yml"
+    command = "kubectl apply -f ${path.module}/service-account.yaml"
   }
 
   depends_on = [

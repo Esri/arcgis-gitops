@@ -8,7 +8,7 @@ The template provides workflows for provisioning:
 
 Before running the template workflows, configure the GitHub repository settings as described in the general [Instructions](../README.md#instructions) section.
 
-To enable the template's workflows, copy the .yml files from the template's `workflows` directory to `/.github/workflows` directory in the `main` branch, commit the changes, and push the branch to GitHub.
+To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in the `main` branch, commit the changes, and push the branch to GitHub.
 
 > To prevent accidental destruction of the resources, don't enable *-destroy workflows until it is necessary.
 

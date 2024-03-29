@@ -7,7 +7,7 @@ Before running the template workflows:
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
 2. Provision core AWS resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
 
-To enable the template's workflows, copy the .yml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
+To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 
 > Refer to READMEs of the Terraform modules and Packer templates for descriptions of the configuration properties.
 
@@ -124,7 +124,7 @@ Instructions:
 2. Commit the changes to the Git branch and push the branch to GitHub.
 3. Run enterprise-base-linux-aws-backup workflow using the branch.
 
-> To meet the required recovery point objective (RPO), schedule runs of enterprise-base-linux-aws-backup workflow by configuring 'schedule' event in enterprise-base-linux-aws-backup.yml file.
+> To meet the required recovery point objective (RPO), schedule runs of enterprise-base-linux-aws-backup workflow by configuring 'schedule' event in enterprise-base-linux-aws-backup.yaml file.
 
 > Base ArcGIS Enterprise deployments in a site use the same S3 bucket for backups. Run backups only for the active deployment branch.
 

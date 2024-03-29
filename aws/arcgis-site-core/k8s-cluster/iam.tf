@@ -4,6 +4,8 @@ data "aws_region" "current" {}
 
 locals {
   oidc_provider = "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${split("/", aws_iam_openid_connect_provider.eks_oidc.arn)[3]}"
+  is_gov_cloud = contains(["us-gov-east-1", "us-gov-west-1"], data.aws_region.current.name)
+  arn_identifier = local.is_gov_cloud ? "aws-us-gov" : "aws"  
 }
 
 ### IAM OpenID Connect provider for EKS
@@ -34,7 +36,7 @@ resource "aws_iam_role" "eks_cluster_role" {
   })
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonEKSClusterPolicy"
   ]
 
   tags = {
@@ -65,12 +67,12 @@ resource "aws_iam_role" "eks_worker_node_role" {
   })
 
   managed_policy_arns = [
-    "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-    "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess",
-    "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy",
-    "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
-    "arn:aws:iam::aws:policy/AmazonS3FullAccess"
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonEKSWorkerNodePolicy",
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess",
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonEKS_CNI_Policy",
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonSSMManagedInstanceCore",
+    "arn:${local.arn_identifier}:iam::aws:policy/CloudWatchAgentServerPolicy",
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonS3FullAccess"
   ]
 
   tags = {

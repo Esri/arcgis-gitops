@@ -57,3 +57,8 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
+
+locals {
+  is_gov_cloud = contains(["us-gov-east-1", "us-gov-west-1"], data.aws_region.current.name)
+  arn_identifier = local.is_gov_cloud ? "aws-us-gov" : "aws"
+}

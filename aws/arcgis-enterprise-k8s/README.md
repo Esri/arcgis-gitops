@@ -12,7 +12,7 @@ Before running the template workflows:
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
 2. Provision core AWS resources for ArcGIS Enterprise site and deploy EKS cluster using [arcgis-site-core](../arcgis-site-core/README.md) template.
 
-To enable the template's workflows, copy the .yml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch and the deployment branch, commit the changes, and push the branches to GitHub.
+To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch and the deployment branch, commit the changes, and push the branches to GitHub.
 
 > Refer to READMEs of the Terraform modules for descriptions of the configuration properties.
 

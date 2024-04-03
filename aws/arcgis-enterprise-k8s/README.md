@@ -18,19 +18,15 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 ## Initial Deployment
 
-Initial deployment of ArcGIS Enterprise on Kubernetes includes: creating ingress controller creating ArcGIS Enterprise organization, and testing the deployment web services.
+Initial deployment of ArcGIS Enterprise on Kubernetes includes: provisioning container images, creating ingress controller creating ArcGIS Enterprise organization, and testing the deployment web services.
 
-> If pull through cache rules are not configured for Amazon ECR, The container images must be copied to the Amazon ECR private repositories.
+> The IAM principal used by the templates's workflows must have the EKS cluster administrator permissions. The IAM principal used to create the EKS cluster is granted the required permissions by site-k8s-cluster-aws workflow.
 
-> The IAM principal used by the templates's workflows must have the EKS cluster administrator permissions. The IAM principal used to create the EKS cluster has the cluster administrator permissions by default.
+### 1. Provisioning Container Images
 
-### 1. Copy Container Images to Amazon ECR
+GitHub Actions workflow **enterprise-k8s-aws-image** builds container image for [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) and pushes it to private AWS Elastic Container Registry (ECR) repository. Optionally, if pull through cache is not enabled in the ECR, the workflow also copies container images of the ArcGIS Enterprise on Kubernetes version from DockerHub to the private ECR repositories.
 
-GitHub Actions workflow **enterprise-k8s-aws-image** copies the ArcGIS Enterprise on Kubernetes container images from DockerHub to private AWS Elastic Container Registry (ECR) repositories.
-
-In advance copying of images is not required if [pull through cache rules](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html) are configured for Amazon ECR private repositories. But for some AWS regions, such as AWS GovCloud and China, pull through cache rules are not supported.
-
-The workflow uses [image-copy-ecr](image/README.md) script with [image.vars.json](../../config/aws/arcgis-enterprise-k8s/image.vars.json) config file.
+The workflow uses [shell scripts](image/README.md) with [image.vars.json](../../config/aws/arcgis-enterprise-k8s/image.vars.json) config file.
 
 Required IAM policies:
 
@@ -106,13 +102,11 @@ Instructions:
 
 GitHub Actions workflow **enterprise-k8s-aws-test** tests the ArcGIS Enterprise deployment.
 
-The python [test script](../tests/arcgis-enterprise-base-test.py) uses [ArcGIS API for Python](https://developers.arcgis.com/python/) to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and admin credentials are retrieved from organization.tfvars.json properties file.
+The workflow uses publish-csv.py tool from the [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) container image to test the deployment's service. The deployment FQDN and admin credentials are retrieved from [organization.tfvars.json](../../config/aws/arcgis-enterprise-k8s/organization.tfvars.json) config file.
 
 Instructions:
 
 1. Run enterprise-k8s-aws-test workflow using the branch.
-
-> Note: enterprise-k8s-aws-test requires the ArcGIS Enterprise deployment to be accessible from the GitHub Actions runner.
 
 ## Backups and Disaster Recovery
 

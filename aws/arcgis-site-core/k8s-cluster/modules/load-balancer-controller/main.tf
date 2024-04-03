@@ -7,7 +7,7 @@
  * 
  * ## Requirements
  * 
- * On the machine where terraform is executed must be installed AWS CLI, kubectl, and helm.
+ * On the machine where terraform is executed must be installed AWS CLI, kubectl, helm, and Docker.
  */
 
 data "aws_caller_identity" "current" {}
@@ -15,11 +15,14 @@ data "aws_region" "current" {}
 
 locals {
   oidc_provider = "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${split("/", var.oidc_arn)[3]}"
+  image_repo = "eks/aws-load-balancer-controller"
+  image_tag = "v${var.controller_version}"
   helm_values = {
     "clusterName" = var.cluster_name
     "serviceAccount.create" = false
     "serviceAccount.name" = "aws-load-balancer-controller"
-    "image.repository" = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/ecr-public/eks/aws-load-balancer-controller"
+    "image.repository" = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/ecr-public/${local.image_repo}"
+    "image.tag" = local.image_tag
     "enableShield" = var.enable_waf
     "enableWaf" = var.enable_waf
     "enableWafv2" = var.enable_waf
@@ -77,6 +80,22 @@ resource "local_file" "service_account" {
   ]
 }
 
+resource "null_resource" "copy_public_ecr_image" {
+  count = var.copy_image ? 1 : 0
+
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+  
+  provisioner "local-exec" {
+    command = "chmod +x ${path.module}/copy-public-ecr-image.sh"
+  }
+
+  provisioner "local-exec" {
+    command = "${path.module}/copy-public-ecr-image.sh ${local.image_repo}:${local.image_tag}"
+  }
+}
+
 # Ideally, instead of local-exec provisioner, the module should use kubernetes and helm terraform providers, 
 # but the providers do not support initialization of k8s credentials after initialization of the providers.
 
@@ -127,6 +146,7 @@ resource "null_resource" "helm_install" {
   }
 
   depends_on = [
+    null_resource.copy_public_ecr_image,
     null_resource.service_account
   ]
 }

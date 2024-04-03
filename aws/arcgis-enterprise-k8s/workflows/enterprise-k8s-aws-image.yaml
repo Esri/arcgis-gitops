@@ -36,17 +36,22 @@ jobs:
           docker rmi node:16 node:18 node:20 > /dev/null 2>&1
       - name: Copy Docker Hub images
         run: |
-          ARCGIS_VERSION=$(jq -r '.arcgis_version' $CONFIG_FILE)
-          export CONTAINER_REGISTRY_ORG=$(jq -r '.container_registry_org' $CONFIG_FILE)
-          export ECR_REPOSITORY_PREFIX=$(jq -r '.ecr_repository_prefix' $CONFIG_FILE)
-          echo "ArcGIS Enterprise version: $ARCGIS_VERSION"
-          echo "Container registry org: $CONTAINER_REGISTRY_ORG"
-          echo "ECR repository prefix: $ECR_REPOSITORY_PREFIX"
-          MANIFEST_PATH=./manifests/$ARCGIS_VERSION.dat
-          chmod +x ./copy-docker-hub-images.sh
-          ./copy-docker-hub-images.sh $MANIFEST_PATH
-      - name: Copy Public ECR images
+          PULL_THROUGH_CACHE=$(jq -r '.pull_through_cache' $CONFIG_FILE)
+          if [ "$PULL_THROUGH_CACHE" == "true" ]; then
+            echo "Skip copying Docker Hub images because pull through cache is enabled."
+          else
+            ARCGIS_VERSION=$(jq -r '.arcgis_version' $CONFIG_FILE)
+            export CONTAINER_REGISTRY_ORG=$(jq -r '.container_registry_org' $CONFIG_FILE)
+            export ECR_REPOSITORY_PREFIX=$(jq -r '.ecr_repository_prefix' $CONFIG_FILE)
+            echo "ArcGIS Enterprise version: $ARCGIS_VERSION"
+            echo "Container registry org: $CONTAINER_REGISTRY_ORG"
+            echo "ECR repository prefix: $ECR_REPOSITORY_PREFIX"
+            MANIFEST_PATH=./manifests/$ARCGIS_VERSION.dat
+            chmod +x ./copy-docker-hub-images.sh
+            ./copy-docker-hub-images.sh $MANIFEST_PATH
+          fi
+      - name: Build Admin CLI Image
         run: |
-          chmod +x ./copy-public-ecr-images.sh
-          ./copy-public-ecr-images.sh
+          chmod +x ./build-admin-cli-image.sh
+          ./build-admin-cli-image.sh enterprise-admin-cli ${{ github.workspace }}/enterprise-admin-cli
   

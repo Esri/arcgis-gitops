@@ -38,7 +38,7 @@ Deployments configured to receive traffic from clients are referred to as *prima
 The following templates are available for AWS:
 
 * [arcgis-site-core](arcgis-site-core/README.md) - Provision core AWS resources for ArcGIS Enterprise site
-* [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
+* [arcgis-enterprise-base-windows](arcgis-enterprise-base-linux-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
 * [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) - Base ArcGIS Enterprise on Linux deployment operations
 * [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment operations
 

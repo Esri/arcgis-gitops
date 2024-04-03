@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script copies ArcGIS Enterprise for Kubernetes images from DockerHub 
-# registry to Amazon ECR.
+# registry to private Amazon ECR repositories.
 #
 # Required environment variables:
 # CONTAINER_REGISTRY_ORG - The container registry organization

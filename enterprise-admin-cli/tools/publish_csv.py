@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 # Tests the service endpoint by publishing a feature service
 
 import os
@@ -21,7 +23,7 @@ def wait_for_portal(portal_url):
 def publish_csv(portal_url, username, password):
     gis = GIS(url=portal_url, username=username, password=password)
 
-    data_path = os.path.dirname(os.path.realpath(__file__))
+    data_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "..", "samples")
 
     # csv_path = 'https://earthquake.usgs.gov/earthquakes/feed/v1.0/summary/all_month.csv'
     csv_path = os.path.join(data_path, "earthquakes.csv")
@@ -53,7 +55,7 @@ def publish_csv(portal_url, username, password):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
-        prog='arcgis-enterprise-base-test.py',
+        prog='publish_csv.py',
         description='Tests base ArcGIS Enterprise deployment by publishing a feature service.')
 
     parser.add_argument('-a', dest='url', required=True, help='Portal for ArcGIS URL')

@@ -7,7 +7,7 @@ See: https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controll
 
 ## Requirements
 
-On the machine where terraform is executed must be installed AWS CLI, kubectl, and helm.
+On the machine where terraform is executed must be installed AWS CLI, kubectl, helm, and Docker.
 
 ## Providers
 
@@ -25,6 +25,7 @@ On the machine where terraform is executed must be installed AWS CLI, kubectl, a
 | [aws_iam_role.aws_eks_load_balancer_controller](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
 | [aws_iam_role_policy_attachment.aws_eks_load_balancer_controller](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [local_file.service_account](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/file) | resource |
+| [null_resource.copy_public_ecr_image](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.helm_install](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.service_account](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.update_kubeconfig](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
@@ -35,7 +36,9 @@ On the machine where terraform is executed must be installed AWS CLI, kubectl, a
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| cluster_name | The name of the EKS cluster | `string` | n/a | yes |
+| cluster_name | Name of the EKS cluster | `string` | n/a | yes |
+| controller_version | Version of the AWS Load Balancer Controller | `string` | `"2.7.0"` | no |
+| copy_image | If set to true, the controller's image is copied to the private ECR repository | `bool` | `false` | no |
 | enable_waf | Enable WAF and Shield addons for ALB | `bool` | `true` | no |
-| oidc_arn | The OIDC provider ARN for the EKS cluster | `string` | n/a | yes |
+| oidc_arn | OIDC provider ARN for the EKS cluster | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

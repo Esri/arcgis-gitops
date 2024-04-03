@@ -186,6 +186,7 @@ module "load_balancer_controller" {
   cluster_name = aws_eks_cluster.cluster.name
   oidc_arn     = aws_iam_openid_connect_provider.eks_oidc.arn
   enable_waf   = var.enable_waf
+  copy_image   = !var.pull_through_cache
 
   depends_on = [
     aws_eks_cluster.cluster

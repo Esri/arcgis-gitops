@@ -4,7 +4,6 @@ on:
   workflow_dispatch:
  
 env:
-  PYTHONPATH: ${{ github.workspace }}/aws/tests
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/application.tfvars.json
 
 jobs:
@@ -13,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: ${{ github.workspace }}/aws/tests
+        working-directory: ${{ github.workspace }}/enterprise-admin-cli
     permissions:
       contents: read
       pull-requests: write
@@ -22,20 +21,13 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ github.ref_name }}
-    - name: Setup Conda
-      uses: conda-incubator/setup-miniconda@v3
-      with:
-        auto-activate-base: true
-        activate-environment: ""    
-    - name: Install ArcGIS API for Python
-      id: install-arcgis
+    - name: Build Container Image
       run: |
-        conda install python=3.10 jupyter
-        conda install -c esri arcgis
-    - name: Run Test
-      id: test
+        docker build -t enterprise-admin-cli .
+    - name: Run Tests
       run: |
         DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
+        ARCGIS_ENTERPRISE_CONTEXT=portal
         ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
         ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
-        /usr/share/miniconda/bin/python arcgis-enterprise-base-test.py -a https://$DEPLOYMENT_FQDN/portal -u $ADMIN_USERNAME -p $ADMIN_PASSWORD
+        docker run enterprise-admin-cli python publish_csv.py -a https://$DEPLOYMENT_FQDN/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD

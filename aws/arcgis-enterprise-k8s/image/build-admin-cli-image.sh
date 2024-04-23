@@ -12,8 +12,8 @@
 set -e
 
 ECR_REPOSITORY_NAME=$1
-BUILD_CONTEXT_PATH=$2
-TAG=0.1.0
+TAG=$2
+BUILD_CONTEXT_PATH=$3
 
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ECR_REGISTRY_URL=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com

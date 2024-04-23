@@ -1,0 +1,38 @@
+name: enterprise-k8s-aws-restore
+
+on: 
+  workflow_dispatch:
+ 
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/restore.vars.json
+
+jobs:
+  restore:
+    name: Restore Organization
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Restore Organization
+      run: |
+        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+        STORE=$(jq -r '.store' $CONFIG_FILE)
+        PASSCODE=$(jq -r '.passcode' $CONFIG_FILE)
+        BACKUP=$(jq -r '.backup' $CONFIG_FILE)
+        TIMEOUT=$(jq -r '.timeout' $CONFIG_FILE)
+        if [ "$BACKUP" == "null" ] || [ "$BACKUP" == "" ]; then
+          BACKUP_ARG=""
+        else
+          BACKUP_ARG="--backup $BACKUP"
+        fi 
+        aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
+        kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis restore-organization --store "$STORE" $BACKUP_ARG --passcode "$PASSCODE" --wait --timeout $TIMEOUT

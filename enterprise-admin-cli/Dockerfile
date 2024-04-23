@@ -1,8 +1,6 @@
 FROM ghcr.io/esri/arcgis-python-api-notebook:latest
 
-ADD tools/ /cli/tools/
-ADD samples/ /cli/samples/
+ADD ./ /usr/local/enterprise-admin-cli/
+ADD --chmod=755 bin/ /usr/local/enterprise-admin-cli/bin/
 
-WORKDIR /cli/tools
-
-CMD ["python", "publish_csv.py"]
+ENV PATH="${PATH}:/usr/local/enterprise-admin-cli/bin"

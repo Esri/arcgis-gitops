@@ -27,14 +27,6 @@ jobs:
     - name: Run Tests
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
-        ARCGIS_ENTERPRISE_CONTEXT=$(jq -r '.arcgis_enterprise_context' $CONFIG_FILE)
-        ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
-        ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
-        AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
-        ECR_REGISTRY_URL=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
-        ECR_REPOSITORY_NAME=enterprise-admin-cli
-        TAG=0.1.0
-        IMAGE_TAG=$ECR_REGISTRY_URL/$ECR_REPOSITORY_NAME:$TAG
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
-        kubectl run -i --rm enterprise-k8s-aws-test --attach --image=$IMAGE_TAG --restart=Never --command -- python publish_csv.py -a https://$DEPLOYMENT_FQDN/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD
+        kubectl exec enterprise-admin-cli --namespace $DEPLOYMENT_ID -- gis test-publish-csv  

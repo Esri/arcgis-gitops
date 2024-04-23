@@ -1,0 +1,51 @@
+#!/bin/bash
+
+command=$1
+
+bindir=$(dirname "$0")
+clidir=$(dirname "$bindir")
+
+export PYTHONPATH=$clidir:$PYTHONPATH
+
+admin_commands=( \
+    "create-backup" \
+    "get-backup-stores" \
+    "get-dr-settings" \
+    "register-s3-backup-store" \
+    "restore-organization" \
+    "update-dr-settings" )
+
+gis_commands=( \
+    "test-publish-csv" )
+
+print_usage() {
+    echo "usage: gis <command> [args]"
+    echo "Valid commands are:"
+    for cmd in "${admin_commands[@]}"; do
+        echo "  $cmd"
+    done
+    for cmd in "${gis_commands[@]}"; do
+        echo "  $cmd"
+    done
+    echo ""
+    echo "For command help run:"
+    echo "  gis <command> -h"
+}
+
+if [[ -z "$command" ]]; then
+    echo "Error: no command provided."
+    print_usage
+    exit 1
+fi
+
+if [[ " ${admin_commands[@]} " =~ " $command " ]]; then
+    module=$(echo "commands.$command" | sed -r 's/[-]+/_/g')
+elif [[ " ${gis_commands[@]} " =~ " $command " ]]; then
+    module=$(echo "scripts.$command" | sed -r 's/[-]+/_/g')
+else
+    echo "Error: invalid command '$command'."
+    print_usage
+    exit 1
+fi
+
+python -m $module "${@:2}"

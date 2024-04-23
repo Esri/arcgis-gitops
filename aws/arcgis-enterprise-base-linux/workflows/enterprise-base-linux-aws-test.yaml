@@ -30,4 +30,4 @@ jobs:
         ARCGIS_ENTERPRISE_CONTEXT=portal
         ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
         ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
-        docker run enterprise-admin-cli python publish_csv.py -a https://$DEPLOYMENT_FQDN/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD
+        docker run enterprise-admin-cli gis test-publish-csv --url https://$DEPLOYMENT_FQDN/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD

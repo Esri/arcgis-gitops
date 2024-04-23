@@ -52,6 +52,7 @@ jobs:
           fi
       - name: Build Admin CLI Image
         run: |
+          ENTERPRISE_ADMIN_CLI_VERSION=$(jq -r '.enterprise_admin_cli_version' $CONFIG_FILE)
           chmod +x ./build-admin-cli-image.sh
-          ./build-admin-cli-image.sh enterprise-admin-cli ${{ github.workspace }}/enterprise-admin-cli
+          ./build-admin-cli-image.sh enterprise-admin-cli $ENTERPRISE_ADMIN_CLI_VERSION ${{ github.workspace }}/enterprise-admin-cli
   

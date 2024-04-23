@@ -190,6 +190,30 @@ variable "log_retention_max_days" {
   }
 }
 
+variable "staging_volume_class" {
+  description = "Staging volume storage class"
+  type        = string
+  default     = "gp3"
+}
+
+variable "staging_volume_size" {
+  description = "Staging volume size"
+  type        = string
+  default     = "64Gi"
+}
+
+variable "backup_job_timeout" {
+  description = "Backup job timeout in seconds"
+  type        = number
+  default     = 7200
+}
+
+variable "enterprise_admin_cli_version" {
+  description = "ArcGIS Enterprise Admin CLI image tag"
+  type        = string
+  default     = "0.1.0"
+}
+
 variable "storage" {
   description = "Storage properties for the data stores"
   type = map(object({

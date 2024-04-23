@@ -102,7 +102,11 @@ Instructions:
 
 GitHub Actions workflow **enterprise-k8s-aws-test** tests the ArcGIS Enterprise deployment.
 
-The workflow uses publish-csv.py tool from the [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) container image to test the deployment's service. The deployment FQDN and admin credentials are retrieved from [organization.tfvars.json](../../config/aws/arcgis-enterprise-k8s/organization.tfvars.json) config file.
+The workflow executes "test-publish-csv" script from [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) to test the deployment's health. The scrip runs in "enterprise-admin-cli" Kubernetes pod that impersonates an ArcGIS Enterprise user by retrieving the user credentials from "admin-cli-credentials" Kubernetes secret.
+
+Required IAM policies:
+
+* ArcGISEnterpriseK8s
 
 Instructions:
 
@@ -110,19 +114,47 @@ Instructions:
 
 ## Backups and Disaster Recovery
 
-TBD
+The templates support configuring the organization's disaster recovery settings, default backup store in S3 bucket, and provides workflows for [backup and restore](https://enterprise-k8s.arcgis.com/en/latest/administer/backup-and-restore.htm) operations.
 
 ### Create Backups
 
-[TBD](https://enterprise-k8s.arcgis.com/en/latest/administer/create-a-backup.htm)
+GitHub Actions workflow **enterprise-k8s-aws-backup** creates [ArcGIS Enterprise on Kubernetes backups](https://enterprise-k8s.arcgis.com/en/latest/administer/create-a-backup.htm).
+
+The workflow executes "create-backup" command from [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) in "enterprise-admin-cli" Kubernetes pod that impersonates an ArcGIS Enterprise user by retrieving the user credentials from "admin-cli-credentials" Kubernetes secret.
+
+The command parameters are retrieved from [backup.vars.json](../../config/aws/arcgis-enterprise-k8s/backup.vars.json) config file.
+
+Required IAM policies:
+
+* ArcGISEnterpriseK8s
+
+Instructions:
+
+1. Set "passcode" property in the config file to the pass code that will be used to encrypt content of the backup.
+2. Set "retention" property in the config file to backup retention interval (in days).
+3. Commit the changes to the Git branch and push the branch to GitHub.
+4. Run enterprise-k8s-aws-backup workflow using the branch.
+
+> To meet the required recovery point objective (RPO), schedule runs of enterprise-k8s-aws-backup workflow by configuring 'schedule' event in enterprise-k8s-aws-backup.yaml file.
 
 ### Restore from Backups
 
-[TBD](https://enterprise-k8s.arcgis.com/en/latest/administer/restore-a-backup.htm)
+GitHub Actions workflow **enterprise-k8s-aws-restore** [restores the organization](https://enterprise-k8s.arcgis.com/en/latest/administer/restore-a-backup.htm) to the state it was in when a specific backup was created. When restoring an organization to a previous state, any existing content and data present in its current state is replaced with the data contained in the backup.
 
-### Failover Deployment
+The workflow executes "restore-organization" command from [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) in "enterprise-admin-cli" Kubernetes pod that impersonates an ArcGIS Enterprise user by retrieving the user credentials from "admin-cli-credentials" Kubernetes secret.
 
-[TBD](https://enterprise-k8s.arcgis.com/en/latest/administer/minimize-data-loss-and-downtime.htm)
+The command parameters are retrieved from [restore.vars.json](../../config/aws/arcgis-enterprise-k8s/restore.vars.json) config file.
+
+Required IAM policies:
+
+* ArcGISEnterpriseK8s
+
+Instructions:
+
+1. Set "backup" property in the config file to backup backup name. If "backup" property is set to null or empty string, the latest completed backup in the store will be used.
+2. Set "passcode" property in the config file to the pass code used to create the backup.
+3. Commit the changes to the Git branch and push the branch to GitHub.
+4. Run enterprise-k8s-aws-restore workflow using the branch.
 
 ## Updates and Upgrades
 

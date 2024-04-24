@@ -29,7 +29,7 @@ class EnterpriseAdminClient:
 
     # Updates disaster recovery settings.
     # See: https://developers.arcgis.com/rest/enterprise-administration/enterprise/update-settings.htm
-    def update_disaster_recovery_settings(self, storage_class: str, size: str, timeout_in_seconds: int = 7200):
+    def update_disaster_recovery_settings(self, storage_class: str, size: str, timeout_in_seconds: int):
         if storage_class is None:
             raise ValueError('Storage class is not specified.')
 
@@ -40,12 +40,18 @@ class EnterpriseAdminClient:
 
         settings = {
             'stagingVolumeConfig': {
-                'storageClass': storage_class,
-                'size': size,
                 'provisioningType': 'DYNAMIC'
-            },
-            'timeoutInSeconds': timeout_in_seconds
+            }
         }
+
+        if storage_class is not None:
+            settings['stagingVolumeConfig']['storageClass'] = storage_class
+        
+        if size is not None:
+            settings['stagingVolumeConfig']['size'] = size    
+        
+        if timeout_in_seconds is not None:
+            settings['timeoutInSeconds'] = timeout_in_seconds
 
         data = {
             'settings': json.dumps(settings),

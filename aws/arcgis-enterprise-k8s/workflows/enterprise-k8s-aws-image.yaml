@@ -10,6 +10,7 @@ env:
   CONTAINER_REGISTRY_USER: ${{ secrets.CONTAINER_REGISTRY_USER }}
   CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/image.vars.json
+  ADMIN_CLI_METADATA_FILE: ${{ github.workspace }}/enterprise-admin-cli/metadata.json
 
 concurrency:
   group: ${{ github.ref_name }}
@@ -52,7 +53,7 @@ jobs:
           fi
       - name: Build Admin CLI Image
         run: |
-          ENTERPRISE_ADMIN_CLI_VERSION=$(jq -r '.enterprise_admin_cli_version' $CONFIG_FILE)
+          ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
           chmod +x ./build-admin-cli-image.sh
-          ./build-admin-cli-image.sh enterprise-admin-cli $ENTERPRISE_ADMIN_CLI_VERSION ${{ github.workspace }}/enterprise-admin-cli
+          ./build-admin-cli-image.sh enterprise-admin-cli $ADMIN_CLI_VERSION ${{ github.workspace }}/enterprise-admin-cli
   

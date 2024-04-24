@@ -60,7 +60,7 @@ resource "kubernetes_ingress_v1" "arcgis_enterprise" {
       "alb.ingress.kubernetes.io/listen-ports" = "[{\"HTTPS\":443}]"
       "alb.ingress.kubernetes.io/healthcheck-port" = "443"
       "alb.ingress.kubernetes.io/healthcheck-protocol" = "HTTPS"
-      "alb.ingress.kubernetes.io/healthcheck-path" = "/${var.arcgis_enterprise_context}/admin"
+      "alb.ingress.kubernetes.io/healthcheck-path" = "/${var.arcgis_enterprise_context}/rest/info/healthcheck"
       "alb.ingress.kubernetes.io/success-codes" = "200-399"
       "alb.ingress.kubernetes.io/certificate-arn" = var.ssl_certificate_arn
       "alb.ingress.kubernetes.io/ssl-policy" = var.ssl_policy

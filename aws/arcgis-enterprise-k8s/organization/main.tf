@@ -21,6 +21,12 @@
  * * Updates the DR settings to use the specified storage class and size for staging volume.
  * * Creates a Kubernetes pod to execute Enterprise Admin CLI commands.
  *
+ * The deployment's Monitoring Subsystem consists of:
+ *
+ * * An SNS topic with a subscription for the primary site administrator.
+ * * A CloudWatch alarm that monitors the ingress ALB target group and post to the SNS topic if the number of unhealthy instances in nonzero. 
+ * * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and container logs of the deployment.
+ *
  * ## Requirements
  * 
  * On the machine where Terraform is executed:
@@ -61,6 +67,15 @@ provider "helm" {
 
 provider "kubernetes" {
   config_path = "~/.kube/config"
+}
+
+provider "aws" {
+  default_tags {
+    tags = {
+      ArcGISSiteId       = var.site_id
+      ArcGISDeploymentId = var.deployment_id
+    }
+  }
 }
 
 data "aws_region" "current" {}

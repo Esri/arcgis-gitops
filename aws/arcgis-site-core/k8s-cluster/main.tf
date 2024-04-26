@@ -2,9 +2,13 @@
  * # Terraform Module K8s-cluster
  *
  * The Terraform module provisions Amazon Elastic Kubernetes Service (EKS) cluster
- * that meets ArcGIS Enterprise on Kubernetes system requirements.
+ * that meets [ArcGIS Enterprise on Kubernetes system requirements](https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm).
  *
- * See: https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm
+ * The module installs the following add-ons to the EKS cluster:
+ *
+ * * Load Balancer Controller add-on
+ * * Amazon EBS CSI Driver add-on
+ * * Amazon CloudWatch Observability EKS add-on
  *
  * Optionally, the module also configures pull through cache rules for Amazon Elastic Container Registry (ECR) 
  * to sync the contents of source Docker Hub and Public Amazon ECR registries with private Amazon ECR registry.
@@ -85,10 +89,10 @@ resource "aws_kms_key" "eks" {
 
 # Create CloudWatch log group /aws/eks/<cluster-name>/cluster
 # See: https://docs.aws.amazon.com/eks/latest/userguide/control-plane-logs.html
-resource "aws_cloudwatch_log_group" "eks_cluster" {
-  name              = "/aws/eks/${var.site_id}/cluster"
-  retention_in_days = 7
-}
+# resource "aws_cloudwatch_log_group" "eks_cluster" {
+#   name              = "/aws/eks/${var.site_id}/cluster"
+#   retention_in_days = 7
+# }
 
 # Create an EKS cluster
 resource "aws_eks_cluster" "cluster" {
@@ -118,11 +122,11 @@ resource "aws_eks_cluster" "cluster" {
     ) : var.subnet_ids
   }
 
-  enabled_cluster_log_types = ["api", "audit"]
+  # enabled_cluster_log_types = ["api"]
 
-  depends_on = [
-    aws_cloudwatch_log_group.eks_cluster
-  ]
+  # depends_on = [
+  #   aws_cloudwatch_log_group.eks_cluster
+  # ]
 }
 
 resource "aws_launch_template" "node_groups" {
@@ -163,9 +167,9 @@ resource "aws_eks_node_group" "node_groups" {
 
   # Use the first two private subnets if the subnets list of the node group 
   # contains less then 2 elements.
-  subnet_ids = (length(var.node_groups[count.index].subnet_ids) < 2 ? 
-    data.aws_ssm_parameter.private_subnets[*].value : 
-    var.node_groups[count.index].subnet_ids)
+  subnet_ids = (length(var.node_groups[count.index].subnet_ids) < 2 ?
+    data.aws_ssm_parameter.private_subnets[*].value :
+  var.node_groups[count.index].subnet_ids)
 
   launch_template {
     id      = aws_launch_template.node_groups[count.index].id
@@ -203,6 +207,18 @@ module "ebs_csi_driver" {
   depends_on = [
     module.load_balancer_controller
   ]
+}
+
+# Install the Amazon CloudWatch Observability EKS add-on.
+module "cloudwatch_observability" {
+  source = "./modules/cloudwatch-observability"
+  cluster_name = aws_eks_cluster.cluster.name
+  log_retention = 90
+  container_logs_enabled = true
+
+  depends_on = [
+    module.ebs_csi_driver
+  ]  
 }
 
 # Configure pull through cache rules for Amazon ECR

@@ -10,6 +10,7 @@ env:
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}  
   AWS_MAX_ATTEMPTS: 400
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/organization.tfvars.json
+  ADMIN_CLI_METADATA_FILE: ${{ github.workspace }}/enterprise-admin-cli/metadata.json  
 
 concurrency:
   group: ${{ github.ref_name }}
@@ -42,8 +43,9 @@ jobs:
         run: |
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+          ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
           terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
-          terraform apply -var-file $CONFIG_FILE -auto-approve 
+          terraform apply -var-file=$CONFIG_FILE -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve 
       - name: Retrieve Logs
         id: retrieve-logs
         continue-on-error: true

@@ -2,9 +2,13 @@
 # Terraform Module K8s-cluster
 
 The Terraform module provisions Amazon Elastic Kubernetes Service (EKS) cluster
-that meets ArcGIS Enterprise on Kubernetes system requirements.
+that meets [ArcGIS Enterprise on Kubernetes system requirements](https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm).
 
-See: https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm
+The module installs the following add-ons to the EKS cluster:
+
+* Load Balancer Controller add-on
+* Amazon EBS CSI Driver add-on
+* Amazon CloudWatch Observability EKS add-on
 
 Optionally, the module also configures pull through cache rules for Amazon Elastic Container Registry (ECR)
 to sync the contents of source Docker Hub and Public Amazon ECR registries with private Amazon ECR registry.
@@ -38,6 +42,7 @@ thesubnet IDs are retrieved from the following SSM parameters:
 
 | Name | Source | Version |
 |------|--------|---------|
+| cloudwatch_observability | ./modules/cloudwatch-observability | n/a |
 | ebs_csi_driver | ./modules/ebs-csi-driver | n/a |
 | load_balancer_controller | ./modules/load-balancer-controller | n/a |
 
@@ -45,7 +50,6 @@ thesubnet IDs are retrieved from the following SSM parameters:
 
 | Name | Type |
 |------|------|
-| [aws_cloudwatch_log_group.eks_cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_ecr_pull_through_cache_rule.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_pull_through_cache_rule) | resource |
 | [aws_ecr_pull_through_cache_rule.public_ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_pull_through_cache_rule) | resource |
 | [aws_eks_cluster.cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster) | resource |

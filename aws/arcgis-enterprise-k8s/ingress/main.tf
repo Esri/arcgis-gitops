@@ -45,6 +45,9 @@ provider "kubernetes" {
 resource "kubernetes_namespace" "arcgis_enterprise" {
   metadata {
     name = var.deployment_id
+    # annotations = {
+    #   "instrumentation.opentelemetry.io/inject-java" = true
+    # }
   }
 }
 

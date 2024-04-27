@@ -181,6 +181,22 @@ resource "aws_eks_node_group" "node_groups" {
     max_size     = var.node_groups[count.index].max_size
     min_size     = var.node_groups[count.index].min_size
   }
+
+  depends_on = [
+    module.cloudwatch_observability
+  ]
+}
+
+# Install the Amazon CloudWatch Observability EKS add-on.
+module "cloudwatch_observability" {
+  source = "./modules/cloudwatch-observability"
+  cluster_name = aws_eks_cluster.cluster.name
+  log_retention = 90
+  container_logs_enabled = true
+  
+  depends_on = [
+    aws_eks_cluster.cluster
+  ]  
 }
 
 # Install the Load Balancer Controller add-on.
@@ -193,7 +209,7 @@ module "load_balancer_controller" {
   copy_image   = !var.pull_through_cache
 
   depends_on = [
-    aws_eks_cluster.cluster
+    module.cloudwatch_observability
   ]
 }
 
@@ -207,18 +223,6 @@ module "ebs_csi_driver" {
   depends_on = [
     module.load_balancer_controller
   ]
-}
-
-# Install the Amazon CloudWatch Observability EKS add-on.
-module "cloudwatch_observability" {
-  source = "./modules/cloudwatch-observability"
-  cluster_name = aws_eks_cluster.cluster.name
-  log_retention = 90
-  container_logs_enabled = true
-
-  depends_on = [
-    module.ebs_csi_driver
-  ]  
 }
 
 # Configure pull through cache rules for Amazon ECR

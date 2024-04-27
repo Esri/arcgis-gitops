@@ -163,7 +163,6 @@ locals {
           ]
         }        
         period = 60
-        stat   = "Maximum"
         region = data.aws_region.current.name
       }
     },
@@ -192,7 +191,6 @@ locals {
           ]
         }        
         period = 60
-        stat   = "Maximum"
         region = data.aws_region.current.name
       }
     },
@@ -215,7 +213,6 @@ locals {
           }
         }
         period = 60
-        stat   = "Maximum"
         region = data.aws_region.current.name
       }
     },
@@ -238,7 +235,6 @@ locals {
           }
         }
         period = 60
-        stat   = "Maximum"
         region = data.aws_region.current.name
       }
     }

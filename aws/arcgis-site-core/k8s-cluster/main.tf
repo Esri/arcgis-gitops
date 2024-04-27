@@ -80,6 +80,12 @@ data "tls_certificate" "cluster" {
 
 locals {
   subnets_count = 2 # Number of VPC subnets of each type to use for the EKS cluster by default
+  containerinsights_log_groups = [
+    "application",
+    "dataplane",
+    "host",
+    "performance"
+  ]
 }
 
 # Create Key Management Service (KMS) key.
@@ -127,6 +133,19 @@ resource "aws_eks_cluster" "cluster" {
   # depends_on = [
   #   aws_cloudwatch_log_group.eks_cluster
   # ]
+}
+
+# Pre-create CloudWatch log groups for the Amazon CloudWatch Observability EKS add-on.
+# Note that the log groups created by CloudWatch agent on demand have retention set to "Never Expire" and 
+# are not deleted when the the EKS cluster is deleted.
+resource "aws_cloudwatch_log_group" "containerinsights" {
+  count = length(local.containerinsights_log_groups)
+  name              = "/aws/containerinsights/${aws_eks_cluster.cluster.name}/${local.containerinsights_log_groups[count.index]}"
+  retention_in_days = var.containerinsights_log_retention
+
+  depends_on = [ 
+    aws_eks_cluster.cluster
+  ]
 }
 
 resource "aws_launch_template" "node_groups" {
@@ -183,20 +202,8 @@ resource "aws_eks_node_group" "node_groups" {
   }
 
   depends_on = [
-    module.cloudwatch_observability
+    aws_cloudwatch_log_group.containerinsights
   ]
-}
-
-# Install the Amazon CloudWatch Observability EKS add-on.
-module "cloudwatch_observability" {
-  source = "./modules/cloudwatch-observability"
-  cluster_name = aws_eks_cluster.cluster.name
-  log_retention = 90
-  container_logs_enabled = true
-  
-  depends_on = [
-    aws_eks_cluster.cluster
-  ]  
 }
 
 # Install the Load Balancer Controller add-on.
@@ -209,7 +216,7 @@ module "load_balancer_controller" {
   copy_image   = !var.pull_through_cache
 
   depends_on = [
-    module.cloudwatch_observability
+    aws_eks_node_group.node_groups
   ]
 }
 
@@ -223,6 +230,17 @@ module "ebs_csi_driver" {
   depends_on = [
     module.load_balancer_controller
   ]
+}
+
+# Install the Amazon CloudWatch Observability EKS add-on.
+module "cloudwatch_observability" {
+  source = "./modules/cloudwatch-observability"
+  cluster_name = aws_eks_cluster.cluster.name
+  container_logs_enabled = true
+  
+  depends_on = [
+    module.ebs_csi_driver
+  ]  
 }
 
 # Configure pull through cache rules for Amazon ECR

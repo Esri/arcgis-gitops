@@ -50,6 +50,7 @@ thesubnet IDs are retrieved from the following SSM parameters:
 
 | Name | Type |
 |------|------|
+| [aws_cloudwatch_log_group.containerinsights](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_ecr_pull_through_cache_rule.docker_hub](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_pull_through_cache_rule) | resource |
 | [aws_ecr_pull_through_cache_rule.public_ecr](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ecr_pull_through_cache_rule) | resource |
 | [aws_eks_cluster.cluster](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_cluster) | resource |
@@ -74,6 +75,7 @@ thesubnet IDs are retrieved from the following SSM parameters:
 | container_registry_password | Source container registry user password | `string` | `null` | no |
 | container_registry_url | Source container registry URL | `string` | `"registry-1.docker.io"` | no |
 | container_registry_user | Source container registry user name | `string` | `null` | no |
+| containerinsights_log_retention | The number of days to retain CloudWatch Container Insights log events | `number` | `90` | no |
 | ecr_repository_prefix | The repository name prefix to use when caching images from the source registry | `string` | `"docker-hub"` | no |
 | eks_version | The desired Kubernetes version for the EKS cluster | `string` | `"1.28"` | no |
 | enable_waf | Enable WAF and Shield addons for ALB | `bool` | `true` | no |

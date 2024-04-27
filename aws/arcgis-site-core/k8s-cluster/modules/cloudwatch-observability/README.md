@@ -15,10 +15,6 @@ See: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-In
 
 | Name | Type |
 |------|------|
-| [aws_cloudwatch_log_group.containerinsights_application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_cloudwatch_log_group.containerinsights_dataplane](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_cloudwatch_log_group.containerinsights_host](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
-| [aws_cloudwatch_log_group.containerinsights_performance](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_eks_addon.cloudwatch_observability](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eks_addon) | resource |
 
 ## Inputs
@@ -26,5 +22,5 @@ See: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-In
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | cluster_name | The name of the EKS cluster | `string` | n/a | yes |
-| log_retention | The number of days to retain log events | `number` | `90` | no |
+| container_logs_enabled | Whether to enable container logs | `bool` | `true` | no |
 <!-- END_TF_DOCS -->

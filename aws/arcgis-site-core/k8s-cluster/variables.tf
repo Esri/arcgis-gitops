@@ -103,3 +103,9 @@ variable "enable_waf" {
   type        = bool
   default     = true
 }
+
+variable "containerinsights_log_retention" {
+  description = "The number of days to retain CloudWatch Container Insights log events"
+  type        = number
+  default     = 90
+}

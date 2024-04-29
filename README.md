@@ -1,13 +1,14 @@
-# GitOps Templates for ArcGIS Enterprise
+# GitHub Actions for ArcGIS Enterprise
 
-GitOps is a set of practices and principles for managing and deploying infrastructure and applications in an automated manner using Git as the single source of truth. The term "GitOps" combines "Git" a widely used version control system, with "Ops" which refers to IT operations. GitOps ensures a transparent and auditable history of all changes made to the infrastructure and applications, facilitating compliance with regulatory requirements, consistency, traceability, and reproducibility.
+The template repository provides GitHub Actions workflows that leverage the Infrastructure as Code methodology, ArcGIS system patterns, and best practices recommended by cloud providers for managing [ArcGIS Enterprise](https://enterprise.arcgis.com/) operations.
 
-GitOps Templates for ArcGIS Enterprise contain GitHub Actions workflows that leverage the GitOps methodology, ArcGIS system patterns, and best practices recommended by cloud providers for managing [ArcGIS Enterprise](https://enterprise.arcgis.com/) operations.
-
-![GitOps Templates for ArcGIS Enterprise](arcgis-gitops.png "GitOps Templates for ArcGIS Enterprise")
+![GitHub Actions for ArcGIS Enterprise](arcgis-gitops.png "GitHub Actions for ArcGIS Enterprise")
 
 ## Features
 
+For the supported cloud providers and ArcGIS Enterprise applications the workflows provide:
+
+* Version control of infrastructure and application configurations
 * Automation of initial deployment, updates, upgrades, and disaster recovery operations
 * Standardized approach to security assessments and authorizations
 * Tracking and managing changes to both application and infrastructure configurations
@@ -15,15 +16,17 @@ GitOps Templates for ArcGIS Enterprise contain GitHub Actions workflows that lev
 * Machine image building subsystems
 * Built-in observability and monitoring subsystems
 
+The workflows that are designed to be used together to achieve a specific goal are grouped into *templates*. The templates are organized by cloud provider and ArcGIS Enterprise application.
+
 ## Instructions
 
 Refer to the READMEs of the cloud platform templates for specific usage instructions:
 
-* [GitOps Templates for ArcGIS Enterprise on AWS](aws/README.md)
+* [GitHub Actions Templates for ArcGIS Enterprise on AWS](aws/README.md)
 
 ## Issues
 
-Find a bug or want to request a new feature?  Please let us know by submitting an issue.
+Find a bug or want to request a new feature? Please let us know by submitting an issue.
 
 ## Contributing
 

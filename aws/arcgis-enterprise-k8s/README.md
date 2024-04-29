@@ -65,6 +65,8 @@ Instructions:
 5. Run enterprise-k8s-aws-ingress workflow using the branch.
 6. If "hosted_zone_id" property was not specified, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
+> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs check the run logs of "Run Terraform" step.
+
 > The value of "deployment_id" property defines the deployment's Kubernetes namespace.
 
 > See [Elastic Load Balancing SSL negotiation configuration](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) for the list of SSL policies.

@@ -1,8 +1,8 @@
-# GitHub Actions for ArcGIS Enterprise
+# ArcGIS Automation using GitHub Actions
 
-The template repository provides GitHub Actions workflows that leverage the Infrastructure as Code methodology, ArcGIS system patterns, and best practices recommended by cloud providers for managing [ArcGIS Enterprise](https://enterprise.arcgis.com/) operations.
+The template repository provides GitHub Actions workflows that follow Infrastructure as Code methodology, ArcGIS system patterns, and best practices recommended by cloud providers for [ArcGIS Enterprise](https://enterprise.arcgis.com/) operations.
 
-![GitHub Actions for ArcGIS Enterprise](arcgis-gitops.png "GitHub Actions for ArcGIS Enterprise")
+![ArcGIS Automation using GitHub Actions](arcgis-gitops.png "ArcGIS Automation using GitHub Actions")
 
 ## Features
 
@@ -16,13 +16,13 @@ For the supported cloud providers and ArcGIS Enterprise applications the workflo
 * Machine image building subsystems
 * Built-in observability and monitoring subsystems
 
-The workflows that are designed to be used together to achieve a specific goal are grouped into *templates*. The templates are organized by cloud provider and ArcGIS Enterprise application.
+The workflows designed to be used together to achieve a specific goal are grouped into *templates*. The templates are organized by cloud provider and ArcGIS Enterprise application.
 
 ## Instructions
 
 Refer to the READMEs of the cloud platform templates for specific usage instructions:
 
-* [GitHub Actions Templates for ArcGIS Enterprise on AWS](aws/README.md)
+* [Templates for ArcGIS Enterprise on AWS](aws/README.md)
 
 ## Issues
 

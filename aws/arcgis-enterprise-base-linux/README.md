@@ -163,6 +163,8 @@ To create failover deployment:
    3. enterprise-base-linux-aws-application
    4. enterprise-base-linux-aws-restore
 
+> Deployments configured to receive traffic from clients are referred to as *primary*, *active*, or *live*.
+
 To activate the failover deployment:
 
 1. Retrieve DNS name of the load balancer created by the infrastructure workflow, and

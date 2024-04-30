@@ -30,15 +30,19 @@ On Kubernetes platform the workflows use:
 
 Basic knowledge of Git and AWS is required to use the templates. Knowledge of the other technologies is recommended if you plan to modify or extend the templates.  
 
-## Concepts
+## Triggering Workflows
+
+By default the workflows are configured with "workflow_dispatch" event that enables a workflow to be triggered manually. To trigger a workflow manually, navigate to the repository on GitHub, click on the "Actions" tab, select the workflow you want to run, and click the "Run workflow" button.
+
+The workflows can be modified to use other triggering events such as push, pull_request, or schedule. In particular, consider using "schedule" event to schedule backups and "pull_request" event to check the infrastructure changes by "terraform plan" command.
+
+> The deployments may belong to different *environments* such as "production" and "staging". Each environment may have its own branch in the repository. The workflows can be configured to use different configuration settings for different environments.
+
+### Templates
 
 An *ArcGIS Enterprise site* in this context is a group of *deployments* that typically include a [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) or [ArcGIS Enterprise on Kubernetes deployment](https://enterprise-k8s.arcgis.com/en/latest/deploy/system-architecture.htm) plus [additional server deployments](https://enterprise.arcgis.com/en/get-started/latest/windows/additional-server-deployment.htm) in different roles.
 
-The deployments may belong to different *environments* such as "production" and "staging" or "blue" and "green".
-
-Deployments configured to receive traffic from clients are referred to as *primary*, *active*, or *live*.
-
-### Templates
+The templates automate provisioning of infrastructure shared by the deployments and ArcGIS Enterprise site deployments operations.
 
 The following templates are available for AWS:
 
@@ -63,7 +67,9 @@ The specific guidance for using the templates depends on the use case and may in
 
 [Create a new private GitHub repository](https://github.com/new?template_name=arcgis-gitops&template_owner=ArcGIS&description=ArcGIS%20Enterprise%20on%20AWS&name=arcgis-enterprise) from https://github.com/arcgis/arcgis-gitops template repository.
 
-Use separate GitHub repositories for each ArcGIS Enterprise site (organization) and separate Git branches for different environments.
+Use separate GitHub repositories for each ArcGIS Enterprise site and separate Git branches for different environments.
+
+> If you operate multiple similar ArcGIS Enterprise sites, consider forking and modifying https://github.com/arcgis/arcgis-gitops template repository and creating the sites' repositories from the modified template.
 
 ### 2. Create Required AWS Resources
 

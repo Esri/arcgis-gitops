@@ -73,6 +73,11 @@ Instructions:
 6. Commit the changes to the `main` branch and push the branch to GitHub.
 7. Run site-k8s-cluster-aws workflow using the `main` branch.
 
+To run the EKS nodes in "isolated" subnets:
+
+* Specify the subnet IDs in the "subnet_ids" property of the node groups.
+* Set "enable_waf" property to `false`.
+
 ## Destroy K8s Cluster
 
 GitHub Actions workflow **site-k8s-cluster-aws-destroy** destroys Amazon EKS cluster created by site-k8s-cluster-aws workflow.

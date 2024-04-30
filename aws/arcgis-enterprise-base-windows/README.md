@@ -202,3 +202,13 @@ Instructions:
 1. Run enterprise-base-windows-aws-destroy workflow using the branch.
 
 > enterprise-base-windows-aws-destroy workflow does not delete the deployment's backups.
+
+## Disconnected Environments
+
+To prevent deployments from accessing the Internet, use "isolated" subnets for EC2 instances. The isolated subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in specific AWS region.
+
+The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, pollination services, and time services.
+
+The application image builds run in "private" subnets that can access the internet. The image build installs SSM Agents, CloudWatch agents, AWS CLI, and system packages required by the applications. The application update and upgrade workflows use S3 VPC endpoint to access the private repository S3 bucket to get all the required files.
+
+The disconnected deployments must use authorization files that do not require internet access to the Esri license server, such as Esri Secure License File (ESLF) or ECP file (.ecp).  

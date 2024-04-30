@@ -6,7 +6,7 @@ using IT automation tool Chef/Cinc:
 
 * Looks up the latest AMIs for the supported operating systems
 * Copies Chef/Cinc client setups and Chef cookbooks for ArcGIS distribution archive from the URLs specified
-in [automation-chef-files.json](../config/automation-chef-files.json) file to the private repository S3 bucket
+in [automation-chef-files.json](manifests/automation-chef-files.json) file to the private repository S3 bucket
 * Creates SSM documents for the ArcGIS Enterprise site
 
 The AMI IDs for each operating system as well as S3 URLs are stored in SSM parameters:
@@ -33,7 +33,7 @@ On the machine where Terraform is executed:
 
 * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
 * Path to aws/scripts directory must be added to PYTHONPATH
-* The working directory must be set to the automation-chef module path (because [automation-chef-files.json](../config/automation-chef-files.json) uses relative path to the Chef cookbooks archive)
+* The working directory must be set to the automation-chef module path (because [automation-chef-files.json](manifests/automation-chef-files.json) uses relative path to the Chef cookbooks archive)
 * AWS credentials must be configured.
 * AWS region must be specified by AWS_DEFAULT_REGION environment variable.
 

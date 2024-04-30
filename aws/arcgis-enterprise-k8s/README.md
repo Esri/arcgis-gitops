@@ -171,7 +171,7 @@ Instructions:
 5. Commit the changes to the Git branch and push the branch to GitHub.
 6. Run enterprise-k8s-aws-organization workflow using the branch.
 
-> Make a backup of your organization before performing an update or upgrade.
+> Make a backup of the organization before performing an update or upgrade.
 
 ## Destroying Deployments
 

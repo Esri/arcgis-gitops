@@ -1,6 +1,6 @@
 # Scripts for Provisioning Container Images in Amazon ECR
 
-Amazon ECR is a fully managed container registry that provides a secure, scalable, and reliable registry for container images on AWS.
+The scripts in this directory are used to build and push the Enterprise Admin CLI container image to a private ECR repository and copy ArcGIS Enterprise for Kubernetes images from DockerHub registry to private Amazon ECR repositories in the AWS region.
 
 ## Requirements
 

@@ -18,13 +18,13 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 ## Initial Deployment
 
-Initial deployment of ArcGIS Enterprise on Kubernetes includes: provisioning container images, creating ingress controller creating ArcGIS Enterprise organization, and testing the deployment web services.
+Initial deployment of ArcGIS Enterprise on Kubernetes includes: provisioning container images, creating ingress controller, creating ArcGIS Enterprise organization, and testing the deployment web services.
 
 > The IAM principal used by the templates's workflows must have the EKS cluster administrator permissions. The IAM principal used to create the EKS cluster is granted the required permissions by site-k8s-cluster-aws workflow.
 
 ### 1. Provisioning Container Images
 
-GitHub Actions workflow **enterprise-k8s-aws-image** builds container image for [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) and pushes it to private AWS Elastic Container Registry (ECR) repository. Optionally, if pull through cache is not enabled in the ECR, the workflow also copies container images of the ArcGIS Enterprise on Kubernetes version from DockerHub to the private ECR repositories.
+GitHub Actions workflow **enterprise-k8s-aws-image** builds container image for [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) and pushes it to private AWS Elastic Container Registry (ECR) repository. If "pull_through_cache" property is set to `false`, the workflow also copies container images of the ArcGIS Enterprise on Kubernetes version from DockerHub to the private ECR repositories.
 
 The workflow uses [shell scripts](image/README.md) with [image.vars.json](../../config/aws/arcgis-enterprise-k8s/image.vars.json) config file.
 
@@ -38,12 +38,14 @@ Instructions:
 2. Commit the changes to the Git branch and push the branch to GitHub.
 3. Run enterprise-k8s-aws-image workflow using the branch.
 
-> The workflow run may take several hours.
+> Copying the container images may take several hours.
 
 ### 2. Create Ingress Controller
 
 GitHub Actions workflow **enterprise-k8s-aws-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on
 Kubernetes deployment in Amazon EKS cluster and a cluster-level ingress controller that routes traffic to the deployment.
+
+> The "deployment_id" determines the Kubernetes namespace for the deployment. The "deployment_id" must be unique within the EKS cluster.
 
 The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/aws/arcgis-enterprise-k8s/ingress.tfvars.json) config file.
 
@@ -66,8 +68,6 @@ Instructions:
 6. If "hosted_zone_id" property was not specified, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
 > Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs check the run logs of "Run Terraform" step.
-
-> The value of "deployment_id" property defines the deployment's Kubernetes namespace.
 
 > See [Elastic Load Balancing SSL negotiation configuration](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) for the list of SSL policies.
 

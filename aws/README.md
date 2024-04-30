@@ -32,11 +32,11 @@ Basic knowledge of Git and AWS is required to use the templates. Knowledge of th
 
 ## Triggering Workflows
 
-By default the workflows are configured with "workflow_dispatch" event that enables a workflow to be triggered manually. To trigger a workflow manually, navigate to the repository on GitHub, click on the "Actions" tab, select the workflow you want to run, and click the "Run workflow" button.
+By default the workflows are configured with "workflow_dispatch" event that enables workflows to be triggered manually. To trigger a workflow manually, navigate to the repository on GitHub, click on the "Actions" tab, select the workflow you want to run, select the branch, and click the "Run workflow" button.
+
+> Note that the deployments may belong to different *environments* such as "production" and "staging". Each environment may have its own branch in the repository. The list of workflows in GitHub Actions page shows only the workflows present in /.github/workflows directory of the "main" branch, but the workflow runs use the workflow files from the selected branch. To enable workflows, copy the workflows' .yaml files from the template's `workflows` directory to `/.github/workflows` directory in both the `main` branch and the environment branch, commit the changes, and push the branches to GitHub.
 
 The workflows can be modified to use other triggering events such as push, pull_request, or schedule. In particular, consider using "schedule" event to schedule backups and "pull_request" event to check the infrastructure changes by "terraform plan" command.
-
-> The deployments may belong to different *environments* such as "production" and "staging". Each environment may have its own branch in the repository. The workflows can be configured to use different configuration settings for different environments.
 
 ### Templates
 
@@ -50,6 +50,7 @@ The following templates are available for AWS:
 * [arcgis-enterprise-base-windows](arcgis-enterprise-base-linux-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
 * [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) - Base ArcGIS Enterprise on Linux deployment operations
 * [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment operations
+
 
 ### IAM Policies
 
@@ -69,7 +70,7 @@ The specific guidance for using the templates depends on the use case and may in
 
 Use separate GitHub repositories for each ArcGIS Enterprise site and separate Git branches for different environments.
 
-> If you operate multiple similar ArcGIS Enterprise sites, consider forking and modifying https://github.com/arcgis/arcgis-gitops template repository and creating the sites' repositories from the modified template.
+> If you operate multiple similar ArcGIS Enterprise sites, consider first forking and modifying https://github.com/arcgis/arcgis-gitops template repository and then creating repositories for the sites from the modified template.
 
 ### 2. Create Required AWS Resources
 

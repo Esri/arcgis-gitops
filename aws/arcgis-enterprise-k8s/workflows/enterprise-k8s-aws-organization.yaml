@@ -9,6 +9,7 @@ env:
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}  
   AWS_MAX_ATTEMPTS: 400
+  MAX_UPGRADE_TIME: 720 # 12 hours
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/organization.tfvars.json
   ADMIN_CLI_METADATA_FILE: ${{ github.workspace }}/enterprise-admin-cli/metadata.json  
 
@@ -44,20 +45,32 @@ jobs:
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
           ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
+          IS_UPGRADE=1
+          helm status arcgis --namespace=$DEPLOYMENT_ID > /dev/null || IS_UPGRADE=0
+          echo "is-upgrade=$IS_UPGRADE" >> "$GITHUB_OUTPUT"
+          if [ $IS_UPGRADE -eq 1 ]; then
+            UPGRADE_TOKEN=$(kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis generate-token --expiration $MAX_UPGRADE_TIME)
+          else
+            UPGRADE_TOKEN="token"
+          fi
           terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
-          terraform apply -var-file=$CONFIG_FILE -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve 
+          terraform apply -var-file=$CONFIG_FILE -var "upgrade_token=$UPGRADE_TOKEN" -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve 
       - name: Retrieve Logs
         id: retrieve-logs
+        env:
+          IS_UPGRADE: ${{ steps.terraform.outputs.is-upgrade }}
         continue-on-error: true
         if: always()
         run: |
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-          POD_NAME=$(kubectl get pods --namespace $DEPLOYMENT_ID --selector=job-name=arcgis-pre-install-hook-job --output=jsonpath='{.items[*].metadata.name}')
-          echo "POD_NAME=$POD_NAME"
+          if [ $IS_UPGRADE -eq 1 ]; then
+            POD_NAME=$(kubectl get pods --namespace $DEPLOYMENT_ID --selector=job-name=arcgis-pre-upgrade-hook-job --output=jsonpath='{.items[*].metadata.name}')
+          else
+            POD_NAME=$(kubectl get pods --namespace $DEPLOYMENT_ID --selector=job-name=arcgis-pre-install-hook-job --output=jsonpath='{.items[*].metadata.name}')
+          fi
           kubectl logs --namespace $DEPLOYMENT_ID -f $POD_NAME || true
       - name: Terraform Output
         id: output  
         run: |
           echo arcgis_enterprise_manager_url=$(terraform output arcgis_enterprise_manager_url) >> $GITHUB_OUTPUT
-          echo arcgis_enterprise_portal_url=$(terraform output arcgis_enterprise_portal_url) >> $GITHUB_OUTPUT
-        
+          echo arcgis_enterprise_portal_url=$(terraform output arcgis_enterprise_portal_url) >> $GITHUB_OUTPUT  

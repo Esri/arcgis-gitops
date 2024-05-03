@@ -9,6 +9,7 @@ export PYTHONPATH=$clidir:$PYTHONPATH
 
 admin_commands=( \
     "create-backup" \
+    "generate-token" \
     "get-backup-stores" \
     "get-dr-settings" \
     "register-s3-backup-store" \

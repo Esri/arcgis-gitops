@@ -61,6 +61,28 @@ Arguments:
   --wait                wait until the backup is completed
 ```
 
+## generate-token command
+
+Generates an access token in exchange for user credentials.
+
+Usage:
+
+```text
+gis generate-token [-h] [--url URL] [-u USER] [-p PASSWORD] [--expiration EXPIRATION]
+```
+
+Arguments:
+
+```text
+  -h, --help            show this help message and exit
+  --url URL             ArcGIS Enterprise URL
+  -u USER, --user USER  ArcGIS Enterprise user name
+  -p PASSWORD, --password PASSWORD
+                        ArcGIS Enterprise user password
+  --expiration EXPIRATION
+                        The token expiration time in minutes
+```
+
 ## get-backup-stores command
 
 Returns backup stores registered with the deployment.

@@ -259,7 +259,7 @@ locals {
 }
 
 resource "aws_cloudwatch_metric_alarm" "unhealthy_alb_instances" {
-  alarm_name                = "UnHealthyHosts/${split(":", data.aws_lb_target_group.arcgis_enterprise_ingress.arn)[5]}"
+  alarm_name                = "UnHealthyHosts/${var.deployment_id}"
   comparison_operator       = "GreaterThanThreshold"
   evaluation_periods        = 2
   metric_name               = "UnHealthyHostCount"
@@ -286,6 +286,10 @@ resource "aws_cloudwatch_composite_alarm" "unhealthy_alb_targets" {
   alarm_rule = join(" OR ", [
     "ALARM(${aws_cloudwatch_metric_alarm.unhealthy_alb_instances.alarm_name})"
   ])
+
+  depends_on = [ 
+    aws_cloudwatch_metric_alarm.unhealthy_alb_instances 
+  ]
 }
 
 resource "aws_sns_topic_subscription" "infrastructure_alarms" {

@@ -19,10 +19,10 @@
  * The module also:
  * 
  * * Creates an S3 bucket for the organization object store and registers it with the deployment.
+ * * Creates a Kubernetes pod to execute Enterprise Admin CLI commands.
  * * Registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
  * * Updates the DR settings to use the specified storage class and size for staging volume.
- * * Creates a Kubernetes pod to execute Enterprise Admin CLI commands.
- *
+  *
  * The deployment's Monitoring Subsystem consists of:
  *
  * * An SNS topic with a subscription for the primary site administrator.
@@ -90,12 +90,79 @@ data "aws_ssm_parameter" "s3_backup" {
 
 locals {
   # Currently only ECR with IAM authentication is supported by the modified Helm chart
-  container_registry          = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com"
-  enterprise_admin_cli_image  = "${local.container_registry}/enterprise-admin-cli:${var.enterprise_admin_cli_version}"
+  container_registry         = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com"
+  enterprise_admin_cli_image = "${local.container_registry}/enterprise-admin-cli:${var.enterprise_admin_cli_version}"
 
   # The EKS cluster uses IAM authentication for ECR access, while the Helm charts require setting container reqistry credentials.
   container_registry_username = "AWS"
   container_registry_password = "AWS"
+}
+
+resource "kubernetes_secret" "admin_cli_credentials" {
+  metadata {
+    name      = "admin-cli-credentials"
+    namespace = var.deployment_id
+  }
+
+  data = {
+    username = var.admin_username
+    password = var.admin_password
+  }
+}
+
+# Kubernetes pod used to execute Enterprise Admin CLI commands using "kubectl exec".
+resource "kubernetes_pod" "enterprise_admin_cli" {
+  metadata {
+    name      = "enterprise-admin-cli"
+    namespace = var.deployment_id
+  }
+
+  spec {
+    container {
+      name  = "enterprise-admin-cli"
+      image = local.enterprise_admin_cli_image
+      env {
+        name  = "ARCGIS_ENTERPRISE_URL"
+        value = "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}"
+      }
+      env {
+        name = "ARCGIS_ENTERPRISE_USER"
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret.admin_cli_credentials.metadata[0].name
+            key  = "username"
+          }
+        }
+      }
+      env {
+        name = "ARCGIS_ENTERPRISE_PASSWORD"
+        value_from {
+          secret_key_ref {
+            name = kubernetes_secret.admin_cli_credentials.metadata[0].name
+            key  = "password"
+          }
+        }
+      }
+      resources {
+        limits = {
+          cpu    = "500m"
+          memory = "256Mi"
+        }
+        requests = {
+          cpu    = "50m"
+          memory = "128Mi"
+        }
+      }
+      command = [
+        "sleep", "infinity"
+      ]
+    }
+    restart_policy = "Always"
+  }
+
+  depends_on = [
+    kubernetes_secret.admin_cli_credentials
+  ]
 }
 
 # Create S3 bucket for the organization object store
@@ -183,12 +250,12 @@ resource "helm_release" "arcgis_enterprise" {
         licenseFile       = "user-inputs/license.json"
         licenseTypeId     = var.license_type_id
         admin = {
-          username = var.admin_username
+          username  = var.admin_username
           email     = var.admin_email
           firstName = var.admin_first_name
           lastName  = var.admin_last_name
         }
-        securityQuestionIndex = var.security_question_index
+        securityQuestionIndex   = var.security_question_index
         cloudConfigJsonFilename = "user-inputs/cloud-config.json"
         logSetting              = var.log_setting
         logRetentionMaxDays     = var.log_retention_max_days
@@ -203,194 +270,42 @@ resource "helm_release" "arcgis_enterprise" {
 
   depends_on = [
     local_sensitive_file.license_file,
-    local_sensitive_file.cloud_config_json_file
+    local_sensitive_file.cloud_config_json_file,
+    kubernetes_pod.enterprise_admin_cli
   ]
 }
 
-resource "kubernetes_secret" "admin_cli_credentials" {
-  metadata {
-    name      = "admin-cli-credentials"
-    namespace = var.deployment_id
-  }
-
-  data = {
-    username = var.admin_username
-    password = var.admin_password
-  }
-}
-
-# Kubernetes pod used to execute Enterprise Admin CLI commands using "kubectl exec".
-resource "kubernetes_pod" "enterprise_admin_cli" {
-  metadata {
-    name = "enterprise-admin-cli"
-    namespace = var.deployment_id
-  }
-
-  spec {
-    container {
-      name  = "enterprise-admin-cli"
-      image = local.enterprise_admin_cli_image
-      env {
-        name = "ARCGIS_ENTERPRISE_URL"
-        value = "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}"
-      }
-      env {
-        name = "ARCGIS_ENTERPRISE_USER"
-        value_from {
-          secret_key_ref {
-            name = kubernetes_secret.admin_cli_credentials.metadata[0].name
-            key  = "username"
-          }
-        }
-      }
-      env {
-        name = "ARCGIS_ENTERPRISE_PASSWORD"
-        value_from {
-          secret_key_ref {
-            name = kubernetes_secret.admin_cli_credentials.metadata[0].name
-            key  = "password"
-          }
-        }
-      }
-      resources {
-        limits = {
-          cpu    = "500m"
-          memory = "256Mi"
-        }
-        requests = {
-          cpu    = "50m"
-          memory = "128Mi"
-        }
-      }
-      command = [
-        "sleep", "infinity"
-      ]
-    }
-    restart_policy = "Always"
-  }
-}
-
-# Update the DR settings
-resource "kubernetes_job" "update_dr_settings" {
-  metadata {
-    name      = "update-dr-settings"
-    namespace = var.deployment_id
-  }
-  spec {
-    template {
-      metadata {}
-      spec {
-        container {
-          name  = "enterprise-admin-cli"
-          image = local.enterprise_admin_cli_image
-          env {
-            name = "ARCGIS_ENTERPRISE_USER"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.admin_cli_credentials.metadata[0].name
-                key  = "username"
-              }
-            }
-          }
-          env {
-            name = "ARCGIS_ENTERPRISE_PASSWORD"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.admin_cli_credentials.metadata[0].name
-                key  = "password"
-              }
-            }
-          }
-          resources {
-            limits = {
-              cpu    = "500m"
-              memory = "256Mi"
-            }
-            requests = {
-              cpu    = "50m"
-              memory = "128Mi"
-            }
-          }
-          command = [
-            "gis", "update-dr-settings",
-            "--url", "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}",
-            "--storage-class", var.staging_volume_class,
-            "--size", var.staging_volume_size,
-            "--timeout", var.backup_job_timeout
-          ]
-        }
-        restart_policy = "Never"
-      }
-    }
-    backoff_limit = 1
-  }
-  wait_for_completion = true
+module "update_dr_settings" {
+  source        = "./modules/cli-command"
+  namespace     = var.deployment_id
+  admin_cli_pod = kubernetes_pod.enterprise_admin_cli.metadata[0].name
+  command = [
+    "gis", "update-dr-settings",
+    "--storage-class", var.staging_volume_class,
+    "--size", var.staging_volume_size,
+    "--timeout", var.backup_job_timeout
+  ]
   depends_on = [
-    kubernetes_secret.admin_cli_credentials,
     helm_release.arcgis_enterprise
   ]
 }
 
 # Register default S3 backup store using S3 bucket specified by 
 # "/arcgis/${var.site_id}/s3/backup" SSM parameter.
-resource "kubernetes_job" "register_s3_backup_store" {
-  metadata {
-    name      = "register-s3-backup-store"
-    namespace = var.deployment_id
-  }
-  spec {
-    template {
-      metadata {}
-      spec {
-        container {
-          name  = "enterprise-admin-cli"
-          image = local.enterprise_admin_cli_image
-          env {
-            name = "ARCGIS_ENTERPRISE_USER"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.admin_cli_credentials.metadata[0].name
-                key  = "username"
-              }
-            }
-          }
-          env {
-            name = "ARCGIS_ENTERPRISE_PASSWORD"
-            value_from {
-              secret_key_ref {
-                name = kubernetes_secret.admin_cli_credentials.metadata[0].name
-                key  = "password"
-              }
-            }
-          }
-          resources {
-            limits = {
-              cpu    = "500m"
-              memory = "256Mi"
-            }
-            requests = {
-              cpu    = "50m"
-              memory = "128Mi"
-            }
-          }
-          command = [
-            "gis", "register-s3-backup-store",
-            "--url", "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}",
-            "--store", "s3-backup-store",
-            "--bucket", nonsensitive(data.aws_ssm_parameter.s3_backup.value),
-            "--region", data.aws_region.current.name,
-            "--root", var.deployment_id,
-            "--is-default"
-          ]
-        }
-        restart_policy = "Never"
-      }
-    }
-    backoff_limit = 1
-  }
-  wait_for_completion = true
+module "register_s3_backup_store" {
+  source        = "./modules/cli-command"
+  namespace     = var.deployment_id
+  admin_cli_pod = kubernetes_pod.enterprise_admin_cli.metadata[0].name
+  command = [
+    "gis", "register-s3-backup-store",
+    "--url", "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}",
+    "--store", "s3-backup-store",
+    "--bucket", nonsensitive(data.aws_ssm_parameter.s3_backup.value),
+    "--region", data.aws_region.current.name,
+    "--root", var.deployment_id,
+    "--is-default"
+  ]
   depends_on = [
-    kubernetes_secret.admin_cli_credentials,
-    helm_release.arcgis_enterprise
+    module.update_dr_settings
   ]
 }

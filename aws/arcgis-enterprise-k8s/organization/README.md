@@ -19,9 +19,9 @@ v1.2.1 | 11.2.0.5500 | Not supported | Not applicable | Supported      | Helm ch
 The module also:
 
 * Creates an S3 bucket for the organization object store and registers it with the deployment.
+* Creates a Kubernetes pod to execute Enterprise Admin CLI commands.
 * Registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
 * Updates the DR settings to use the specified storage class and size for staging volume.
-* Creates a Kubernetes pod to execute Enterprise Admin CLI commands.
 
 The deployment's Monitoring Subsystem consists of:
 
@@ -46,6 +46,13 @@ On the machine where Terraform is executed:
 | kubernetes | ~> 2.26 |
 | local | n/a |
 
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| register_s3_backup_store | ./modules/cli-command | n/a |
+| update_dr_settings | ./modules/cli-command | n/a |
+
 ## Resources
 
 | Name | Type |
@@ -57,8 +64,6 @@ On the machine where Terraform is executed:
 | [aws_sns_topic.deployment_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
 | [aws_sns_topic_subscription.infrastructure_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [helm_release.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
-| [kubernetes_job.register_s3_backup_store](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/job) | resource |
-| [kubernetes_job.update_dr_settings](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/job) | resource |
 | [kubernetes_pod.enterprise_admin_cli](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/pod) | resource |
 | [kubernetes_secret.admin_cli_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [local_sensitive_file.cloud_config_json_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |

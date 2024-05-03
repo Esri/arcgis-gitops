@@ -167,9 +167,8 @@ Instructions:
 1. If pull through cache is not configured, copy the container images of the new ArcGIS Enterprise version to Amazon ECR.
 2. In case of upgrade to a new version, add ArcGIS Enterprise on Kubernetes authorization files for the new ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property in [organization.tfvars.json](../../config/aws/arcgis-enterprise-k8s/organization.tfvars.json) config file to the file paths.
 3. Set "helm_charts_version" property to the Helm Charts version of the new ArcGIS Enterprise on Kubernetes version (see "Chart Version Compatibility" section in the charts' READMEs).
-4. Set "upgrade_token" property to a long lived (>= 6 hours expiration time) token generated for ArcGIS Enterprise organization administrator account through the `https://<deployment_fqdn>/<deployment_fqdn>/sharing/rest/generateToken` endpoint.
-5. Commit the changes to the Git branch and push the branch to GitHub.
-6. Run enterprise-k8s-aws-organization workflow using the branch.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run enterprise-k8s-aws-organization workflow using the branch.
 
 > Make a backup of the organization before performing an update or upgrade.
 

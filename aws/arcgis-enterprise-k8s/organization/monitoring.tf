@@ -8,21 +8,22 @@ data "aws_lb" "arcgis_enterprise_ingress" {
   }
 }
 
-data "aws_lb_target_group" "arcgis_enterprise_ingress" {
-  tags = {
-    "ingress.k8s.aws/stack" = "${var.deployment_id}/arcgis-enterprise-ingress"
-  }
+# data "aws_lb_target_group" "arcgis_enterprise_ingress" {
+#   tags = {
+#     "ingress.k8s.aws/stack" = "${var.deployment_id}/arcgis-enterprise-ingress"
+#   }
 
-  depends_on = [ 
-    helm_release.arcgis_enterprise
-  ]
-}
+#   depends_on = [ 
+#     helm_release.arcgis_enterprise
+#   ]
+# }
 
 locals {
   alb_arn = data.aws_lb.arcgis_enterprise_ingress.arn
-  target_group_arns = [
-    data.aws_lb_target_group.arcgis_enterprise_ingress.arn
-  ]
+  alb_id = trimprefix(split(":", local.alb_arn)[5])
+  # target_group_arns = [
+  #   data.aws_lb_target_group.arcgis_enterprise_ingress.arn
+  # ]
 
   alarms_widgets_y = 0
   alb_widgets_y = 3
@@ -57,7 +58,8 @@ locals {
       properties = {
         title = "Request Count"
         metrics = [
-          for tg_arn in local.target_group_arns : [ "AWS/ApplicationELB", "RequestCount", "LoadBalancer", trimprefix(split(":", local.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
+          { "id": "expr1m0", "expression": "SELECT SUM(RequestCount) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}' GROUP BY LoadBalancer LIMIT 5" }
+          # for tg_arn in local.target_group_arns : [ "AWS/ApplicationELB", "RequestCount", "LoadBalancer", trimprefix(split(":", local.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
         ]
         yAxis = {
           left = {
@@ -65,7 +67,6 @@ locals {
           }
         }
         period = 60
-        stat   = "Sum"
         region = data.aws_region.current.name
       }
     },
@@ -79,7 +80,8 @@ locals {
       properties = {
         title = "Response Time (seconds)"
         metrics = [
-          for tg_arn in local.target_group_arns : [ "AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", trimprefix(split(":", local.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
+          { "id": "expr1m0", "expression": "SELECT AVG(TargetResponseTime) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}' GROUP BY LoadBalancer LIMIT 5" }
+          # for tg_arn in local.target_group_arns : [ "AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", trimprefix(split(":", local.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
         ]
         yAxis = {
           left = {
@@ -87,7 +89,6 @@ locals {
           }
         }
         period = 60
-        stat   = "Average"
         region = data.aws_region.current.name
       }
     },
@@ -101,7 +102,8 @@ locals {
       properties = {
         title = "Healthy Hosts Count"
         metrics = [
-          for tg_arn in local.target_group_arns : [ "AWS/ApplicationELB", "HealthyHostCount", "LoadBalancer", trimprefix(split(":", local.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
+          { "id": "expr1m0", "expression": "SELECT MIN(HealthyHostCount) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}' GROUP BY LoadBalancer LIMIT 5" }
+          # for tg_arn in local.target_group_arns : [ "AWS/ApplicationELB", "HealthyHostCount", "LoadBalancer", trimprefix(split(":", local.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
         ]
         yAxis = {
           left = {
@@ -109,7 +111,6 @@ locals {
           }
         }
         period = 60
-        stat   = "Minimum"
         region = data.aws_region.current.name
       }
     },
@@ -123,7 +124,8 @@ locals {
       properties = {
         title = "Number of 500 HTTP response codes"
         metrics = [
-          for tg_arn in local.target_group_arns : [ "AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", trimprefix(split(":", local.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
+          { "id": "expr1m0", "expression": "SELECT SUM(HTTPCode_Target_5XX_Count) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}' GROUP BY LoadBalancer LIMIT 5" }
+          # for tg_arn in local.target_group_arns : [ "AWS/ApplicationELB", "HTTPCode_Target_5XX_Count", "LoadBalancer", trimprefix(split(":", local.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
         ]
         yAxis = {
           left = {
@@ -131,7 +133,6 @@ locals {
           }
         }
         period = 60
-        stat   = "Sum"
         region = data.aws_region.current.name
       }
     }
@@ -272,7 +273,7 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_alb_instances" {
 
   dimensions = {
     LoadBalancer = trimprefix(split(":", data.aws_lb.arcgis_enterprise_ingress.arn)[5], "loadbalancer/")
-    TargetGroup  = split(":", data.aws_lb_target_group.arcgis_enterprise_ingress.arn)[5]
+    # TargetGroup  = split(":", data.aws_lb_target_group.arcgis_enterprise_ingress.arn)[5]
   }
 }
 

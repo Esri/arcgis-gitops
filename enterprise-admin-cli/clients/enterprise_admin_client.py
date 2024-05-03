@@ -14,6 +14,17 @@ class EnterpriseAdminClient:
         self.username = username
         self.password = password
 
+    # Returns the organization site's state and logs from its configuration
+    # See https://developers.arcgis.com/rest/enterprise-administration/enterprise/enterprise-admin-root.htm
+    def get_info(self):
+
+        token = self.generate_token()
+
+        data = {
+            'f': 'json'
+        }
+
+        return self.send_request('GET', '/admin', data, token)
 
     # Returns the currently configured disaster recovery settings
     # https://developers.arcgis.com/rest/enterprise-administration/enterprise/settings.htm
@@ -225,7 +236,9 @@ class EnterpriseAdminClient:
 
         return self.send_request('GET', '/admin/jobs/{job}'.format(job=jobid), data, token)
 
-    def generate_token(self, referer='referer', expiration=600):
+    # Generate an access token
+    # https://developers.arcgis.com/rest/users-groups-and-items/generate-token.htm
+    def generate_token(self, referer='referer', expiration=60):
         data = {
             'username': self.username,
             'password': self.password,

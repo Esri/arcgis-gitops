@@ -309,3 +309,10 @@ module "register_s3_backup_store" {
     module.update_dr_settings
   ]
 }
+
+module "monitoring" {
+  source        = "./modules/monitoring"
+  cluster_name  = var.site_id
+  namespace     = var.deployment_id
+  admin_email   = var.admin_email
+}

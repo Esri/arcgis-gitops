@@ -10,48 +10,32 @@
  * The CloudWatch dashboard includes widgets for:
  *
  * * CloudWatch alarms,
- * * Healthy and unhealthy host count in the ALB target groups,
+ * * Healthy host count in the ALB target groups,
  * * CPU, memory, disk, and network utilization of the deployment's EC2 instances,
- * * EBS volume read and write bytes of the deployment EC2 instances,
- * * System and Chef log of the deployment EC2 instances.
+ * * System and Chef logs of the deployment EC2 instances.
  */
 
 data "aws_region" "current" {}
 
-data "aws_instances" "deployment_instances" {
-  instance_tags = {
-    ArcGISSiteId = var.site_id    
-    ArcGISDeploymentId = var.deployment_id    
-  }
-
-   instance_state_names = ["running"]
-}
-
-data "aws_ebs_volumes" "deployment_volumes" {
-  tags = {
-    ArcGISSiteId = var.site_id    
-    ArcGISDeploymentId = var.deployment_id    
-  }
-}
-
 locals {
+  alb_id           = trimprefix(split(":", var.alb_arn)[5], "loadbalancer/")
   alarms_widgets_y = 0
-  alb_widgets_y = 3
-  ec2_widgets_y = 17
-  logs_widgets_y = 39
+  alb_widgets_y    = 3
+  ec2_widgets_y    = 17
+  logs_widgets_y   = 39
 
   alarms_widgets = [
     {
-      type = "alarm"
-      x = 0
-      y = local.alarms_widgets_y
-      width = 24
+      type   = "alarm"
+      x      = 0
+      y      = local.alarms_widgets_y
+      width  = 24
       height = 2
 
       properties = {
         title = "Alarms"
         alarms = [
-            for alarm in aws_cloudwatch_metric_alarm.unhealthy_alb_instances : alarm.arn
+          aws_cloudwatch_metric_alarm.unhealthy_alb_instances.arn
         ]
       }
     }
@@ -59,16 +43,19 @@ locals {
 
   alb_widgets = [
     {
-      type = "metric"
-      x = 0
-      y = local.alb_widgets_y
-      width = 12
+      type   = "metric"
+      x      = 0
+      y      = local.alb_widgets_y
+      width  = 12
       height = 6
-      
+
       properties = {
         title = "Request Count"
         metrics = [
-          for tg_arn in var.target_group_arns : [ "AWS/ApplicationELB", "RequestCount", "LoadBalancer", trimprefix(split(":", var.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(RequestCount) FROM \"AWS/ApplicationELB\" WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
+          }]
         ]
         yAxis = {
           left = {
@@ -76,43 +63,49 @@ locals {
           }
         }
         period = 60
-        stat   = "Sum"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 13
-      y = local.alb_widgets_y
-      width = 12
+      type   = "metric"
+      x      = 13
+      y      = local.alb_widgets_y
+      width  = 12
       height = 6
-      
+
       properties = {
         title = "Response Time (seconds)"
         metrics = [
-          for tg_arn in var.target_group_arns : [ "AWS/ApplicationELB", "TargetResponseTime", "LoadBalancer", trimprefix(split(":", var.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
+          [{
+            id         = "expr1"
+            expression = "SELECT AVG(TargetResponseTime) FROM \"AWS/ApplicationELB\" WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
+          }]
         ]
         yAxis = {
           left = {
-            min = 0
+            label     = "Seconds"
+            showUnits = false
+            min       = 0
           }
         }
         period = 60
-        stat   = "Average"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 0
-      y = local.alb_widgets_y + 7
-      width = 12
+      type   = "metric"
+      x      = 0
+      y      = local.alb_widgets_y + 7
+      width  = 12
       height = 6
-      
+
       properties = {
         title = "Healthy Hosts Count"
         metrics = [
-          for tg_arn in var.target_group_arns : [ "AWS/ApplicationELB", "HealthyHostCount", "LoadBalancer", trimprefix(split(":", var.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
+          [{
+            id         = "expr1"
+            expression = "SELECT MIN(HealthyHostCount) FROM \"AWS/ApplicationELB\" WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
+          }]
         ]
         yAxis = {
           left = {
@@ -120,21 +113,23 @@ locals {
           }
         }
         period = 60
-        stat   = "Minimum"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 13
-      y = local.alb_widgets_y + 7
-      width = 12
+      type   = "metric"
+      x      = 13
+      y      = local.alb_widgets_y + 7
+      width  = 12
       height = 6
-      
+
       properties = {
-        title = "UnHealthy Hosts Count"
+        title = "Number of 500 HTTP response codes"
         metrics = [
-          for tg_arn in var.target_group_arns : [ "AWS/ApplicationELB", "UnHealthyHostCount", "LoadBalancer", trimprefix(split(":", var.alb_arn)[5], "loadbalancer/"), "TargetGroup", split(":", tg_arn)[5] ]
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(HTTPCode_Target_5XX_Count) FROM \"AWS/ApplicationELB\" WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
+          }]
         ]
         yAxis = {
           left = {
@@ -142,13 +137,12 @@ locals {
           }
         }
         period = 60
-        stat   = "Maximum"
         region = data.aws_region.current.name
       }
     }
   ]
 
-  ec2_widgets = [
+  ec2_widgets_windows = [
     {
       type   = "metric"
       x      = 0
@@ -157,13 +151,18 @@ locals {
       height = 6
 
       properties = {
-        title  = "CPU Utilization"          
+        title = "CPU Utilization"
         metrics = [
-          for id in data.aws_instances.deployment_instances.ids : [ "AWS/EC2", "CPUUtilization", "InstanceId", id ]
+          [{
+            id         = "expr1"
+            expression = "SELECT AVG(cpu_usage_active) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId='${var.deployment_id}' GROUP BY InstanceId"
+          }]
         ]
         yAxis = {
           left = {
-            min = 0
+            label     = "Percent"
+            showUnits = false
+            min       = 0
           }
         }
         annotations = {
@@ -173,25 +172,29 @@ locals {
           ]
         }
         period = 60
-        stat   = "Average"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 13
-      y = local.ec2_widgets_y
-      width = 12
+      type   = "metric"
+      x      = 13
+      y      = local.ec2_widgets_y
+      width  = 12
       height = 6
-      
+
       properties = {
         title = "Memory Available (bytes)"
         metrics = [
-          for id in data.aws_instances.deployment_instances.ids : [ "CWAgent", "mem_available", "InstanceId", id ]
+          [{
+            id         = "expr1"
+            expression = "SELECT AVG(mem_available) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId='${var.deployment_id}' GROUP BY InstanceId"
+          }]
         ]
         yAxis = {
           left = {
-            min = 0
+            label     = "Bytes"
+            showUnits = false
+            min       = 0
           }
         }
         period = 60
@@ -199,16 +202,19 @@ locals {
       }
     },
     {
-      type = "metric"
-      x = 0
-      y = local.ec2_widgets_y + 7
-      width = 12
+      type   = "metric"
+      x      = 0
+      y      = local.ec2_widgets_y + 7
+      width  = 12
       height = 6
-      
+
       properties = {
         title = "System Processes"
         metrics = [
-          for id in data.aws_instances.deployment_instances.ids : [ "CWAgent", "processes_total", "InstanceId", id ]
+          [{
+            id         = "expr1"
+            expression = "SELECT AVG(processes_total) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+          }]
         ]
         yAxis = {
           left = {
@@ -216,111 +222,220 @@ locals {
           }
         }
         period = 60
-        stat   = "Maximum"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 13
-      y = local.ec2_widgets_y + 7
-      width = 12
+      type   = "metric"
+      x      = 13
+      y      = local.ec2_widgets_y + 7
+      width  = 12
       height = 6
-      
+
       properties = {
-        title = "Disk Free (megabytes)"
+        title = "Disk Free (bytes)"
         metrics = [
-          for id in data.aws_instances.deployment_instances.ids : [ "CWAgent", "disk_free", "InstanceId", id ]
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(disk_free_megabytes) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            visible    = false
+          }],
+          [{
+            id         = "expr2"
+            expression = "expr1 * 1024 * 1024"
+          }]
         ]
         yAxis = {
           left = {
-            min = 0
+            label     = "Bytes"
+            showUnits = false
+            min       = 0
           }
         }
         period = 60
-        stat   = "Sum"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 0
-      y = local.ec2_widgets_y + 14
-      width = 12
+      type   = "metric"
+      x      = 0
+      y      = local.ec2_widgets_y + 14
+      width  = 12
       height = 6
-      
+
       properties = {
-        title = "EBS Volume Read (bytes)"
+        title = "Disk I/O Read (bytes/sec)"
         metrics = [
-          # for id in data.aws_ebs_volumes.deployment_volumes.ids : [ "AWS/EBS", "VolumeReadBytes", "VolumeId", id ]
-          for id in data.aws_instances.deployment_instances.ids : [ "AWS/EC2", "EBSReadBytes", "InstanceId", id ]
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(diskio_read_bytes_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+          }]
         ]
         yAxis = {
           left = {
-            min = 0
+            label     = "Bytes/sec"
+            showUnits = false
+            min       = 0
           }
         }
         period = 60
-        stat   = "Sum"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 13
-      y = local.ec2_widgets_y + 14
-      width = 12
+      type   = "metric"
+      x      = 13
+      y      = local.ec2_widgets_y + 14
+      width  = 12
       height = 6
-      
+
       properties = {
-        title = "EBS Volume Write (bytes)"
+        title = "Disk I/O Write (bytes/sec)"
         metrics = [
-          # for id in data.aws_ebs_volumes.deployment_volumes.ids : [ "AWS/EBS", "VolumeWriteBytes", "VolumeId", id ]
-          for id in data.aws_instances.deployment_instances.ids : [ "AWS/EC2", "EBSWriteBytes", "InstanceId", id ]
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(diskio_write_bytes_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+          }]
         ]
         yAxis = {
           left = {
-            min = 0
+            label     = "Bytes/sec"
+            showUnits = false
+            min       = 0
           }
         }
         period = 60
-        stat   = "Sum"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 0
-      y = local.ec2_widgets_y + 21
-      width = 12
+      type   = "metric"
+      x      = 0
+      y      = local.ec2_widgets_y + 21
+      width  = 12
       height = 6
-      
+
       properties = {
-        title = "Network In (bytes)"
+        title = "Network In (bytes/sec)"
         metrics = [
-          for id in data.aws_instances.deployment_instances.ids : [ "AWS/EC2", "NetworkIn", "InstanceId", id ]
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(net_bytes_recv_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            region     = data.aws_region.current.name            
+          }]
         ]
         yAxis = {
           left = {
-            min = 0
+            label     = "Bytes/sec"
+            showUnits = false
+            min       = 0
           }
         }
         period = 60
-        stat   = "Average"
         region = data.aws_region.current.name
       }
     },
     {
-      type = "metric"
-      x = 13
-      y = local.ec2_widgets_y + 21
-      width = 12
+      type   = "metric"
+      x      = 13
+      y      = local.ec2_widgets_y + 21
+      width  = 12
       height = 6
-      
+
       properties = {
-        title = "Network Out (bytes)"
+        title = "Network Out (bytes/sec)"
         metrics = [
-          for id in data.aws_instances.deployment_instances.ids : [ "AWS/EC2", "NetworkOut", "InstanceId", id ]
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(net_bytes_sent_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+          }]
+        ]
+        yAxis = {
+          left = {
+            label     = "Bytes/sec"
+            showUnits = false
+            min       = 0
+          }
+        }
+        period = 60
+        region = data.aws_region.current.name
+      }
+    }
+  ]
+
+  ec2_widgets_linux = [
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.ec2_widgets_y
+      width  = 12
+      height = 6
+
+      properties = {
+        title = "CPU Utilization"
+        metrics = [
+          [{
+            id         = "expr1"
+            expression = "SELECT AVG(cpu_usage_active) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId='${var.deployment_id}' AND cpu='cpu-total' GROUP BY InstanceId"
+          }]
+        ]
+        yAxis = {
+          left = {
+            label     = "Percent"
+            showUnits = false
+            min       = 0
+          }
+        }
+        annotations = {
+          horizontal = [
+            { value = 0 },
+            { value = 100 }
+          ]
+        }
+        period = 60
+        region = data.aws_region.current.name
+      }
+    },
+    {
+      type   = "metric"
+      x      = 13
+      y      = local.ec2_widgets_y
+      width  = 12
+      height = 6
+
+      properties = {
+        title = "Memory Available (bytes)"
+        metrics = [
+          [{
+            id         = "expr1"
+            expression = "SELECT AVG(mem_available) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId='${var.deployment_id}' GROUP BY InstanceId"
+          }]
+        ]
+        yAxis = {
+          left = {
+            label     = "Bytes"
+            showUnits = false
+            min       = 0
+          }
+        }
+        period = 60
+        region = data.aws_region.current.name
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.ec2_widgets_y + 7
+      width  = 12
+      height = 6
+
+      properties = {
+        title = "System Processes"
+        metrics = [
+          [{
+            id         = "expr1"
+            expression = "SELECT AVG(processes_total) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+          }]
         ]
         yAxis = {
           left = {
@@ -328,7 +443,151 @@ locals {
           }
         }
         period = 60
-        stat   = "Average"
+        region = data.aws_region.current.name
+      }
+    },
+    {
+      type   = "metric"
+      x      = 13
+      y      = local.ec2_widgets_y + 7
+      width  = 12
+      height = 6
+
+      properties = {
+        title = "Disk Free (bytes)"
+        metrics = [
+          [{
+            id         = "expr1"
+            expression = "SELECT AVG(disk_free) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+          }]
+        ]
+        yAxis = {
+          left = {
+            label     = "Bytes"
+            showUnits = false
+            min       = 0
+          }
+        }
+        period = 60
+        region = data.aws_region.current.name
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.ec2_widgets_y + 14
+      width  = 12
+      height = 6
+
+      properties = {
+        title = "Disk I/O Read (bytes/sec)"
+        metrics = [
+          [{
+            visible    = false
+            id         = "expr1"
+            expression = "SELECT SUM(diskio_read_bytes) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+          }], [{
+            expression = "expr1 / PERIOD(FIRST(expr1))"
+          }]
+        ]
+        yAxis = {
+          left = {
+            label     = "Bytes/sec"
+            showUnits = false
+            min       = 0
+          }
+        }
+        period = 60
+        region = data.aws_region.current.name
+      }
+    },
+    {
+      type   = "metric"
+      x      = 13
+      y      = local.ec2_widgets_y + 14
+      width  = 12
+      height = 6
+
+      properties = {
+        title = "Disk I/O Write (bytes/sec)"
+        metrics = [
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(diskio_write_bytes) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            visible    = false
+          }],
+          [{
+            expression = "expr1 / PERIOD(FIRST(expr1))"
+          }]
+        ]
+        yAxis = {
+          left = {
+            label     = "Bytes/sec"
+            showUnits = false
+            min       = 0
+          }
+        }
+        period = 60
+        region = data.aws_region.current.name
+      }
+    },
+    {
+      type   = "metric"
+      x      = 0
+      y      = local.ec2_widgets_y + 21
+      width  = 12
+      height = 6
+
+      properties = {
+        title = "Network In (bytes/sec)"
+        metrics = [
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(net_bytes_recv) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            visible    = false
+          }],
+          [{
+            expression = "expr1 / PERIOD(FIRST(expr1))"
+          }]
+        ]
+        yAxis = {
+          left = {
+            label     = "Bytes/sec"
+            showUnits = false
+            min       = 0
+          }
+        }
+        period = 60
+        region = data.aws_region.current.name
+      }
+    },
+    {
+      type   = "metric"
+      x      = 13
+      y      = local.ec2_widgets_y + 21
+      width  = 12
+      height = 6
+
+      properties = {
+        title = "Network Out (bytes/sec)"
+        metrics = [
+          [{
+            id         = "expr1"
+            expression = "SELECT SUM(net_bytes_sent) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            visible    = false
+          }],
+          [{
+            expression = "expr1 / PERIOD(FIRST(expr1))"
+          }]
+        ]
+        yAxis = {
+          left = {
+            label     = "Bytes/sec"
+            showUnits = false
+            min       = 0
+          }
+        }
+        period = 60
         region = data.aws_region.current.name
       }
     }
@@ -336,20 +595,20 @@ locals {
 
   logs_widgets = [
     {
-      type = "log"
-      x = 0
-      y = local.logs_widgets_y
-      width = 24
+      type   = "log"
+      x      = 0
+      y      = local.logs_widgets_y
+      width  = 24
       height = 12
       properties = {
-        title = "System Event Log"
-        query = "SOURCE '${var.log_group_name}' | fields @timestamp, @logStream, @message | sort @timestamp desc | limit 20"
-        region = data.aws_region.current.name
+        title   = "System Event Log"
+        query   = "SOURCE '${var.log_group_name}' | fields @timestamp, @logStream, @message | sort @timestamp desc | limit 20"
+        region  = data.aws_region.current.name
         stacked = false
-        view = "table"
+        view    = "table"
       }
     }
-  ] 
+  ]
 }
 
 resource "aws_sns_topic" "deployment_alarms" {
@@ -365,40 +624,32 @@ resource "aws_ssm_parameter" "sns_topic" {
 }
 
 resource "aws_cloudwatch_metric_alarm" "unhealthy_alb_instances" {
-  count                     = length(var.target_group_arns)
-  alarm_name                = "UnHealthyHosts/${split(":", var.target_group_arns[count.index])[5]}"
+  alarm_name                = "${var.site_id}/${var.deployment_id}/UnHealthyHosts"
   comparison_operator       = "GreaterThanThreshold"
   evaluation_periods        = 2
-  metric_name               = "UnHealthyHostCount"
-  namespace                 = "AWS/ApplicationELB"
-  period                    = 60
-  statistic                 = "Maximum"
   threshold                 = 0
-  alarm_description         = "Unhealthy instances in ALB target group"
+  alarm_description         = "Unhealthy instances in ALB target groups"
   insufficient_data_actions = []
 
-  dimensions = {
-    LoadBalancer = trimprefix(split(":", var.alb_arn)[5], "loadbalancer/")
-    TargetGroup = split(":", var.target_group_arns[count.index])[5]
+  metric_query {
+    id          = "e1"
+    expression  = "SELECT MAX(UnHealthyHostCount) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}'"
+    return_data = true
+    period      = 60
   }
-}
 
-resource "aws_cloudwatch_composite_alarm" "unhealthy_alb_targets" {
-  alarm_description = "${var.deployment_id} deployment alarms"
-  alarm_name        = "DeploymentAlarms/${var.deployment_id}"
-
-  alarm_actions = [ aws_sns_topic.deployment_alarms.arn ]
-  ok_actions    = [ aws_sns_topic.deployment_alarms.arn ]
-
-  alarm_rule = join(" OR ", [
-    for alarm in aws_cloudwatch_metric_alarm.unhealthy_alb_instances : "ALARM(${alarm.alarm_name})"
-  ])
+  alarm_actions = [aws_sns_topic.deployment_alarms.arn]
+  ok_actions    = [aws_sns_topic.deployment_alarms.arn]
 }
 
 resource "aws_cloudwatch_dashboard" "dashboard" {
-  dashboard_name = var.name
+  dashboard_name = var.deployment_id
 
-  dashboard_body = jsonencode({
-    widgets = concat(local.alarms_widgets, local.alb_widgets, local.ec2_widgets, local.logs_widgets)
-  })
+  dashboard_body = (var.platform == "windows" ?
+    jsonencode({
+      widgets = concat(local.alarms_widgets, local.alb_widgets, local.ec2_widgets_windows, local.logs_widgets)
+    }) : 
+    jsonencode({
+      widgets = concat(local.alarms_widgets, local.alb_widgets, local.ec2_widgets_linux, local.logs_widgets)
+    }))
 }

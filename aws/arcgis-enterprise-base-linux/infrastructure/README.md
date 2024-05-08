@@ -16,11 +16,11 @@ For the EC2 instances the module creates "A" records in the VPC Route53 private 
 A highly available EFS file system is created and mounted to the EC2 instances.
 
 The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, 6443, and 7443 and target groups for the listeners that target the EC2 instances.
-Internet-facing load balancer is configured to use two public VPC subnets, while internal load balancer uses private subnets.
+Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
 
 The deployment's Monitoring Subsystem consists of:
 
-* An SNS topic and a CloudWatch alarms that monitor the target groups and post to the SNS topic if the number of unhelathy instances in nonzero.
+* An SNS topic and a CloudWatch alarms that monitor the target groups and post to the SNS topic if the number of unhealthy instances in nonzero.
 * A CloudWatch log group
 * CloudWatch agent on the EC2 instances that sends the system and Chef run logs to the log group as well as memory and disk utilization on the EC2 instances.
 * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and logs of the deployment.
@@ -74,7 +74,7 @@ The module uses the following SSM parameters:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 5.22 |
+| aws | ~> 5.48 |
 
 ## Modules
 
@@ -83,12 +83,10 @@ The module uses the following SSM parameters:
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
 | nfs_mount | ../../modules/nfs_mount | n/a |
-| portal_http_alb_target | ../../modules/alb_target_group | n/a |
 | portal_https_alb_target | ../../modules/alb_target_group | n/a |
 | private_portal_https_alb_target | ../../modules/alb_target_group | n/a |
 | private_server_https_alb_target | ../../modules/alb_target_group | n/a |
 | security_group | ../../modules/security_group | n/a |
-| server_http_alb_target | ../../modules/alb_target_group | n/a |
 | server_https_alb_target | ../../modules/alb_target_group | n/a |
 
 ## Resources

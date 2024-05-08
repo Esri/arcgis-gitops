@@ -325,16 +325,10 @@ module "cw_agent" {
 
 module "dashboard" {
   source        = "../../modules/dashboard"
-  name          = var.deployment_id
+  platform      = "windows"
   site_id       = var.site_id
   deployment_id = var.deployment_id
   alb_arn       = aws_lb.alb.arn
-  target_group_arns = [
-    module.portal_https_alb_target.arn,
-    module.server_https_alb_target.arn,
-    module.private_portal_https_alb_target.arn,
-    module.private_server_https_alb_target.arn
-  ]
   log_group_name = module.cw_agent.log_group_name
   depends_on = [
     module.cw_agent

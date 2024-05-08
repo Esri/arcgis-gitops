@@ -87,6 +87,7 @@ locals {
         yAxis = {
           left = {
             label = "Seconds"
+            showUnits = false
             min = 0
           }
         }

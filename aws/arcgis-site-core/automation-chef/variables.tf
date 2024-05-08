@@ -29,12 +29,12 @@ variable "images" {
       description : "Canonical, Ubuntu, 22.04 LTS, amd64 focal image"
     }
     rhel8 = {
-      ami_name_filter : "RHEL-8.6.0_HVM-*-x86_64-2-Hourly2-GP2",
+      ami_name_filter : "RHEL-8.6.0_HVM-*-x86_64-*-Hourly2-GP2",
       owner : "309956199498", # Red Hat
       description : "Red Hat Enterprise Linux version 8 (HVM), EBS General Purpose (SSD) Volume Type"
     }
     rhel9 = {
-      ami_name_filter : "RHEL-9.3.0_HVM-*-x86_64-5-Hourly2-GP2",
+      ami_name_filter : "RHEL-9.3.0_HVM-*-x86_64-*-Hourly2-GP2",
       owner : "309956199498", # Red Hat
       description : "Red Hat Enterprise Linux version 9 (HVM), EBS General Purpose (SSD) Volume Type"
     }

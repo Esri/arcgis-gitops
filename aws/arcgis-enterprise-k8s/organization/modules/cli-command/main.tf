@@ -5,7 +5,11 @@
  */
 
 resource "null_resource" "kubectl_exec" {
+  triggers = {
+    always_run = "${timestamp()}"
+  }
+      
   provisioner "local-exec" {
-    command = "kubectl exec ${var.admin_cli_pod} --namespace=${var.namespace} -- ${ join(" ", var.command)}"
+    command = "kubectl exec ${var.admin_cli_pod} --namespace=${var.namespace} -- ${join(" ", [for cmd in var.command : "\"${cmd}\""])}"
   }
 }

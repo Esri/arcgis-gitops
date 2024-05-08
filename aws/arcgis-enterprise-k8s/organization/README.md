@@ -16,12 +16,9 @@ v1.1.4 | 11.1.0.4115 | Not supported | Not applicable | Supported      | Helm ch
 v1.2.0 | 11.2.0.5207 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.2 or upgrading 11.1 to 11.2 |
 v1.2.1 | 11.2.0.5500 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Help Language Pack Update |
 
-The module also:
-
-* Creates an S3 bucket for the organization object store and registers it with the deployment.
-* Creates a Kubernetes pod to execute Enterprise Admin CLI commands.
-* Registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
-* Updates the DR settings to use the specified storage class and size for staging volume.
+The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
+For ArcGIS Enterprise versions 11.2 and newer the module also creates an S3 bucket for the organization object store, registers it with the deployment,
+and registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
 
 The deployment's Monitoring Subsystem consists of:
 

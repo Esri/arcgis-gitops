@@ -12,6 +12,7 @@ admin_commands=( \
     "generate-token" \
     "get-backup-stores" \
     "get-dr-settings" \
+    "register-pv-backup-store" \
     "register-s3-backup-store" \
     "restore-organization" \
     "update-dr-settings" )

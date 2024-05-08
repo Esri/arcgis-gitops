@@ -44,14 +44,22 @@ locals {
         InstanceId = "$${aws:InstanceId}"
       }
 
-      aggregation_dimensions = [
-        ["InstanceId"]
-      ]
-
       metrics_collected = {
+        cpu = {
+          measurement                 = ["cpu_usage_active"]
+          metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
+        }
         mem = {
           measurement                 = ["mem_available"]
           metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
         }
         disk = {
           resources = ["/"]
@@ -59,7 +67,7 @@ locals {
             {
               name   = "free"
               rename = "disk_free"
-              unit   = "Megabytes"
+              unit   = "Bytes"
             }
           ]
           ignore_file_system_types = [
@@ -67,33 +75,52 @@ locals {
             "devtmpfs"
           ]
           metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
+        }
+        diskio = {
+          measurement                 = ["diskio_write_bytes", "diskio_read_bytes"]
+          metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
+        }
+        net = {
+          measurement                 = ["net_bytes_recv", "net_bytes_sent"]
+          metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
         }
         processes = {
-          measurement = [
-            {
-              name = "processes_total"
-              unit = "Count"
-            }
-          ]
+          measurement                 = ["processes_total"]
           metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
         }
       }
     }
 
     logs = {
-      logs_collected = {    
+      logs_collected = {
         files = {
           collect_list = [
             {
-              file_path = "/var/log/messages"
-              log_group_name = aws_cloudwatch_log_group.deployment.name
-              log_stream_name = "{instance_id}-system"
+              file_path        = "/var/log/messages"
+              log_group_name   = aws_cloudwatch_log_group.deployment.name
+              log_stream_name  = "{instance_id}-system"
               timestamp_format = "%b %-d %H:%M:%S"
             },
             {
-              file_path = "/var/log/chef-run.log"
-              log_group_name = aws_cloudwatch_log_group.deployment.name
-              log_stream_name = "{instance_id}-chef"
+              file_path        = "/var/log/chef-run.log"
+              log_group_name   = aws_cloudwatch_log_group.deployment.name
+              log_stream_name  = "{instance_id}-chef"
               timestamp_format = "%Y-%m-%dT%H:%M:%S"
             }
           ]
@@ -113,12 +140,27 @@ locals {
         InstanceId = "$${aws:InstanceId}"
       }
 
-      aggregation_dimensions = [
-        ["InstanceId"]
-      ]
+      # aggregation_dimensions = [
+      #   ["InstanceId"]
+      # ]
 
       metrics_collected = {
         statsd = {}
+        Processor = {
+          resources = ["*"]
+          measurement = [
+            {
+              name   = "% Processor Time"
+              rename = "cpu_usage_active"
+              unit   = "Percent"
+            }
+          ]
+          metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
+        }
         Memory = {
           measurement = [
             {
@@ -128,27 +170,69 @@ locals {
             }
           ]
           metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
         }
         LogicalDisk = {
           measurement = [
             {
               name   = "Free Megabytes"
-              rename = "disk_free"
+              rename = "disk_free_megabytes"
               unit   = "Megabytes"
+            },
+            {
+              name   = "Disk Read Bytes/sec"
+              rename = "diskio_read_bytes_sec"
+              unit   = "Bytes/Second"
+            },
+            {
+              name   = "Disk Write Bytes/sec"
+              rename = "diskio_write_bytes_sec"
+              unit   = "Bytes/Second"
             }
           ]
-          resources = ["*"]
+          resources                   = ["C:"]
           metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
+        }
+        "Network Interface" = {
+          measurement = [
+            {
+              name   = "Bytes Received/sec"
+              rename = "net_bytes_recv_sec"
+              unit   = "Bytes/Second"
+            },
+            {
+              name   = "Bytes Sent/sec"
+              rename = "net_bytes_sent_sec"
+              unit   = "Bytes/Second"
+            }
+          ]
+          resources                   = ["*"]
+          metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
         }
         System = {
           measurement = [
             {
               name   = "Processes"
               rename = "processes_total"
-              unit = "Count"
+              unit   = "Count"
             }
           ]
           metrics_collection_interval = 60
+          append_dimensions = {
+            SiteId       = var.site_id
+            DeploymentId = var.deployment_id
+          }
         }
       }
     }
@@ -157,10 +241,10 @@ locals {
         windows_events = {
           collect_list = [
             {
-              event_name = "System"
-              event_format = "text"
-              event_levels = [ "INFORMATION", "ERROR" ]
-              log_group_name = aws_cloudwatch_log_group.deployment.name
+              event_name      = "System"
+              event_format    = "text"
+              event_levels    = ["INFORMATION", "ERROR"]
+              log_group_name  = aws_cloudwatch_log_group.deployment.name
               log_stream_name = "{instance_id}-system"
             }
           ]
@@ -168,10 +252,10 @@ locals {
         files = {
           collect_list = [
             {
-              file_path = "C:\\chef\\chef-run.log"
-              encoding = "utf-16"
-              log_group_name = aws_cloudwatch_log_group.deployment.name
-              log_stream_name = "{instance_id}-chef"
+              file_path        = "C:\\chef\\chef-run.log"
+              encoding         = "utf-16"
+              log_group_name   = aws_cloudwatch_log_group.deployment.name
+              log_stream_name  = "{instance_id}-chef"
               timestamp_format = "%Y-%m-%dT%H:%M:%S"
             }
           ]
@@ -183,7 +267,7 @@ locals {
 }
 
 resource "aws_cloudwatch_log_group" "deployment" {
-  name_prefix = var.deployment_id
+  name_prefix       = var.deployment_id
   retention_in_days = 7
 }
 
@@ -198,7 +282,7 @@ resource "null_resource" "ssm_cloudwatch_config" {
   triggers = {
     always_run = "${timestamp()}"
   }
-    
+
   provisioner "local-exec" {
     command = "python -m ssm_cloudwatch_config -s ${var.site_id} -d ${var.deployment_id} -p ${aws_ssm_parameter.cloudwatch_agent_config.name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
   }

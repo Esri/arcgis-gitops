@@ -19,7 +19,7 @@ Internet-facing load balancer is configured to use two of the public VPC subnets
 
 The deployment's Monitoring Subsystem consists of:
 
-* An SNS topic and a CloudWatch alarms that monitor the target groups and post to the SNS topic if the number of unhelathy instances in nonzero.
+* An SNS topic and a CloudWatch alarms that monitor the target groups and post to the SNS topic if the number of unhealthy instances in nonzero.
 * A CloudWatch log group
 * CloudWatch agent on the EC2 instances that sends the system and Chef run logs to the log group as well as memory and disk utilization on the EC2 instances.
 * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and logs of the deployment.

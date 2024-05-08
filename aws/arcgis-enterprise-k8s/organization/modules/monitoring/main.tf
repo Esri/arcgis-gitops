@@ -224,7 +224,7 @@ locals {
         ]
         yAxis = {
           left = {
-            label     = "Bytes"
+            label     = "Bytes/sec"
             showUnits = false
             min       = 0
           }
@@ -249,7 +249,7 @@ locals {
         ]
         yAxis = {
           left = {
-            label     = "Bytes"
+            label     = "Bytes/sec"
             showUnits = false
             min       = 0
           }

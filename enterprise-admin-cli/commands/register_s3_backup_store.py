@@ -23,56 +23,26 @@ if __name__ == '__main__':
             print("Backup store '{name}' updated.".format(name = args.store))
             exit(0)
 
-        info = admin.get_info()
-
-        if info['currentVersion'] <= 11.1:
-            # Support for cloud storage has been added at ArcGIS Enterprise on Kubernetes 11.1 as a beta feature. 
-            # Beta features may not be feature complete, are not fully supported, and may have known performance issues. 
-            # See the ArcGIS Enterprise on Kubernetes Beta features documentation for more information.
-            settings = {
-                'type': "S3",
-                "provider": {
-                    "name": "AWS",
-                    "connection": {
-                        "type": "access-IAM-role",
-                    }
-                },
-                "service": {
-                    "name": "AWS S3",
-                    "type": "objectStore",
-                    "usages": ["BACKUP"],
-                    "connection": {
-                        "type": "object-storage-access",
-                        "info": {
-                            "bucket_name": args.bucket,
-                            "region": args.region,
-                            "rootDir": args.root
-                        }
-                    },
-                    "category": "storage"
-                }        
-            }
-        else:
-            settings = {
-                'type': 'S3',
-                'provider': {
-                    'name': 'AWS',
-                    'cloudServices': [{
-                        'name': 'AWS S3',
-                        'type': 'objectStore',
-                        'usage': 'BACKUP',
-                        'connection': {
-                            'bucketName': args.bucket,
-                            'region': args.region,
-                            'rootDir': args.root,
-                            'credential': {
-                                'type': 'IAM-ROLE'
-                            },
+        settings = {
+            'type': 'S3',
+            'provider': {
+                'name': 'AWS',
+                'cloudServices': [{
+                    'name': 'AWS S3',
+                    'type': 'objectStore',
+                    'usage': 'BACKUP',
+                    'connection': {
+                        'bucketName': args.bucket,
+                        'region': args.region,
+                        'rootDir': args.root,
+                        'credential': {
+                            'type': 'IAM-ROLE'
                         },
-                        'category': 'storage'
-                    }]
-                }
+                    },
+                    'category': 'storage'
+                }]
             }
+        }
 
         ret = admin.register_disaster_recovery_store(args.store, settings, args.is_default)
        

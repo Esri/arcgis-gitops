@@ -123,6 +123,36 @@ Arguments:
                         ArcGIS Enterprise user password
 ```
 
+## register-pv-backup-store command
+
+Registers or updates backup store in a persistent volume.
+
+Usage:
+  
+```text
+gis register-pv-backup-store [-h] [--url URL] [-u USER] [-p PASSWORD] 
+                             --store STORE --storage-class STORAGE_CLASS --size SIZE
+                             [--is-dynamic] [--is-default] [--label KEY=VALUE [KEY=VALUE ...]]
+```
+
+Arguments:
+
+```text
+  -h, --help            show this help message and exit
+  --url URL             ArcGIS Enterprise URL
+  -u USER, --user USER  ArcGIS Enterprise user name
+  -p PASSWORD, --password PASSWORD
+                        ArcGIS Enterprise user password
+  --store STORE         backup store name
+  --storage-class STORAGE_CLASS
+                        backup volume storage class
+  --size SIZE           backup volume size (e.g. 64Gi)
+  --is-dynamic          use dynamic volume provisioning type
+  --is-default          make the store default
+  --label KEY=VALUE [KEY=VALUE ...]
+                        key=value pair to identify and bind to a persistent volume
+```
+
 ## register-s3-backup-store command
 
 Registers or updates S3 backup store.

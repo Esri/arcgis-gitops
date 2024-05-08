@@ -16,13 +16,10 @@
  * v1.2.0 | 11.2.0.5207 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.2 or upgrading 11.1 to 11.2 | 
  * v1.2.1 | 11.2.0.5500 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Help Language Pack Update |
  *
- * The module also:
- * 
- * * Creates an S3 bucket for the organization object store and registers it with the deployment.
- * * Creates a Kubernetes pod to execute Enterprise Admin CLI commands.
- * * Registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
- * * Updates the DR settings to use the specified storage class and size for staging volume.
-  *
+ * The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
+ * For ArcGIS Enterprise versions 11.2 and newer the module also creates an S3 bucket for the organization object store, registers it with the deployment, 
+ * and registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
+ *
  * The deployment's Monitoring Subsystem consists of:
  *
  * * An SNS topic with a subscription for the primary site administrator.
@@ -96,6 +93,10 @@ locals {
   # The EKS cluster uses IAM authentication for ECR access, while the Helm charts require setting container reqistry credentials.
   container_registry_username = "AWS"
   container_registry_password = "AWS"
+
+  # Support for cloud stores was added at ArcGIS Enterprise on Kubernetes 11.2. 
+  # The cloud stores are not supported in versions 1.1.x of the Helm charts. 
+  configure_cloud_stores = !startswith(var.helm_charts_version, "1.1.")
 }
 
 resource "kubernetes_secret" "admin_cli_credentials" {
@@ -165,8 +166,10 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
   ]
 }
 
-# Create S3 bucket for the organization object store
+# Create S3 bucket for the organization object store for versions 1.2.0 and newer
+# if cloud_config_json_file_path is not specified.
 resource "aws_s3_bucket" "object_store" {
+  count = local.configure_cloud_stores && var.cloud_config_json_file_path == null ? 1 : 0
   bucket_prefix = "${var.deployment_id}-object-store"
   force_destroy = true
 }
@@ -176,7 +179,11 @@ resource "local_sensitive_file" "license_file" {
   filename = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/license.json"
 }
 
+# Create cloud-config.json file for cloud stores in the Helm chart's user-input diectory
+# if the file path is specified either by cloud_config_json_file_path input variable
+# or configured with the default setings.
 resource "local_sensitive_file" "cloud_config_json_file" {
+  count = local.configure_cloud_stores || var.cloud_config_json_file_path != null ? 1 : 0
   content = (var.cloud_config_json_file_path != null ?
     file(var.cloud_config_json_file_path) :
     jsonencode([{
@@ -189,7 +196,7 @@ resource "local_sensitive_file" "cloud_config_json_file" {
         type  = "objectStore"
         usage = "DEFAULT"
         connection = {
-          bucketName = aws_s3_bucket.object_store.bucket
+          bucketName = aws_s3_bucket.object_store[0].bucket
           region     = data.aws_region.current.name
           rootDir    = var.deployment_id
         }
@@ -256,7 +263,7 @@ resource "helm_release" "arcgis_enterprise" {
           lastName  = var.admin_last_name
         }
         securityQuestionIndex   = var.security_question_index
-        cloudConfigJsonFilename = "user-inputs/cloud-config.json"
+        cloudConfigJsonFilename = local.configure_cloud_stores || var.cloud_config_json_file_path != null ? "user-inputs/cloud-config.json" : null
         logSetting              = var.log_setting
         logRetentionMaxDays     = var.log_retention_max_days
         storage                 = var.storage
@@ -293,12 +300,12 @@ module "update_dr_settings" {
 # Register default S3 backup store using S3 bucket specified by 
 # "/arcgis/${var.site_id}/s3/backup" SSM parameter.
 module "register_s3_backup_store" {
+  count = local.configure_cloud_stores ? 1 : 0
   source        = "./modules/cli-command"
   namespace     = var.deployment_id
   admin_cli_pod = kubernetes_pod.enterprise_admin_cli.metadata[0].name
   command = [
     "gis", "register-s3-backup-store",
-    "--url", "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}",
     "--store", "s3-backup-store",
     "--bucket", nonsensitive(data.aws_ssm_parameter.s3_backup.value),
     "--region", data.aws_region.current.name,
@@ -309,6 +316,24 @@ module "register_s3_backup_store" {
     module.update_dr_settings
   ]
 }
+
+# module "register_pv_backup_store" {
+#   count = local.configure_cloud_stores ? 0 : 1
+#   source        = "./modules/cli-command"
+#   namespace     = var.deployment_id
+#   admin_cli_pod = kubernetes_pod.enterprise_admin_cli.metadata[0].name
+#   command = [
+#     "gis", "register-pv-backup-store",
+#     "--store", "pv-backup-store",
+#     "--storage-class", "gp3",
+#     "--size", "64Gi",
+#     "--is-dynamic",
+#     "--is-default"
+#   ]
+#   depends_on = [
+#     module.update_dr_settings
+#   ]
+# }
 
 module "monitoring" {
   source        = "./modules/monitoring"

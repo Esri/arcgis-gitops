@@ -7,8 +7,3 @@ variable "namespace" {
   description = "Deployment namespace"
   type        = string
 }
-
-variable "admin_email" {
-  description = "ArcGIS Enterprise on Kubernetes organization administrator account email"
-  type        = string
-}

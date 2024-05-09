@@ -4,11 +4,11 @@
  * The module creates Monitoring Subsystem for the ArcGIS Enterprise on Kubernetes deployment.
  *
  * The Monitoring Subsystem consists of:
- * An SNS topic with a subscription for the primary site administrator.
- * A CloudWatch alarm that monitors the ingress ALB target groups and post to the SNS topic if the number of unhealthy instances in nonzero.
- * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and container logs of the deployment.
+ *
+ * * An SNS topic for monitoring alerts.
+ * * A CloudWatch alarm that monitors the ingress ALB target groups and post to the SNS topic if the number of unhealthy instances in nonzero.
+ * * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and container logs of the deployment.
  */
-
 
 data "aws_region" "current" {}
 
@@ -312,12 +312,6 @@ resource "aws_cloudwatch_composite_alarm" "unhealthy_alb_targets" {
   depends_on = [
     aws_cloudwatch_metric_alarm.unhealthy_alb_instances
   ]
-}
-
-resource "aws_sns_topic_subscription" "infrastructure_alarms" {
-  topic_arn = aws_sns_topic.deployment_alarms.arn
-  protocol  = "email"
-  endpoint  = var.admin_email
 }
 
 resource "aws_cloudwatch_dashboard" "dashboard" {

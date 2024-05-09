@@ -339,5 +339,10 @@ module "monitoring" {
   source        = "./modules/monitoring"
   cluster_name  = var.site_id
   namespace     = var.deployment_id
-  admin_email   = var.admin_email
+}
+
+resource "aws_sns_topic_subscription" "infrastructure_alarms" {
+  topic_arn = module.monitoring.sns_topic_arn
+  protocol  = "email"
+  endpoint  = var.admin_email
 }

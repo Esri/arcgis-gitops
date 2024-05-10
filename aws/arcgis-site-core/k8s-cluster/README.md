@@ -22,8 +22,8 @@ On the machine where Terraform is executed:
 
 ## SSM Parameters
 
-If subnet IDs of the EKS cluter and node groups are not specified by input variables,
-thesubnet IDs are retrieved from the following SSM parameters:
+If subnet IDs of the EKS cluster and node groups are not specified by input variables,
+the subnet IDs are retrieved from the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|

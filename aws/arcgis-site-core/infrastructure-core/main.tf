@@ -1,8 +1,7 @@
 /**
  * # Terraform module infrastructure-core
  *
- * Terraform module creates the networking, storage, and identity AWS resource
- * shared across multiple deployments of an ArcGIS Enterprise site.
+ * Terraform module creates the networking, storage, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise site.
  *
  * ![Core Infrastructure Resources](images/infrastructure-core.png "Core Infrastructure Resources")
  *

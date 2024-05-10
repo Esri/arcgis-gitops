@@ -10,7 +10,7 @@ The primary and standby instances are launched from image retrieved from '/arcgi
 The fileserver instance is launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver' SSM parameter.
 The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows.
 
-For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instancess addressable using permanent DNS names.
+For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instances addressable using permanent DNS names.
 
 > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module is applied again after the SSM parameter value was modified by a new image build.
 
@@ -51,7 +51,7 @@ exported by "alb_dns_name" output value of the module.
 
 Use Session Manager connection in AWS Console for SSH access to the EC2 instances.
 
-The SSM commands output stored in the logs S3 bucket is copied in the Trerraform stdout.
+The SSM commands output stored in the logs S3 bucket is copied in the Terraform stdout.
 
 ## SSM Parameters
 
@@ -148,7 +148,7 @@ The module uses the following SSM parameters:
 
 | Name | Description |
 |------|-------------|
-| alb_arn | ARN of appication load balancer |
+| alb_arn | ARN of application load balancer |
 | alb_dns_name | DNS name of application load balancer |
 | security_group_id | EC2 security group Id |
 <!-- END_TF_DOCS -->

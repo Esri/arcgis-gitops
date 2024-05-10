@@ -22,7 +22,7 @@
  *
  * ## SSM Parameters
  *
- * If subnet IDs of the EKS cluter and node groups are not specified by input variables,
+ * If subnet IDs of the EKS cluster and node groups are not specified by input variables,
  * thesubnet IDs are retrieved from the following SSM parameters: 
  *
  * | SSM parameter name | Description |

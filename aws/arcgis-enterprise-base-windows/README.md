@@ -13,7 +13,7 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 ## Initial Deployment
 
-Initial deployment of base ArcGIS Enterprise includes: building images, provisioning AWS resources, configuring the applications, and testing the deployment web services.
+Initial deployment of base ArcGIS Enterprise includes building images, provisioning AWS resources, configuring the applications, and testing the deployment web services.
 
 ### 1. Build Images
 

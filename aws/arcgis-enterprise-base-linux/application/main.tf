@@ -18,9 +18,9 @@
  * Then the module:
  *
  * * Copies the ArcGIS Server and Portal for ArcGIS authorization files to the private repository S3 bucket
- * * If specified, copies keystore and root certificatese files to the private repository S3 bucket
+ * * If specified, copies keystore and root certificate files to the private repository S3 bucket
  * * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository S3 bucket to primary and standby EC2 instances
- * * If specified, downloads the keystore and root certificatese files from the private repository S3 bucket to primary and standby EC2 instances
+ * * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and standby EC2 instances
  * * Creates the required directories in the NFS mount
  * * Configures base ArcGIS Enterprise on primary EC2 instance
  * * Configures base ArcGIS Enterprise on standby EC2 instance

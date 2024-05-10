@@ -18,9 +18,9 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 ## Initial Deployment
 
-Initial deployment of ArcGIS Enterprise on Kubernetes includes: provisioning container images, creating ingress controller, creating ArcGIS Enterprise organization, and testing the deployment web services.
+Initial deployment of ArcGIS Enterprise on Kubernetes includes provisioning container images, creating ingress controller, creating ArcGIS Enterprise organization, and testing the deployment web services.
 
-> The IAM principal used by the templates's workflows must have the EKS cluster administrator permissions. The IAM principal used to create the EKS cluster is granted the required permissions by site-k8s-cluster-aws workflow.
+> The IAM principal used by the template's workflows must have the EKS cluster administrator permissions. The IAM principal used to create the EKS cluster is granted the required permissions by site-k8s-cluster-aws workflow.
 
 ### 1. Provisioning Container Images
 
@@ -67,11 +67,11 @@ Instructions:
 5. Run enterprise-k8s-aws-ingress workflow using the branch.
 6. If "hosted_zone_id" property was not specified, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
-> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs check the run logs of "Run Terraform" step.
+> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs, check the run logs of "Run Terraform" step.
 
 > See [Elastic Load Balancing SSL negotiation configuration](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) for the list of SSL policies.
 
-### 3. Create ArcGIS Enterprise organization
+### 3. Create ArcGIS Enterprise Organization
 
 GitHub Actions workflow **enterprise-k8s-aws-organization** deploys ArcGIS Enterprise on Kubernetes in Amazon EKS cluster and creates an ArcGIS Enterprise organization.
 
@@ -153,7 +153,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "backup" property in the config file to backup backup name. If "backup" property is set to null or empty string, the latest completed backup in the store will be used.
+1. Set "backup" property in the config file to the backup name. If "backup" property is set to null or empty string, the latest completed backup in the store will be used.
 2. Set "passcode" property in the config file to the pass code used to create the backup.
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-k8s-aws-restore workflow using the branch.
@@ -185,7 +185,7 @@ Required IAM policies:
 
 Inputs:
 
-* delete_namespace - (Optional) Set to "true" to delete the kubernetes namespace.
+* delete_namespace - (Optional) Set to "true" to delete the Kubernetes namespace.
 
 Instructions:
 

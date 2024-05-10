@@ -4,6 +4,7 @@
 Terraform module creates and configures EC2 security group for deployment.
 
 The module configures the following ingress rules:
+
 - Allows the security group access to itself on all TCP ports,
 - Allows access from Application Load Balancer's security group specified by alb_security_group_id variable to TCP ports specified by alb_ports variable,
 

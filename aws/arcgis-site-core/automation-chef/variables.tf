@@ -10,7 +10,7 @@ variable "site_id" {
 }
 
 variable "images" {
-  description = "AMI search filters by opeating system"
+  description = "AMI search filters by operating  system"
   type        = map(any)
   default = {
     windows2022 = {

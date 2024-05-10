@@ -4,7 +4,7 @@ The Packer templates builds "main" and "fileserver" EC2 AMIs for a specific base
 
 The AMIs are built from a Windows OS base image specified by SSM parameter "/arcgis/${var.site_id}/images/${var.os}".
 
-The template first copies installation media for the ArcGIS Enterprise version and required third party dependencies from My Esri and public repositories to the private repository S3 bucket. The files to copy are  specified in ../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json index file.
+The template first copies installation media for the ArcGIS Enterprise version and required third party dependencies from My Esri and public repositories to the private repository S3 bucket. The files to copy are specified in ../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json index file.
 
 Then the template uses python scripts to run SSM commands on the source EC2 instances.
 

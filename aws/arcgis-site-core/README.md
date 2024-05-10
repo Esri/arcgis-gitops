@@ -29,7 +29,7 @@ Required IAM policies:
 
 Instructions:
 
-1. (Optional) Change "availability_zones" property in the config file to the list of availability zones of the AWS region. If "availability_zones" list contains less that two elements, the first two available availability zones in the AWS region will be used. If you need to use specific availability zones or more than two availability zones, specify them in the "availability_zones" list.
+1. (Optional) Change "availability_zones" property in the config file to the list of availability zones of the AWS region. If "availability_zones" list contains less than two elements, the first two available availability zones in the AWS region will be used. If you need to use specific availability zones or more than two availability zones, specify them in the "availability_zones" list.
 2. (Optional) Update the list of interface VPC endpoints specified by "interface_vpc_endpoints" property. Remove all the endpoints if the site will not use the isolated subnets.
 3. Commit the changes to the `main` branch and push the branch to GitHub.
 4. Run site-core-aws workflow using the `main` branch.

@@ -600,8 +600,11 @@ module "arcgis_enterprise_primary" {
         directories_root               = "\\\\${local.fileserver_hostname}\\arcgisserver"
         log_dir                        = "C:\\arcgisserver\\logs"
         log_level                      = var.log_level
-        config_store_type              = "FILESYSTEM"
-        config_store_connection_string = "\\\\${local.fileserver_hostname}\\arcgisserver\\config-store"
+        config_store_type              = var.config_store_type
+        config_store_connection_string = (var.config_store_type == "AMAZON" ?
+          "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
+          "\\\\${local.fileserver_hostname}\\arcgisserver\\config-store")
+        config_store_connection_secret = ""
         wa_name                        = "server"
         services_dir_enabled           = true
         system_properties = {

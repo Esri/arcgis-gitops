@@ -602,7 +602,7 @@ locals {
       height = 12
       properties = {
         title   = "System Event Log"
-        query   = "SOURCE '${var.log_group_name}' | fields @timestamp, @logStream, @message | sort @timestamp desc | limit 20"
+        query   = "SOURCE '${var.log_group_name}' | fields @timestamp, @logStream, @message | sort @timestamp desc | limit 1000"
         region  = data.aws_region.current.name
         stacked = false
         view    = "table"

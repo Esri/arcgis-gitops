@@ -229,3 +229,14 @@ variable "arcgis_online_password" {
   sensitive   = true
   default     = null
 }
+
+variable "config_store_type" {
+  description = "ArcGIS Server configuration store type"
+  type        = string
+  default     = "FILESYSTEM"
+
+  validation {
+    condition     = contains(["FILESYSTEM", "AMAZON"], var.config_store_type)
+    error_message = "Valid values for the config_store_type variable are FILESYSTEM and AMAZON"
+  }
+}

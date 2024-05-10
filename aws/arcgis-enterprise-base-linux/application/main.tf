@@ -594,8 +594,11 @@ module "arcgis_enterprise_primary" {
         directories_root               = "${local.mount_point}/gisdata/arcgisserver"
         log_dir                        = "/opt/arcgis/server/usr/logs"
         log_level                      = var.log_level
-        config_store_type              = "FILESYSTEM"
-        config_store_connection_string = "${local.mount_point}/gisdata/arcgisserver/config-store"
+        config_store_type              = var.config_store_type
+        config_store_connection_string = (var.config_store_type == "AMAZON" ?
+          "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
+          "${local.mount_point}/gisdata/arcgisserver/config-store")
+        config_store_connection_secret = ""
         install_system_requirements    = true
         wa_name                        = "server"
         services_dir_enabled           = true

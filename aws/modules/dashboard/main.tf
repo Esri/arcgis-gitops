@@ -54,7 +54,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(RequestCount) FROM \"AWS/ApplicationELB\" WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
+            expression = "SELECT SUM(RequestCount) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
           }]
         ]
         yAxis = {
@@ -78,7 +78,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(TargetResponseTime) FROM \"AWS/ApplicationELB\" WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
+            expression = "SELECT AVG(TargetResponseTime) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
           }]
         ]
         yAxis = {
@@ -104,7 +104,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT MIN(HealthyHostCount) FROM \"AWS/ApplicationELB\" WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
+            expression = "SELECT MIN(HealthyHostCount) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
           }]
         ]
         yAxis = {
@@ -128,7 +128,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(HTTPCode_Target_5XX_Count) FROM \"AWS/ApplicationELB\" WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
+            expression = "SELECT SUM(HTTPCode_Target_5XX_Count) FROM SCHEMA(\"AWS/ApplicationELB\", LoadBalancer, TargetGroup) WHERE LoadBalancer='${local.alb_id}' GROUP BY TargetGroup"
           }]
         ]
         yAxis = {

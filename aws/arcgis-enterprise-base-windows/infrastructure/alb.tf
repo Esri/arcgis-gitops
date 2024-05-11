@@ -160,42 +160,42 @@ resource "aws_lb_target_group" "default" {
 # Create Application Load Balancer target group for HTTP port 80, attach 
 # primary and standby instances to it, and add the target group to the load balancer. 
 # Configure the target group to forward requests to /server HTTP contexts.
-module "server_http_alb_target" {
-  source            = "../../modules/alb_target_group"
-  name              = "${var.deployment_id}-s-80"
-  vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
-  alb_arn           = aws_lb.alb.arn
-  protocol          = "HTTP"
-  alb_port          = 80
-  instance_port     = 80
-  health_check_path = "/server/rest/info/healthcheck"
-  path_patterns     = ["/server", "/server/*"]
-  priority          = 100
-  target_instances  = [aws_instance.primary.id, aws_instance.standby.id]
-  depends_on = [
-    aws_lb_listener.http
-  ]
-}
+# module "server_http_alb_target" {
+#   source            = "../../modules/alb_target_group"
+#   name              = "${var.deployment_id}-s-80"
+#   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+#   alb_arn           = aws_lb.alb.arn
+#   protocol          = "HTTP"
+#   alb_port          = 80
+#   instance_port     = 80
+#   health_check_path = "/server/rest/info/healthcheck"
+#   path_patterns     = ["/server", "/server/*"]
+#   priority          = 100
+#   target_instances  = [aws_instance.primary.id, aws_instance.standby.id]
+#   depends_on = [
+#     aws_lb_listener.http
+#   ]
+# }
 
 # Create Application Load Balancer target group for HTTP port 80, attach 
 # primary and standby instances to it, and add the target group to the load balancer. 
 # Configure the target group to forward requests to /portal HTTP contexts.
-module "portal_http_alb_target" {
-  source            = "../../modules/alb_target_group"
-  name              = "${var.deployment_id}-p-80"
-  vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
-  alb_arn           = aws_lb.alb.arn
-  protocol          = "HTTP"
-  alb_port          = 80
-  instance_port     = 80
-  health_check_path = "/portal/portaladmin/healthCheck"
-  path_patterns     = ["/portal", "/portal/*"]
-  priority          = 101
-  target_instances  = [aws_instance.primary.id, aws_instance.standby.id]
-  depends_on = [
-    aws_lb_listener.http
-  ]
-}
+# module "portal_http_alb_target" {
+#   source            = "../../modules/alb_target_group"
+#   name              = "${var.deployment_id}-p-80"
+#   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+#   alb_arn           = aws_lb.alb.arn
+#   protocol          = "HTTP"
+#   alb_port          = 80
+#   instance_port     = 80
+#   health_check_path = "/portal/portaladmin/healthCheck"
+#   path_patterns     = ["/portal", "/portal/*"]
+#   priority          = 101
+#   target_instances  = [aws_instance.primary.id, aws_instance.standby.id]
+#   depends_on = [
+#     aws_lb_listener.http
+#   ]
+# }
 
 # Create Application Load Balancer target group for HTTPS port 443, attach 
 # primary and standby instances to it, and add the target group to the load balancer. 

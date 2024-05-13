@@ -113,3 +113,40 @@ variable "interface_vpc_endpoints" {
     "sts"
   ]
 }
+
+variable "images" {
+  description = "AMI search filters by operating  system"
+  type        = map(any)
+  default = {
+    windows2022 = {
+      ami_name_filter = "Windows_Server-2022-English-Full-Base-*",
+      owner           = "801119661308", #Amazon
+      description     = "Microsoft Windows Server 2022 Full Locale English AMI"
+    }
+    ubuntu20 = {
+      ami_name_filter : "ubuntu/images/hvm-ssd/ubuntu-*20*-amd64-server-*",
+      owner : "099720109477", # Canonical
+      description : "Canonical, Ubuntu, 20.04 LTS, amd64 focal image"
+    }
+    ubuntu22 = {
+      ami_name_filter : "ubuntu/images/hvm-ssd/ubuntu-*22*-amd64-server-*",
+      owner : "099720109477", # Canonical
+      description : "Canonical, Ubuntu, 22.04 LTS, amd64 focal image"
+    }
+    rhel8 = {
+      ami_name_filter : "RHEL-8.6.0_HVM-*-x86_64-*-Hourly2-GP2",
+      owner : "309956199498", # Red Hat
+      description : "Red Hat Enterprise Linux version 8 (HVM), EBS General Purpose (SSD) Volume Type"
+    }
+    rhel9 = {
+      ami_name_filter : "RHEL-9.3.0_HVM-*-x86_64-*-Hourly2-GP2",
+      owner : "309956199498", # Red Hat
+      description : "Red Hat Enterprise Linux version 9 (HVM), EBS General Purpose (SSD) Volume Type"
+    }
+    sles15 = {
+      ami_name_filter : "suse-sles-15-*-v*-hvm-ssd-x86_64",
+      owner : "013907871322", # Amazon
+      description : "SUSE Linux Enterprise Server 15 (HVM, 64-bit, SSD-Backed)"
+    }
+  }
+}

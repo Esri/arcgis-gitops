@@ -2,6 +2,8 @@
  * # Terraform module infrastructure-core
  *
  * Terraform module creates the networking, storage, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise site.
+ * 
+ * The module also looks up the latest public AMIs for the specified operating systems and stores the AMI IDs in SSM parameters.
  *
  * ![Core Infrastructure Resources](images/infrastructure-core.png "Core Infrastructure Resources")
  *
@@ -21,6 +23,7 @@
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket of private repository |
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket used by deployments to store backup data |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket used by deployments to store logs |
+ * | /arcgis/${var.site_id}/images/${os} | Ids of the latest AMI for the operating systems |
  *
  * ## Requirements
  * 
@@ -56,6 +59,26 @@ provider "aws" {
 data "aws_caller_identity" "current" {}
 
 data "aws_region" "current" {}
+
+# Look up the latest AMIs for the supported OSs
+
+data "aws_ami" "os_image" {
+  for_each = var.images
+
+  most_recent = true
+
+  filter {
+    name   = "name"
+    values = [var.images[each.key].ami_name_filter]
+  }
+
+  filter {
+    name   = "virtualization-type"
+    values = ["hvm"]
+  }
+
+  owners = [var.images[each.key].owner]
+}
 
 locals {
   is_gov_cloud = contains(["us-gov-east-1", "us-gov-west-1"], data.aws_region.current.name)

@@ -73,3 +73,15 @@ resource "aws_ssm_parameter" "s3_region" {
   value       = data.aws_region.current.id
   description = "S3 buckets region code"
 }
+
+# AMIs
+
+resource "aws_ssm_parameter" "images_parameters" {
+  for_each = data.aws_ami.os_image
+  name  = "/arcgis/${var.site_id}/images/${each.key}"
+  type  = "String"
+  value = each.value.id
+  description = each.value.description
+}
+
+

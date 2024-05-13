@@ -4,16 +4,14 @@
  * The module provisions AWS resources required for ArcGIS Enterprise site configuration management 
  * using IT automation tool Chef/Cinc:
  *
- * * Looks up the latest AMIs for the supported operating systems
  * * Copies Chef/Cinc client setups and Chef cookbooks for ArcGIS distribution archive from the URLs specified
  * in [automation-chef-files.json](manifests/automation-chef-files.json) file to the private repository S3 bucket
  * * Creates SSM documents for the ArcGIS Enterprise site
  * 
- * The AMI IDs for each operating system as well as S3 URLs are stored in SSM parameters:
+ * The S3 URLs are stored in SSM parameters:
  *
  * | SSM parameter name | Description |
  * | --- | --- |
- * | /arcgis/${var.site_id}/images/${os} | Ids of the latest AMI for the operating systems |
  * | /arcgis/${var.site_id}/chef-client-url/${os} | S3 URLs of Cinc Client setup for the operating systems |
  * | /arcgis/${var.site_id}/cookbooks-url | S3 URL of Chef cookbooks for ArcGIS distribution archive |
  *
@@ -67,25 +65,6 @@ data "aws_ssm_parameter" "s3_repository" {
   name = "/arcgis/${var.site_id}/s3/repository"
 }
 
-# Look up the latest AMIs for the supported OSs
-
-data "aws_ami" "os_image" {
-  for_each = var.images
-
-  most_recent = true
-
-  filter {
-    name   = "name"
-    values = [var.images[each.key].ami_name_filter]
-  }
-
-  filter {
-    name   = "virtualization-type"
-    values = ["hvm"]
-  }
-
-  owners = [var.images[each.key].owner]
-}
 
 # Copy Chef automation tools to S3
 
@@ -130,16 +109,6 @@ resource "aws_ssm_document" "clean_up_command" {
   name          = "${var.site_id}-clean-up"
   document_type = "Command"
   content = file("${path.module}/commands/clean-up.json")
-}
-
-# AMIs
-
-resource "aws_ssm_parameter" "images_parameters" {
-  for_each = data.aws_ami.os_image
-  name  = "/arcgis/${var.site_id}/images/${each.key}"
-  type  = "String"
-  value = each.value.id
-  description = each.value.description
 }
 
 # Chef client

@@ -50,10 +50,11 @@ The template uses the following SSM parameters:
 | arcgis_online_password | ArcGIS Online user password | `string` | null | no |
 | arcgis_online_username | ArcGIS Online user name | `string` | null | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"11.3"` | no |
+| arcgis_version | ArcGIS Server version | `string` | `"11.3"` | no |
+| deployment_id | Deployment Id | `string` | `"arcgis-server"` | no |
 | instance_type | EC2 instance type | `string` | `"6i.xlarge"` | no |
 | os | Operating system | `string` | `"rhel8"` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `100` | no |
-| run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store | `string` | `"arcgis"` | no |
+| run_as_user | User account used to run ArcGIS Server | `string` | `"arcgis"` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis-enterprise"` | no |
 | skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |

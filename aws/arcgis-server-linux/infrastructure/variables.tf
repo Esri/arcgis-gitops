@@ -12,7 +12,7 @@ variable "client_cidr_blocks" {
 }
 
 variable "deployment_fqdn" {
-  description = "Fully qualified domain name of the base ArcGIS Enterprise deployment"
+  description = "Fully qualified domain name of the ArcGIS Server deployment"
   type        = string
   default     = null
 

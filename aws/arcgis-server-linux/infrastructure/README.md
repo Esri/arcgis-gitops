@@ -9,7 +9,7 @@ The module launches two SSM managed EC2 instances in the private VPC subnets or 
 The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}' SSM parameter.
 The image must be created by the Packer Template for ArcGIS Server on Linux AMI.
 
-For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instances addressable using permanent DNS names.
+For the primary EC2 instance the module creates "A" records in the VPC Route53 private hosted zone to make the instance addressable using permanent DNS names.
 
 > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module is applied again after the SSM parameter value was modified by a new image build.
 
@@ -22,7 +22,7 @@ The deployment's Monitoring Subsystem consists of:
 
 * An SNS topic and a CloudWatch alarms that monitor the target groups and post to the SNS topic if the number of unhealthy instances in nonzero.
 * A CloudWatch log group
-* CloudWatch agent on the EC2 instances that sends the system and Chef run logs to the log group as well as memory and disk utilization on the EC2 instances.
+* CloudWatch agent on the EC2 instances that sends the system logs to the log group as well as metrics fo resource utilization on the EC2 instances.
 * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and logs of the deployment.
 
 All the created AWS resources are tagged with ArcGISSiteId and ArcGISDeploymentId tags.
@@ -121,7 +121,7 @@ The module uses the following SSM parameters:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | client_cidr_blocks | Client CIDR blocks | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
-| deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | `null` | no |
+| deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | `null` | no |
 | deployment_id | ArcGIS Server deployment Id | `string` | `"arcgis-server"` | no |
 | hosted_zone_id | The Route 53 hosted zone ID for the deployment FQDN | `string` | `null` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |

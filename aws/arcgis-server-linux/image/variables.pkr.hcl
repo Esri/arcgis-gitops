@@ -18,7 +18,7 @@ variable "arcgis_server_patches" {
 }
 
 variable "arcgis_version" {
-  description = "ArcGIS Enterprise version"
+  description = "ArcGIS Server version"
   type        = string
   default     = "11.3"
 
@@ -68,7 +68,7 @@ variable "root_volume_size" {
 }
 
 variable "run_as_user" {
-  description = "User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store"
+  description = "User account used to run ArcGIS Server"
   type        = string
   default     = "arcgis"
 }

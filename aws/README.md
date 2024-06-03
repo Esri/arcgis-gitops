@@ -18,7 +18,8 @@ On Windows and Linux platforms the workflows use:
 * [Terraform CLI by HashiCorp](https://developer.hashicorp.com/terraform/cli) to provision infrastructure in AWS
 * [AWS Systems Manager (SSM)](https://aws.amazon.com/systems-manager/) to remotely manage system and application configuration of the EC2 instances
 * [Python scripts](./scripts/README.md) to invoke AWS services and download installation media
-* [Cinc Client](https://cinc.sh/) and [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/) to install and configure ArcGIS Enterprise applications
+* [Cinc Client](https://cinc.sh/) and [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/) to install and configure ArcGIS Enterprise applications, or
+* [Ansible](https://www.ansible.com/) and [Ansible Collections for ArcGIS](../ansible_collections/README.md) to install and configure ArcGIS Enterprise applications
 * [Enterprise Admin CLI](../enterprise-admin-cli/README.md) container image to test the deployment
   
 On Kubernetes platform the workflows use:
@@ -42,6 +43,7 @@ The following templates are available for AWS:
 * [arcgis-enterprise-base-windows](arcgis-enterprise-base-linux-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
 * [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) - Base ArcGIS Enterprise on Linux deployment operations
 * [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment operations
+* [arcgis-server-linux](arcgis-server-linux/README.md) - ArcGIS Server on Linux deployment operations
 
 ## Triggering Workflows
 

@@ -1,0 +1,22 @@
+---
+# This playbook configures the file server for ArcGIS Server.
+
+- name: Configure fileserver for ArcGIS Server
+  hosts: all
+  vars:
+    run_as_user: 'arcgis'
+    fileserver_directories:
+      - /mnt/gisdata/arcgisserver
+      - /mnt/gisdata/arcgisserver/backups
+    mode: '0755'
+  become: true
+  tasks:
+    - name: Create directories for ArcGIS Server
+      ansible.builtin.file:
+        path: '{{ item }}'
+        state: directory
+        owner: '{{ run_as_user }}'
+        group: '{{ run_as_user }}'
+        mode: '{{ mode }}'
+        recurse: true
+      loop: '{{ fileserver_directories }}'

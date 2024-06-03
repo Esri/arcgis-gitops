@@ -1,0 +1,33 @@
+name: server-linux-aws-test
+
+on: 
+  workflow_dispatch:
+ 
+env:
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-linux/application.tfvars.json
+
+jobs:
+  test:
+    name: Test Deployment
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/enterprise-admin-cli
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Build Container Image
+      run: |
+        docker build -t enterprise-admin-cli .
+    - name: Run Tests
+      run: |
+        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
+        ARCGIS_ENTERPRISE_CONTEXT=arcgis
+        ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
+        ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
+        docker run enterprise-admin-cli gis test-server-admin --url https://$DEPLOYMENT_FQDN:6443/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD

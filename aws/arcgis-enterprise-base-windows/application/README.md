@@ -35,7 +35,7 @@ On the machine where Terraform is executed:
 
 * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
 * Path to aws/scripts directory must be added to PYTHONPATH
-* The working directury must be set to the arcgis-enterprise-base/windows/application module path
+* The working directury must be set to the arcgis-enterprise-base-windows/application module path
 * AWS credentials must be configured
 * AWS region must be specified by AWS_DEFAULT_REGION environment variable
 
@@ -117,6 +117,7 @@ The module uses the following SSM parameters:
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"11.2"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
+| config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"arcgis-enterprise-base"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |

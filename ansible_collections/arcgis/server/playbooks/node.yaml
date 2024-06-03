@@ -1,0 +1,31 @@
+---
+# This playbook authorizes ArcGIS Server on the target machine and joins the machine to
+# an existing ArcGIS Server site.
+
+- name: Configure ArcGIS Server on nodes
+  hosts: all
+  vars:
+    run_as_user: 'arcgis'
+    install_dir: '/opt'
+  tasks:
+    - name: Authorize ArcGIS Server
+      become: true
+      become_user: '{{ run_as_user }}'
+      vars:
+        ansible_aws_ssm_timeout: 600
+      ansible.builtin.command:
+        argv:
+          - '{{ install_dir }}/arcgis/server/tools/authorizeSoftware'
+          - -f
+          - '{{ authorization_file }}'
+      register: authorize_software
+      changed_when: authorize_software.rc == 0
+    - name: Join ArcGIS Server site
+      vars:
+        ansible_aws_ssm_timeout: 3600
+      no_log: false
+      arcgis.server.join_site:
+        server_url: 'https://localhost:6443/arcgis'
+        admin_username: '{{ admin_username }}'
+        admin_password: '{{ admin_password }}'
+        primary_server_url: '{{ primary_server_url }}'

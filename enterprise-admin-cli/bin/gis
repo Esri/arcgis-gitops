@@ -18,7 +18,8 @@ admin_commands=( \
     "update-dr-settings" )
 
 gis_commands=( \
-    "test-publish-csv" )
+    "test-publish-csv",
+    "test-server-admin" )
 
 print_usage() {
     echo "usage: gis <command> [args]"

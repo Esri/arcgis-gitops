@@ -1,0 +1,21 @@
+---
+# This playbook federates an ArcGIS Server with Portal for ArGIS.
+
+- name: Federate ArcGIS Server
+  hosts: all
+  tasks:
+    - name: Federate ArcGIS Server
+      vars:
+        ansible_aws_ssm_timeout: 600
+      no_log: false
+      arcgis.portal.federate_server:
+        portal_url: '{{ portal_url }}'
+        username: '{{ username }}'
+        password: '{{ password }}'
+        server_url: '{{ server_url }}'
+        server_admin_url: '{{ server_admin_url }}'
+        server_username: '{{ server_username }}'
+        server_password: '{{ server_password }}'
+        server_role: '{{ server_role }}'
+        server_function: '{{ server_function }}'
+      

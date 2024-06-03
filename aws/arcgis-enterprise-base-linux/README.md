@@ -1,6 +1,6 @@
 # Base ArcGIS Enterprise on Linux Deployment in AWS
 
-The template provides GitHub Actions workflows for [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) operations on Linux platforms.
+The template provides GitHub Actions workflows for [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/linux/base-arcgis-enterprise-deployment.htm) operations on Linux platforms.
 
 Before running the template workflows:
 
@@ -99,7 +99,7 @@ Instructions:
 
 GitHub Actions workflow **enterprise-base-linux-aws-test** tests base ArcGIS Enterprise deployment.
 
-The python [test script](../tests/arcgis-enterprise-base-test.py) uses [ArcGIS API for Python](https://developers.arcgis.com/python/) to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and admin credentials are retrieved from application.tfvars.json properties file.
+The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and admin credentials are retrieved from application.tfvars.json properties file.
 
 Instructions:
 

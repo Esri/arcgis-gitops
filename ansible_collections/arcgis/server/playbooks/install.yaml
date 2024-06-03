@@ -1,0 +1,133 @@
+---
+# This playbook configures Linux machine to meet the ArcGIS Server system
+# requirements, installs ArcGIS Server on the machine, and configures 
+# systemd service for ArcGIS Server.
+#
+# The playbook supports ArcGIS Server 11.2 and 11.3 versions.
+
+- name: ArcGIS Server system requirements
+  hosts: all
+  vars:
+    run_as_user: 'arcgis'
+    run_as_uid: 1100
+    run_as_gid: 1100
+    packages:
+      - gettext
+      - nfs-utils
+  become: true
+  tasks:
+    - name: Create ArcGIS user account group
+      ansible.builtin.group:
+        name: '{{ run_as_user }}'
+        gid: '{{ run_as_gid }}'
+        system: false
+    - name: Create ArcGIS user account
+      ansible.builtin.user:
+        name: '{{ run_as_user }}'
+        uid: '{{ run_as_uid }}'
+        group: '{{ run_as_user }}'
+        comment: 'ArcGIS user account'
+        shell: '/bin/bash'
+        home: '/home/{{ run_as_user }}'
+        createhome: true
+        system: false
+    - name: Install required packages
+      ansible.builtin.package:
+        name: "{{ packages }}"
+        state: present
+    - name: Set limits for ArcGIS user account
+      community.general.pam_limits:
+        domain: '{{ run_as_user }}'
+        limit_type: '{{ item.limit_type }}'
+        limit_item: '{{ item.limit_item }}'
+        value: '{{ item.value }}'
+      loop:
+        - { limit_type: 'hard', limit_item: 'nofile', value: 65535 }
+        - { limit_type: 'soft', limit_item: 'nofile', value: 65535 }
+        - { limit_type: 'hard', limit_item: 'nproc', value: 25059 }
+        - { limit_type: 'soft', limit_item: 'nproc', value: 25059 }
+- name: Install ArcGIS Server
+  hosts: all
+  vars:
+    arcgis_version: '11.2'
+    local_repository: '/opt/software/archives'
+    arcgis_server_setup_archive:
+      "11.2" : ArcGIS_Server_Linux_112_188327.tar.gz
+      "11.3" : ArcGIS_Server_Linux_113_190305.tar.gz
+    setups_directory: '/opt/software/setups'
+    install_dir: '/opt'
+    run_as_user: 'arcgis'
+  become: true
+  tasks:
+    - name: Create setups directory
+      ansible.builtin.file:
+        path: '{{ setups_directory }}/{{ arcgis_version }}'
+        state: directory
+        mode: '0755'
+    - name: Unarchive ArcGIS Server setup
+      vars:
+        ansible_aws_ssm_timeout: 600
+      ansible.builtin.unarchive:
+        src: '{{ local_repository }}/{{ arcgis_server_setup_archive[arcgis_version] }}'
+        dest: '{{ setups_directory }}/{{ arcgis_version }}'
+        owner: '{{ run_as_user }}'
+        group: '{{ run_as_user }}'
+        remote_src: true
+        creates: '{{ setups_directory }}/{{ arcgis_version }}/ArcGISServer/Setup'
+    - name: Create install subdirectory
+      ansible.builtin.file:
+        path: '{{ install_dir }}/arcgis/server'
+        state: directory
+        owner: '{{ run_as_user }}'
+        mode: '0755'
+    - name: Get ESRI software properties
+      become: true
+      become_user: '{{ run_as_user }}'
+      arcgis.common.arcgis_info:
+        hostname: '{{ inventory_hostname }}'
+        run_as_user: "{{ run_as_user }}"
+        arcgis_version: '{{ arcgis_version }}'
+      register: arcgis_info
+    - name: Install ArcGIS Server
+      become: true
+      become_user: '{{ run_as_user }}'
+      vars:
+        ansible_aws_ssm_timeout: 3600
+      ansible.builtin.command:
+        argv:
+          - '{{ setups_directory }}/{{ arcgis_version }}/ArcGISServer/Setup'
+          - -m
+          - 'silent'
+          - -l
+          - 'yes'
+          - -d
+          - '{{ install_dir }}'
+      register: setup
+      changed_when: setup.rc == 0
+      when: arcgis_info.properties['Z_ArcGISServer_INSTALL_DIR'] is not defined
+    - name: Stop ArcGIS Server
+      become: true
+      become_user: '{{ run_as_user }}'
+      vars:
+        ansible_aws_ssm_timeout: 600
+      ansible.builtin.command:
+        argv:
+          - '{{ install_dir }}/arcgis/server/stopserver.sh'
+    - name: Create arcgisserver service file
+      vars:
+        agshome: '{{ install_dir }}/arcgis/server'
+      ansible.builtin.template:
+        src: 'arcgisserver.service.j2'
+        dest: '/etc/systemd/system/arcgisserver.service'
+        mode: '0644'
+        owner: 'root'
+        group: 'root'
+    - name: Enable arcgisserver service
+      ansible.builtin.service:
+        name: 'arcgisserver'
+        state: reloaded
+        enabled: true
+    - name: Start arcgisserver service
+      ansible.builtin.service:
+        name: 'arcgisserver'
+        state: started

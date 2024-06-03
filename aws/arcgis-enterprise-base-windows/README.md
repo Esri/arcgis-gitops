@@ -95,7 +95,7 @@ Instructions:
 
 GitHub Actions workflow **enterprise-base-windows-aws-test** tests base ArcGIS Enterprise deployment.
 
-The python [test script](../tests/arcgis-enterprise-base-test.py) uses [ArcGIS API for Python](https://developers.arcgis.com/python/) to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and admin credentials are retrieved from application.tfvars.json properties file.
+The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and admin credentials are retrieved from application.tfvars.json properties file.
 
 Instructions:
 

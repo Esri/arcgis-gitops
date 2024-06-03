@@ -3,6 +3,7 @@
 A Terraform module can call other modules to include their resources into the configuration. A module that has been called by another module is often referred to as a *child module*. Child modules can be called multiple times within the same configuration, and multiple configurations can use the same child module.
 
 * [alb_target_group](alb_target_group/README.md) - creates and configures Application Load Balancer target group
+* [ansible_playbook](ansible_playbook/README.md) - runs Ansible playbook on EC2 instances
 * [bootstrap](bootstrap/README.md) - installs or upgrades Cinc Client and Chef Cookbooks for ArcGIS on EC2 instances 
 * [clean_up](clean_up/README.md) - deletes files in specific directories on EC2 instances
 * [cw_agent](cw_agent/README.md) - configures CloudWatch agent on the deployment EC2 instances

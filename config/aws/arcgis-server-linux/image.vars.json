@@ -1,0 +1,15 @@
+{
+    "arcgis_online_password": null,
+    "arcgis_online_username": null,
+    "arcgis_server_patches": [
+        "ArcGIS-113-S-*-linux.tar"
+    ],
+    "arcgis_version": "11.3",
+    "deployment_id": "arcgis-server",
+    "instance_type": "m6i.2xlarge",
+    "os": "rhel8",
+    "root_volume_size": 100,
+    "run_as_user": "arcgis",
+    "site_id": "arcgis-enterprise",
+    "skip_create_ami": false
+}

@@ -1,0 +1,57 @@
+---
+# This playbook retrieves the last ArcGIS Server backup from S3 bucket
+# and restores ArcGIS Server site configuration from the backup by
+# running 'restore' admin utility.
+
+- name: Restore ArcGIS Server site
+  become: true
+  become_user: '{{ run_as_user }}'
+  hosts: all
+  vars:
+    run_as_user: 'arcgis'
+    install_dir: '/opt'
+    server_url: 'https://localhost:6443/arcgis'
+    backup_dir: '/tmp'
+    s3_prefix: 'arcgis-server-backups'
+  tasks:
+    - name: List backups in S3 bucket
+      amazon.aws.s3_object:
+        bucket: '{{ s3_bucket }}'
+        prefix: '{{ s3_prefix }}'
+        mode: list
+      register: backups
+    - name: The latest backup file path
+      ansible.builtin.set_fact:
+        # amazon.aws.s3_object/list uses ListObjectsV2 API which returns the list of objects in alphabetical order.
+        # Due to the bakups naming schema, the lexicographical order of the keys is the same as chronological.
+        last_backup_s3_key: "{{ backups.s3_keys | last }}"
+        backup_file_path: "{{ backup_dir }}/{{ backups.s3_keys | last | basename }}"
+    - name: Get the last backup from S3 bucket
+      amazon.aws.s3_object:
+        bucket: '{{ s3_bucket }}'
+        region: '{{ s3_region }}'
+        object: '{{ last_backup_s3_key }}'
+        dest: '{{ backup_file_path }}'
+        mode: get
+    - name: Run ArcGIS Server restore utility
+      vars:
+        ansible_aws_ssm_timeout: 600
+      no_log: false
+      ansible.builtin.command:
+        argv:
+          - '{{ install_dir }}/arcgis/server/tools/admin/restore'
+          - '-u'
+          - '{{ admin_username }}'
+          - '-p'
+          - '{{ admin_password }}'
+          - '-f'
+          - '{{ backup_file_path }}'
+          - '-s'
+          - '{{ server_url }}'
+          - '--ignoressl'
+      register: restore
+      changed_when: restore.rc == 0
+    - name: Delete the temp backup file
+      ansible.builtin.file:
+        path: '{{ backup_file_path }}'
+        state: absent

@@ -27,7 +27,13 @@
                 "ssm:GetParametersByPath",
                 "ssm:ListCommandInvocations",
                 "ssm:ListTagsForResource",
-                "ssm:PutParameter"
+                "ssm:PutParameter",
+                "ssm:GetConnectionStatus",
+                "ssm:ResumeSession",
+                "ssm:DescribeSessions",
+                "ssm:TerminateSession",
+                "ssm:StartSession",
+                "ssm:GetInventory"
             ],
             "Resource": "*"
         },
@@ -71,7 +77,7 @@
             "Action": [
                 "sns:GetSubscriptionAttributes",
                 "sns:Subscribe",
-                "SNS:Unsubscribe"
+                "sns:Unsubscribe"
             ],
             "Resource": "*"
         }

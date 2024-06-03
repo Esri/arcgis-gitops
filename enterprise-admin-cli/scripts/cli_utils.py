@@ -1,8 +1,11 @@
 import os
 import argparse
 import requests
+import arcgis
 from time import sleep
+from arcgis import *
 from arcgis.gis import GIS
+from arcgis.gis import server
 from typing import Sequence
 
 WAIT_TIME = 60
@@ -52,3 +55,27 @@ def wait_for_portal(portal_url):
             break
         print('Portal URL is not available.')
         sleep(1.0)
+
+def create_server_admin_client(args: Sequence[str]) -> server.Server:
+    if args.url:
+        url = args.url
+    elif 'ARCGIS_SERVER_URL' in os.environ:
+        url = os.environ['ARCGIS_SERVER_URL']
+    else:
+        raise ValueError('ArcGIS Server URL is not provided.')
+
+    if args.user:
+        user = args.user
+    elif 'ARCGIS_SERVER_USER' in os.environ:
+        user = os.environ['ARCGIS_SERVER_USER']
+    else:
+        raise ValueError('ArcGIS Server user name is not provided.')
+    
+    if args.password:
+        password = args.password
+    elif 'ARCGIS_SERVER_PASSWORD' in os.environ:
+        password = os.environ['ARCGIS_SERVER_PASSWORD']
+    else:     
+        raise ValueError('ArcGIS Server user password is not provided.')
+
+    return server.Server(url + "/admin", username=user, password=password, initialize=True)

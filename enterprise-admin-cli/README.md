@@ -233,7 +233,7 @@ Arguments:
   --timeout TIMEOUT     backup job timeout (seconds)
 ```
 
-## test-publish-csv command
+## test-publish-csv script
 
 Tests ArcGIS Enterprise deployment by publishing feature service from CSV file.
 
@@ -251,4 +251,24 @@ Arguments:
   -u USER, --user USER  ArcGIS Enterprise user name
   -p PASSWORD, --password PASSWORD
                         ArcGIS Enterprise user password
+```
+
+## test-server-admin script
+
+Tests ArcGIS Server admin endpoint accessibility.
+
+Usage:
+
+```text
+gis test-server-admin [-h] [--url URL] [-u USER] [-p PASSWORD]
+```
+
+Arguments:
+
+```text
+  -h, --help            show this help message and exit
+  --url URL             ArcGIS Server URL
+  -u USER, --user USER  ArcGIS Server administrator user name
+  -p PASSWORD, --password PASSWORD
+                        ArcGIS Server administrator user password
 ```

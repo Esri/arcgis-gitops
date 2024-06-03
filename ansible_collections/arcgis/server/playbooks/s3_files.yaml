@@ -1,0 +1,40 @@
+---
+# This playbook creates directory for local repository.
+# In the directory it creates a manifest file from the provided template,
+# replacing the S3 bucket name, region, and local repository path with the
+# provided values. Then it uses arcgis.common.s3files module to download
+# ArcGIS Server setups and patches from the S3 bucket to the local repository.
+
+- name: Download setups
+  hosts: all
+  become: true
+  vars:
+    local_repository: '/opt/software/archives'
+    manifest: 'arcgis-server-s3files-11.2.json'
+    bucket_name: '<s3 bucket name>'
+    region: 'us-east-1'
+  tasks:
+    # - name: Install python3-pip
+    #   ansible.builtin.package:
+    #     name: python3-pip
+    #     state: present
+    - name: Install boto3 python package
+      ansible.builtin.pip:
+        name: boto3
+    - name: Create local repository directory
+      ansible.builtin.file:
+        path: '{{ local_repository }}'
+        state: directory
+        mode: '0755'
+    - name: Create manifest file
+      ansible.builtin.template:
+        src: '{{ manifest }}'
+        dest: '{{ local_repository }}/arcgis-server-s3files.json'
+        mode: '0644'
+    - name: Download setups from S3 repository
+      arcgis.common.s3files:
+        manifest: '{{ local_repository }}/arcgis-server-s3files.json'
+      register: testout
+    - name: Dump test output
+      ansible.builtin.debug:
+        msg: '{{ testout }}'

@@ -1,0 +1,14 @@
+---
+# This playbook copies a file from the local machine to the target machine.
+
+- name: Copy local file to hosts
+  hosts: all
+  become: true
+  vars:
+    mode: '0644'
+  tasks:
+    - name: Copy local file to hosts
+      ansible.builtin.copy:
+        src: '{{ src_file }}'
+        dest: '{{ dest_file }}'
+        mode: '{{ mode }}'

@@ -1,0 +1,31 @@
+namespace: arcgis
+
+name: common
+
+version: 0.1.0
+
+readme: README.md
+
+authors:
+- Pavel Bobov <pbobov@esri.com>
+
+description: Common modules and playbooks for ArcGIS installation and configuration
+
+license:
+- Apache-2.0
+
+license_file: ''
+
+tags: ['arcgis']
+
+dependencies: {}
+
+repository: https://github.com/Esri/arcgis-gitops
+
+documentation: https://github.com/Esri/arcgis-gitops
+
+homepage: https://github.com/Esri/arcgis-gitops
+
+issues: https://github.com/Esri/arcgis-gitops/issues
+
+build_ignore: []

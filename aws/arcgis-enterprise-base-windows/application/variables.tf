@@ -39,11 +39,11 @@ variable "deployment_id" {
 variable "arcgis_version" {
   description = "ArcGIS Enterprise version"
   type        = string
-  default     = "11.2"
+  default     = "11.3"
 
   validation {
-    condition     = contains(["11.0", "11.1", "11.2"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.0, 11.1, and 11.2."
+    condition     = contains(["11.0", "11.1", "11.2", "11.3"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.0, 11.1, 11.2, and 11.3."
   }
 }
 

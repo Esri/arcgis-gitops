@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: arcgis-enterprise-ingress
+  namespace: <deploymentNamespace>
+  annotations:
+    kubernetes.io/ingress.class: "gce"
+    kubernetes.io/ingress.allow-http: "false"
+    ingress.gcp.kubernetes.io/pre-shared-cert: "<certificateName>"
+  labels:
+    id: custom-ingress-resource
+spec:
+  defaultBackend:
+    service:
+      name: arcgis-ingress-nginx
+      port:
+        number: 443
+  rules:
+  - host: <deploymentFQDN>
+    http:
+      paths:
+      - path: /<context>
+        pathType: Prefix
+        backend:
+          service:
+            name: arcgis-ingress-nginx
+            port:
+              number: 443

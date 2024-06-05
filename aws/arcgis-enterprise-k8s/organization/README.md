@@ -11,10 +11,11 @@ The following table explains the compatibility of chart versions and ArcGIS Ente
 
 Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description |
 --- | --- | --- | --- | --- | --- |
-v1.1.0 | 11.1.0.3923 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.1 or upgrading 11.0 to 11.1 |
-v1.1.4 | 11.1.0.4115 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.1 Q4 2023 Bug Fix Update |
 v1.2.0 | 11.2.0.5207 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.2 or upgrading 11.1 to 11.2 |
 v1.2.1 | 11.2.0.5500 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Help Language Pack Update |
+v1.2.2 | 11.2.0.5505 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Q2 2024 Base Operating System Image Update |
+v1.2.3 | 11.2.0.5510 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Q2 2024 Bug Fix Update |
+v1.3.0 | 11.3.0.5814 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.3 or upgrading 11.2 to 11.3 | *
 
 The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
 For ArcGIS Enterprise versions 11.2 and newer the module also creates an S3 bucket for the organization object store, registers it with the deployment,
@@ -85,7 +86,7 @@ On the machine where Terraform is executed:
 | deployment_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.1.0"` | no |
-| helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.2.0"` | no |
+| helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.3.0"` | no |
 | image_repository_prefix | Prefix of images in ECR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |
 | license_type_id | User type ID for the primary administrator account | `string` | `"creatorUT"` | no |

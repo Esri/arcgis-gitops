@@ -118,10 +118,10 @@
             "  $chefClientMsi = (Join-Path $tempfolderpath 'chef-client.msi')",
             "  if (Test-Path $chefClientMsi) {",
             "    Start-Process -Wait -FilePath msiexec.exe -ArgumentList \"/x $chefClientMsi /qb\"",
-            "    Remove-Item -Force -Verbose $chefClientMsi",
+            "    Remove-Item -Force $chefClientMsi",
             "  }",
             "  Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $env:USERPROFILE '.cinc')",
-            "  Remove-Item -Recurse -Force -Verbose -ErrorAction SilentlyContinue (Join-Path $env:SystemDrive 'chef')",
+            "  Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $env:SystemDrive 'chef')",
             "}"
           ],
           "timeoutSeconds": "{{ ExecutionTimeout }}"

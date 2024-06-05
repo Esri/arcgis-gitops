@@ -1,6 +1,0 @@
-apiVersion: v2
-appVersion: 11.1.0.4115
-description: ArcGIS Enterprise on Kubernetes
-name: arcgis-enterprise
-type: application
-version: 1.1.4

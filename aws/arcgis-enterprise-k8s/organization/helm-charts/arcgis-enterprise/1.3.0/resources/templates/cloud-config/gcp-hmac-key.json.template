@@ -1,0 +1,21 @@
+[{
+    "name": "GCP",
+    "credential": {
+        "type": "HMAC-KEYS",
+        "secret": {
+            "secretKey": "<secret_key>",
+            "accessKey": "<access_key>"
+        }
+    },
+    "cloudServices": [{
+        "name": "Google Cloud Storage",
+        "type": "objectStore",
+        "usage": "DEFAULT",
+        "connection": {
+            "bucketName": "<bucket_name>",
+            "rootDir": "<root_dir>"
+        },
+        "category": "storage"
+    }]
+}]
+

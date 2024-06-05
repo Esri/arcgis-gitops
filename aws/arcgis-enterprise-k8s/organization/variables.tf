@@ -23,11 +23,11 @@ variable "deployment_id" {
 variable "helm_charts_version" {
   description = "Helm Charts for ArcGIS Enterprise on Kubernetes version"
   type        = string
-  default     = "1.2.0"
+  default     = "1.3.0"
 
   validation {
-    condition     = contains(["1.1.0", "1.1.4", "1.2.0", "1.2.1"], var.helm_charts_version)
-    error_message = "Valid values for helm_charts_version variable are 1.1.0, 1.1.4, 1.2.0, and 1.2.1."
+    condition     = contains(["1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.3.0"], var.helm_charts_version)
+    error_message = "Valid values for helm_charts_version variable are 1.2.0, 1.2.1, 1.2.2, 1.2.3 and 1.3.0."
   }
 }
 

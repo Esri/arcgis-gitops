@@ -1,0 +1,22 @@
+[{
+    "name": "AZURE",
+    "credential": {
+        "type": "STORAGE-ACCOUNT-KEY",
+        "secret": {
+            "storageAccountName": "<account_name>",
+            "storageAccountKey": "<account_key>"
+        }
+    },
+    "cloudServices": [{
+        "name": "Azure Blob Store",
+        "type": "objectStore",
+        "usage": "DEFAULT",
+        "connection": {
+            "containerName": "<container_name>",
+            "accountEndpointUrl": "<account_endpoint_url>",
+            "regionEndpointUrl": "<region_endpoint_url>",
+            "rootDir": "<root_dir>"
+        },
+        "category": "storage"
+    }]
+}]

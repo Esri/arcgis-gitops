@@ -1,0 +1,33 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: arcgis-enterprise-ingress
+  namespace: <deploymentNamespace>
+  annotations:
+    kubernetes.io/ingress.class: azure/application-gateway
+    appgw.ingress.kubernetes.io/ssl-redirect: "true"
+    appgw.ingress.kubernetes.io/backend-protocol: "https"
+    appgw.ingress.kubernetes.io/backend-hostname: <deploymentFQDN>
+    appgw.ingress.kubernetes.io/health-probe-hostname: <deploymentFQDN>
+    appgw.ingress.kubernetes.io/health-probe-port: "443"
+    appgw.ingress.kubernetes.io/health-probe-status-codes: "200-399"
+    appgw.ingress.kubernetes.io/health-probe-path: "/<context>/admin"
+    appgw.ingress.kubernetes.io/request-timeout: "600"
+  labels:
+    id: custom-ingress-resource
+spec:
+  tls:
+    - hosts:
+        - <deploymentFQDN>
+      secretName: <tlsSecretName>
+  rules:
+    - host: <deploymentFQDN>
+      http:
+        paths:
+          - backend:
+             service:
+               name: arcgis-ingress-nginx
+               port:
+                 number: 443
+            path: /<context>
+            pathType: Prefix

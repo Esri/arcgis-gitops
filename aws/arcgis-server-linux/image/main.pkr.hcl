@@ -102,7 +102,7 @@ locals {
   inventory = yamlencode({
     plugin = "amazon.aws.aws_ec2"
     regions = [ 
-      "us-west-2" 
+      data.amazon-parameterstore.s3_region.value 
     ]
     compose = {
       ansible_host = "instance_id"
@@ -186,7 +186,7 @@ build {
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
       "ansible-playbook arcgis.server.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml",
       "ansible-playbook arcgis.server.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml",
-      "ansible-playbook arcgis.server.patch -vvv -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml"
+      "ansible-playbook arcgis.server.patch -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml"
     ]
   }
 

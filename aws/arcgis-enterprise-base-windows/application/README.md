@@ -115,7 +115,7 @@ The module uses the following SSM parameters:
 | arcgis_online_username | ArcGIS Online user name | `string` | `null` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install. | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"11.2"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"11.3"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |

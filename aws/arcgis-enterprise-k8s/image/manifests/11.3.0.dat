@@ -1,0 +1,239 @@
+{
+    "versions": [{
+        "newLicensesRequired": true,
+        "description": "ArcGIS Enterprise 11.3 on Kubernetes",
+        "type": "release",
+        "version": "11.3.0",
+        "url": "https://enterprise-k8s.arcgis.com/en/latest/introduction/release-notes.htm",
+        "releaseNotes": "ArcGIS Enterprise 11.3 on Kubernetes",
+        "build": "5783",
+        "previousVersion": "11.2.0",
+        "name": "ArcGIS Enterprise on Kubernetes 11.3.0",
+        "containers": [
+            {
+                "image": "apps:11.3.0.5783",
+                "name": "PORTAL_APPS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-busybox:11.3.0.5783",
+                "name": "BUSYBOX",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-disaster-recovery:11.3.0.5783",
+                "name": "DISASTER_RECOVERY",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-ignite:11.3.0.5783",
+                "name": "STORE_IGNITE",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-ingress-controller:11.3.0.5783",
+                "name": "INGRESS_CONTROLLER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-nginx-web:11.3.0.5783",
+                "name": "WEB_PROXY",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-opensearch:11.3.0.5783",
+                "name": "STORE_SBDS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-ozone:11.3.0.5783",
+                "name": "STORE_OZONE",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-postgresql:11.3.0.5783",
+                "name": "STORE_POSTGRES",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-prometheus:11.3.0.5783",
+                "name": "PROMETHEUS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "catalog-server:11.3.0.5783",
+                "name": "CATALOG_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "config-factory-server:11.3.0.5783",
+                "name": "CONFIG_FACTORY_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "distributed-server-deeplearning:11.3.0.5783",
+                "name": "DISTRIBUTED_SERVER_DEEPLEARNING",
+                "checksum": "N/A"
+            },
+            {
+                "image": "distributed-server:11.3.0.5783",
+                "name": "DISTRIBUTED_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "enterprise-admin-tools:11.3.0.5783",
+                "name": "ADMIN_TOOLS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "enterprise-admin-tools:11.3.0.5783",
+                "name": "UPGRADER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "enterprise-admin:11.3.0.5783",
+                "name": "ENTERPRISE_ADMIN_API",
+                "checksum": "N/A"
+            },
+            {
+                "image": "enterprise-rabbitmq:11.3.0.5783",
+                "name": "RABBITMQ",
+                "checksum": "N/A"
+            },
+            {
+                "image": "geocode-runtime-server:11.3.0.5783",
+                "name": "GEOCODE_RUNTIME_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "geocode-server:11.3.0.5783",
+                "name": "GEOCODE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "geometry-server:11.3.0.5783",
+                "name": "GEOMETRY_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "gp-proxy-server:11.3.0.5783",
+                "name": "GPPROXY_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "gp-server:11.3.0.5783",
+                "name": "GP_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "help:11.3.0.5783",
+                "name": "HELP",
+                "checksum": "N/A"
+            },
+            {
+                "image": "home:11.3.0.5783",
+                "name": "PORTAL_HOME_APP",
+                "checksum": "N/A"
+            },
+            {
+                "image": "image-server:11.3.0.5783",
+                "name": "IMAGE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "jsapi:11.3.0.5783",
+                "name": "PORTAL_JSAPI",
+                "checksum": "N/A"
+            },
+            {
+                "image": "manager:11.3.0.5783",
+                "name": "MANAGER_APP",
+                "checksum": "N/A"
+            },
+            {
+                "image": "map-server:11.3.0.5783",
+                "name": "MAP_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "native-server:11.3.0.5783",
+                "name": "NATIVE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "object-store-migration-tools:11.3.0.5783",
+                "name": "OBJECT_STORE_MIGRATION_TOOLS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "portal-content-template:11.3.0.5783",
+                "name": "PORTAL_CONTENT_TEMPLATE",
+                "checksum": "N/A"
+            },
+            {
+                "image": "postgres-upgrade-tools:11.3.0.5783",
+                "name": "POSTGRES_UPGRADER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "raster-analytics-server-deeplearning:11.3.0.5783",
+                "name": "RASTER_ANALYTICS_SERVER_DEEPLEARNING",
+                "checksum": "N/A"
+            },
+            {
+                "image": "relational-datastore:11.3.0.5783",
+                "name": "STORE_RELATIONAL",
+                "checksum": "N/A"
+            },
+            {
+                "image": "sds-feature-server:11.3.0.5783",
+                "name": "SDS_FEATURE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "sharing:11.3.0.5783",
+                "name": "PORTAL_SHARING_API",
+                "checksum": "N/A"
+            },
+            {
+                "image": "symbol-server:11.3.0.5783",
+                "name": "SYMBOL_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "tile-server:11.3.0.5783",
+                "name": "TILE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "web-style:11.3.0.5783",
+                "name": "PORTAL_WEB_STYLE_APP",
+                "checksum": "N/A"
+            },
+            {
+                "image": "webhook-processor:11.3.0.5783",
+                "name": "WEBHOOK_PROCESSOR",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-notebook-handler:11.3.0.5783",
+                "name": "NOTEBOOK_HANDLER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-notebook-server:11.3.0.5783",
+                "name": "NOTEBOOK_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-fluent-bit:11.3.0.5783",
+                "name": "FLUENT_BIT",
+                "checksum": "N/A"
+            }
+        ],
+        "previousReleaseBuild": "5207",
+        "id": "rel_13062024_5783",
+        "released": 1718521200000
+    }],
+    "signature": "V3rJTZN5Wvu4JzCc6ZAlLwPA6iaHkc1Adtv8RhKmBuOYQ8C9QFst8fMRao6XPhMwAsTOtt53JjtPaYv1Xw1IytOrJNH9LrNGjZWgMz1nKyMY0AU2K8ja0h/q0hWVYMxiwpymJe8T65z14iIFHMQBjzJh1rJHFD8E/kYZMpdVOtJnX0R0erCzkOFSE1na9CwowjkP3HRxo5CUDijwYXb51KAwzdRvfuFwghD0sqVVttNrpcs7t8JRHXsxtAA5dIdDo1cLjCbR0ypbC5Au7pf+oOOxmBwRE9WqD8fzkTRQARAFH9U4w2DMXk2mlpZgZOhjKgGo8lNqWRy5eg/82zqPvQ=="
+}

@@ -1,0 +1,21 @@
+[{
+    "name": "AZURE",
+    "credential": {
+        "type": "STORAGE-ACCOUNT-KEY",
+        "secret": {
+            "storageAccountName": "xxxxxx",
+            "storageAccountKey": "xxxxxx"
+        }
+    },
+    "cloudServices": [{
+        "name": "Azure Blob Store",
+        "type": "objectStore",
+        "usage": "DEFAULT",
+        "connection": {
+            "containerName": "XXXXXX",
+            "rootDir": "XXXXXX"
+        },
+        "category": "storage"
+    }]
+}]
+

@@ -1,0 +1,7 @@
+Copy an actual ArcGIS Enterprise on Kubernetes license file here and 
+reference it in configure.yaml.  For example:
+
+configure:
+  . . .
+  licenseFile: user-inputs/my-license-file.json
+

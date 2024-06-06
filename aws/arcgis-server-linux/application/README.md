@@ -92,10 +92,10 @@ The module uses the following SSM parameters:
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
 | os | Operating system id (rhel8\|rhel9) | `string` | `"rhel8"` | no |
+| portal_org_id | ArcGIS Enterprise organization Id | `string` | `null` | no |
 | portal_password | Portal for ArcGIS user password | `string` | `null` | no |
 | portal_url | Portal for ArcGIS URL | `string` | `null` | no |
 | portal_username | Portal for ArcGIS user name | `string` | `null` | no |
-| root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server | `string` | `null` | no |
 | run_as_user | User name for the account used to run ArcGIS Server. | `string` | `"arcgis"` | no |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
 | server_functions | Functions of the federated server | `list(string)` | `[]` | no |

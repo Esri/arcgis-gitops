@@ -274,6 +274,7 @@ module "arcgis_server_federation" {
   machine_roles = ["primary"]
   playbook = "arcgis.portal.federate_server"
   external_vars = {
+    portal_org_id = var.portal_org_id
     portal_url = var.portal_url
     username = var.portal_username
     password = var.portal_password

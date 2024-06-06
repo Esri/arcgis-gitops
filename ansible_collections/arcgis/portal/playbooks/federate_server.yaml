@@ -10,6 +10,7 @@
       no_log: false
       arcgis.portal.federate_server:
         portal_url: '{{ portal_url }}'
+        portal_org_id: '{{ portal_org_id }}'
         username: '{{ username }}'
         password: '{{ password }}'
         server_url: '{{ server_url }}'

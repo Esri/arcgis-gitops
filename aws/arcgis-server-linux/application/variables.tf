@@ -115,6 +115,12 @@ variable "os" {
   }
 }
 
+variable "portal_org_id" {
+  description = "ArcGIS Enterprise organization Id"
+  type        = string
+  default     = null
+}
+
 variable "portal_password" {
   description = "Portal for ArcGIS user password"
   type        = string

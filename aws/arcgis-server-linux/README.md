@@ -89,7 +89,7 @@ Instructions:
 1. Add ArcGIS Server authorization file for the ArcGIS Server version to `config/authorization/<ArcGIS version>` directory of the repository and set "server_authorization_file_path" property in application.tfvars.json file to the file paths.
 2. Set "deployment_fqdn" property in application.tfvars.json file to the ArcGIS Server deployment fully qualified domain name.
 3. Set "admin_username", "admin_password", and "admin_email" in application.tfvars.json file to the ArcGIS Server administrator account properties.
-4. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "server_role" and "server_functions" properties in application.tfvars.json file to the required server role and function and "portal_url", "portal_username", and "portal_password" properties to the Portal for ArcGIS URL and administrator account properties.
+4. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "server_role" and "server_functions" properties in application.tfvars.json file to the required server role and function and "portal_url", "portal_username", and "portal_password" properties to the Portal for ArcGIS URL and administrator account properties. To federate the server with ArcGIS Enterprise on Kubernetes organization, set "portal_org_id" property to "0123456789ABCDEF", which is the default organization Id.
 5. Commit the changes to the Git branch and push the branch to GitHub.
 6. Run server-linux-aws-application workflow using the branch.
 

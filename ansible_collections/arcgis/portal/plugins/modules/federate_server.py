@@ -14,6 +14,10 @@ version_added: "0.1.0"
 description: This module federates an ArcGIS Server with Portal for ArGIS in a specific role and function.
 
 options:
+    portal_org_id:
+        description: ArcGIS Enterprise organization Id.
+        required: false
+        type: str
     portal_url:
         description: URL of the Portal for ArcGIS.
         required: true
@@ -23,7 +27,7 @@ options:
         required: true
         type: str
     password:
-        description: Portal for ArcGIS administrative account pasword.
+        description: Portal for ArcGIS administrative account password.
         required: true
         type: str
     server_url:
@@ -39,7 +43,7 @@ options:
         required: true
         type: str
     server_password:
-        description: ArcGIS Server administrative account pasword.
+        description: ArcGIS Server administrative account password.
         required: true
         type: str
     server_role:
@@ -57,6 +61,7 @@ options:
 EXAMPLES = r'''
 - name: Federate ArcGIS Server with Portal for ArcGIS as Raster Analytics server
   arcgis.portal.federate_server:
+    portal_org_id: 0123456789ABCDEF
     portal_url: https://portal.domain.com:7443/arcgis
     username: portaladmin
     password: <portal password>
@@ -77,12 +82,13 @@ RETURN = r'''
 
 import os
 from ansible.module_utils.basic import AnsibleModule
-from ansible_collections.arcgis.portal.plugins.module_utils.portal_admin_client import PortalAdminClient
+from ansible_collections.arcgis.portal.plugins.module_utils.org_admin_client import OrgAdminClient
 
 
 def run_module():
     module_args = dict(
         portal_url=dict(type='str', required=True),
+        portal_org_id=dict(type='str', required=False, default=None),    
         username=dict(type='str', required=True),
         password=dict(type='str', required=True),
         server_url=dict(type='str', required=True),
@@ -106,9 +112,10 @@ def run_module():
     if module.check_mode:
         module.exit_json(**result)
     
-    admin = PortalAdminClient(module.params['portal_url'], 
+    admin = OrgAdminClient(module.params['portal_url'], 
                               module.params['username'], 
-                              module.params['password'])
+                              module.params['password'],
+                              module.params['portal_org_id'])
     
     try:
         # admin.wait_until_available()

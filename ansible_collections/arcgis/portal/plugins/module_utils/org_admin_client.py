@@ -9,17 +9,24 @@ import time
 MAX_RETRIES = 100
 SLEEP_TIME = 10.0
 
-# The PortalAdminClient class provides a Python client for ArcGIS Portal Administrator REST API.
-# See https://developers.arcgis.com/rest/enterprise-administration/portal/overview-of-portal-administration-in-the-arcgis-rest-api/
-class PortalAdminClient:
+# The OrgAdminClient class provides a python client for Enterprise Administration REST API
+# for managing federated servers in Portal for ArcGIS and ArcGIS Enterprise on Kubernetes.
+# See https://developers.arcgis.com/rest/enterprise-administration/enterprise/organization/
+# And https://developers.arcgis.com/rest/enterprise-administration/portal/federation/
+class OrgAdminClient:
 
-    def __init__(self, portal_url, username, password):
-        self.portal_url = portal_url
+    def __init__(self, portal_url, username, password, org_id=None):
+        if org_id is None:
+            self.admin_url = portal_url + '/portaladmin'
+        else:
+            self.admin_url = portal_url + '/admin/orgs/' + org_id
+        self.sharing_url = portal_url + '/sharing'
         self.username = username
         self.password = password
 
+    # Wait for 1000 seconds until the server admin URL is available
     def wait_until_available(self):
-        url = self.portal_url + '/portaladmin/?f=json'
+        url = self.admin_url + '/?f=json'
 
         for i in range(MAX_RETRIES):
             if self.url_available(url):
@@ -35,11 +42,12 @@ class PortalAdminClient:
     def get_servers(self):
         token = self.generate_token()
 
-        return self.send_request('GET', '/sharing/rest/portals/self/servers/?f=json', None, token)
+        return self.send_request('GET', self.sharing_url + '/rest/portals/self/servers/?f=json', None, token)
 
 
     # Federate a server
     # See https://developers.arcgis.com/rest/enterprise-administration/portal/federate-servers/
+    # And https://developers.arcgis.com/rest/enterprise-administration/enterprise/federate-server/
     def federate_server(self, server_url, admin_url, username, password):
         token = self.generate_token()
 
@@ -51,11 +59,12 @@ class PortalAdminClient:
             'f': 'json'
         }
 
-        return self.send_request('POST', '/portaladmin/federation/servers/federate', data, token)
+        return self.send_request('POST', self.admin_url + '/federation/servers/federate', data, token)
 
     
     # Update federated server role and function
     # See https://developers.arcgis.com/rest/enterprise-administration/portal/update-server/
+    # And https://developers.arcgis.com/rest/enterprise-administration/enterprise/update-server/
     def update_server(self, server_id, server_role, server_function):
         token = self.generate_token()
 
@@ -65,7 +74,7 @@ class PortalAdminClient:
             'f': 'json'
         }
 
-        return self.send_request('POST', '/portaladmin/federation/servers/' + server_id + '/update', data, token)
+        return self.send_request('POST', self.admin_url + '/federation/servers/' + server_id + '/update', data, token)
     
 
     # Generate an access token
@@ -80,12 +89,12 @@ class PortalAdminClient:
             'f': 'json'
         }
 
-        return self.send_request('POST', '/sharing/rest/generateToken', data, None)['token']
+        return self.send_request('POST', self.sharing_url + '/rest/generateToken', data, None)['token']
 
         
     def send_request(self, method, url, data, token):
         try:
-            request = urllib.request.Request(self.portal_url + url)
+            request = urllib.request.Request(url)
             
             request.method = method
 

@@ -14,13 +14,9 @@
     bucket_name: '<s3 bucket name>'
     region: 'us-east-1'
   tasks:
-    # - name: Install python3-pip
-    #   ansible.builtin.package:
-    #     name: python3-pip
-    #     state: present
     - name: Install boto3 python package
-      ansible.builtin.pip:
-        name: boto3
+      ansible.builtin.command:
+        cmd: pip3 install boto3
     - name: Create local repository directory
       ansible.builtin.file:
         path: '{{ local_repository }}'

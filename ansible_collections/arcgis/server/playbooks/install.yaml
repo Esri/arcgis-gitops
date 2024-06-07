@@ -32,9 +32,12 @@
         createhome: true
         system: false
     - name: Install required packages
-      ansible.builtin.package:
-        name: "{{ packages }}"
-        state: present
+      ansible.builtin.command: 'yum install -y {{ item }}'
+      loop: '{{ packages }}'
+      when: ansible_facts['os_family'] == 'RedHat'
+    #   ansible.builtin.package:
+    #     name: "{{ packages }}"
+    #     state: present
     - name: Set limits for ArcGIS user account
       community.general.pam_limits:
         domain: '{{ run_as_user }}'

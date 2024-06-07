@@ -181,6 +181,7 @@
                 "logs:CreateLogGroup",
                 "logs:DescribeLogGroups",
                 "logs:DescribeLogStreams",
+                "logs:ListTagsForResource",
                 "logs:ListTagsLogGroup",
                 "logs:TagLogGroup"
             ],

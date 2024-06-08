@@ -42,7 +42,7 @@ resource "local_sensitive_file" "external_vars" {
       ansible_connection = "aws_ssm"
       ansible_aws_ssm_bucket_name = data.aws_ssm_parameter.ansible_aws_ssm_bucket.value
       ansible_aws_ssm_region = data.aws_region.current.name
-      ansible_python_interpreter = "/usr/bin/python3"
+      # ansible_python_interpreter = "/usr/bin/python3"
     })
   )
   filename = "/tmp/${local.session_id}/external_vars.yaml"

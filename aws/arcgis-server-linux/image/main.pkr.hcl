@@ -185,9 +185,9 @@ build {
     inline = [
       "echo '${local.external_vars}' > /tmp/external_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
-      "ansible-playbook arcgis.server.s3_files -vvv -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml",
-      "ansible-playbook arcgis.server.install -vvv -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml",
-      "ansible-playbook arcgis.server.patch -vvv -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml"
+      "ansible-playbook arcgis.server.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml",
+      "ansible-playbook arcgis.server.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml",
+      "ansible-playbook arcgis.server.patch -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml"
     ]
   }
 

@@ -92,11 +92,6 @@ locals {
   rhel_user_data = <<-EOF
   #!/bin/bash
   cd /tmp
-  sudo yum -y install python3.11 python3.11-pip
-  sudo rm /usr/bin/python3
-  sudo ln -s /usr/bin/python3.11 /usr/bin/python3
-  sudo rm /usr/bin/pip3
-  sudo ln -s /usr/bin/pip3.11 /usr/bin/pip3
   sudo dnf install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
   sudo systemctl enable amazon-ssm-agent
   sudo systemctl start amazon-ssm-agent
@@ -133,7 +128,7 @@ locals {
     manifest = local.s3_files_json_path
     region = data.amazon-parameterstore.s3_region.value
     run_as_user = var.run_as_user
-    ansible_python_interpreter="/usr/bin/python3"
+    # ansible_python_interpreter="/usr/bin/python3"
   })
 }
 

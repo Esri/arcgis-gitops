@@ -49,7 +49,7 @@ jobs:
             echo "ECR repository prefix: $ECR_REPOSITORY_PREFIX"
             MANIFEST_PATH=./manifests/$ARCGIS_VERSION.dat
             chmod +x ./copy-docker-hub-images.sh
-            ./copy-docker-hub-images.sh $MANIFEST_PATH
+            ./copy-docker-hub-images.sh $MANIFEST_PATH $ARCGIS_VERSION
           fi
       - name: Build Admin CLI Image
         run: |

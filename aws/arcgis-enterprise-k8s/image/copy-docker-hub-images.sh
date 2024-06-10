@@ -13,6 +13,7 @@
 set -e
 
 MANIFEST_PATH=$1
+ARCGIS_VERSION=$2
 AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
 ECR_REGISTRY_URL=$AWS_ACCOUNT_ID.dkr.ecr.$AWS_DEFAULT_REGION.amazonaws.com
 
@@ -21,7 +22,7 @@ echo $CONTAINER_REGISTRY_PASSWORD | docker login --username $CONTAINER_REGISTRY_
 aws ecr get-login-password --region $AWS_DEFAULT_REGION | docker login --username AWS --password-stdin $ECR_REGISTRY_URL
 
 # Get the list of images from the version manifest file
-full_cmd="cat $MANIFEST_PATH | jq -r '.versions[] | .containers[].image' | sort | uniq"
+full_cmd="cat $MANIFEST_PATH | jq -r '.versions[] | select(.version==\"$ARCGIS_VERSION\") | .containers[].image' | sort | uniq"
 IMAGE_LIST=$(eval $full_cmd)
 num=$(echo $IMAGE_LIST | wc -w)
 

@@ -21,9 +21,9 @@ aws iam create-policy --policy-name ArcGISSiteCore --policy-document file://ArcG
 
 aws iam create-policy --policy-name ArcGISSiteCoreDestroy --policy-document file://ArcGISSiteCoreDestroy.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for site-core-aws-destroy workflow" 
 
-aws iam create-policy --policy-name ArcGISK8sCluster --policy-document file://ArcGISK8sCluster.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for site-k8s-cluster-aws workflow"
+aws iam create-policy --policy-name ArcGISSiteK8sCluster --policy-document file://ArcGISSiteK8sCluster.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for site-k8s-cluster-aws workflow"
 
-aws iam create-policy --policy-name ArcGISK8sClusterDestroy --policy-document file://ArcGISK8sClusterDestroy.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for site-k8s-cluster-aws-destroy workflow"
+aws iam create-policy --policy-name ArcGISSiteK8sClusterDestroy --policy-document file://ArcGISSiteK8sClusterDestroy.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for site-k8s-cluster-aws-destroy workflow"
 
 aws iam create-policy --policy-name ArcGISEnterpriseK8s --policy-document file://ArcGISEnterpriseK8s.json --tags Key=ArcGISSiteId,Value=arcgis-enterprise --description "The policy for enterprise-k8s-aws-* workflows"
 

@@ -107,7 +107,7 @@ Instructions:
 
 ## Backups and Disaster Recovery
 
-The templates support application-level base ArcGIS Enterprise backup and restore operations using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool across multiple deployments.
+The templates support application-level base ArcGIS Enterprise backup and restore operations using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool.
 
 ### Create Backups
 

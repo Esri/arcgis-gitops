@@ -82,6 +82,7 @@
                 "logs:DeleteLogGroup",
                 "logs:DescribeLogGroups",
                 "logs:DescribeLogStreams",
+                "logs:ListTagsForResource",
                 "logs:ListTagsLogGroup"
             ],
             "Resource": "*"

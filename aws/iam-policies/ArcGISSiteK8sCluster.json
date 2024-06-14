@@ -115,9 +115,11 @@
             "Effect": "Allow",
             "Action": [
                 "logs:CreateLogGroup",
+                "logs:DeleteLogGroup",
                 "logs:DescribeLogGroups",
                 "logs:DescribeLogStreams",
                 "logs:GetLogEvents",
+                "logs:ListTagsForResource",
                 "logs:ListTagsLogGroup",
                 "logs:PutRetentionPolicy",
                 "logs:TagLogGroup"

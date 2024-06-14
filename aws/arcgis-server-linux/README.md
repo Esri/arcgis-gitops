@@ -23,6 +23,7 @@ The workflow uses: [image](image/README.md) Packer template with [image.vars.jso
 
 Required IAM policies:
 
+* TerraformBackend (allows S3 operations required by Ansible SSM connection)
 * ArcGISEnterpriseImage
 
 Instructions:

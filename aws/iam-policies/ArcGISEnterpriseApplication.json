@@ -5,6 +5,7 @@
             "Sid": "ec2",
             "Effect": "Allow",
             "Action": [
+                "ec2:CreateTags",
                 "ec2:DescribeImages",
                 "ec2:DescribeInstanceAttribute",
                 "ec2:DescribeInstances",

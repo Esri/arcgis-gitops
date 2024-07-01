@@ -273,12 +273,5 @@ variable "storage" {
       label1 = ""
       label2 = ""
     }
-    grafana = {
-      type   = "DYNAMIC"
-      size   = "16Gi"
-      class  = "gp3"
-      label1 = ""
-      label2 = ""
-    }
   }
 }

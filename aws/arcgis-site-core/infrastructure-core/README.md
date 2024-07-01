@@ -5,7 +5,7 @@ Terraform module creates the networking, storage, and identity AWS resources sha
 
 The module also looks up the latest public AMIs for the specified operating systems and stores the AMI IDs in SSM parameters.
 
-![Core Infrastructure Resources](images/infrastructure-core.png "Core Infrastructure Resources")
+![Core Infrastructure Resources](infrastructure-core.png "Core Infrastructure Resources")
 
 Public subnets are routed to the Internet gateway, private subnets to the NAT gateway, and isolated subnets to the VPC endpoints.
 

@@ -153,6 +153,7 @@ To create failover deployment:
 
 1. Create a new Git branch from the branch of the active deployment.
 2. Change "deployment_id" property in all the configuration files (image.vars.json, infrastructure.tfvars.json, application.tfvars.json, backup.tfvars.json, restore.tfvars.json) to a new unique Id of the failover deployment.
+   > The "deployment_id" value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-).
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-base-windows-aws-backup workflow for the active deployment branch.
 5. Run the following workflows for the failover deployment branch:

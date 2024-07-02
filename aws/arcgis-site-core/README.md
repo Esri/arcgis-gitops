@@ -30,6 +30,7 @@ Required IAM policies:
 Instructions:
 
 1. (Optional) Update "images" map in the config file to specify the EC2 AMIs for the operating systems Ids that will be used by the site. Remove entries for operating systems that will not be used.
+   > Note that the AWS account IDs specified by "owner" property in the "images" map may be different in different AWS regions.
 2. (Optional) Change "availability_zones" property in the config file to the list of availability zones of the AWS region. If "availability_zones" list contains less than two elements, the first two available availability zones in the AWS region will be used. If you need to use specific availability zones or more than two availability zones, specify them in the "availability_zones" list.
 3. (Optional) Update the list of interface VPC endpoints specified by "interface_vpc_endpoints" property. Remove all the endpoints if the site will not use the isolated subnets.
 4. Commit the changes to the `main` branch and push the branch to GitHub.

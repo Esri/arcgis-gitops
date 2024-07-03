@@ -5,7 +5,8 @@
  *
  * ![ArcGIS Enterprise on Kubernetes](arcgis-enterprise-k8s-organization.png "ArcGIS Enterprise on Kubernetes")  
  *
- * The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.2.0/deploy-guide).
+ * The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.2.0/deploy-guide) distributed separately from the module.
+ * The Helm charts package for the version used by the deployment must be extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
  *
  * The following table explains the compatibility of chart versions and ArcGIS Enterprise on Kubernetes.
  * 
@@ -36,6 +37,20 @@
  * * EKS cluster configuration information must be provided in ~/.kube/config file.
  */
 
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+ 
 terraform {
   backend "s3" {
     key = "arcgis-enterprise/aws/arcgis-enterprise-k8s/organization.tfstate"

@@ -1,0 +1,1 @@
+Download the ArcGIS Enterprise on Kubernetes Helm Charts package archive for the charts version from [My Esri](https://www.esri.com/en-us/my-esri-login) and extract the archive to `helm-charts/arcgis-enterprise/<Helm Charts version>` folder.

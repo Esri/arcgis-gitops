@@ -59,14 +59,7 @@ jobs:
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
           ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
-          IS_UPGRADE=1
-          helm status arcgis --namespace=$DEPLOYMENT_ID > /dev/null || IS_UPGRADE=0
-          echo "is-upgrade=$IS_UPGRADE" >> "$GITHUB_OUTPUT"
-          if [ $IS_UPGRADE -eq 1 ]; then
-            UPGRADE_TOKEN=$(kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis generate-token --expiration $MAX_UPGRADE_TIME)
-          else
-            UPGRADE_TOKEN="token"
-          fi
+          UPGRADE_TOKEN=$(kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis generate-token --expiration $MAX_UPGRADE_TIME) || UPGRADE_TOKEN="token"
           terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
           terraform apply -var-file=$CONFIG_FILE -var "upgrade_token=$UPGRADE_TOKEN" -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve 
       - name: Retrieve Logs

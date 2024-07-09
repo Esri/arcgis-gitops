@@ -152,13 +152,8 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
         }
       }
       env {
-        name = "ARCGIS_ENTERPRISE_PASSWORD"
-        value_from {
-          secret_key_ref {
-            name = kubernetes_secret.admin_cli_credentials.metadata[0].name
-            key  = "password"
-          }
-        }
+        name = "ARCGIS_ENTERPRISE_PASSWORD_FILE"
+        value = "/var/run/secrets/admin-cli-credentials/password"
       }
       resources {
         limits = {
@@ -173,6 +168,17 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
       command = [
         "sleep", "infinity"
       ]
+      volume_mount {
+        name       = "admin-cli-credentials"
+        read_only  = true
+        mount_path = "/var/run/secrets/admin-cli-credentials"
+      }
+    }
+    volume {
+      name = "admin-cli-credentials"
+      secret {
+        secret_name = kubernetes_secret.admin_cli_credentials.metadata[0].name
+      }
     }
     restart_policy = "Always"
   }

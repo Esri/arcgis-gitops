@@ -30,6 +30,7 @@ def create_argument_parser(prog, description) -> argparse.ArgumentParser:
     parser.add_argument('--url', dest='url', required=False, help='ArcGIS Enterprise URL')
     parser.add_argument('-u', '--user', dest='user', required=False, help='ArcGIS Enterprise user name')
     parser.add_argument('-p', '--password', dest='password', required=False, help='ArcGIS Enterprise user password')
+    parser.add_argument('--password-file', dest='password_file', required=False, help='ArcGIS Enterprise user password file path')    
 
     return parser
 
@@ -49,13 +50,21 @@ def create_gis_client(args: Sequence[str]) -> GIS:
     else:
         raise ValueError('ArcGIS Enterprise user name is not provided.')
     
+    if args.password_file:
+        with open(args.password_file, 'r') as file:
+            password = file.read()
+    elif 'ARCGIS_ENTERPRISE_PASSWORD_FILE' in os.environ:
+        with open(os.environ['ARCGIS_ENTERPRISE_PASSWORD_FILE'], 'r') as file:
+            password = file.read()    
+    
     if args.password:
         password = args.password
     elif 'ARCGIS_ENTERPRISE_PASSWORD' in os.environ:
         password = os.environ['ARCGIS_ENTERPRISE_PASSWORD']
-    else:     
-        raise ValueError('ArcGIS Enterprise user password is not provided.')
-    
+
+    if not password:
+        raise ValueError('ArcGIS Enterprise user password is not specified.')
+
     wait_for_portal(url)
 
     return GIS(url=url, username=user, password=password)

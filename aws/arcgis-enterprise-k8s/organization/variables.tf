@@ -137,12 +137,32 @@ variable "admin_username" {
   description = "ArcGIS Enterprise on Kubernetes organization administrator account username"
   type        = string
   default     = "siteadmin"
+
+  validation {
+    condition     = can(regex("^[-a-zA-Z0-9@_.]{6,}$", var.admin_username))
+    error_message = "The admin_username value must be at least six characters in length. The only special characters allowed are the at sign (@), dash (-), dot (.), and underscore (_)."
+  }
 }
 
 variable "admin_password" {
   description = "ArcGIS Enterprise on Kubernetes organization administrator account password"
   type        = string
   sensitive   = true
+
+  validation {
+    condition     = length(var.admin_password) >= 8
+    error_message = "The admin_password value must be at least eight characters in length."
+  }
+
+  validation {
+    condition     = can(regex("[A-Za-z]", var.admin_password))
+    error_message = "The admin_password value must contain at least one alphabet letter (uppercase or lowercase)."
+  }
+
+  validation {
+    condition     = can(regex("\\d", var.admin_password))
+    error_message = "The admin_password value must contain at least one digit."
+  }
 }
 
 variable "admin_email" {
@@ -225,7 +245,7 @@ variable "backup_job_timeout" {
 variable "enterprise_admin_cli_version" {
   description = "ArcGIS Enterprise Admin CLI image tag"
   type        = string
-  default     = "0.1.0"
+  default     = "0.2.0"
 }
 
 variable "storage" {

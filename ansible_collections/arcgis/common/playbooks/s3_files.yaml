@@ -19,12 +19,12 @@
 # provided values. Then it uses arcgis.common.s3files module to download
 # ArcGIS Server setups and patches from the S3 bucket to the local repository.
 
-- name: Download setups
+- name: Download files from S3 bucket to local directories
   hosts: all
   become: true
   vars:
     local_repository: '/opt/software/archives'
-    manifest: 'arcgis-server-s3files-11.2.json'
+    manifest: 's3files.json'
     bucket_name: '<s3 bucket name>'
     region: 'us-east-1'
   tasks:
@@ -33,8 +33,6 @@
         name: python3-pip
         state: present
     - name: Install boto3 python package
-      # ansible.builtin.command:
-      #   cmd: pip3 install boto3
       ansible.builtin.pip:
         name: boto3
     - name: Create local repository directory
@@ -45,12 +43,9 @@
     - name: Create manifest file
       ansible.builtin.template:
         src: '{{ manifest }}'
-        dest: '{{ local_repository }}/arcgis-server-s3files.json'
+        dest: '{{ local_repository }}/{{ manifest | basename }}'
         mode: '0644'
     - name: Download setups from S3 repository
       arcgis.common.s3files:
-        manifest: '{{ local_repository }}/arcgis-server-s3files.json'
-      register: testout
-    - name: Dump test output
-      ansible.builtin.debug:
-        msg: '{{ testout }}'
+        manifest: '{{ local_repository }}/{{ manifest | basename }}'
+

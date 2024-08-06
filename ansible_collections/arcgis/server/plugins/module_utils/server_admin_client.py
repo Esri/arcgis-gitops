@@ -14,8 +14,11 @@
 
 from urllib.error import HTTPError, URLError
 from ansible_collections.arcgis.common.plugins.module_utils.exceptions import RestClientError, RestServiceError
+from requests_toolbelt.multipart.encoder import MultipartEncoder
 import urllib.parse
 import urllib.request
+import requests
+import os.path
 import json
 import ssl
 import time
@@ -162,6 +165,120 @@ class ServerAdminClient:
 
         return self.send_request('POST', '/admin/system/handlers/rest/servicesdirectory/edit', properties, token)
 
+    # Get registered ArcGIS Web Adaptors
+    # See https://developers.arcgis.com/rest/enterprise-administration/server/webadaptors/
+    def get_web_adaptors(self):
+        token = self.generate_token()
+
+        return self.send_request('GET', '/admin/system/webadaptors/?f=json', None, token)['webAdaptors']
+
+    # Unregister an ArcGIS Web Adaptor
+    # See https://developers.arcgis.com/rest/enterprise-administration/server/unregisterwebadaptor/
+    def unregister_web_adaptor(self, web_adaptor_id):
+        token = self.generate_token()
+
+        data = {
+            'f': 'json'
+        }
+
+        return self.send_request('POST', f'/admin/system/webadaptors/{web_adaptor_id}/unregister', data, token)
+
+    # Unregister all ArcGIS Web Adaptors
+    def unregister_web_adaptors(self):
+        for web_adaptor in self.get_web_adaptors():
+            self.unregister_web_adaptor(web_adaptor['id'])
+        
+        return {
+            'status': 'success'
+        }
+
+    # Get the local machine name
+    def get_local_machine_name(self):
+        token = self.generate_token()
+
+        return self.send_request('GET', '/admin/local?f=json', None, token)['machineName']
+    
+    def get_machine_info(self, machine_name):
+        token = self.generate_token()
+
+        return self.send_request('GET', f'/admin/machines/{machine_name}?f=json', None, token)
+    
+    # Get the SSL certificate alias of the server machine
+    def get_server_ssl_certificate(self, machine_name):
+        return self.get_machine_info(machine_name)['webServerCertificateAlias']
+
+    # Returns True if SSL certificate exists in the machine
+    # See https://developers.arcgis.com/rest/enterprise-administration/server/certificate/
+    def ssl_certificate_exists(self, machine_name, cert_alias, entry_type = 'PrivateKeyEntry'):
+        try:
+            token = self.generate_token()
+
+            certs = self.send_request('GET', f'/admin/machines/{machine_name}/sslcertificates/{cert_alias}?f=json', None, token)
+
+            return 'entryType' not in certs or certs['entryType'] == entry_type
+        except RestServiceError as e:
+            if e.code == 404:
+                return False
+
+            raise e
+
+    # Import an SSL certificate into the machine
+    # See https://developers.arcgis.com/rest/enterprise-administration/server/importrootcertificate/
+    def import_root_ssl_certificate(self, machine_name, cert_file, cert_alias):
+        token = self.generate_token()
+
+        root_cert = open(cert_file, 'r').read()
+
+        data = {
+            'rootCACertificate': root_cert,
+            'alias': cert_alias,
+            'f': 'json'
+        }
+
+        return self.send_request('POST', f'/admin/machines/#{machine_name}/sslcertificates/importRootOrIntermediate', data, token)
+
+    # Import an existing SSL certificate into keystore of the server machine
+    # See https://developers.arcgis.com/rest/enterprise-administration/server/importexistingservercertificate/
+    def import_server_ssl_certificate(self, machine_name, cert_file, cert_password, cert_alias):
+        url = self.server_admin_url + f'/admin/machines/{machine_name}/sslcertificates/importExistingServerCertificate'
+        
+        token = self.generate_token()
+
+        fields = {
+            'certPassword': cert_password,
+            'alias': cert_alias,
+            'f': 'json'
+        }
+       
+        files = {
+            'certFile': cert_file
+        }
+
+        return self.post_multipart_form_data(url, fields, files, token)
+
+
+    # Set the SSL certificate of the server machine
+    # See https://developers.arcgis.com/rest/enterprise-administration/server/editmachine/
+    def set_server_ssl_certificate(self, machine_name, cert_alias):
+        token = self.generate_token()
+
+        machine = self.get_machine_info(machine_name)
+
+        data = {
+            'machineName': machine_name,
+            'adminURL': machine['adminURL'],
+            'webServerMaxHeapSize': machine['webServerMaxHeapSize'],
+            'webServerCertificateAlias': cert_alias,
+            #'appServerMaxHeapSize': machine['appServerMaxHeapSize'],
+            'socMaxHeapSize': machine['socMaxHeapSize'],
+            #'OpenEJBPort': machine['ports']['OpenEJBPort'],
+            #'JMXPort': machine['ports']['JMXPort'],
+            #'NamingPort': machine['ports']['NamingPort'],
+            #'DerbyPort': machine['ports']['DerbyPort'],
+            'f': 'json'
+        }
+
+        return self.send_request('POST', f'/admin/machines/{machine_name}/edit', data, token)
 
     # Generate an access token
     # See https://developers.arcgis.com/rest/enterprise-administration/server/generatetoken/
@@ -177,8 +294,7 @@ class ServerAdminClient:
 
         return self.send_request('POST', '/admin/generateToken', data, None)['token']
 
-        
-    def send_request(self, method, url, data, token):
+    def send_request(self, method, url, data, token, headers = {}):
         try:
             request = urllib.request.Request(self.server_admin_url + url)
             
@@ -191,6 +307,9 @@ class ServerAdminClient:
 
             if token is not None:
                 request.add_header('Authorization', 'Bearer ' + token)
+
+            for header in headers:
+                request.add_header(header, headers[header])    
 
             response = urllib.request.urlopen(
                 request, context=ssl._create_unverified_context())
@@ -209,6 +328,46 @@ class ServerAdminClient:
         except URLError as e:
             raise RestClientError(500, e.reason)
 
+    def post_multipart_form_data(self, url, fields, files, token):
+        """
+        Posts multipart/form-data to a specified URL.
+
+        :param url: The URL to post the data to.
+        :param fields: A dictionary of form fields and their values.
+        :param files: A dictionary of file fields and their file paths.
+        """
+        try:
+            # Prepare the fields and files for MultipartEncoder
+            multipart_fields = fields.copy()
+            for field_name, file_path in files.items():
+                multipart_fields[field_name] = (os.path.basename(file_path), open(file_path, 'rb'), 'application/octet-stream')
+
+            # Create the MultipartEncoder object
+            data = MultipartEncoder(fields=multipart_fields)
+
+            # Set the headers
+            headers = {
+                'Authorization': 'Bearer ' + token,
+                'Content-Type': data.content_type,
+                'Referer': 'referer'
+            }
+
+            # Post the data
+            response = requests.post(url, data=data, headers=headers, verify=False)
+
+            if response.status_code > 200:
+                raise RestServiceError(response.status_code, response.text)
+
+            json_response = json.loads(response.text)
+
+            if 'status' in json_response and json_response['status'] == 'error':
+                raise RestServiceError(json_response['code'], ' '.join(json_response['messages']))
+
+            return json_response
+        except HTTPError as e:
+            raise RestClientError(e.code, e.msg, e.url)
+        except URLError as e:
+            raise RestClientError(500, e.reason)
     
     def url_available(self, url):
         try:

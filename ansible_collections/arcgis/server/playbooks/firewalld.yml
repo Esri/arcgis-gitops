@@ -1,4 +1,3 @@
----
 # Copyright 2024 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
@@ -13,24 +12,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This playbook configures the file server for ArcGIS Server.
-
-- name: Configure file server for ArcGIS Server
+- name: Configure firewalld for ArcGIS Server
   hosts: all
   vars:
-    run_as_user: 'arcgis'
-    fileserver_directories:
-      - /mnt/gisdata/arcgisserver
-      - /mnt/gisdata/arcgisserver/backups
-    mode: '0755'
+    ports:
+      - 6006/tcp
+      - 6080/tcp
+      - 6443/tcp
   become: true
   tasks:
-    - name: Create directories for ArcGIS Server
-      ansible.builtin.file:
-        path: '{{ item }}'
-        state: directory
-        owner: '{{ run_as_user }}'
-        group: '{{ run_as_user }}'
-        mode: '{{ mode }}'
-        recurse: true
-      loop: '{{ fileserver_directories }}'
+  - name: Install firewalld
+    ansible.builtin.package:
+      name: firewalld
+      state: present
+  - name: Start firewalld
+    ansible.builtin.service:
+      name: firewalld
+      state: started
+      enabled: true
+  - name: Open ports in public zone
+    ansible.posix.firewalld:
+      port: '{{ item }}'
+      state: enabled
+      permanent: true
+      zone: public
+    loop: '{{ ports }}'
+  - name: Reload firewalld
+    ansible.builtin.service:
+      name: firewalld
+      state: reloaded

@@ -14,7 +14,8 @@
 # limitations under the License.
 
 # This playbook authorizes ArcGIS Server on the target machine, creates 
-# an ArcGIS Server site, and sets the site's system properties.
+# an ArcGIS Server site, sets the site's system properties, and configures
+# SSL certificates of the machine.
 
 - name: Configure ArcGIS Server
   hosts: all
@@ -23,6 +24,11 @@
     install_dir: '/opt'
     system_properties: {}
     services_dir_enabled: true
+    root_cert: ''
+    root_cert_alias: ''
+    keystore_file: ''
+    keystore_password: ''
+    cert_alias: ''
   tasks:
     - name: Authorize ArcGIS Server
       become: true
@@ -36,6 +42,16 @@
           - '{{ authorization_file }}'
       register: authorize_software
       changed_when: authorize_software.rc == 0
+    - name: Start arcgisserver service
+      become: true
+      ansible.builtin.service:
+        name: 'arcgisserver'
+        state: started
+    - name: Install python modules 
+      become: true
+      ansible.builtin.pip:
+        name: 'requests_toolbelt'
+        state: present
     - name: Create ArcGIS Server site
       vars:
         ansible_aws_ssm_timeout: 3600
@@ -61,3 +77,16 @@
         admin_password: '{{ admin_password }}'
         system_properties: '{{ system_properties }}'
         services_dir_enabled: '{{ services_dir_enabled }}'
+    - name: Configure SSL certificates in ArcGIS Server machine
+      vars:
+        ansible_aws_ssm_timeout: 600
+      no_log: false
+      arcgis.server.configure_https:
+        server_url: https://localhost:6443/arcgis
+        admin_username: '{{ admin_username }}'
+        admin_password: '{{ admin_password }}'
+        root_cert: '{{ root_cert }}'
+        root_cert_alias: '{{ root_cert_alias }}'
+        keystore_file: '{{ keystore_file }}'
+        keystore_password: '{{ keystore_password }}'
+        cert_alias: '{{ cert_alias }}'

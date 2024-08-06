@@ -211,3 +211,34 @@ variable "system_properties" {
   type        = map(any)
   default     = {}
 }
+
+variable "configure_webadaptor" {
+  description = "If true, ArcGIS Web Adaptor will be registered with ArcGIS Server."
+  type        = bool
+  default     = false
+}
+
+variable "web_context" {
+  description = "Services web context"
+  type        = string
+  default     = "arcgis"
+}
+
+variable "keystore_file_path" {
+  description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
+  type        = string
+  default     = null
+}
+
+variable "keystore_file_password" {
+  description = "Password for keystore file with SSL certificate used by HTTPS listeners"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "root_cert_file_path" {
+  description = "Local path of root certificate file in PEM format used by ArcGIS Server"
+  type        = string
+  default     = null
+}

@@ -1,0 +1,45 @@
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+namespace: arcgis
+
+name: webadaptor
+
+version: 0.1.0
+
+readme: README.md
+
+authors:
+- Pavel Bobov <pbobov@esri.com>
+
+description: Modules and playbooks used to install and configure ArcGIS Web Adaptor
+
+license:
+- Apache-2.0
+
+license_file: ''
+
+tags: ['arcgis', 'arcgis-web-adaptor']
+
+dependencies: {'community.crypto': '>=2.0.0', 'ansible.posix': '>=1.0.0'}
+
+repository: https://github.com/Esri/arcgis-gitops
+
+documentation: https://github.com/Esri/arcgis-gitops
+
+homepage: https://github.com/Esri/arcgis-gitops
+
+issues: https://github.com/Esri/arcgis-gitops/issues
+
+build_ignore: []

@@ -20,6 +20,12 @@
  * 4. Install ArcGIS Server
  * 5. Install ArcGIS Server patches
  * 6. Delete unused files
+ *
+ * If the "install_webadaptor" variable is set to true, the template will also:
+ *
+ * 1. Install OpenJDK
+ * 2. Install Apache Tomcat
+ * 3. Install ArcGIS Web Adaptor with name specified by "webadaptor_name" variable.
  * 
  * Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}" SSM parameter.
  * 
@@ -129,19 +135,33 @@ locals {
     }
   })
 
-  s3_files_json_path =  "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
+  arcgis_server_s3_files =  "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
+  arcgis_webadaptor_s3_files =  "${abspath(path.root)}/../manifests/arcgis-webadaptor-s3files-${var.arcgis_version}.json"
   
-  external_vars = yamlencode({
+  server_vars = yamlencode({
     ansible_aws_ssm_bucket_name = data.amazon-parameterstore.s3_logs.value
     ansible_aws_ssm_region = data.amazon-parameterstore.s3_region.value
     ansible_connection = "aws_ssm"
     arcgis_server_patches = var.arcgis_server_patches
     arcgis_version = var.arcgis_version
     bucket_name = data.amazon-parameterstore.s3_repository.value
-    local_repository = "/opt/software/archives"
-    manifest = local.s3_files_json_path
+    # local_repository = "/opt/software/archives"
+    manifest = local.arcgis_server_s3_files
     region = data.amazon-parameterstore.s3_region.value
     run_as_user = var.run_as_user
+    # ansible_python_interpreter="/usr/bin/python3"
+  })
+
+  webadaptor_vars = yamlencode({
+    ansible_aws_ssm_bucket_name = data.amazon-parameterstore.s3_logs.value
+    ansible_aws_ssm_region = data.amazon-parameterstore.s3_region.value
+    ansible_connection = "aws_ssm"
+    arcgis_version = var.arcgis_version
+    wa_name = var.webadaptor_name
+    bucket_name = data.amazon-parameterstore.s3_repository.value
+    # local_repository = "/opt/software/archives"
+    manifest = local.arcgis_webadaptor_s3_files
+    region = data.amazon-parameterstore.s3_region.value
     # ansible_python_interpreter="/usr/bin/python3"
   })
 }
@@ -184,11 +204,6 @@ build {
     "source.amazon-ebs.main"
   ]
 
-  # Copy files to private S3 repository
-  provisioner "shell-local" {
-    command = "python -m s3_copy_files -f ${local.s3_files_json_path} -u ${var.arcgis_online_username} -p ${var.arcgis_online_password} -b ${data.amazon-parameterstore.s3_repository.value}"
-  }
-
   # Install CloudWatch Agent
   provisioner "shell-local" {
     command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
@@ -197,11 +212,34 @@ build {
   # Download setups from private S3 repository and install ArcGIS Server   
   provisioner "shell-local" {
     inline = [
-      "echo '${local.external_vars}' > /tmp/external_vars.yaml",
+      "echo '${local.server_vars}' > /tmp/server_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
-      "ansible-playbook arcgis.server.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml",
-      "ansible-playbook arcgis.server.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml",
-      "ansible-playbook arcgis.server.patch -i /tmp/inventory.aws_ec2.yaml -e @/tmp/external_vars.yaml"
+      "python -m s3_copy_files -f ${local.arcgis_server_s3_files} -u ${var.arcgis_online_username} -p ${var.arcgis_online_password} -b ${data.amazon-parameterstore.s3_repository.value}",      
+      "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
+      "ansible-playbook arcgis.common.system -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
+      "ansible-playbook arcgis.server.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",      
+      "ansible-playbook arcgis.server.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
+      "ansible-playbook arcgis.server.patch -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
+      "ansible-playbook arcgis.common.clean -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml"
+    ]
+  }
+
+  # Download setups from private S3 repository and install ArcGIS Web Aaptor
+  provisioner "shell-local" {
+    inline = var.install_webadaptor ? [
+      "echo '${local.webadaptor_vars}' > /tmp/webadaptor_vars.yaml",
+      "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
+      "JDK_VERSION=$(cat ${local.arcgis_webadaptor_s3_files} | jq -r '.arcgis.repository.files.\"jdk_x64_linux.tar.gz\".version')",
+      "TOMCAT_VERSION=$(cat ${local.arcgis_webadaptor_s3_files} | jq -r '.arcgis.repository.files.\"tomcat.tar.gz\".version')",
+      "python -m s3_copy_files -f ${local.arcgis_webadaptor_s3_files} -u ${var.arcgis_online_username} -p ${var.arcgis_online_password} -b ${data.amazon-parameterstore.s3_repository.value}",
+      "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
+      "ansible-playbook arcgis.webadaptor.openjdk -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml -e jdk_version=$JDK_VERSION",
+      "ansible-playbook arcgis.webadaptor.tomcat -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml -e tomcat_version=$TOMCAT_VERSION",
+      "ansible-playbook arcgis.webadaptor.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
+      "ansible-playbook arcgis.webadaptor.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
+      "ansible-playbook arcgis.common.clean -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml"
+    ] : [
+      "echo 'ArcGIS Web Adaptor installation is not enabled.'"
     ]
   }
 

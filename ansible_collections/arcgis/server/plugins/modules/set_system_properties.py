@@ -67,7 +67,7 @@ EXAMPLES = r'''
 
 RETURN = r'''
 response:
-    description: server reaponse.
+    description: server response.
     type: str
     returned: always
 '''
@@ -106,11 +106,17 @@ def run_module():
     try:
         admin_client.wait_until_available()
 
-        result['response'] = admin_client.update_system_properties(module.params['system_properties'])
-        
-        admin_client.edit_services_directory_properties(module.params['services_dir_enabled'])
+        system_properties = admin_client.get_system_properties()
 
-        result['changed'] = True
+        if system_properties != module.params['system_properties']: 
+            result['response'] = admin_client.update_system_properties(module.params['system_properties'])
+            result['changed'] = True
+        
+        services_directory_properties = admin_client.get_services_directory_properties()
+
+        if services_directory_properties['enabled'] != module.params['services_dir_enabled']:
+            admin_client.edit_services_directory_properties(module.params['services_dir_enabled'])
+            result['changed'] = True
 
         module.exit_json(**result)        
     except Exception as e:

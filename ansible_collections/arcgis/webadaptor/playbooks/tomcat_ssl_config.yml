@@ -1,0 +1,66 @@
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Configure SSL in Apache Tomcat
+  hosts: all
+  vars:
+    instance_name: arcgis
+    install_dir: '/opt'
+    tomcat_user: 'tomcat'
+    keystore_file: '/opt/tomcat_arcgis/conf/certificate.pfx'
+    keystore_password: 'test'
+    keystore_type: 'PKCS12'
+  become: true
+  tasks:
+    - name: Check if the keystore file exists
+      ansible.builtin.stat:
+        path: '{{ keystore_file }}'
+      register: keystore
+    - name: Create private key (RSA, 4096 bits)
+      community.crypto.openssl_privatekey:
+        path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.key'
+      when: not keystore.stat.exists        
+    - name: Create certificate signing request (CSR) for self-signed certificate
+      community.crypto.openssl_csr_pipe:
+        privatekey_path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.key'
+        common_name: "{{ ansible_facts['nodename'] }}"
+      register: csr
+      when: not keystore.stat.exists              
+    - name: Create self-signed certificate
+      community.crypto.x509_certificate:
+        path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.pem'
+        privatekey_path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.key'
+        csr_content: "{{ csr.csr }}"
+        provider: selfsigned
+      when: not keystore.stat.exists                
+    - name: Generate PKCS12 file
+      community.crypto.openssl_pkcs12:
+        action: export
+        path: '{{ keystore_file }}'
+        privatekey_path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.key'
+        certificate_path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.pem'
+        passphrase: '{{ keystore_password }}' 
+        friendly_name: 'tomcat'
+        owner: '{{ tomcat_user }}'
+        state: present
+      when: not keystore.stat.exists                
+    - name: Update server.xml
+      ansible.builtin.template:
+        src: 'server.xml.j2'
+        dest: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/server.xml'
+        mode: '0644'
+    - name: Restart tomcat_{{ instance_name }} service
+      ansible.builtin.service:
+        name: 'tomcat_{{ instance_name }}'
+        state: restarted

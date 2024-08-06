@@ -130,7 +130,7 @@ resource "aws_lb_target_group" "default" {
 
 # Create Application Load Balancer target group for HTTPS port 443, attach 
 # primary and node instances to it, and add the target group to the load balancer. 
-# Configure the target group to forward requests to /server HTTP context.
+# Configure the target group to forward requests to the HTTP web context.
 module "server_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "${var.deployment_id}-443"
@@ -138,9 +138,9 @@ module "server_https_alb_target" {
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
   alb_port          = 443
-  instance_port     = 6443
-  health_check_path = "/arcgis/rest/info/healthcheck"
-  path_patterns     = ["/arcgis", "/arcgis/*"]
+  instance_port     = var.instance_https_port
+  health_check_path = "/${var.web_context}/rest/info/healthcheck"
+  path_patterns     = ["/${var.web_context}", "/${var.web_context}/*"]
   priority          = 100
   target_instances  =  concat([aws_instance.primary.id], [for n in aws_instance.nodes : n.id])
   depends_on = [
@@ -171,7 +171,7 @@ module "private_server_https_alb_target" {
 
 # Create Route 53 record for the Application Load Balancer 
 # if the hosted zone ID and domain name are provided.
-resource "aws_route53_record" "arcgis_erver" {
+resource "aws_route53_record" "arcgis_server" {
   count = var.hosted_zone_id != null && var.deployment_fqdn != null ? 1 : 0
   zone_id = var.hosted_zone_id
   name    = "${var.deployment_fqdn}."

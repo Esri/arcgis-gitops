@@ -11,5 +11,7 @@
     "root_volume_size": 100,
     "run_as_user": "arcgis",
     "site_id": "arcgis-enterprise",
-    "skip_create_ami": false
+    "skip_create_ami": false,
+    "install_webadaptor": false,
+    "webadaptor_name": "arcgis"
 }

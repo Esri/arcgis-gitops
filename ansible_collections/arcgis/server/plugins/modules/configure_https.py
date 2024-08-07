@@ -16,6 +16,7 @@
 
 from __future__ import (absolute_import, division, print_function)
 import time
+import os.path
 __metaclass__ = type
 
 DOCUMENTATION = r'''
@@ -128,29 +129,30 @@ def run_module():
         machine_name = admin_client.get_local_machine_name()
 
         # Import root certificate if it does not exist
-        if module.params['root_cert'] != '' and not admin_client.ssl_certificate_exists(machine_name,
-            module.params['root_cert_alias'], 'trustedCertEntry'):
-            admin_client.import_root_ssl_certificate(machine_name,
-                                                     module.params['root_cert'],
-                                                     module.params['root_cert_alias'])
-            result['changed'] = True
+        if module.params['root_cert'] != '' and os.path.isfile(module.params['root_cert']):
+            if not admin_client.ssl_certificate_exists(machine_name, module.params['root_cert_alias'], 'trustedCertEntry'):
+                admin_client.import_root_ssl_certificate(machine_name,
+                                                        module.params['root_cert'],
+                                                        module.params['root_cert_alias'])
+                result['changed'] = True
 
-        cert_alias = admin_client.get_server_ssl_certificate(machine_name)
-
-        if module.params['keystore_file'] != '' and cert_alias != module.params['cert_alias']:
+        if module.params['keystore_file'] != '' and os.path.isfile(module.params['keystore_file']):
             if not admin_client.ssl_certificate_exists(machine_name, module.params['cert_alias']):
                 admin_client.import_server_ssl_certificate(machine_name,
                                                            module.params['keystore_file'],
                                                            module.params['keystore_password'],
                                                            module.params['cert_alias'])
+                result['changed'] = True
 
-            admin_client.set_server_ssl_certificate(machine_name, module.params['cert_alias'])
-            result['changed'] = True
+            cert_alias = admin_client.get_server_ssl_certificate(machine_name)
+            if cert_alias != module.params['cert_alias']:
+                admin_client.set_server_ssl_certificate(machine_name, module.params['cert_alias'])
 
-            # Editing the machine configuration causes the machine to be restarted.
-            admin_client.wait_until_available
-            time.sleep(60)
-            admin_client.wait_until_available
+                admin_client.wait_until_available
+                time.sleep(60)
+                admin_client.wait_until_available
+
+                result['changed'] = True
         
         module.exit_json(**result)        
     except Exception as e:

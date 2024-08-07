@@ -315,9 +315,9 @@ module "arcgis_server_node" {
     admin_password     = var.admin_password
     primary_server_url = "https://${local.primary_hostname}:6443/arcgis"
     run_as_user        = var.run_as_user
-    keystore_file                  = local.keystore_file
-    keystore_password              = var.keystore_file_password
-    cert_alias                     = var.deployment_fqdn
+    keystore_file      = local.keystore_file
+    keystore_password  = var.keystore_file_password
+    cert_alias         = var.deployment_fqdn
   }
   depends_on = [
     module.authorization_file,

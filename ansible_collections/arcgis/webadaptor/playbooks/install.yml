@@ -1,0 +1,70 @@
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Install ArcGIS Web Adaptor
+  hosts: all
+  vars:
+    arcgis_version: '11.2'
+    local_repository: '/opt/software/archives'
+    setups_directory: '/opt/software/setups'
+    arcgis_webdaptor_setup_archive:
+      "11.2" : ArcGIS_Web_Adaptor_Java_Linux_112_188341.tar.gz
+      "11.3" : ArcGIS_Web_Adaptor_Java_Linux_113_190319.tar.gz
+    install_dir: '/opt'
+    webapp_dir: '/opt/tomcat_arcgis/webapps'
+    wa_name: 'arcgis'
+    run_as_user: 'arcgis'
+    tomcat_user: 'tomcat'
+  become: true
+  tasks:
+    - name: Create setups directory
+      ansible.builtin.file:
+        path: '{{ setups_directory }}/{{ arcgis_version }}'
+        state: directory
+        mode: '0755'
+    - name: Unarchive ArcGIS Web Adaptor setup
+      vars:
+        ansible_aws_ssm_timeout: 600
+      ansible.builtin.unarchive:
+        src: '{{ local_repository }}/{{ arcgis_webdaptor_setup_archive[arcgis_version] }}'
+        dest: '{{ setups_directory }}/{{ arcgis_version }}'
+        owner: '{{ run_as_user }}'
+        group: '{{ run_as_user }}'
+        remote_src: true
+        creates: '{{ setups_directory }}/{{ arcgis_version }}/WebAdaptor/Setup'
+    - name: Create install subdirectory
+      ansible.builtin.file:
+        path: '{{ install_dir }}/arcgis/webadaptor{{ arcgis_version }}'
+        state: directory
+        mode: '0700'
+        recurse: true
+        owner: '{{ run_as_user }}'
+    - name: Install ArcGIS Web Adaptor
+      become: true
+      become_user: '{{ run_as_user }}'
+      vars:
+        ansible_aws_ssm_timeout: 600
+      ansible.builtin.command:
+        cmd: './Setup -m silent -l yes -d "{{ install_dir }}"'
+        chdir: '{{ setups_directory }}/{{ arcgis_version }}/WebAdaptor'
+        creates: '{{ install_dir }}/arcgis/webadaptor{{ arcgis_version }}/java/arcgis.war'
+      register: setup
+      changed_when: setup.rc == 0
+    - name: Deploy ArcGIS Web Adaptor to Apache Tomcat
+      ansible.builtin.copy:
+        src: '{{ install_dir }}/arcgis/webadaptor{{ arcgis_version }}/java/arcgis.war'
+        dest: '{{ webapp_dir }}/{{ wa_name }}.war'
+        remote_src: true
+        owner: '{{ tomcat_user }}'
+        mode: '0644'

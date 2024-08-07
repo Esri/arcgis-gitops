@@ -19,13 +19,13 @@ __metaclass__ = type
 
 DOCUMENTATION = r'''
 ---
-module: join_site
+module: unregister_web_adaptors
 
-short_description: Joins an existing ArcGIS Server site
+short_description: Unregisters all Web Adaptors from ArcGIS Server site
 
 version_added: "0.1.0"
 
-description: This module joins the machine to an existing ArcGIS Server site.
+description: This module unregisters all Web Adaptors from ArcGIS Server site
 
 options:
     server_url:
@@ -41,19 +41,14 @@ options:
         description: Password of the administrative account.
         required: true
         type: str
-    primary_server_url:
-        description: URL of one of the server machines of the site.
-        required: true
-        type: str
 '''
 
 EXAMPLES = r'''
-- name: Join ArcGIS Server site
-  arcgis.server.join_site:
+- name: Unregister Web Adaptors
+  arcgis.server.unregister_web_adaptors:
     server_url: https://localhost:6443/arcgis
     admin_username: siteadmin
     admin_password: <password>
-    primary_server_url: https://primaryserver.domain.com:6443/arcgis
 '''
 
 RETURN = r'''
@@ -72,8 +67,7 @@ def run_module():
     module_args = dict(
         server_url=dict(type='str', required=False, default='https://localhost:6443/arcgis'),
         admin_username=dict(type='str', required=True),
-        admin_password=dict(type='str', required=True),
-        primary_server_url=dict(type='str', required=True)
+        admin_password=dict(type='str', required=True)
     )
 
     result = dict(
@@ -96,15 +90,10 @@ def run_module():
     try:
         admin_client.wait_until_available()
 
-        if admin_client.upgrade_required():
-            response = admin_client.complete_upgrade()
-            result['response'] = response
-            result['changed'] = True
-        elif not admin_client.site_exists():
-            response = admin_client.join_site(module.params['primary_server_url'] + '/admin', False)
-            result['response'] = response
-            result['changed'] = True
+        result['response'] = admin_client.unregister_web_adaptors()
         
+        result['changed'] = True
+
         module.exit_json(**result)        
     except Exception as e:
         module.fail_json(msg=str(e), **result)

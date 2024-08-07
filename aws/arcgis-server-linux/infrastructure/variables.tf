@@ -135,3 +135,20 @@ variable "subnet_ids" {
   type        = list(string)
   default     = []
 }
+
+variable "web_context" {
+  description = "Services web context"
+  type        = string
+  default     = "arcgis"
+}
+
+variable "instance_https_port" {
+  description = "ArcGIS Server instance HTTPS port"
+  type        = number
+  default     = 6443
+
+  validation {
+    condition     = contains([443, 6443], var.instance_https_port)
+    error_message = "Valid values for instance_https_port variable are 443 and 6443."
+  }
+}

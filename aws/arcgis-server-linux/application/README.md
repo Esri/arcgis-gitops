@@ -11,6 +11,7 @@ If is_upgrade input variable is set to true, the module:
 * Downloads the installation media from the private repository S3 bucket to primary and node EC2 instances
 * Upgrades ArcGIS Server on primary and node EC2 instances
 * Installs ArcGIS Server patches on primary and node EC2 instances
+* If configure_webadaptor input variable is set to true, upgrades OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor on primary and node EC2 instances
 
 Then the module:
 
@@ -18,7 +19,10 @@ Then the module:
 * Copies the ArcGIS Server authorization file to the EC2 instances
 * Configures ArcGIS Server on primary EC2 instance
 * Configures ArcGIS Server on node EC2 instances
-* if server_role is specified, federates ArcGIS Server with Portal for ArcGIS
+* If configure_webadaptor input variable is set to true:
+* * Configures HTTPS listener in Apache Tomcat on primary and node EC2 instances to use either the SSL certificate specified by keystore_file_path input variable or a self signed certificate if keystore_file_path is not specified
+* * Registers ArcGIS Web Adaptor with ArcGIS Server on primary and node EC2 instances
+* If server_role is specified, federates ArcGIS Server with Portal for ArcGIS
 
 ## Requirements
 
@@ -62,8 +66,19 @@ The module uses the following SSM parameters:
 | arcgis_server_patch | ../../modules/ansible_playbook | n/a |
 | arcgis_server_primary | ../../modules/ansible_playbook | n/a |
 | arcgis_server_upgrade | ../../modules/ansible_playbook | n/a |
-| authorization_files | ../../modules/ansible_playbook | n/a |
-| s3_copy_files | ../../modules/s3_copy_files | n/a |
+| arcgis_webadaptor | ../../modules/ansible_playbook | n/a |
+| arcgis_webadaptor_upgrade | ../../modules/ansible_playbook | n/a |
+| authorization_file | ../../modules/ansible_playbook | n/a |
+| clean | ../../modules/ansible_playbook | n/a |
+| copy_server_files | ../../modules/s3_copy_files | n/a |
+| copy_webadaptor_files | ../../modules/s3_copy_files | n/a |
+| download_webadaptor_files | ../../modules/ansible_playbook | n/a |
+| keystore_file | ../../modules/ansible_playbook | n/a |
+| openjdk_upgrade | ../../modules/ansible_playbook | n/a |
+| tomcat_keystore_file | ../../modules/ansible_playbook | n/a |
+| tomcat_ssl_config | ../../modules/ansible_playbook | n/a |
+| tomcat_upgrade | ../../modules/ansible_playbook | n/a |
+| unregister_web_adaptors | ../../modules/ansible_playbook | n/a |
 
 ## Resources
 
@@ -87,15 +102,19 @@ The module uses the following SSM parameters:
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Server version | `string` | `"11.3"` | no |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
+| configure_webadaptor | If true, ArcGIS Web Adaptor will be registered with ArcGIS Server. | `bool` | `false` | no |
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"arcgis-server"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
+| keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
+| keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
 | os | Operating system id (rhel8\|rhel9) | `string` | `"rhel8"` | no |
 | portal_org_id | ArcGIS Enterprise organization Id | `string` | `null` | no |
 | portal_password | Portal for ArcGIS user password | `string` | `null` | no |
 | portal_url | Portal for ArcGIS URL | `string` | `null` | no |
 | portal_username | Portal for ArcGIS user name | `string` | `null` | no |
+| root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server | `string` | `null` | no |
 | run_as_user | User name for the account used to run ArcGIS Server. | `string` | `"arcgis"` | no |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
 | server_functions | Functions of the federated server | `list(string)` | `[]` | no |
@@ -103,6 +122,7 @@ The module uses the following SSM parameters:
 | services_dir_enabled | Enable REST handler services directory | `bool` | `true` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 | system_properties | ArcGIS Server system properties | `map(any)` | `{}` | no |
+| web_context | Services web context | `string` | `"arcgis"` | no |
 
 ## Outputs
 

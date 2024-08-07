@@ -13,56 +13,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# This playbook configures Linux machine to meet the ArcGIS Server system
-# requirements, installs ArcGIS Server on the machine, and configures 
+# This playbook installs ArcGIS Server on the machine, and configures 
 # systemd service for ArcGIS Server.
 #
 # The playbook supports ArcGIS Server 11.2 and 11.3 versions.
 
-- name: ArcGIS Server system requirements
-  hosts: all
-  vars:
-    run_as_user: 'arcgis'
-    run_as_uid: 1100
-    run_as_gid: 1100
-    packages:
-      - gettext
-      - nfs-utils
-  become: true
-  tasks:
-    - name: Create ArcGIS user account group
-      ansible.builtin.group:
-        name: '{{ run_as_user }}'
-        gid: '{{ run_as_gid }}'
-        system: false
-    - name: Create ArcGIS user account
-      ansible.builtin.user:
-        name: '{{ run_as_user }}'
-        uid: '{{ run_as_uid }}'
-        group: '{{ run_as_user }}'
-        comment: 'ArcGIS user account'
-        shell: '/bin/bash'
-        home: '/home/{{ run_as_user }}'
-        createhome: true
-        system: false
-    - name: Install required packages
-      # ansible.builtin.command: 'yum install -y {{ item }}'
-      # loop: '{{ packages }}'
-      # when: ansible_facts['os_family'] == 'RedHat'
-      ansible.builtin.package:
-        name: "{{ packages }}"
-        state: present
-    - name: Set limits for ArcGIS user account
-      community.general.pam_limits:
-        domain: '{{ run_as_user }}'
-        limit_type: '{{ item.limit_type }}'
-        limit_item: '{{ item.limit_item }}'
-        value: '{{ item.value }}'
-      loop:
-        - { limit_type: 'hard', limit_item: 'nofile', value: 65535 }
-        - { limit_type: 'soft', limit_item: 'nofile', value: 65535 }
-        - { limit_type: 'hard', limit_item: 'nproc', value: 25059 }
-        - { limit_type: 'soft', limit_item: 'nproc', value: 25059 }
 - name: Install ArcGIS Server
   hosts: all
   vars:

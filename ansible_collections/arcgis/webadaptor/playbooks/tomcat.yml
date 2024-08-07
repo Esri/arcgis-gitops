@@ -1,0 +1,80 @@
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Install Apache Tomcat
+  hosts: all
+  vars:
+    instance_name: arcgis
+    local_repository: '/opt/software/archives'
+    tomcat_version: '9.0.48'
+    tomcat_setup_archive: 'tomcat.tar.gz'
+    install_dir: '/opt'
+    tomcat_user: 'tomcat'
+    tomcat_group: 'tomcat'
+  become: true
+  tasks:
+    - name: Create tomcat user
+      ansible.builtin.user:
+        name: '{{ tomcat_user }}'
+        comment: 'Apache Tomcat user'
+        shell: '/bin/false'
+    - name: Create tomcat group
+      ansible.builtin.group:
+        name: '{{tomcat_group }}'
+    - name: Extract setup archive
+      ansible.builtin.unarchive:
+        src: '{{ local_repository }}/{{ tomcat_setup_archive }}'
+        dest: '{{ install_dir }}'
+        exclude:
+          - '*webapps/examples*'
+          - '*webapps/ROOT*'
+          - '*webapps/docs*'
+          - '*webapps/manager*'
+          - '*webapps/host-manager*'
+        remote_src: true
+        creates: '{{ install_dir }}/apache-tomcat-{{ tomcat_version }}'
+    - name: Rename extracted directory
+      ansible.builtin.command:
+        cmd: 'mv {{ install_dir }}/apache-tomcat-{{ tomcat_version }}/ {{ install_dir }}/tomcat_{{ instance_name }}_{{ tomcat_version }}/'
+        creates: '{{ install_dir }}/tomcat_{{ instance_name }}_{{ tomcat_version }}'
+    - name: Create symbolic link
+      ansible.builtin.file:
+        src: '{{ install_dir }}/tomcat_{{ instance_name }}_{{ tomcat_version }}'
+        dest: '{{ install_dir }}/tomcat_{{ instance_name }}'
+        state: link
+        force: yes
+    - name: Set ownership
+      ansible.builtin.file:
+        path: '{{ install_dir }}/tomcat_{{ instance_name }}'
+        state: directory
+        recurse: true
+        owner: '{{ tomcat_user }}'
+        group: '{{ tomcat_group }}'
+    - name: Create tomcat_{{ instance_name }} service
+      vars:
+        install_path: '{{ install_dir }}/tomcat_{{ instance_name }}'
+      ansible.builtin.template:
+        src: 'tomcat.service.j2'
+        dest: '/etc/systemd/system/tomcat_{{ instance_name }}.service'
+        mode: '0644'    
+    - name: Enable tomcat_{{ instance_name }} service
+      ansible.builtin.service:
+        name: 'tomcat_{{ instance_name }}'
+        # state: reloaded
+        enabled: true
+    - name: Start tomcat_{{ instance_name }} service
+      ansible.builtin.service:
+        name: 'tomcat_{{ instance_name }}'
+        state: started
+

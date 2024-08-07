@@ -1,0 +1,13 @@
+- name: Delete temporary files and directories
+  hosts: all
+  become: true
+  vars:
+    directories:
+      - /opt/software/archives
+      - /opt/software/setups
+  tasks:
+    - name: Delete temporary directories
+      ansible.builtin.file:
+        state: absent
+        path: '{{ item }}'
+      loop: '{{ directories }}'

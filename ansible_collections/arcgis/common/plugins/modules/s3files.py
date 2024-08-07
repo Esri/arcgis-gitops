@@ -125,12 +125,12 @@ def download_s3_files(manifest: str):
 
     for filename, props in files.items():
         subfolder = props['subfolder'] if 'subfolder' in props else None
-        # sha256 = props['sha256'].lower() if 'sha256' in props else None
+        sha256 = props['sha256'].lower() if 'sha256' in props else None
         s3_key = "{0}/{1}".format(subfolder, filename) if subfolder else filename
         filepath = os.path.join(local_archives, filename)
         
         try:
-            if os.path.exists(filepath):
+            if os.path.exists(filepath) and validate_sha256(filepath, sha256):
                 output.append("Local file '{0}' already exists.".format(filepath))
             else:
                 s3_client.download_file(bucket_name, s3_key, filepath)

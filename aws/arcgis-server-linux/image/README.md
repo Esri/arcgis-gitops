@@ -16,6 +16,12 @@ Then the template uses python scripts to run SSM commands on the source EC2 inst
 4. Install ArcGIS Server
 5. Install patches for ArcGIS Server
 
+If the "install_webadaptor" variable is set to true, the template will also:
+
+1. Install OpenJDK
+2. Install Apache Tomcat
+3. Install ArcGIS Web Adaptor with name specified by "webadaptor_name" variable.
+
 Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}" SSM parameter.
 
 ## Requirements
@@ -58,3 +64,5 @@ The template uses the following SSM parameters:
 | run_as_user | User account used to run ArcGIS Server | `string` | `"arcgis"` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis-enterprise"` | no |
 | skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |
+| install_webadaptor |If true, OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor will be installed on the AMI. | `bool` | `false` | no |
+| webadaptor_name | ArcGIS Web Adaptor name | `string` | `"arcgis"` | no |

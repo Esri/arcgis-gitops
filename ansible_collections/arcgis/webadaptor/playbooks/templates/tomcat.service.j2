@@ -1,0 +1,20 @@
+# Systemd unit file for tomcat_{{ instance_name }}
+
+[Unit]
+Description={{ instance_name }} Apache Tomcat Application
+After=syslog.target network.target
+
+[Service]
+Type=forking
+
+ExecStart={{ install_path }}/bin/catalina.sh start
+ExecStop={{ install_path }}/bin/catalina.sh stop
+SuccessExitStatus=0 143
+Restart=on-failure
+RestartSec=2
+
+User={{ tomcat_user }}
+Group={{ tomcat_group}}
+
+[Install]
+WantedBy=multi-user.target

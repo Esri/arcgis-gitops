@@ -17,6 +17,8 @@
  *
  * The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, and 6443 and target groups for the listeners that target the EC2 instances.
  * Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
+ *
+ * By default the HTTPS listener on port 443 is forwarded to instance port 6443. Set the instance_https_port input variable to 443, if ArcGIS Web Adaptor on port 443 will be used with ArcGIS Server.
  *  
  * The deployment's Monitoring Subsystem consists of:
  *
@@ -176,8 +178,8 @@ resource "aws_ssm_parameter" "alb_security_group_id" {
   description = "Deployment security group Id"
 }
 
+# Create EFS file system for the deployment's file server
 resource "aws_efs_file_system" "fileserver" {
-  # creation_token = "${var.site_id}-${var.deployment_id}-fileserver"
   encrypted = true
 
   tags = {
@@ -185,6 +187,7 @@ resource "aws_efs_file_system" "fileserver" {
   }
 }
 
+# Create EFS mount targets for the EFS file system in the deployment's subnets.
 resource "aws_efs_mount_target" "fileserver" {
   count = length(local.subnets)
   file_system_id  = aws_efs_file_system.fileserver.id
@@ -192,6 +195,7 @@ resource "aws_efs_mount_target" "fileserver" {
   security_groups = [module.security_group.id]
 }
 
+# Mount /mnt/efs to the file server's EFS file mount targets on the EC2 instances.
 module "nfs_mount" {
   source          = "../../modules/nfs_mount"
   site_id         = var.site_id
@@ -283,6 +287,7 @@ resource "aws_instance" "nodes" {
   }
 }
 
+# Create Route53 record for the primary EC2 instance in the VPC private hosted zone.
 resource "aws_route53_record" "primary" {
   zone_id = data.aws_ssm_parameter.hosted_zone_id.value
   name    = "primary.${var.deployment_id}"
@@ -291,6 +296,7 @@ resource "aws_route53_record" "primary" {
   records = [aws_instance.primary.private_ip]
 }
 
+# Configure CloudWatch agent on the EC2 instances.
 module "cw_agent" {
   source        = "../../modules/cw_agent"
   platform      = "linux"
@@ -302,6 +308,7 @@ module "cw_agent" {
   ]
 }
 
+# Create CloudWatch dashboard for the deployment.
 module "dashboard" {
   source        = "../../modules/dashboard"
   platform      = "linux"

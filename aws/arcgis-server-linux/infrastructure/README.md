@@ -9,7 +9,7 @@ The module launches two SSM managed EC2 instances in the private VPC subnets or 
 The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}' SSM parameter.
 The image must be created by the Packer Template for ArcGIS Server on Linux AMI.
 
-For the primary EC2 instance the module creates "A" records in the VPC Route53 private hosted zone to make the instance addressable using permanent DNS names.
+For the primary EC2 instances the module creates "A" record in the VPC Route53 private hosted zone to make the instance addressable using permanent DNS names.
 
 > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module is applied again after the SSM parameter value was modified by a new image build.
 
@@ -17,6 +17,8 @@ A highly available EFS file system is created and mounted to the EC2 instances.
 
 The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, and 6443 and target groups for the listeners that target the EC2 instances.
 Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
+
+By default the HTTPS listener on port 443 is forwarded to instance port 6443. Set the instance_https_port input variable to 443, if ArcGIS Web Adaptor on port 443 will be used with ArcGIS Server.
 
 The deployment's Monitoring Subsystem consists of:
 
@@ -100,7 +102,7 @@ The module uses the following SSM parameters:
 | [aws_lb_listener.http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
 | [aws_lb_listener.https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_listener) | resource |
 | [aws_lb_target_group.default](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/lb_target_group) | resource |
-| [aws_route53_record.arcgis_erver](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_route53_record.arcgis_server](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_security_group.arcgis_alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group_rule.allow_arcgis_server_https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
@@ -124,6 +126,7 @@ The module uses the following SSM parameters:
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | `null` | no |
 | deployment_id | ArcGIS Server deployment Id | `string` | `"arcgis-server"` | no |
 | hosted_zone_id | The Route 53 hosted zone ID for the deployment FQDN | `string` | `null` | no |
+| instance_https_port | ArcGIS Server instance HTTPS port | `number` | `6443` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
@@ -134,6 +137,7 @@ The module uses the following SSM parameters:
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listeners of the load balancer | `string` | n/a | yes |
 | ssl_policy | Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers | `string` | `"ELBSecurityPolicy-TLS13-1-2-2021-06"` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |
+| web_context | Services web context | `string` | `"arcgis"` | no |
 
 ## Outputs
 

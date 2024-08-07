@@ -1,0 +1,39 @@
+---
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+- name: Install OpenJDK
+  hosts: all
+  vars:
+    local_repository: '/opt/software/archives'
+    jdk_version: '17.0.9+9'
+    jdk_setup_archive: 'jdk_x64_linux.tar.gz'
+    install_dir: '/opt'
+  become: true
+  tasks:
+    - name: Extract setup archive
+      ansible.builtin.unarchive:
+        src: '{{ local_repository }}/{{ jdk_setup_archive }}'
+        dest: '{{ install_dir }}'
+        remote_src: true
+        creates: '{{ install_dir }}/jdk-{{ jdk_version }}'
+    - name: Display java alternatives
+      ansible.builtin.command: 'update-alternatives --display java'
+      ignore_errors: true
+      register: display_alternatives
+    - name: Remove java alternatives
+      ansible.builtin.command: 'update-alternatives --remove-all java'
+      when: display_alternatives is succeeded
+    - name: Update java alternatives
+      ansible.builtin.command: 'update-alternatives --install /usr/bin/java java {{ install_dir }}/jdk-{{ jdk_version }}/bin/java 10'

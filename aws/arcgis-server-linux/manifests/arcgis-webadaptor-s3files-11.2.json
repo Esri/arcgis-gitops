@@ -1,0 +1,45 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "{{ local_repository }}",
+      "local_patches": "{{ local_repository }}/patches",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "{{ bucket_name }}",
+        "region": "{{ region }}"
+      },
+      "patch_notification": {
+        "products": [
+          "ArcGIS Web Adaptor (Java)"
+        ],
+        "versions": [
+          "11.2"
+        ],
+        "patches": [
+          "ArcGIS-112-WAJ-*.tar",
+          "ArcGIS-112-WAJ-*.tar.gz"
+        ],
+        "subfolder": "software/arcgis/11.2/patches"
+      },
+      "files": {
+        "ArcGIS_Web_Adaptor_Java_Linux_112_188341.tar.gz": {
+          "subfolder": "software/arcgis/11.2",
+          "sha256": "AA4DBFC91CE7ABBE156E25D8ECFCD662F1D0771EF40D1B06B06A95E7DB88254E"
+        },
+        "tomcat.tar.gz": {
+          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.48/bin/apache-tomcat-9.0.48.tar.gz",
+          "subfolder": "software/thirdparty/11.2",
+          "sha256": "9CA3AD448505E05E6D057A9D71C120FBED3F042975A4B000C7135017C96B00AA",
+          "version": "9.0.48"
+        },
+        "jdk_x64_linux.tar.gz": {
+          "url": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.9%2B9/OpenJDK17U-jdk_x64_linux_hotspot_17.0.9_9.tar.gz",
+          "subfolder": "software/thirdparty/11.2",
+          "sha256": "7B175DBE0D6E3C9C23B6ED96449B018308D8FC94A5ECD9C0DF8B8BC376C3C18A",
+          "version": "17.0.9+9"
+        }
+      }
+    }
+  }
+}

@@ -1,3 +1,4 @@
+---
 # Copyright 2024 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
@@ -11,14 +12,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
-output "arcgis_server_url" {
-  description = "ArcGIS Server URL"
-  value       = "https://${var.deployment_fqdn}/${var.web_context}"
-}
 
-output "arcgis_server_private_url" {
-  description = "ArcGIS Server private URL"
-  value       = "https://${var.deployment_fqdn}:6443/arcgis"
-}
+# This playbook unregisters all Web Adaptors from the ArcGIS Server site.
 
+- name: Unregister Web Adaptors
+  hosts: all
+  tasks:
+    - name: Unregister Web Adaptors
+      vars:
+        ansible_aws_ssm_timeout: 3600
+      no_log: false
+      ignore_errors: yes
+      arcgis.server.unregister_web_adaptors:
+        server_url: 'https://localhost:6443/arcgis'
+        admin_username: '{{ admin_username }}'
+        admin_password: '{{ admin_password }}'

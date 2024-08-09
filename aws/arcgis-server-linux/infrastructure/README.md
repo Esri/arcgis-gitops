@@ -84,7 +84,7 @@ The module uses the following SSM parameters:
 |------|--------|---------|
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
-| nfs_mount | ../../modules/nfs_mount | n/a |
+| nfs_mount | ../../modules/ansible_playbook | n/a |
 | private_server_https_alb_target | ../../modules/alb_target_group | n/a |
 | security_group | ../../modules/security_group | n/a |
 | server_https_alb_target | ../../modules/alb_target_group | n/a |

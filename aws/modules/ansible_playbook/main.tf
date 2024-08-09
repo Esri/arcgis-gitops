@@ -85,7 +85,13 @@ resource "null_resource" "ansible_playbook" {
   triggers = {
     always_run = "${timestamp()}"
   }
-    
+
+  # Wait for target SSM managed EC2 instances to become available. 
+  provisioner "local-exec" {
+    command = "python -m ssm_wait_for_target_instances -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)}"
+  }
+
+  # Run Ansible playbook on target SSM managed EC2 instances.
   provisioner "local-exec" {
     command = "ansible-playbook ${var.playbook} -i ${local_file.inventory.filename} -e @${local_sensitive_file.external_vars.filename}"
   }

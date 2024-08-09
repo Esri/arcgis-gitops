@@ -21,6 +21,7 @@ This collection has been tested against following Ansible versions: **>=2.16.6**
 | Playbook | Description |
 | --- | --- |
 | arcgis.common.clean | Deletes temporary files and directories |
+| arcgis.common.efs_mount | Mounts EFS file system |
 | arcgis.common.file | Copies local file to hosts |
 | arcgis.common.s3_files | Downloads files from S3 bucket to local directories |
 | arcgis.common.system | Configures common ArcGIS Enterprise system requirements |

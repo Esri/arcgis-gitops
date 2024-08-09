@@ -130,6 +130,28 @@ options:
   -b S3_BUCKET      Output S3 bucket
 ```
 
+## ssm_efs_mount
+
+Runs `<site id>-efs-mount` SSM command on EC2 instances in a deployment with specified roles.
+
+usage:
+
+```shell
+python -m ssm_efs_mount [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-i FILE_SYSTEM_ID] [-p MOUNT_POINT] [-b S3_BUCKET]
+```
+
+options:
+
+```shell
+  -h, --help          show this help message and exit
+  -s SITE_ID          ArcGIS Enterprise site Id
+  -d DEPLOYMENT_ID    ArcGIS Enterprise deployment Id
+  -m MACHINE_ROLES    Machine roles
+  -i FILE_SYSTEM_ID   EFS file system Id
+  -p MOUNT_POINT      Mount point
+  -b S3_BUCKET        Output S3 bucket
+```
+
 ## ssm_install_awscli
 
 Runs `<site id>-install-awscli` SSM command on EC2 instances in a deployment with specified roles.
@@ -148,28 +170,6 @@ options:
   -d DEPLOYMENT_ID  ArcGIS Enterprise deployment Id
   -m MACHINE_ROLES  Machine roles
   -b S3_BUCKET      Output S3 bucket
-```
-
-## ssm_nfs_mount
-
-Runs `<site id>-nfs-mount` SSM command on EC2 instances in a deployment with specified roles.
-
-usage:
-
-```shell
-python -m ssm_bootstrap [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-a FILE_SYSTEM_DNS] [-p MOUNT_POINT] [-b S3_BUCKET]
-```
-
-options:
-
-```shell
-  -h, --help          show this help message and exit
-  -s SITE_ID          ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID    ArcGIS Enterprise deployment Id
-  -m MACHINE_ROLES    Machine roles
-  -a FILE_SYSTEM_DNS  File system DNS
-  -p MOUNT_POINT      Mount point
-  -b S3_BUCKET        Output S3 bucket
 ```
 
 ## ssm_package
@@ -226,6 +226,25 @@ Helper functions used by scripts that run SSM commands:
 * wait_for_target_instances() - Wait until the target EC2 instances status is 'online'.
 * wait_for_command_invocations() - Wait for the command invocations to complete.
 * print_command_output() - Retrieve from S3 and prints outputs of the command invocations.
+
+## ssm_wait_for_target_instances
+
+Waits for target SSM managed EC2 instances to become available.
+
+usage:
+
+```shell
+python -m ssm_wait_for_target_instances [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES]
+```
+
+options:
+
+```shell
+  -h, --help        show this help message and exit
+  -s SITE_ID        ArcGIS Enterprise site Id
+  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment Id
+  -m MACHINE_ROLES  Machine roles
+```
 
 ## test_aws_credentials
 

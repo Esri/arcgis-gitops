@@ -1,9 +1,9 @@
 <!-- BEGIN_TF_DOCS -->
 # Terraform module nfs_mount
 
-Terraform module nfs_mount mounts an NFS target on EC2 instances in a deployment.
+Terraform module efs_mount mounts EFS file system targets on EC2 instances in a deployment.
 
-The module uses ssm_nfs_mount.py script to run {var.site-id}-nfs-mount SSM command on the deployment's EC2 instances in specific roles.
+The module uses ssm_efs_mount.py script to run {var.site-id}-efs-mount SSM command on the deployment's EC2 instances in specific roles.
 
 ## Requirements
 
@@ -35,7 +35,7 @@ On the machine where Terraform is executed:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
-| file_system_dns | File system DNS | `string` | n/a | yes |
+| file_system_id | EFS file system Id | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | mount_point | NFS mount point | `string` | `"/mnt/efs"` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |

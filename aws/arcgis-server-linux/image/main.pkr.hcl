@@ -14,12 +14,11 @@
  * 
  * Then the template uses python scripts to run SSM commands on the source EC2 instance to:
  * 
- * 1. Install AWS CLI
- * 2. Install CloudWatch Agent
- * 3. Download setups from the private repository S3 bucket.
- * 4. Install ArcGIS Server
- * 5. Install ArcGIS Server patches
- * 6. Delete unused files
+ * 1. Install CloudWatch Agent
+ * 2. Download setups from the private repository S3 bucket.
+ * 3. Install ArcGIS Server
+ * 4. Install ArcGIS Server patches
+ * 5. Delete unused files
  *
  * If the "install_webadaptor" variable is set to true, the template will also:
  *
@@ -207,6 +206,11 @@ build {
   # Install CloudWatch Agent
   provisioner "shell-local" {
     command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
+  }
+
+  # Install Amazon EFS Utils
+  provisioner "shell-local" {
+    command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonEFSUtils -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Download setups from private S3 repository and install ArcGIS Server   

@@ -1,10 +1,10 @@
 {
   "schemaVersion": "2.2",
-  "description": "Mounts NFS target on EC2 instances",
+  "description": "Mounts EFS target on EC2 instances",
   "parameters": {
-    "FileSystemDNS": {
+    "FileSystemId": {
       "type": "String",
-      "description": "DNS name of the file system"
+      "description": "EFS file system Id"
     },
     "MountPoint": {
       "type": "String",
@@ -20,7 +20,7 @@
   "mainSteps": [
     {
       "action": "aws:runShellScript",
-      "name": "NFSMount",
+      "name": "EFSMount",
       "precondition": {
         "StringEquals": [
           "platformType",
@@ -37,11 +37,12 @@
           "if [ $? -ne 0 ]; then",
           "  exit 1",
           "fi",
-          "sleep 60",
-          "mount -t nfs -o nfsvers=4.1,rsize=1048576,wsize=1048576,hard,timeo=600,retrans=2,noresvport {{ FileSystemDNS }}:/ {{ MountPoint }}",
+          "sudo mount -t efs {{ FileSystemId }} {{ MountPoint }}",
           "if [ $? -ne 0 ]; then",
           "  exit 1",
-          "fi"
+          "fi",          
+          "fs='{{ FileSystemId }}:/ {{ MountPoint }} efs _netdev,noresvport,tls,iam 0 0'",
+          "grep -q \"$fs\" /etc/fstab || echo $fs >> /etc/fstab"
         ],
         "timeoutSeconds": "{{ ExecutionTimeout }}"
       }

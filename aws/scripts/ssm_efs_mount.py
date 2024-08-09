@@ -28,12 +28,12 @@ EXECUTION_TIMEOUT = 1800
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='ssm_nfs_mount.py',
-        description='Runs <site id>-nfs-mount SSM command on EC2 instances in a deployment with specified roles.')
+        description='Runs <site id>-efs-mount SSM command on EC2 instances in a deployment with specified roles.')
 
     parser.add_argument('-s', dest='site_id', help='ArcGIS Enterprise site Id')
     parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment Id')
     parser.add_argument('-m', dest='machine_roles', help='Machine roles')
-    parser.add_argument('-a', dest='file_system_dns', help='File system DNS')
+    parser.add_argument('-i', dest='file_system_id', help='EFS file system Id')
     parser.add_argument('-p', dest='mount_point', help='Mount point')
     parser.add_argument('-b', dest='s3_bucket', help='Output S3 bucket')
 
@@ -73,11 +73,11 @@ if __name__ == '__main__':
 
     command_id = ssm_client.send_command(
         Targets=ssm_filters,
-        DocumentName=args.site_id + '-nfs-mount',
+        DocumentName=args.site_id + '-efs-mount',
         TimeoutSeconds=SEND_TIMEOUT,
-        Comment='Mounts NFS target on EC2 instances',
+        Comment='Mounts EFS targets on EC2 instances',
         Parameters = {
-            'FileSystemDNS': [args.file_system_dns],
+            'FileSystemId': [args.file_system_id],
             'MountPoint': [args.mount_point]
          },    
         OutputS3BucketName=args.s3_bucket,

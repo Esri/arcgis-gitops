@@ -195,22 +195,6 @@ resource "aws_efs_mount_target" "fileserver" {
   security_groups = [module.security_group.id]
 }
 
-# Mount /mnt/efs to the file server's EFS file mount targets on the EC2 instances.
-module "nfs_mount" {
-  source          = "../../modules/nfs_mount"
-  site_id         = var.site_id
-  deployment_id   = var.deployment_id
-  machine_roles   = ["primary", "node"]
-  file_system_dns = aws_efs_file_system.fileserver.dns_name
-  mount_point     = "/mnt/efs"
-  depends_on = [
-    aws_efs_file_system.fileserver,
-    aws_instance.primary,
-    aws_instance.nodes,
-    aws_efs_mount_target.fileserver
-  ]
-}
-
 # Create primary EC2 instance
 resource "aws_instance" "primary" {
   ami                    = nonsensitive(data.aws_ssm_parameter.ami.value)
@@ -287,6 +271,24 @@ resource "aws_instance" "nodes" {
   }
 }
 
+# Mount /mnt/efs/ to the EFS file system on the EC2 instances.
+module "nfs_mount" {
+  source        = "../../modules/ansible_playbook"
+  site_id       = var.site_id
+  deployment_id = var.deployment_id
+  machine_roles = ["primary", "node"]
+  playbook      = "arcgis.common.efs_mount"
+  external_vars = {
+    mount_point  = "/mnt/efs/"
+    file_system_id = aws_efs_file_system.fileserver.id
+  }
+  depends_on = [
+    aws_efs_file_system.fileserver,
+    aws_efs_mount_target.fileserver,
+    aws_instance.primary,
+    aws_instance.nodes
+  ]  
+}
 # Create Route53 record for the primary EC2 instance in the VPC private hosted zone.
 resource "aws_route53_record" "primary" {
   zone_id = data.aws_ssm_parameter.hosted_zone_id.value

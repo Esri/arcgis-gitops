@@ -1,9 +1,9 @@
 /*
  * # Terraform module nfs_mount
  * 
- * Terraform module nfs_mount mounts an NFS target on EC2 instances in a deployment.
- *
- * The module uses ssm_nfs_mount.py script to run {var.site-id}-nfs-mount SSM command on the deployment's EC2 instances in specific roles.
+ * Terraform module efs_mount mounts EFS file system targets on EC2 instances in a deployment.
+ * 
+ * The module uses ssm_efs_mount.py script to run {var.site-id}-efs-mount SSM command on the deployment's EC2 instances in specific roles.
  *
  * ## Requirements
  *
@@ -50,6 +50,6 @@ resource "null_resource" "nfs_mount" {
   }
     
   provisioner "local-exec" {
-    command = "python -m ssm_nfs_mount -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -a ${var.file_system_dns} -p ${var.mount_point} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
+    command = "python -m ssm_efs_mount -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -i ${var.file_system_id} -p ${var.mount_point} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
   }
 }

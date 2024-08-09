@@ -22,7 +22,7 @@
  * | ${var.site_id}-bootstrap | Installs Chef/Cinc Client and Chef Cookbooks for ArcGIS on EC2 instances |
  * | ${var.site_id}-clean-up | Deletes temporary files created by Chef runs |
  * | ${var.site_id}-install-awscli | Installs AWS CLI on EC2 instances |
- * | ${var.site_id}-nfs-mount | Mounts NFS target on EC2 instances |
+ * | ${var.site_id}-efs-mount | Mounts EFS targets on EC2 instances |
  * | ${var.site_id}-run-chef | Runs Chef in solo ode with specified JSON attributes |
  *
  * ## Requirements
@@ -96,10 +96,10 @@ resource "aws_ssm_document" "install_awscli_command" {
   content = file("${path.module}/commands/install-awscli.json")
 }
 
-resource "aws_ssm_document" "nfs_mount_command" {
-  name          = "${var.site_id}-nfs-mount"
+resource "aws_ssm_document" "efs_mount_command" {
+  name          = "${var.site_id}-efs-mount"
   document_type = "Command"
-  content = file("${path.module}/commands/nfs-mount.json")
+  content = file("${path.module}/commands/efs-mount.json")
 }
 
 resource "aws_ssm_document" "bootstrap_command" {

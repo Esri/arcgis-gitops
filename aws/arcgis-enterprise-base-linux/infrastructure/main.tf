@@ -84,7 +84,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 terraform {
   backend "s3" {
     key = "terraform/arcgis-enterprise/arcgis-enterprise-base/infrastructure.tfstate"
@@ -147,8 +147,8 @@ data "aws_ami" "ami" {
 }
 
 locals {
-  subnets_count = 2
-  primary_subnet = length(var.subnet_ids) < 2 ? nonsensitive(data.aws_ssm_parameter.private_subnets[0].value) : var.subnet_ids[0]  
+  subnets_count  = 2
+  primary_subnet = length(var.subnet_ids) < 2 ? nonsensitive(data.aws_ssm_parameter.private_subnets[0].value) : var.subnet_ids[0]
   standby_subnet = length(var.subnet_ids) < 2 ? nonsensitive(data.aws_ssm_parameter.private_subnets[1].value) : var.subnet_ids[1]
   # Get values of ArcGISTemplateId and ArcGISVersion tags from the AMI to copy them to the EC2 instances.
   arcgis_template_id = "arcgis-enterprise-base"
@@ -192,13 +192,13 @@ resource "aws_efs_mount_target" "standby" {
   security_groups = [module.security_group.id]
 }
 
-module "nfs_mount" {
-  source          = "../../modules/nfs_mount"
-  site_id         = var.site_id
-  deployment_id   = var.deployment_id
-  machine_roles   = ["primary", "standby"]
-  file_system_dns = aws_efs_file_system.fileserver.dns_name
-  mount_point     = "/mnt/efs"
+module "efs_mount" {
+  source         = "../../modules/efs_mount"
+  site_id        = var.site_id
+  deployment_id  = var.deployment_id
+  machine_roles  = ["primary", "standby"]
+  file_system_id = aws_efs_file_system.fileserver.id
+  mount_point    = "/mnt/efs/"
   depends_on = [
     aws_efs_file_system.fileserver,
     aws_instance.primary,
@@ -325,11 +325,11 @@ module "cw_agent" {
 }
 
 module "dashboard" {
-  source        = "../../modules/dashboard"
-  platform      = "linux"
-  site_id       = var.site_id
-  deployment_id = var.deployment_id
-  alb_arn       = aws_lb.alb.arn
+  source         = "../../modules/dashboard"
+  platform       = "linux"
+  site_id        = var.site_id
+  deployment_id  = var.deployment_id
+  alb_arn        = aws_lb.alb.arn
   log_group_name = module.cw_agent.log_group_name
   depends_on = [
     module.cw_agent

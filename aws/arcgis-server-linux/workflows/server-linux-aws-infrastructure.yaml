@@ -52,9 +52,14 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ github.ref_name }}
-    - name: Install boto3
+    - name: Install Boto3 and Ansible
       id: install-boto3
-      run: pip install boto3
+      run: |
+        pip install boto3
+        pip install "ansible>=9.0,<10.0"
+    - name: Install Ansible Collections
+      id: install-collections
+      run: ansible-galaxy collection install ${{ github.workspace }}/ansible_collections/arcgis -p /usr/share/ansible/collections
     - name: Terraform Init
       id: init
       run: |

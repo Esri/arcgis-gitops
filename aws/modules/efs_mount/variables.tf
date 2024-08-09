@@ -37,8 +37,8 @@ variable "machine_roles" {
   type = list(string)
 }   
 
-variable "file_system_dns" {
-  description = "File system DNS"
+variable "file_system_id" {
+  description = "EFS file system Id"
   type = string
 }
 

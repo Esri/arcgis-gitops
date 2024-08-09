@@ -3,7 +3,7 @@
 
 The Terraform module provisions AWS resources for highly available base ArcGIS Enterprise deployment on Linux platform.
 
-![Infrastructure for Base ArcGIS Enterprise on Linux](arcgis-enterprise-base-linux-infrastructure.png "Infrastructure for Base ArcGIS Enterprise Infrastructure on Linux")  
+![Infrastructure for Base ArcGIS Enterprise on Linux](arcgis-enterprise-base-linux-infrastructure.png "Infrastructure for Base ArcGIS Enterprise on Linux")  
 
 The module launches two SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
 The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}' SSM parameter.
@@ -82,7 +82,7 @@ The module uses the following SSM parameters:
 |------|--------|---------|
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
-| nfs_mount | ../../modules/nfs_mount | n/a |
+| efs_mount | ../../modules/efs_mount | n/a |
 | portal_https_alb_target | ../../modules/alb_target_group | n/a |
 | private_portal_https_alb_target | ../../modules/alb_target_group | n/a |
 | private_server_https_alb_target | ../../modules/alb_target_group | n/a |

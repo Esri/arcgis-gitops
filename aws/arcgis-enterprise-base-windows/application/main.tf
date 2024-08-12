@@ -607,6 +607,7 @@ module "arcgis_enterprise_primary" {
         admin_username                 = var.admin_username
         admin_password                 = var.admin_password
         authorization_file             = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
+        authorization_options          = var.server_authorization_options
         keystore_file                  = var.keystore_file_path != null ? local.keystore_file : ""
         keystore_password              = var.keystore_file_password
         root_cert                      = local.root_cert
@@ -748,6 +749,7 @@ module "arcgis_enterprise_standby" {
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         authorization_file          = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
+        authorization_options       = var.server_authorization_options
         keystore_file               = var.keystore_file_path != null ? local.keystore_file : ""
         keystore_password           = var.keystore_file_password
         root_cert                   = local.root_cert

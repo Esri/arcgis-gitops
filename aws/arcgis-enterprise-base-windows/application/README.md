@@ -133,6 +133,7 @@ The module uses the following SSM parameters:
 | security_question | Primary ArcGIS Enterprise administrator security question | `string` | `"What city were you born in?"` | no |
 | security_question_answer | Primary ArcGIS Enterprise administrator security question answer | `string` | n/a | yes |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
+| server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 
 ## Outputs

@@ -276,6 +276,7 @@ module "arcgis_server_primary" {
   external_vars = {
     install_dir        = "/opt"
     authorization_file = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
+    authorization_options = var.server_authorization_options
     admin_username     = var.admin_username
     admin_password     = var.admin_password
     directories_root   = "${local.mount_point}/gisdata/arcgisserver"
@@ -311,6 +312,7 @@ module "arcgis_server_node" {
   external_vars = {
     install_dir        = "/opt"
     authorization_file = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
+    authorization_options = var.server_authorization_options
     admin_username     = var.admin_username
     admin_password     = var.admin_password
     primary_server_url = "https://${local.primary_hostname}:6443/arcgis"

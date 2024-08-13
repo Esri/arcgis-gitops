@@ -29,17 +29,14 @@
     keystore_file: ''
     keystore_password: ''
     cert_alias: ''
+    authorization_options: ''
   tasks:
     - name: Authorize ArcGIS Server
       become: true
       become_user: '{{ run_as_user }}'
       vars:
         ansible_aws_ssm_timeout: 600
-      ansible.builtin.command:
-        argv:
-          - '{{ install_dir }}/arcgis/server/tools/authorizeSoftware'
-          - -f
-          - '{{ authorization_file }}'
+      ansible.builtin.command: '{{ install_dir }}/arcgis/server/tools/authorizeSoftware -f {{ authorization_file }} {{ authorization_options }}'
       register: authorize_software
       changed_when: authorize_software.rc == 0
     - name: Start arcgisserver service

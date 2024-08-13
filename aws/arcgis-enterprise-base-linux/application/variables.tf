@@ -95,6 +95,13 @@ variable "server_authorization_file_path" {
   type        = string
 }
 
+variable "server_authorization_options" {
+  description = "Additional ArcGIS Server software authorization command line options"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "portal_authorization_file_path" {
   description = "Local path of Portal for ArcGIS authorization file"
   type        = string

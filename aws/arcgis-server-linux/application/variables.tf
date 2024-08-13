@@ -165,6 +165,13 @@ variable "server_authorization_file_path" {
   type        = string
 }
 
+variable "server_authorization_options" {
+  description = "Additional ArcGIS Server software authorization command line options"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
 variable "server_functions" {
   description = "Functions of the federated server"
   type        = list(string)

@@ -117,6 +117,7 @@ The module uses the following SSM parameters:
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server | `string` | `null` | no |
 | run_as_user | User name for the account used to run ArcGIS Server. | `string` | `"arcgis"` | no |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
+| server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
 | server_functions | Functions of the federated server | `list(string)` | `[]` | no |
 | server_role | ArcGIS Server role | `string` | `""` | no |
 | services_dir_enabled | Enable REST handler services directory | `bool` | `true` | no |

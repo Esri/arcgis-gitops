@@ -43,10 +43,7 @@ jobs:
         PASSCODE=$(jq -r '.passcode' $CONFIG_FILE)
         BACKUP=$(jq -r '.backup' $CONFIG_FILE)
         TIMEOUT=$(jq -r '.timeout' $CONFIG_FILE)
-        if [ "$BACKUP" == "null" ] || [ "$BACKUP" == "" ]; then
-          BACKUP_ARG=""
-        else
-          BACKUP_ARG="--backup $BACKUP"
-        fi 
+        [[ "$STORE" == "null" || "$STORE" == "" ]] && STORE_ARG="" || STORE_ARG="--store $STORE"
+        [[ "$BACKUP" == "null" || "$BACKUP" == "" ]] && BACKUP_ARG="" || BACKUP_ARG="--backup $BACKUP"
         aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
-        kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis restore-organization --store "$STORE" $BACKUP_ARG --passcode "$PASSCODE" --wait --timeout $TIMEOUT
+        kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis restore-organization $STORE_ARG $BACKUP_ARG --passcode "$PASSCODE" --wait --timeout $TIMEOUT

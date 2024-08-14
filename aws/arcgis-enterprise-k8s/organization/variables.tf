@@ -163,6 +163,11 @@ variable "admin_password" {
     condition     = can(regex("\\d", var.admin_password))
     error_message = "The admin_password value must contain at least one digit."
   }
+
+  validation {
+    condition     = can(regex("[^A-Za-z0-9]", var.admin_password))
+    error_message = "The admin_password value must contain at least one special character."
+  }
 }
 
 variable "admin_email" {

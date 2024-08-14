@@ -46,5 +46,6 @@ jobs:
         PASSCODE=$(jq -r '.passcode' $CONFIG_FILE)
         RETENTION=$(jq -r '.retention' $CONFIG_FILE)
         DESCRIPTION=$(jq -r '.description' $CONFIG_FILE)
+        [[ "$STORE" == "null" || "$STORE" == "" ]] && STORE_ARG="" || STORE_ARG="--store $STORE"
         aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
-        kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis create-backup --store "$STORE" --backup "$BACKUP" --passcode "$PASSCODE" --description "$DESCRIPTION" --retention $RETENTION --wait
+        kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis create-backup $STORE_ARG --backup "$BACKUP" --passcode "$PASSCODE" --description "$DESCRIPTION" --retention $RETENTION --wait

@@ -5,5 +5,5 @@
     "prefix": "enterprise-k8s-aws-backup",
     "retention": -1,
     "site_id": "arcgis-enterprise",
-    "store": "s3-backup-store"
+    "store": null
 }

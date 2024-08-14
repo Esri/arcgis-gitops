@@ -3,6 +3,6 @@
     "deployment_id": "arcgis-enterprise-k8s",
     "passcode": "<passcode>",
     "site_id": "arcgis-enterprise",
-    "store": "s3-backup-store",
+    "store": null,
     "timeout": 14400
 }

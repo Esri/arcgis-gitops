@@ -110,9 +110,12 @@ locals {
   container_registry_username = "AWS"
   container_registry_password = "AWS"
 
-  # Support for cloud stores was added at ArcGIS Enterprise on Kubernetes 11.2. 
-  # The cloud stores are not supported in versions 1.1.x of the Helm charts. 
-  configure_cloud_stores = !startswith(var.helm_charts_version, "1.1.")
+  configure_cloud_stores = true
+
+  app_version = yamldecode(file("./helm-charts/arcgis-enterprise/${var.helm_charts_version}/Chart.yaml")).appVersion
+  backup_store_suffix = replace(local.app_version, ".", "-")
+  backup_store = "s3-backup-store-${local.backup_store_suffix}"
+  backup_root_dir = "${var.deployment_id}/${local.app_version}"
 }
 
 resource "kubernetes_secret" "admin_cli_credentials" {
@@ -328,10 +331,10 @@ module "register_s3_backup_store" {
   admin_cli_pod = kubernetes_pod.enterprise_admin_cli.metadata[0].name
   command = [
     "gis", "register-s3-backup-store",
-    "--store", "s3-backup-store",
+    "--store", local.backup_store,
     "--bucket", nonsensitive(data.aws_ssm_parameter.s3_backup.value),
     "--region", data.aws_region.current.name,
-    "--root", var.deployment_id,
+    "--root", local.backup_root_dir,
     "--is-default"
   ]
   depends_on = [

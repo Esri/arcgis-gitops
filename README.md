@@ -18,7 +18,7 @@ For the supported ArcGIS Enterprise deployment options the workflows provide:
 
 ## Instructions
 
-The workflows designed to be used together to achieve a specific goal are grouped into *templates*. The templates are organized by cloud provider and ArcGIS application.
+The workflows designed to be used together to achieve a specific goal are grouped into *templates*.
 
 Refer to the READMEs of the cloud platform templates for specific usage instructions:
 

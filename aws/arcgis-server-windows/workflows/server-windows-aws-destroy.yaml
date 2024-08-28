@@ -1,0 +1,64 @@
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: server-windows-aws-destroy
+
+on:
+  workflow_dispatch:
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
+  ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  APPLICATION_CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-windows/application.tfvars.json
+  INFRASTRUCTURE_CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-windows/infrastructure.tfvars.json
+
+concurrency:
+  group: ${{ github.ref_name }}
+
+jobs:
+  destroy:
+    name: Destroy Deployment
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Install boto3
+        id: install-boto3
+        run: pip install boto3
+      - name: Destroy Application
+        id: application-destroy
+        working-directory: aws/arcgis-server-windows/application
+        run: |
+          SITE_ID=$(jq -r '.site_id' $APPLICATION_CONFIG_FILE)
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $APPLICATION_CONFIG_FILE)
+          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/application.tfstate" -backend-config="region=$AWS_DEFAULT_REGION"
+          terraform destroy -var-file $APPLICATION_CONFIG_FILE -auto-approve
+      - name: Destroy Infrastructure
+        id: infrastructure-destroy
+        working-directory: aws/arcgis-server-windows/infrastructure
+        run: |
+          SITE_ID=$(jq -r '.site_id' $INFRASTRUCTURE_CONFIG_FILE)
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $INFRASTRUCTURE_CONFIG_FILE)
+          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+          terraform destroy -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve

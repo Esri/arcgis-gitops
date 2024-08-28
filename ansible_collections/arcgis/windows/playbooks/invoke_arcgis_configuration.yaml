@@ -1,0 +1,51 @@
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This playbook runs ArcGIS.Invoke-ArcGISConfiguration cmdlet with specified
+# configuration parameters file.
+
+- name: Run Invoke-ArcGISConfiguration cmdlet
+  hosts: all
+  vars:
+    configuration_parameters_file: '/tmp/config.json'
+    install_mode: 'Install' # Install | InstallLicense | InstallLicenseConfigure | Uninstall | Upgrade
+    execution_timeout: 7200
+  tasks:
+    - name: Create temporary directory
+      ansible.windows.win_tempfile:
+        state: directory
+      register: temp_dir
+    - name: Copy configuration JSON file to host
+      ansible.windows.win_copy:
+        src: '{{ configuration_parameters_file }}'
+        dest: '{{ temp_dir.path }}\{{ configuration_parameters_file | basename }}'  
+    - name: Run Invoke-ArcGISConfiguration cmdlet
+      ansible.windows.win_powershell:
+        script: |
+          Invoke-ArcGISConfiguration -ConfigurationParametersFile {{ temp_dir.path }}\{{ configuration_parameters_file | basename }} -Mode {{ install_mode }}
+        error_action: stop
+      vars:
+        ansible_aws_ssm_timeout: '{{ execution_timeout }}'
+      register: run_result
+    - name: Print stdout
+      ansible.builtin.debug:
+        msg: "{{ run_result.host_out.split('\r\n') }}"
+    - name: Print stderr
+      ansible.builtin.debug:
+        msg: "{{ run_result.host_err.split('\r\n') }}"
+    # - name: Remove temporary directory
+    #   ansible.windows.win_file:
+    #     path: '{{ temp_dir.path }}'
+    #     state: absent
+      

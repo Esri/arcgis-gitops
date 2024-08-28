@@ -1,0 +1,39 @@
+{
+    "arcgis": {
+        "repository": {
+            "local_archives": "{{ local_archives }}",
+            "local_patches": "{{ local_archives }}\\Patches",
+            "server": {
+                "url": "https://downloads.arcgis.com",
+                "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+                "s3bucket": "{{ bucket_name }}",
+                "region": "{{ region }}"
+            },
+            "patch_notification": {
+                "products": [
+                    "ArcGIS Server"
+                ],
+                "versions": [
+                    "11.3"
+                ],
+                "patches": [
+                    "ArcGIS-113-S-*.msp"
+                ],
+                "subfolder": "software/arcgis/11.3/patches"
+            },
+            "files": {
+                "ArcGIS_Server_Windows_113_190188.exe": {
+                    "subfolder": "software/arcgis/11.3",
+                    "sha256": "1CF802483B6A7AAB946104BDCC8772224DB475049A9895B16D464FD1A3D7AA57"
+                },
+                "ArcGIS_Server_Windows_113_190188.exe.001": {
+                    "subfolder": "software/arcgis/11.3",
+                    "sha256": "DD62706E071A458444E7C215967D805213596D637C7C68421788177ED6E4DD51"
+                }
+            }
+        }
+    },
+    "run_list": [
+        "recipe[arcgis-repository::s3files2]"
+    ]
+}

@@ -93,6 +93,6 @@ resource "null_resource" "ansible_playbook" {
 
   # Run Ansible playbook on target SSM managed EC2 instances.
   provisioner "local-exec" {
-    command = "ansible-playbook ${var.playbook} -i ${local_file.inventory.filename} -e @${local_sensitive_file.external_vars.filename}"
+    command = "ansible-playbook ${var.playbook} -vvv -i ${local_file.inventory.filename} -e @${local_sensitive_file.external_vars.filename}"
   }
 }

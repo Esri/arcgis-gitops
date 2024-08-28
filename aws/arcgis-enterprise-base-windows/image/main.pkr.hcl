@@ -17,7 +17,7 @@
  * 1. Install AWS CLI
  * 2. Install CloudWatch Agent
  * 3. Install Cinc Client and Chef Cookbooks for ArcGIS
- * 4. Download setups from the private repository S3 bucket.
+ * 4. Download setups from the private repository S3 bucket
  * 5. Install base ArcGIS Enterprise applications
  * 6. Install patches for the base ArcGIS Enterprise applications
  * 7. Delete unused files, uninstall Cinc Client, run sysprep

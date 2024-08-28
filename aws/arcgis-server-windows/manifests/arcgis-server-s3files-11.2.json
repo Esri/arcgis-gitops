@@ -1,0 +1,32 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "{{ local_archives }}",
+      "local_patches": "{{ local_archives }}\\Patches",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "{{ bucket_name }}",
+        "region": "{{ region }}"
+      },
+      "patch_notification": {
+        "products": [
+          "ArcGIS Server"
+        ],
+        "versions": [
+          "11.2"
+        ],
+        "patches": [
+          "ArcGIS-112-S-*.msp"
+        ],
+        "subfolder": "software/arcgis/11.2/patches"
+      },
+      "files": {
+        "ArcGIS_Server_Windows_112_188239.exe": {
+          "subfolder": "software/arcgis/11.2",
+          "sha256": "921DEBEE6085F1DD3C0BC9C3E1AF7C0476DCC587D9430EF4ECE179D6A6E4A45C"
+        }
+      }
+    }
+  }
+}

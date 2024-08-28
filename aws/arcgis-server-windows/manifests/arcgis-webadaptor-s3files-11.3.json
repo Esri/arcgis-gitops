@@ -1,0 +1,42 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "{{ local_archives }}",
+      "local_patches": "{{ local_archives }}\\Patches",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "{{ bucket_name }}",
+        "region": "{{ region }}"
+      },
+      "patch_notification": {
+        "products": [
+          "ArcGIS Web Adaptor (IIS)"
+        ],
+        "versions": [
+          "11.3"
+        ],
+        "patches": [
+          "ArcGIS-113-*.msp"
+        ],
+        "subfolder": "software/arcgis/11.3/patches"
+      },
+      "files": {
+        "ArcGIS_Web_Adaptor_for_Microsoft_IIS_113_190234.exe": {
+          "subfolder": "software/arcgis/11.3",
+          "sha256": "54065715E4E01CE1F43587A25435DA25171273D00A6EECD357B836CD8C18F87B"
+        },
+        "dotnet-hosting-win.exe": {
+          "url": "https://download.visualstudio.microsoft.com/download/pr/2a7ae819-fbc4-4611-a1ba-f3b072d4ea25/32f3b931550f7b315d9827d564202eeb/dotnet-hosting-8.0.0-win.exe",
+          "subfolder": "software/thirdparty/11.3",
+          "sha256": "A810F02F09DF30E940D23E768470B0F120B0F5B945B60EC24ED546E0B30903BF"
+        },
+        "WebDeploy_amd64_en-US.msi": {
+          "url": "https://download.microsoft.com/download/0/1/D/01DC28EA-638C-4A22-A57B-4CEF97755C6C/WebDeploy_amd64_en-US.msi",
+          "subfolder": "software/thirdparty/11.3",
+          "sha256": "2150F9D1AB67E1B7B63559FB977BA9ADC49F2B064FE2669A2E70D313A36B9A3D"
+        }
+      }
+    }
+  }
+}

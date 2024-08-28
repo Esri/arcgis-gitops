@@ -1,0 +1,55 @@
+---
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# This playbook installs ArcGIS PowerShell module on the host.
+
+- name: Install ArcGIS PowerShell module
+  hosts: all
+  vars:
+    arcgis_powershell_zip_path: "{{ lookup('ansible.builtin.env', 'ARCGIS_POWERSHELL_ZIP_PATH') }}"
+    powershell_modules_folder: 'C:\Program Files\WindowsPowerShell\Modules'
+    trusted_hosts: '*'
+  tasks:
+  - name: Create temporary directory
+    ansible.windows.win_tempfile:
+      state: directory
+    register: temp_dir
+  - name: Copy ArcGIS PowerShell zip archive to the machine
+    ansible.windows.win_copy:
+      src: '{{ arcgis_powershell_zip_path }}'
+      dest: '{{ temp_dir.path }}\{{ arcgis_powershell_zip_path | basename }}'
+  - name: Extract ArcGIS PowerShell zip archive
+    community.windows.win_unzip:
+      src: '{{ temp_dir.path }}\{{ arcgis_powershell_zip_path | basename }}'
+      dest: '{{ temp_dir.path }}'
+  - name: Get subfolder name in the extracted archive
+    ansible.windows.win_find:
+      paths: '{{ temp_dir.path }}'
+      file_type: directory
+      patterns: ['arcgis-powershell-dsc-release-*']
+    register: subfolder
+  - name: Install ArcGIS PowerShell module
+    ansible.windows.win_copy:
+      src: '{{ temp_dir.path }}\{{ subfolder.files[0].filename }}\Modules\ArcGIS'
+      dest: '{{ powershell_modules_folder }}'
+      remote_src: true
+  - name: Remove temporary directory
+    ansible.windows.win_file:
+      path: '{{ temp_dir.path }}'
+      state: absent
+  - name: Enable WinRM
+    ansible.windows.win_command: C:\Windows\System32\winrm.cmd quickconfig -quiet
+  - name: Update WinRM trusted hosts 
+    ansible.windows.win_command: C:\Windows\System32\winrm.cmd s winrm/config/client @{TrustedHosts="{{ trusted_hosts }}"}

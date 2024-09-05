@@ -212,8 +212,6 @@ module "s3_copy_files" {
   source                 = "../../modules/s3_copy_files"
   bucket_name            = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
   index_file             = local.index_file_path
-  arcgis_online_username = var.arcgis_online_username
-  arcgis_online_password = var.arcgis_online_password
 }
 
 # Install Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment

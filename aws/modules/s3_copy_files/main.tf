@@ -40,8 +40,6 @@ terraform {
 }
 
 locals {
-  username_param = var.arcgis_online_username == null ? "" : "-u ${var.arcgis_online_username}"
-  password_param = var.arcgis_online_password == null ? "" : "-p ${var.arcgis_online_password}"
 }
 
 resource "null_resource" "s3_copy_files" {
@@ -50,6 +48,6 @@ resource "null_resource" "s3_copy_files" {
   }
     
   provisioner "local-exec" {
-    command = "python -m s3_copy_files -f ${var.index_file} -b ${var.bucket_name} ${local.username_param} ${local.password_param}"
+    command = "python -m s3_copy_files -f ${var.index_file} -b ${var.bucket_name}"
   }
 }

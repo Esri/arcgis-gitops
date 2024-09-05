@@ -22,7 +22,7 @@ DOCUMENTATION = r'''
 ---
 module: s3files
 
-short_description: Dowloads files from S3 bucket to local directories
+short_description: Downloads files from S3 bucket to local directories
 
 version_added: "0.1.0"
 
@@ -41,7 +41,7 @@ options:
 
 EXAMPLES = r'''
 - name: Download setups from private S3 repository
-  s3files:
+  arcgis.common.s3files:
     manifest: '/opt/software/arcgis-server-s3files-11.2.json'
 '''
 

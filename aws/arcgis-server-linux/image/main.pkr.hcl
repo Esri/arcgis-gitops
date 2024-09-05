@@ -218,7 +218,7 @@ build {
     inline = [
       "echo '${local.server_vars}' > /tmp/server_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
-      "python -m s3_copy_files -f ${local.arcgis_server_s3_files} -u ${var.arcgis_online_username} -p ${var.arcgis_online_password} -b ${data.amazon-parameterstore.s3_repository.value}",      
+      "python -m s3_copy_files -f ${local.arcgis_server_s3_files} -b ${data.amazon-parameterstore.s3_repository.value}",      
       "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
       "ansible-playbook arcgis.common.system -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
       "ansible-playbook arcgis.server.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",      
@@ -235,7 +235,7 @@ build {
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
       "JDK_VERSION=$(cat ${local.arcgis_webadaptor_s3_files} | jq -r '.arcgis.repository.files.\"jdk_x64_linux.tar.gz\".version')",
       "TOMCAT_VERSION=$(cat ${local.arcgis_webadaptor_s3_files} | jq -r '.arcgis.repository.files.\"tomcat.tar.gz\".version')",
-      "python -m s3_copy_files -f ${local.arcgis_webadaptor_s3_files} -u ${var.arcgis_online_username} -p ${var.arcgis_online_password} -b ${data.amazon-parameterstore.s3_repository.value}",
+      "python -m s3_copy_files -f ${local.arcgis_webadaptor_s3_files} -b ${data.amazon-parameterstore.s3_repository.value}",
       "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
       "ansible-playbook arcgis.webadaptor.openjdk -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml -e jdk_version=$JDK_VERSION",
       "ansible-playbook arcgis.webadaptor.tomcat -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml -e tomcat_version=$TOMCAT_VERSION",

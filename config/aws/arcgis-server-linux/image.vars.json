@@ -1,6 +1,4 @@
 {
-    "arcgis_online_password": null,
-    "arcgis_online_username": null,
     "arcgis_server_patches": [
         "ArcGIS-113-S-*-linux.tar"
     ],

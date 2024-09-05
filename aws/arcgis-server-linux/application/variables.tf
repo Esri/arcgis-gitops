@@ -39,19 +39,6 @@ variable "admin_username" {
   }
 }
 
-variable "arcgis_online_password" {
-  description = "ArcGIS Online user password"
-  type        = string
-  sensitive   = true
-  default     = null
-}
-
-variable "arcgis_online_username" {
-  description = "ArcGIS Online user name"
-  type        = string
-  default     = null
-}
-
 variable "arcgis_server_patches" {
   description = "File names of ArcGIS Server patches to install."
   type        = list(string)

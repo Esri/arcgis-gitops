@@ -49,4 +49,4 @@ jobs:
         id: packer
         run: |
           packer init .
-          packer build -var-file=$CONFIG_FILE -var=arcgis_online_username=$ARCGIS_ONLINE_USERNAME -var=arcgis_online_password=$ARCGIS_ONLINE_PASSWORD .
+          packer build -var-file=$CONFIG_FILE .

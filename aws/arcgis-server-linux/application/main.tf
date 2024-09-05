@@ -141,8 +141,6 @@ module "copy_server_files" {
   source                 = "../../modules/s3_copy_files"
   bucket_name            = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
   index_file             = local.server_manifest_path
-  arcgis_online_username = var.arcgis_online_username
-  arcgis_online_password = var.arcgis_online_password
 }
 
 # Download ArcGIS Server setup archives from the private repository S3 bucket

@@ -31,8 +31,6 @@ On the machine where Terraform is executed:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| arcgis_online_password | ArcGIS Online user password | `string` | `null` | no |
-| arcgis_online_username | ArcGIS Online user name | `string` | `null` | no |
 | bucket_name | S3 bucket name | `string` | n/a | yes |
 | index_file | Index file local path | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

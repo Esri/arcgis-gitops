@@ -97,8 +97,6 @@ The module uses the following SSM parameters:
 | admin_email | ArcGIS Server administrator e-mail address | `string` | n/a | yes |
 | admin_password | Primary ArcGIS Server administrator user password | `string` | n/a | yes |
 | admin_username | Primary ArcGIS Server administrator user name | `string` | `"siteadmin"` | no |
-| arcgis_online_password | ArcGIS Online user password | `string` | `null` | no |
-| arcgis_online_username | ArcGIS Online user name | `string` | `null` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Server version | `string` | `"11.3"` | no |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |

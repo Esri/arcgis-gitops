@@ -60,7 +60,7 @@ jobs:
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/application.tfstate" -backend-config="region=$AWS_DEFAULT_REGION"
-        terraform apply -var-file $CONFIG_FILE -var=arcgis_online_username=$ARCGIS_ONLINE_USERNAME -var=arcgis_online_password=$ARCGIS_ONLINE_PASSWORD -auto-approve
+        terraform apply -var-file $CONFIG_FILE -auto-approve
     - name: Terraform Output
       id: output  
       run: echo arcgis_portal_url=$(terraform output arcgis_portal_url) >> $GITHUB_OUTPUT

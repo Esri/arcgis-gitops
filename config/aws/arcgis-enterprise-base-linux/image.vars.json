@@ -2,8 +2,6 @@
     "arcgis_data_store_patches": [
         "ArcGIS-113-DS-*-linux.tar"
     ],
-    "arcgis_online_password": null,
-    "arcgis_online_username": null,
     "arcgis_portal_patches": [
         "ArcGIS-113-PFA-*-linux.tar"
     ],

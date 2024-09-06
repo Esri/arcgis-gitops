@@ -177,7 +177,7 @@ build {
 
   # Copy files to private S3 repository
   provisioner "shell-local" {
-    command = "python -m s3_copy_files -f ${local.s3_files_json_path} -u ${var.arcgis_online_username} -p ${var.arcgis_online_password} -b ${data.amazon-parameterstore.s3_repository.value}"
+    command = "python -m s3_copy_files -f ${local.s3_files_json_path} -b ${data.amazon-parameterstore.s3_repository.value}"
   }
 
   # Install AWS CLI

@@ -17,7 +17,7 @@
 # In the directory it creates a manifest file from the provided template,
 # replacing the S3 bucket name, region, and local repository path with the
 # provided values. Then it uses arcgis.common.s3files module to download
-# ArcGIS Server setups and patches from the S3 bucket to the local repository.
+# setups and patches from the S3 bucket to the local repository.
 
 - name: Download files from S3 bucket to local directories
   hosts: all

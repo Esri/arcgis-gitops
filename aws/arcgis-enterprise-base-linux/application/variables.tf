@@ -238,19 +238,6 @@ variable "arcgis_web_adaptor_patches" {
   default     = []
 }
 
-variable "arcgis_online_username" {
-  description = "ArcGIS Online user name"
-  type        = string
-  default     = null
-}
-
-variable "arcgis_online_password" {
-  description = "ArcGIS Online user password"
-  type        = string
-  sensitive   = true
-  default     = null
-}
-
 variable "config_store_type" {
   description = "ArcGIS Server configuration store type"
   type        = string

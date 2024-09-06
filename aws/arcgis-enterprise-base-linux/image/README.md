@@ -50,8 +50,6 @@ The template uses the following SSM parameters:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | arcgis_data_store_patches |File names of ArcGIS Data Store patches to install | `string` | `[]` | no |
-| arcgis_online_password | ArcGIS Online user password | `string` | null | no |
-| arcgis_online_username | ArcGIS Online user name | `string` | null | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `string` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"11.3"` | no |

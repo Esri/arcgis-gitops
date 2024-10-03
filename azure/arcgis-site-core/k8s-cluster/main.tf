@@ -17,7 +17,7 @@
  * ## Requirements
  *
  * The subnets and virtual network Ids are retrieved from Azure Key Vault secrets. The key vault, subnets, and other
- * network infrastructure resources must be created by the [arcgis-site-core](../arcgis-site-core) module.
+ * network infrastructure resources must be created by the [arcgis-site-core](../infrastructure-core) module.
  * 
  * On the machine where Terraform is executed:
  *

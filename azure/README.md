@@ -73,8 +73,8 @@ Configure secrets and variables for GitHub Actions in the repository settings.
 
 | Name                                  | Description                                    |
 |---------------------------------------|------------------------------------------------|
-| AZURE_CLIENT_ID                       | Service Principal Client Id                    |
-| AZURE_CLIENT_SECRET                   | Service Principal Client secret                |
+| AZURE_CLIENT_ID                       | Service principal client Id                    |
+| AZURE_CLIENT_SECRET                   | Service principal client secret                |
 | AZURE_TENANT_ID                       | Microsoft Entra tenant ID                      |
 | TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY | Azure storage account key of Terraform backend |
 

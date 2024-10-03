@@ -113,7 +113,7 @@ Instructions:
 
 GitHub Actions workflow **site-core-aws-destroy** destroys the AWS resources created by site-core-aws workflow.
 
-The workflow uses [infrastructure-core](infrastructure-core/README.md) Terraform module with [infrastructure-core.tfvars.json](config/infrastructure-core.tfvars.json) config file.
+The workflow uses [infrastructure-core](infrastructure-core/README.md) Terraform module with [infrastructure-core.tfvars.json](../../config/aws/arcgis-site-core/infrastructure-core.tfvars.json) config file.
 
 Required IAM policies:
 

@@ -23,6 +23,7 @@ The workflows designed to be used together to achieve a specific goal are groupe
 Refer to the READMEs of the cloud platform templates for specific usage instructions:
 
 * [Templates for ArcGIS Enterprise on AWS](aws/README.md)
+* [Templates for ArcGIS Enterprise on Microsoft Azure](azure/README.md)
 
 ## Issues
 

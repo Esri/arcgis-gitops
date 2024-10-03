@@ -59,12 +59,6 @@ variable "default_node_pool" {
   }
 }
 
-variable "pull_through_cache" {
-  description = "Configure container registry cache rules"
-  type        = bool
-  default     = true
-}
-
 variable "container_registry_url" {
   description = "Source container registry URL"
   type        = string

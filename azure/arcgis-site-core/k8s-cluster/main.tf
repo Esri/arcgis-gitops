@@ -92,10 +92,23 @@ data "azurerm_key_vault" "site_vault" {
   resource_group_name = "${var.site_id}-infrastructure-core"
 }
 
+resource "azurerm_resource_provider_registration" "microsoft_monitor" {
+  name = "Microsoft.Monitor"
+}
+
+resource "azurerm_resource_provider_registration" "microsoft_dashboard" {
+  name = "Microsoft.Dashboard"
+}
+
 # Create a resource group
 resource "azurerm_resource_group" "cluster_rg" {
   name     = "${var.site_id}-k8s-cluster"
   location = var.azure_region
+
+  depends_on = [
+    azurerm_resource_provider_registration.microsoft_monitor,
+    azurerm_resource_provider_registration.microsoft_dashboard
+  ]
 }
 
 # Create an AKS cluster

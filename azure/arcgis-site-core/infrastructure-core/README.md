@@ -22,9 +22,9 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | Key vault secret name | Description |
 | --- | --- |
 | vnet-id | ArcGIS Enterprise site VNet id |
-| app-gateway-subnet-<N> | Id of Application Gateway subnet <N> |
-| internal-subnet-<N> | Id of internal subnet <N> |
-| private-subnet-<N> | Id of private subnet <N> |
+| app-gateway-subnet-N | Id of Application Gateway subnet N |
+| internal-subnet-N | Id of internal subnet N |
+| private-subnet-N | Id of private subnet N |
 | storage-account-name | Storage account name |
 | storage-account-key | Storage account key |
 

@@ -25,14 +25,6 @@
 #   ]
 # }
 
-resource "azurerm_resource_provider_registration" "microsoft_monitor" {
-  name = "Microsoft.Monitor"
-}
-
-resource "azurerm_resource_provider_registration" "microsoft_dashboard" {
-  name = "Microsoft.Dashboard"
-}
-
 # Azure Monitor workspace (Managed Prometheus)
 resource "azurerm_monitor_workspace" "prometheus" {
   name                          = var.site_id
@@ -43,10 +35,6 @@ resource "azurerm_monitor_workspace" "prometheus" {
   tags = {
     ArcGISSiteId = var.site_id
   }
-
-  depends_on = [
-    azurerm_resource_provider_registration.microsoft_monitor
-  ]
 }
 
 # Create data collection rule associations (DCRAs) for the AKS cluster and the default data collection rule of the monitor workspace.
@@ -153,10 +141,6 @@ resource "azurerm_dashboard_grafana" "grafana" {
   tags = {
     ArcGISSiteId = var.site_id
   }
-
-  depends_on = [
-    azurerm_resource_provider_registration.microsoft_dashboard
-  ]
 }
 
 # Assign Grafana dashboard identity "Monitoring Data Reader" role to read data from the Azure Monitor Workspace.

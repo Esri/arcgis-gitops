@@ -42,6 +42,8 @@ terraform {
   }
 }
 
+data "aws_region" "current" {}
+
 data "aws_ssm_parameter" "output_s3_bucket" {
   name = "/arcgis/${var.site_id}/s3/logs"
 }
@@ -298,6 +300,10 @@ resource "null_resource" "ssm_cloudwatch_config" {
   }
 
   provisioner "local-exec" {
+    environment = {
+      AWS_DEFAULT_REGION = data.aws_region.current.name
+    }
+
     command = "python -m ssm_cloudwatch_config -s ${var.site_id} -d ${var.deployment_id} -p ${aws_ssm_parameter.cloudwatch_agent_config.name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
   }
 

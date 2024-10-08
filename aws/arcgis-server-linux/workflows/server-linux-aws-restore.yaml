@@ -21,7 +21,8 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
-  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-linux/restore.tfvars.json
 
 concurrency:
@@ -55,5 +56,5 @@ jobs:
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/restore.tfstate" -backend-config="region=$AWS_DEFAULT_REGION"
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/restore.tfstate" -backend-config="region=$TF_VAR_aws_region"
         terraform apply -var-file $CONFIG_FILE -auto-approve

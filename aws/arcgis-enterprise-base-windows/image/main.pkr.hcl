@@ -80,34 +80,42 @@ packer {
 
 data "amazon-parameterstore" "source_ami" {
   name = "/arcgis/${var.site_id}/images/${var.os}"
+  region = var.aws_region  
 }
 
 data "amazon-parameterstore" "subnet" {
   name = "/arcgis/${var.site_id}/vpc/private-subnet-1"
+  region = var.aws_region    
 }
 
 data "amazon-parameterstore" "instance_profile_name" {
   name = "/arcgis/${var.site_id}/iam/instance-profile-name"
+  region = var.aws_region    
 }
 
 data "amazon-parameterstore" "s3_repository" {
   name  = "/arcgis/${var.site_id}/s3/repository"
+  region = var.aws_region    
 }
 
 data "amazon-parameterstore" "s3_logs" {
   name  = "/arcgis/${var.site_id}/s3/logs"
+  region = var.aws_region    
 }
 
 data "amazon-parameterstore" "s3_region" {
   name  = "/arcgis/${var.site_id}/s3/region"
+  region = var.aws_region    
 }
 
 data "amazon-parameterstore" "chef_client_url" {
   name  = "/arcgis/${var.site_id}/chef-client-url/${var.os}"
+  region = var.aws_region    
 }
 
 data "amazon-parameterstore" "chef_cookbooks_url" {
   name  = "/arcgis/${var.site_id}/cookbooks-url"
+  region = var.aws_region    
 }
 
 locals {
@@ -146,6 +154,7 @@ locals {
 }
 
 source "amazon-ebs" "main" {
+  region        = var.aws_region
   ami_name      = local.main_ami_name
   ami_description = local.main_ami_description
   instance_type = var.instance_type
@@ -176,6 +185,7 @@ source "amazon-ebs" "main" {
 }
 
 source "amazon-ebs" "fileserver" {
+  region        = var.aws_region
   ami_name      = local.fileserver_ami_name
   ami_description = local.fileserver_ami_description
   instance_type = var.instance_type
@@ -213,27 +223,44 @@ build {
 
   # Copy files to private S3 repository
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m s3_copy_files -f ${local.index_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
   }
 
   # Install AWS CLI
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_install_awscli -s ${var.site_id} -d ${var.deployment_id} -m ${local.main_machine_role} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Install CloudWatch Agent
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.main_machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Bootstrap
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_bootstrap -s ${var.site_id} -d ${var.deployment_id} -m ${local.main_machine_role} -c ${data.amazon-parameterstore.chef_client_url.value} -k ${data.amazon-parameterstore.chef_cookbooks_url.value} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Download setups
   provisioner "shell-local" {
     env = {
+      AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(templatefile(
         local.index_file_path, 
         { 
@@ -248,6 +275,7 @@ build {
   # Install
   provisioner "shell-local" {
     env = {
+      AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
           version = var.arcgis_version
@@ -306,6 +334,7 @@ build {
   # Install patches
   provisioner "shell-local" {
     env = {
+      AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
           version = var.arcgis_version
@@ -336,6 +365,10 @@ build {
 
   # Clean up
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_clean_up -s ${var.site_id} -d ${var.deployment_id} -m ${local.main_machine_role} -p true -f \"${local.software_dir},C:/Program Files/ArcGIS/Portal/etc/ssl/*\" -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
@@ -351,6 +384,10 @@ build {
 
   # Retrive the the AMI Id from main-packer-manifest.json manifest file and save it in SSM parameter.
   post-processor "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main -f main-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }
@@ -364,16 +401,28 @@ build {
 
   # Install AWS CLI
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_install_awscli -s ${var.site_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Install CloudWatch Agent
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # sysprep
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_clean_up -s ${var.site_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -p true -f \"\" -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
@@ -389,6 +438,10 @@ build {
 
   # Retrive the the AMI Id from fileserver-packer-manifest.json manifest file and save it in SSM parameter.
   post-processor "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver -f fileserver-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }

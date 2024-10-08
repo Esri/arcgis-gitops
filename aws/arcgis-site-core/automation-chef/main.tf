@@ -68,6 +68,8 @@
 }
 
 provider "aws" {
+  region = var.aws_region
+  
   default_tags {
     tags = {
       ArcGISSiteId = var.site_id

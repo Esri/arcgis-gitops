@@ -53,6 +53,7 @@ The template uses the following SSM parameters:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| aws_region | AWS region Id | `string` | `env("AWS_DEFAULT_REGION")` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |
 | arcgis_version | ArcGIS Server version | `string` | `"11.3"` | no |
 | deployment_id | Deployment Id | `string` | `"arcgis-server"` | no |
@@ -62,5 +63,5 @@ The template uses the following SSM parameters:
 | run_as_user | User account used to run ArcGIS Server | `string` | `"arcgis"` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis-enterprise"` | no |
 | skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |
-| install_webadaptor |If true, OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor will be installed on the AMI. | `bool` | `false` | no |
+| install_webadaptor | If true, OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor will be installed on the AMI. | `bool` | `false` | no |
 | webadaptor_name | ArcGIS Web Adaptor name | `string` | `"arcgis"` | no |

@@ -39,6 +39,8 @@ jobs:
         ref: ${{ github.ref_name }}
     - name: Create backup
       run: |
+        AWS_REGION=$(jq -r '.aws_region' $CONFIG_FILE)
+        [[ "$AWS_REGION" == "null" || "$AWS_REGION" == "" ]] && AWS_REGION=$AWS_DEFAULT_REGION      
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         STORE=$(jq -r '.store' $CONFIG_FILE)
@@ -47,5 +49,5 @@ jobs:
         RETENTION=$(jq -r '.retention' $CONFIG_FILE)
         DESCRIPTION=$(jq -r '.description' $CONFIG_FILE)
         [[ "$STORE" == "null" || "$STORE" == "" ]] && STORE_ARG="" || STORE_ARG="--store $STORE"
-        aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
+        aws eks update-kubeconfig --region $AWS_REGION --name $SITE_ID
         kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis create-backup $STORE_ARG --backup "$BACKUP" --passcode "$PASSCODE" --description "$DESCRIPTION" --retention $RETENTION --wait

@@ -14,7 +14,6 @@
  * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
  * * Path to aws/scripts directory must be added to PYTHONPATH
  * * AWS credentials must be configured
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable
  *
  * ## SSM Parameters
  *
@@ -53,6 +52,17 @@ terraform {
   }
 
   required_version = ">= 1.1.9"
+}
+
+provider "aws" {
+  region = var.aws_region
+  
+  default_tags {
+    tags = {
+      ArcGISSiteId       = var.site_id
+      ArcGISDeploymentId = var.deployment_id
+    }
+  }
 }
 
 data "aws_ssm_parameter" "s3_backup" {

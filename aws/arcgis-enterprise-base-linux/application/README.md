@@ -37,7 +37,6 @@ On the machine where Terraform is executed:
 * Path to aws/scripts directory must be added to PYTHONPATH
 * The working directury must be set to the arcgis-enterprise-base-linux/application module path
 * AWS credentials must be configured
-* AWS region must be specified by AWS_DEFAULT_REGION environment variable
 
 My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
 
@@ -114,6 +113,7 @@ The module uses the following SSM parameters:
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"11.3"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
+| aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"arcgis-enterprise-base"` | no |

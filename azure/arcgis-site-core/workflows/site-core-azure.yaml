@@ -25,6 +25,7 @@ on:
         - plan
 
 env:
+  TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}

@@ -75,27 +75,33 @@ packer {
 }
 
 data "amazon-parameterstore" "source_ami" {
-  name = "/arcgis/${var.site_id}/images/${var.os}"
+  name   = "/arcgis/${var.site_id}/images/${var.os}"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "subnet" {
-  name = "/arcgis/${var.site_id}/vpc/private-subnet-1"
+  name   = "/arcgis/${var.site_id}/vpc/private-subnet-1"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "instance_profile_name" {
-  name = "/arcgis/${var.site_id}/iam/instance-profile-name"
+  name   = "/arcgis/${var.site_id}/iam/instance-profile-name"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_repository" {
-  name  = "/arcgis/${var.site_id}/s3/repository"
+  name   = "/arcgis/${var.site_id}/s3/repository"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_logs" {
-  name  = "/arcgis/${var.site_id}/s3/logs"
+  name   = "/arcgis/${var.site_id}/s3/logs"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_region" {
-  name  = "/arcgis/${var.site_id}/s3/region"
+  name   = "/arcgis/${var.site_id}/s3/region"
+  region = var.aws_region
 }
 
 locals {
@@ -121,7 +127,7 @@ locals {
   inventory = yamlencode({
     plugin = "amazon.aws.aws_ec2"
     regions = [ 
-      data.amazon-parameterstore.s3_region.value 
+      var.aws_region
     ]
     compose = {
       ansible_host = "instance_id"
@@ -146,7 +152,7 @@ locals {
     bucket_name = data.amazon-parameterstore.s3_repository.value
     # local_repository = "/opt/software/archives"
     manifest = local.arcgis_server_s3_files
-    region = data.amazon-parameterstore.s3_region.value
+    region = var.aws_region
     run_as_user = var.run_as_user
     # ansible_python_interpreter="/usr/bin/python3"
   })
@@ -160,12 +166,13 @@ locals {
     bucket_name = data.amazon-parameterstore.s3_repository.value
     # local_repository = "/opt/software/archives"
     manifest = local.arcgis_webadaptor_s3_files
-    region = data.amazon-parameterstore.s3_region.value
+    region = var.aws_region
     # ansible_python_interpreter="/usr/bin/python3"
   })
 }
 
 source "amazon-ebs" "main" {
+  region        = var.aws_region
   ami_name      = local.ami_name
   ami_description = local.ami_description
   instance_type = var.instance_type
@@ -197,7 +204,7 @@ source "amazon-ebs" "main" {
 }
 
 build {
-  name = var.deployment_id
+  name   = var.deployment_id
  
   sources = [
     "source.amazon-ebs.main"
@@ -205,16 +212,28 @@ build {
 
   # Install CloudWatch Agent
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Install Amazon EFS Utils
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonEFSUtils -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Download setups from private S3 repository and install ArcGIS Server   
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     inline = [
       "echo '${local.server_vars}' > /tmp/server_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
@@ -230,6 +249,10 @@ build {
 
   # Download setups from private S3 repository and install ArcGIS Web Aaptor
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     inline = var.install_webadaptor ? [
       "echo '${local.webadaptor_vars}' > /tmp/webadaptor_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
@@ -259,6 +282,10 @@ build {
 
   # Retrive the the AMI Id from packer-manifest.json manifest file and save it in SSM parameter.
   post-processor "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id} -f packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }

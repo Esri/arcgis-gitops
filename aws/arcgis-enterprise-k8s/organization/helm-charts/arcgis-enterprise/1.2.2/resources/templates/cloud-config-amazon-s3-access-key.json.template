@@ -1,0 +1,22 @@
+[{
+	"name": "AWS",
+	"credential": {
+		"type": "ACCESS-KEY",
+		"secret": {
+			"secretKey": "xxxxxxx",
+			"accessKey": "xxxxxxx"
+		}
+	},
+	"cloudServices": [{
+		"name": "AWS S3",
+		"type": "objectStore",
+		"usage": "DEFAULT",
+		"connection": {
+			"bucketName": "XXXXXX",
+			"region": "XXXXXX",
+			"rootDir": "XXXXXX"
+		},
+		"category": "storage"
+	}]
+}]
+

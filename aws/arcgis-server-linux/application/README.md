@@ -36,7 +36,6 @@ On the machine where Terraform is executed:
 * arcgis.common, arcgis.server, and arcgis.portal Ansible collections must be installed
 * The working directury must be set to the arcgis-server-linux/application module path
 * AWS credentials must be configured
-* AWS region must be specified by AWS_DEFAULT_REGION environment variable
 
 My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
 
@@ -99,6 +98,7 @@ The module uses the following SSM parameters:
 | admin_username | Primary ArcGIS Server administrator user name | `string` | `"siteadmin"` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Server version | `string` | `"11.3"` | no |
+| aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | configure_webadaptor | If true, ArcGIS Web Adaptor will be registered with ArcGIS Server. | `bool` | `false` | no |
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | n/a | yes |

@@ -55,6 +55,17 @@ terraform {
   required_version = ">= 1.1.9"
 }
 
+provider "aws" {
+  region = var.aws_region
+  
+  default_tags {
+    tags = {
+      ArcGISSiteId       = var.site_id
+      ArcGISDeploymentId = var.deployment_id
+    }
+  }
+}
+
 data "aws_ssm_parameter" "s3_backup" {
   name = "/arcgis/${var.site_id}/s3/backup"
 }

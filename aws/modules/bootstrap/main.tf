@@ -40,6 +40,8 @@ terraform {
   }
 }
 
+data "aws_region" "current" {}
+
 data "aws_ssm_parameter" "output_s3_bucket" {
   name  = "/arcgis/${var.site_id}/s3/logs"
 }
@@ -50,6 +52,10 @@ resource "null_resource" "bootstrap" {
   }
 
   provisioner "local-exec" {
+    environment = {
+      AWS_DEFAULT_REGION = data.aws_region.current.name
+    }
+
     command = "python -m ssm_bootstrap -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -c ${var.chef_client_url} -k ${var.chef_cookbooks_url} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
   }
 }

@@ -1,0 +1,22 @@
+[{
+    "name": "AZURE",
+    "credential": {
+        "type": "USER-ASSIGNED-IDENTITY",
+        "managedIdentityClientId": "<user_assigned_identity_client_id>",
+        "secret": {
+            "storageAccountName": "<account_name>"
+        }
+    },
+    "cloudServices": [{
+        "name": "Azure Blob Store",
+        "type": "objectStore",
+        "usage": "DEFAULT",
+        "connection": {
+            "containerName": "<container_name>",
+            "accountEndpointUrl": "<account_endpoint_url>",
+            "regionEndpointUrl": "<region_endpoint_url>",
+            "rootDir": "<root_dir>"
+        },
+        "category": "storage"
+    }]
+}]

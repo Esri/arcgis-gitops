@@ -28,7 +28,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
-  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-site-core/infrastructure-core.tfvars.json
 
 concurrency:
@@ -39,7 +39,7 @@ jobs:
     name: Core AWS Infrastructure
     runs-on: ubuntu-latest
     outputs:
-      vpc_id: ${{ steps.output.outputs.vpc_id }}
+      vpc_id: ${{ steps.terraform-output.outputs.vpc_id }}
     defaults:
       run:
         working-directory: aws/arcgis-site-core/infrastructure-core
@@ -55,7 +55,7 @@ jobs:
       id: terraform-init
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/infrastructure-core.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/infrastructure-core.tfstate" -backend-config="region=$TF_VAR_aws_region" 
     - name: Terraform Apply
       id: terraform-apply
       if: github.event.inputs.terraform_command == 'apply'

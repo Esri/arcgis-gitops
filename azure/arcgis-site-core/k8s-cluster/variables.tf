@@ -13,9 +13,8 @@
 # limitations under the License.
 
 variable "azure_region" {
-  description = "Azure region"
+  description = "Azure region display name"
   type        = string
-  default     = "East US"
 }
 
 variable "site_id" {

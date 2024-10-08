@@ -15,7 +15,6 @@ that points the deployment's FQDN to the load balancer's DNS name.
 On the machine where Terraform is executed:
 
 * AWS credentials must be configured.
-* AWS region must be specified by AWS_DEFAULT_REGION environment variable.
 * EKS cluster configuration information must be provided in ~/.kube/config file.
 
 ## Providers
@@ -38,6 +37,7 @@ On the machine where Terraform is executed:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
+| aws_region | AWS region Id | `string` | n/a | yes |
 | deployment_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
 | hosted_zone_id | The Route 53 hosted zone ID for the domain | `string` | `null` | no |

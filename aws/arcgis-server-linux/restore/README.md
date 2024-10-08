@@ -15,7 +15,6 @@ On the machine where Terraform is executed:
 * Ansible 2.16 or later must be installed
 * arcgis.common and arcgis.server Ansible collections must be installed
 * AWS credentials must be configured
-* AWS region must be specified by AWS_DEFAULT_REGION environment variable
 
 The module retrieves the backup S3 bucket name from '/arcgis/${var.site_id}/s3/backup' SSM parameters.
 
@@ -44,6 +43,7 @@ The module retrieves the backup S3 bucket name from '/arcgis/${var.site_id}/s3/b
 |------|-------------|------|---------|:--------:|
 | admin_password | ArcGIS Server administrator user password | `string` | n/a | yes |
 | admin_username | ArcGIS Server administrator user name | `string` | `"siteadmin"` | no |
+| aws_region | AWS region Id | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"arcgis-server"` | no |
 | run_as_user | User name for the account used to run ArcGIS Server | `string` | `"arcgis"` | no |
 | s3_prefix | Backup S3 object keys prefix | `string` | `"arcgis-server-backups"` | no |

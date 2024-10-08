@@ -26,7 +26,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}  
   AWS_MAX_ATTEMPTS: 400
   ORGANIZATION_CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/organization.tfvars.json
@@ -39,9 +39,6 @@ jobs:
   destroy:
     name: Destroy Deployment
     runs-on: ubuntu-latest
-    outputs:
-      alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
-      arcgis_enterprise_manager_url: ${{ steps.output.outputs.arcgis_enterprise_manager_url }}
     defaults:
       run:
         working-directory: aws/arcgis-enterprise-k8s/organization
@@ -56,15 +53,17 @@ jobs:
       - name: Update kubeconfig
         id: update-kubeconfig
         run: |
+          AWS_REGION=$(jq -r '.aws_region' $CONFIG_FILE)
+          [[ "$AWS_REGION" == "null" || "$AWS_REGION" == "" ]] && AWS_REGION=$TF_VAR_aws_region
           SITE_ID=$(jq -r '.site_id' $ORGANIZATION_CONFIG_FILE)
-          aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
+          aws eks update-kubeconfig --region $AWS_REGION --name $SITE_ID
       - name: Destroy Organization
         id: destroy-organization
         working-directory: aws/arcgis-enterprise-k8s/organization
         run: |
           SITE_ID=$(jq -r '.site_id' $ORGANIZATION_CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $ORGANIZATION_CONFIG_FILE)
-          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$TF_VAR_aws_region" 
           terraform destroy -var-file $ORGANIZATION_CONFIG_FILE -auto-approve
       - name: Destroy Ingress
         id: destroy-ingress
@@ -73,7 +72,7 @@ jobs:
         run: |
           SITE_ID=$(jq -r '.site_id' $INGRESS_CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $INGRESS_CONFIG_FILE)
-          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/ingress.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/ingress.tfstate" -backend-config="region=$TF_VAR_aws_region" 
           terraform destroy -var-file $INGRESS_CONFIG_FILE -auto-approve
 
 

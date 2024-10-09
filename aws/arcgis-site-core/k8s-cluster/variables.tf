@@ -39,7 +39,7 @@ variable "eks_version" {
 }
 
 variable "subnet_ids" {
-  description = "EKS cluster subnet IDs (by default, the first two public, two private, and two isolated VPC subnets are used)"
+  description = "EKS cluster subnet IDs (by default, the first two public, two private, and two internal VPC subnets are used)"
   type        = list(string)
   default     = []
 }

@@ -7,7 +7,7 @@
  *
  * ![Core Infrastructure Resources](infrastructure-core.png "Core Infrastructure Resources")
  *
- * Public subnets are routed to the Internet gateway, private subnets to the NAT gateway, and isolated subnets to the VPC endpoints.
+ * Public subnets are routed to the Internet gateway, private subnets to the NAT gateway, and internal subnets to the VPC endpoints.
  * 
  * Ids of the created AWS resources are stored in SSM parameters:
  *
@@ -15,7 +15,7 @@
  * | --- | --- |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id of ArcGIS Enterprise site |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | Private hosted zone Id of ArcGIS Enterprise site |
- * | /arcgis/${var.site_id}/vpc/isolated-subnet-N | Id of isolated VPC subnet N |
+ * | /arcgis/${var.site_id}/vpc/internal-subnet-N | Id of internal VPC subnet N |
  * | /arcgis/${var.site_id}/vpc/private-subnet-N | Id of private VPC subnet N |
  * | /arcgis/${var.site_id}/vpc/public-subnet-N | Id of public VPC subnet N |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | Name of IAM instance profile |

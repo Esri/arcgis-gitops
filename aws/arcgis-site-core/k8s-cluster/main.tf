@@ -29,7 +29,7 @@
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/vpc/public-subnet-* | Public VPC subnets Ids |
  * | /arcgis/${var.site_id}/vpc/private-subnet-* | Private VPC subnets Ids |
- * | /arcgis/${var.site_id}/vpc/isolated-subnet-* | Isolated VPC subnets Ids |
+ * | /arcgis/${var.site_id}/vpc/internal-subnet-* | Internal VPC subnets Ids |
  */
 
 # Copyright 2024 Esri
@@ -85,9 +85,9 @@ data "aws_ssm_parameter" "private_subnets" {
   name  = "/arcgis/${var.site_id}/vpc/private-subnet-${count.index + 1}"
 }
 
-data "aws_ssm_parameter" "isolated_subnets" {
+data "aws_ssm_parameter" "internal_subnets" {
   count = local.subnets_count
-  name  = "/arcgis/${var.site_id}/vpc/isolated-subnet-${count.index + 1}"
+  name  = "/arcgis/${var.site_id}/vpc/internal-subnet-${count.index + 1}"
 }
 
 data "tls_certificate" "cluster" {
@@ -140,7 +140,7 @@ resource "aws_eks_cluster" "cluster" {
     subnet_ids = length(var.subnet_ids) < 2 ? concat(
       data.aws_ssm_parameter.public_subnets[*].value,
       data.aws_ssm_parameter.private_subnets[*].value,
-      data.aws_ssm_parameter.isolated_subnets[*].value
+      data.aws_ssm_parameter.internal_subnets[*].value
     ) : var.subnet_ids
   }
 

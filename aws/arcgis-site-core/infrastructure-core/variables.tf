@@ -90,8 +90,8 @@ variable "private_subnets_cidr_blocks" {
   }
 }
 
-variable "isolated_subnets_cidr_blocks" {
-  description = "CIDR blocks of isolated subnets"
+variable "internal_subnets_cidr_blocks" {
+  description = "CIDR blocks of internal subnets"
   type        = list(string)
   default = [
     "10.0.128.0/24",
@@ -101,9 +101,9 @@ variable "isolated_subnets_cidr_blocks" {
 
   validation {
     condition = alltrue([
-      for b in var.isolated_subnets_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+      for b in var.internal_subnets_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
     ])
-    error_message = "All elements in isolated_subnets_cidr_blocks list must be in IPv4 CIDR block format."
+    error_message = "All elements in internal_subnets_cidr_blocks list must be in IPv4 CIDR block format."
   }
 }
 

@@ -9,8 +9,8 @@ that meets [ArcGIS Enterprise on Kubernetes system requirements](https://enterpr
 The module creates a resource group with the following Azure resouces:
 
 * AKS cluster with default node pool in the private subnet 1 and ingress controller in App Gateway subnet 1.
-* Container registry with private endpoint in isolated subnet 1, private DNS zone, and cache rules to pull images from Docker Hub container registry.
-* Monitoring subsyatem that include Azure Monitor workspace and Azure Managed Grafana instances.
+* Container registry with private endpoint in internal subnet 1, private DNS zone, and cache rules to pull images from Docker Hub container registry.
+* Monitoring subsystem that include Azure Monitor workspace and Azure Managed Grafana instances.
 
 Once the AKS cluster is available, the module creates storage classes for Azure Disk CSI driver.
 

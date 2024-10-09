@@ -105,7 +105,7 @@ resource "aws_vpc_endpoint" "gateway" {
   vpc_id            = aws_vpc.vpc.id
   service_name      = "com.amazonaws.${data.aws_region.current.name}.${var.gateway_vpc_endpoints[count.index]}"
   vpc_endpoint_type = "Gateway"
-  route_table_ids   = [aws_route_table.rtb_isolated.id]
+  route_table_ids   = [aws_route_table.rtb_internal.id]
 
   tags = {
     Name = "${var.site_id}-${var.gateway_vpc_endpoints[count.index]}"
@@ -118,7 +118,7 @@ resource "aws_vpc_endpoint" "interface" {
   service_name      = "com.amazonaws.${data.aws_region.current.name}.${var.interface_vpc_endpoints[count.index]}"
   vpc_endpoint_type = "Interface"
 
-  subnet_ids = aws_subnet.isolated_subnets[*].id
+  subnet_ids = aws_subnet.internal_subnets[*].id
 
   security_group_ids = [
     aws_security_group.vpc_endpoints_sg.id
@@ -131,12 +131,12 @@ resource "aws_vpc_endpoint" "interface" {
   }
 }
 
-# Route table for isolated subnets
-resource "aws_route_table" "rtb_isolated" {
+# Route table for internal subnets
+resource "aws_route_table" "rtb_internal" {
   vpc_id = aws_vpc.vpc.id
 
   tags = {
-    Name = "${var.site_id}/isolated-route-table"
+    Name = "${var.site_id}/internal-route-table"
   }
 }
 
@@ -168,17 +168,17 @@ resource "aws_route_table" "rtb_public" {
   }
 }
 
-# Isolated subnets are routed to VPC endpoints only
+# Internal subnets are routed to VPC endpoints only
 
-resource "aws_subnet" "isolated_subnets" {
+resource "aws_subnet" "internal_subnets" {
   count                   = length(local.availability_zones)
   vpc_id                  = aws_vpc.vpc.id
   availability_zone       = local.availability_zones[count.index]
-  cidr_block              = var.isolated_subnets_cidr_blocks[count.index]
+  cidr_block              = var.internal_subnets_cidr_blocks[count.index]
   map_public_ip_on_launch = false
 
   tags = {
-    Name = "${var.site_id}/isolated-subnet-${count.index + 1}"
+    Name = "${var.site_id}/internal-subnet-${count.index + 1}"
   }
 }
 
@@ -214,10 +214,10 @@ resource "aws_subnet" "public_subnets" {
 
 # Subnet to route table associations
 
-resource "aws_route_table_association" "rta_isolated_subnets" {
-  count          = length(aws_subnet.isolated_subnets)
-  subnet_id      = aws_subnet.isolated_subnets[count.index].id
-  route_table_id = aws_route_table.rtb_isolated.id
+resource "aws_route_table_association" "rta_internal_subnets" {
+  count          = length(aws_subnet.internal_subnets)
+  subnet_id      = aws_subnet.internal_subnets[count.index].id
+  route_table_id = aws_route_table.rtb_internal.id
 }
 
 resource "aws_route_table_association" "rta_private_subnets" {

@@ -27,8 +27,8 @@ output "private_subnets" {
   value       = aws_subnet.private_subnets.*.id
 }
 
-output "isolated_subnets" {
-  description = "Isolated subnets"
-  value       = aws_subnet.isolated_subnets.*.id
+output "internal_subnets" {
+  description = "Internal subnets"
+  value       = aws_subnet.internal_subnets.*.id
 }
 

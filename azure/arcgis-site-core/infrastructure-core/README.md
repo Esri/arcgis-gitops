@@ -108,7 +108,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | Name | Description |
 |------|-------------|
 | app_gateway_subnets | Application Gateway subnets Ids |
-| internal_subnets | Isolated subnets Ids |
+| internal_subnets | Internal subnets Ids |
 | key_vault_id | Key Vault Id |
 | private_subnets | Private subnets Ids |
 | storage_account_id | Storage account Id |

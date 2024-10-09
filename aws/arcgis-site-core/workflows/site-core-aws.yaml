@@ -37,7 +37,7 @@ concurrency:
 jobs:
   infrastructure_core:
     name: Core AWS Infrastructure
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       vpc_id: ${{ steps.terraform-output.outputs.vpc_id }}
     defaults:

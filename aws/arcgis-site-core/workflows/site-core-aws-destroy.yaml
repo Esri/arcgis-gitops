@@ -30,7 +30,7 @@ concurrency:
 jobs:
   destroy:
     name: Destroy Core AWS Infrastructure
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: aws/arcgis-site-core/infrastructure-core

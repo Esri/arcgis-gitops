@@ -31,7 +31,7 @@ concurrency:
 jobs:
   ingress:
     name: Ingress Controller
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
     defaults:

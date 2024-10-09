@@ -43,7 +43,7 @@ concurrency:
 jobs:
   k8s-cluster:
     name: Create K8s cluster
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: azure/arcgis-site-core/k8s-cluster

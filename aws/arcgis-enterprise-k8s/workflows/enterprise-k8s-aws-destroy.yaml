@@ -38,7 +38,7 @@ concurrency:
 jobs:
   destroy:
     name: Destroy Deployment
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: aws/arcgis-enterprise-k8s/organization

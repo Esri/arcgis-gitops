@@ -34,7 +34,7 @@ concurrency:
 jobs:
   application:
     name: Configure Applications
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       arcgis_portal_url: ${{ steps.output.outputs.arcgis_portal_url }}
     defaults:

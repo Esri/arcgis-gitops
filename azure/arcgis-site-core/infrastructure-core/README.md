@@ -93,7 +93,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | app_gateway_subnets_cidr_blocks | CIDR blocks of Application Gateway subnets | `list(string)` | ```[ "10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24" ]``` | no |
-| azure_region | Azure region | `string` | `"East US"` | no |
+| azure_region | Azure region display name | `string` | n/a | yes |
 | bastion_enabled | Enable Azure Bastion host | `bool` | `true` | no |
 | bastion_source_cidr_blocks | CIDR blocks of bastion source traffic | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | bastion_subnet_cidr_block | CIDR block of bastion subnet | `string` | `"10.1.0.0/24"` | no |

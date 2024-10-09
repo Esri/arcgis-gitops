@@ -88,11 +88,19 @@ resource "null_resource" "ansible_playbook" {
 
   # Wait for target SSM managed EC2 instances to become available. 
   provisioner "local-exec" {
+    environment = {
+      AWS_DEFAULT_REGION = data.aws_region.current.name
+    }
+
     command = "python -m ssm_wait_for_target_instances -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)}"
   }
 
   # Run Ansible playbook on target SSM managed EC2 instances.
   provisioner "local-exec" {
+    environment = {
+      AWS_DEFAULT_REGION = data.aws_region.current.name
+    }
+
     command = "ansible-playbook ${var.playbook} -i ${local_file.inventory.filename} -e @${local_sensitive_file.external_vars.filename}"
   }
 }

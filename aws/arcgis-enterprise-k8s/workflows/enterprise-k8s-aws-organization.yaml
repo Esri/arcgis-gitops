@@ -20,7 +20,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}  
   AWS_MAX_ATTEMPTS: 400
   MAX_UPGRADE_TIME: 720 # 12 hours
@@ -51,8 +51,10 @@ jobs:
       - name: Update kubeconfig
         id: update-kubeconfig
         run: |
+          AWS_REGION=$(jq -r '.aws_region' $CONFIG_FILE)
+          [[ "$AWS_REGION" == "null" || "$AWS_REGION" == "" ]] && AWS_REGION=$TF_VAR_aws_region
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-          aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
+          aws eks update-kubeconfig --region $AWS_REGION --name $SITE_ID
       - name: Run Terraform
         id: terraform
         run: |
@@ -60,7 +62,7 @@ jobs:
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
           ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
           UPGRADE_TOKEN=$(kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis generate-token --expiration $MAX_UPGRADE_TIME) || UPGRADE_TOKEN="token"
-          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$AWS_DEFAULT_REGION" 
+          terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$TF_VAR_aws_region" 
           terraform apply -var-file=$CONFIG_FILE -var "upgrade_token=$UPGRADE_TOKEN" -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve 
       - name: Retrieve Logs
         id: retrieve-logs

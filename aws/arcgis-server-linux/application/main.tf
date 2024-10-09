@@ -36,7 +36,6 @@
  * * arcgis.common, arcgis.server, and arcgis.portal Ansible collections must be installed
  * * The working directury must be set to the arcgis-server-linux/application module path
  * * AWS credentials must be configured
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable
  *
  * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
  *
@@ -80,6 +79,8 @@ terraform {
 }
 
 provider "aws" {
+  region = var.aws_region
+
   default_tags {
     tags = {
       ArcGISSiteId       = var.site_id

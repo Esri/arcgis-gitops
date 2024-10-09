@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+variable "aws_region" {
+  description = "AWS region Id"
+  type        = string
+}
+
 variable "admin_password" {
   description = "Portal for ArcGIS administrator user password"
   type        = string

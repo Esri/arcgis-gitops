@@ -40,7 +40,9 @@ jobs:
         ref: ${{ github.ref_name }}
     - name: Run Tests
       run: |
+        AWS_REGION=$(jq -r '.aws_region' $CONFIG_FILE)
+         [[ "$AWS_REGION" == "null" || "$AWS_REGION" == "" ]] && AWS_REGION=$AWS_DEFAULT_REGION
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        aws eks update-kubeconfig --region $AWS_DEFAULT_REGION --name $SITE_ID
+        aws eks update-kubeconfig --region $AWS_REGION --name $SITE_ID
         kubectl exec enterprise-admin-cli --namespace $DEPLOYMENT_ID -- gis test-publish-csv  

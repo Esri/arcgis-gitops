@@ -36,7 +36,6 @@ On the machine where Terraform is executed:
 * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed.
 * Path to aws/scripts directory must be added to PYTHONPATH.
 * AWS credentials must be configured.
-* AWS region must be specified by AWS_DEFAULT_REGION environment variable.
 
 Before creating the infrastructure, an SSL certificate for the ArcGIS Server deployment FQDN
 must be imported into or issued by AWS Certificate Manager service in the AWS account. The certificate's
@@ -122,6 +121,7 @@ The module uses the following SSM parameters:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| aws_region | AWS region Id | `string` | n/a | yes |
 | client_cidr_blocks | Client CIDR blocks | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | `null` | no |
 | deployment_id | ArcGIS Server deployment Id | `string` | `"arcgis-server"` | no |

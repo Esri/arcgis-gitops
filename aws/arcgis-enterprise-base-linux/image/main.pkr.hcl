@@ -74,34 +74,42 @@ packer {
 
 data "amazon-parameterstore" "source_ami" {
   name = "/arcgis/${var.site_id}/images/${var.os}"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "subnet" {
   name = "/arcgis/${var.site_id}/vpc/private-subnet-1"
+  region = var.aws_region  
 }
 
 data "amazon-parameterstore" "instance_profile_name" {
   name = "/arcgis/${var.site_id}/iam/instance-profile-name"
+  region = var.aws_region  
 }
 
 data "amazon-parameterstore" "s3_repository" {
   name  = "/arcgis/${var.site_id}/s3/repository"
+  region = var.aws_region  
 }
 
 data "amazon-parameterstore" "s3_logs" {
   name  = "/arcgis/${var.site_id}/s3/logs"
+  region = var.aws_region  
 }
 
 data "amazon-parameterstore" "s3_region" {
   name  = "/arcgis/${var.site_id}/s3/region"
+  region = var.aws_region  
 }
 
 data "amazon-parameterstore" "chef_client_url" {
   name  = "/arcgis/${var.site_id}/chef-client-url/${var.os}"
+  region = var.aws_region  
 }
 
 data "amazon-parameterstore" "chef_cookbooks_url" {
   name  = "/arcgis/${var.site_id}/cookbooks-url"
+  region = var.aws_region  
 }
 
 locals {
@@ -138,6 +146,7 @@ locals {
 }
 
 source "amazon-ebs" "main" {
+  region        = var.aws_region  
   ami_name      = local.ami_name
   ami_description = local.ami_description
   instance_type = var.instance_type
@@ -177,32 +186,53 @@ build {
 
   # Copy files to private S3 repository
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m s3_copy_files -f ${local.s3_files_json_path} -b ${data.amazon-parameterstore.s3_repository.value}"
   }
 
   # Install AWS CLI
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_install_awscli -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Install CloudWatch Agent
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
   }
   
   # Install Amazon EFS Utils
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonEFSUtils -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Bootstrap
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_bootstrap -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -c ${data.amazon-parameterstore.chef_client_url.value} -k ${data.amazon-parameterstore.chef_cookbooks_url.value} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Download setups
   provisioner "shell-local" {
     env = {
+      AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(templatefile(
         local.s3_files_json_path, 
         { 
@@ -217,6 +247,7 @@ build {
   # Install
   provisioner "shell-local" {
     env = {
+      AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         java = {
           version = "${var.java_version}.1+1"
@@ -284,6 +315,7 @@ build {
   # Install patches
   provisioner "shell-local" {
     env = {
+      AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
           version = var.arcgis_version
@@ -319,6 +351,10 @@ build {
 
   # Clean up
   provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m ssm_clean_up -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -f ${local.software_dir} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
@@ -334,6 +370,10 @@ build {
 
   # Retrive the the AMI Id from packer-manifest.json manifest file and save it in SSM parameter.
   post-processor "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
     command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id} -f packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }

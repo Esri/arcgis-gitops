@@ -43,6 +43,8 @@ terraform {
   }
 }
 
+data "aws_region" "current" {}
+
 data "aws_ssm_parameter" "output_s3_bucket" {
   name  = "/arcgis/${var.site_id}/s3/logs"
 }
@@ -55,6 +57,7 @@ resource "null_resource" "run_chef" {
   provisioner "local-exec" {
     environment = {
       JSON_ATTRIBUTES = nonsensitive(base64encode(var.json_attributes))
+      AWS_DEFAULT_REGION = data.aws_region.current.name
     }
 
     command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -j ${var.parameter_name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)} -e ${var.execution_timeout}"

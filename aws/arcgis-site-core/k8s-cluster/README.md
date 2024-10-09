@@ -72,6 +72,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| aws_region | AWS region Id | `string` | n/a | yes |
 | container_registry_password | Source container registry user password | `string` | `null` | no |
 | container_registry_url | Source container registry URL | `string` | `"registry-1.docker.io"` | no |
 | container_registry_user | Source container registry user name | `string` | `null` | no |

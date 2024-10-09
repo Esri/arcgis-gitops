@@ -33,7 +33,6 @@ The deployment's Monitoring Subsystem consists of:
 On the machine where Terraform is executed:
 
 * AWS credentials must be configured.
-* AWS region must be specified by AWS_DEFAULT_REGION environment variable.
 * EKS cluster configuration information must be provided in ~/.kube/config file.
 
 ## Providers
@@ -79,6 +78,7 @@ On the machine where Terraform is executed:
 | admin_username | ArcGIS Enterprise on Kubernetes organization administrator account username | `string` | `"siteadmin"` | no |
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
 | authorization_file_path | ArcGIS Enterprise on Kubernetes authorization file path | `string` | n/a | yes |
+| aws_region | AWS region Id | `string` | n/a | yes |
 | backup_job_timeout | Backup job timeout in seconds | `number` | `7200` | no |
 | cloud_config_json_file_path | ArcGIS Enterprise on Kubernetes cloud configuration JSON file path | `string` | `null` | no |
 | common_verbose | Enable verbose install logging | `bool` | `false` | no |
@@ -86,7 +86,7 @@ On the machine where Terraform is executed:
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
 | deployment_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
-| enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.1.0"` | no |
+| enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.2.0"` | no |
 | helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.3.0"` | no |
 | image_repository_prefix | Prefix of images in ECR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |

@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+variable "aws_region" {
+  description = "AWS region Id"
+  type        = string
+}
+
 variable "os" {
   description = "Operating system id (rhel8|rhel9|ubuntu20|ubuntu22|sles15)"
   type        = string

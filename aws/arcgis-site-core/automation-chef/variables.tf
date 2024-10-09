@@ -11,7 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
+variable "aws_region" {
+  description = "AWS region Id"
+  type        = string
+}
+
 variable "site_id" {
   description = "ArcGIS Enterprise site Id"
   type        = string
@@ -63,5 +68,5 @@ variable "arcgis_cookbooks_path" {
   validation {
     condition     = can(regex("^[a-zA-Z0-9!_.*'()-]+(\\/[a-zA-Z0-9!_.*'()-]+)*$", var.arcgis_cookbooks_path))
     error_message = "The s3_key value must be in a valid S3 key format."
-  }  
+  }
 }

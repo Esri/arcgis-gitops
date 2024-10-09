@@ -20,7 +20,7 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  AWS_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   CONTAINER_REGISTRY_USER: ${{ secrets.CONTAINER_REGISTRY_USER }}
   CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/image.vars.json
@@ -51,6 +51,9 @@ jobs:
           docker rmi node:16 node:18 node:20 > /dev/null 2>&1
       - name: Copy Docker Hub images
         run: |
+          AWS_DEFAULT_REGION=$(jq -r '.aws_region' $CONFIG_FILE)
+          [[ "$AWS_DEFAULT_REGION" == "null" || "$AWS_DEFAULT_REGION" == "" ]] && AWS_DEFAULT_REGION=$AWS_REGION
+          export AWS_DEFAULT_REGION
           PULL_THROUGH_CACHE=$(jq -r '.pull_through_cache' $CONFIG_FILE)
           if [ "$PULL_THROUGH_CACHE" == "true" ]; then
             echo "Skip copying Docker Hub images because pull through cache is enabled."
@@ -67,6 +70,9 @@ jobs:
           fi
       - name: Build Admin CLI Image
         run: |
+          AWS_DEFAULT_REGION=$(jq -r '.aws_region' $CONFIG_FILE)
+          [[ "$AWS_DEFAULT_REGION" == "null" || "$AWS_DEFAULT_REGION" == "" ]] && AWS_DEFAULT_REGION=$AWS_REGION
+          export AWS_DEFAULT_REGION           
           ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
           chmod +x ./build-admin-cli-image.sh
           ./build-admin-cli-image.sh enterprise-admin-cli $ADMIN_CLI_VERSION ${{ github.workspace }}/enterprise-admin-cli

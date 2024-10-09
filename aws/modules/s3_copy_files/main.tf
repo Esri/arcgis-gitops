@@ -39,8 +39,7 @@ terraform {
   }
 }
 
-locals {
-}
+data "aws_region" "current" {}
 
 resource "null_resource" "s3_copy_files" {
   triggers = {
@@ -48,6 +47,10 @@ resource "null_resource" "s3_copy_files" {
   }
     
   provisioner "local-exec" {
+    environment = {
+      AWS_DEFAULT_REGION = data.aws_region.current.name
+    }
+
     command = "python -m s3_copy_files -f ${var.index_file} -b ${var.bucket_name}"
   }
 }

@@ -71,7 +71,7 @@ On the machine where Terraform is executed:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| azure_region | Azure region | `string` | `"East US"` | no |
+| azure_region | Azure region display name | `string` | n/a | yes |
 | container_registry_password | Source container registry user password | `string` | `null` | no |
 | container_registry_url | Source container registry URL | `string` | `"docker.io"` | no |
 | container_registry_user | Source container registry user name | `string` | `null` | no |

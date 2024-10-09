@@ -49,6 +49,7 @@ The template uses the following SSM parameters:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| aws_region | AWS region Id | `string` | `env("AWS_DEFAULT_REGION")` | no |
 | arcgis_data_store_patches |File names of ArcGIS Data Store patches to install | `string` | `[]` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `string` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |

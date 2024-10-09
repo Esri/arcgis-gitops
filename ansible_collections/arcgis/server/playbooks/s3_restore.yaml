@@ -28,6 +28,15 @@
     backup_dir: '/tmp'
     s3_prefix: 'arcgis-server-backups'
   tasks:
+    - name: Install python3-pip
+      become_user: root
+      ansible.builtin.package:
+        name: python3-pip
+        state: present
+    - name: Install boto3 python package
+      become_user: root
+      ansible.builtin.pip:
+        name: boto3
     - name: List backups in S3 bucket
       amazon.aws.s3_object:
         bucket: '{{ s3_bucket }}'

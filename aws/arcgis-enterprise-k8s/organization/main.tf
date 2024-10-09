@@ -33,7 +33,6 @@
  * On the machine where Terraform is executed:
  * 
  * * AWS credentials must be configured.
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable.
  * * EKS cluster configuration information must be provided in ~/.kube/config file.
  */
 
@@ -85,6 +84,8 @@ provider "kubernetes" {
 }
 
 provider "aws" {
+  region = var.aws_region
+  
   default_tags {
     tags = {
       ArcGISSiteId       = var.site_id

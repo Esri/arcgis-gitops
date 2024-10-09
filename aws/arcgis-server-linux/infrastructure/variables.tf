@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License. 
  
+variable "aws_region" {
+  description = "AWS region Id"
+  type        = string
+}
+
 variable "client_cidr_blocks" {
   description = "Client CIDR blocks"
   type        = list(string)

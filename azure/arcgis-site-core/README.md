@@ -25,10 +25,9 @@ Required service principal roles:
 
 Instructions:
 
-1. Set "azure_region" property to the required Azure region.
-2. (Optional) Update CIDR blocks of the subnets to match the required network topology.
-3. Commit the changes to the `main` branch and push the branch to GitHub.
-4. Run site-core-azure workflow using the `main` branch.
+1. (Optional) Update CIDR blocks of the subnets to match the required network topology.
+2. Commit the changes to the `main` branch and push the branch to GitHub.
+3. Run site-core-azure workflow using the `main` branch.
 
 ## Deploy K8s Cluster
 
@@ -42,10 +41,9 @@ Required service principal roles:
 
 Instructions:
 
-1. Set "azure_region" property to the required Azure region.
-2. Set "default_node_pool" properties to the required node pool configuration.
-3. Commit the changes to the `main` branch and push the branch to GitHub.
-4. Run site-k8s-cluster-azure workflow using the `main` branch.
+1. Set "default_node_pool" properties to the required node pool configuration.
+2. Commit the changes to the `main` branch and push the branch to GitHub.
+3. Run site-k8s-cluster-azure workflow using the `main` branch.
 
 ## Destroy K8s Cluster
 

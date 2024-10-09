@@ -30,7 +30,7 @@ concurrency:
 jobs:
   k8s-cluster-destroy:
     name: Destroy K8s Cluster
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: aws/arcgis-site-core/k8s-cluster

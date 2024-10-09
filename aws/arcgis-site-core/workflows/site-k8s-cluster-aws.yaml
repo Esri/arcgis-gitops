@@ -39,7 +39,7 @@ concurrency:
 jobs:
   k8s-cluster:
     name: Create K8s cluster
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     outputs:
       cluster_name: ${{ steps.output.outputs.cluster_name }}
       cluster_endpoint: ${{ steps.output.outputs.cluster_endpoint }}

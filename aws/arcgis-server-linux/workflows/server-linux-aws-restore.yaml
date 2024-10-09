@@ -31,7 +31,7 @@ concurrency:
 jobs:
   restore:
     name: Restore from Backup
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-22.04
     defaults:
       run:
         working-directory: aws/arcgis-server-linux/restore

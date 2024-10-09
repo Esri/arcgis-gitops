@@ -208,7 +208,7 @@ Instructions:
 
 ## Disconnected Environments
 
-To prevent deployments from accessing the Internet, use "isolated" subnets for EC2 instances. The isolated subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in specific AWS region.
+To prevent deployments from accessing the Internet, use "internal" subnets for EC2 instances. The internal subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in specific AWS region.
 
 The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, pollination services, and time services.
 

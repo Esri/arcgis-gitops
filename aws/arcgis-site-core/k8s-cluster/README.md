@@ -29,7 +29,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 |--------------------|-------------|
 | /arcgis/${var.site_id}/vpc/public-subnet-* | Public VPC subnets Ids |
 | /arcgis/${var.site_id}/vpc/private-subnet-* | Private VPC subnets Ids |
-| /arcgis/${var.site_id}/vpc/isolated-subnet-* | Isolated VPC subnets Ids |
+| /arcgis/${var.site_id}/vpc/internal-subnet-* | Internal VPC subnets Ids |
 
 ## Providers
 
@@ -63,7 +63,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 | [aws_secretsmanager_secret.aws_ecrpullthroughcache](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
 | [aws_secretsmanager_secret_version.aws_ecrpullthroughcache](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.isolated_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.internal_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.private_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.public_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [tls_certificate.cluster](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/data-sources/certificate) | data source |
@@ -84,7 +84,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 | node_groups | <p>EKS node groups configuration properties:</p>   <ul>   <li>name - Name of the node group</li>   <li>instance_type -Type of EC2 instance to use for the node group</li>   <li>root_volume_size - Size of the root volume in GB</li>   <li>desired_size - Number of nodes to start with</li>   <li>max_size - Maximum number of nodes in the node group</li>   <li>min_size - Minimum number of nodes in the node group</li>   <li>subnet_ids - List of subnet IDs to use for the node group (the first two private subnets are used by default)</li>   </ul> | ```list(object({ name = string instance_type = string root_volume_size = number desired_size = number max_size = number min_size = number subnet_ids = list(string) }))``` | ```[ { "desired_size": 4, "instance_type": "m6i.2xlarge", "max_size": 8, "min_size": 4, "name": "default", "root_volume_size": 1024, "subnet_ids": [] } ]``` | no |
 | pull_through_cache | Configure ECR pull through cache rules | `bool` | `true` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
-| subnet_ids | EKS cluster subnet IDs (by default, the first two public, two private, and two isolated VPC subnets are used) | `list(string)` | `[]` | no |
+| subnet_ids | EKS cluster subnet IDs (by default, the first two public, two private, and two internal VPC subnets are used) | `list(string)` | `[]` | no |
 
 ## Outputs
 

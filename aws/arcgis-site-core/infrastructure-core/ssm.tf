@@ -28,12 +28,12 @@ resource "aws_ssm_parameter" "hosted_zone_id" {
   description = "Private hosted zone Id of ArcGIS Enterprise site '${var.site_id}'"
 }
 
-resource "aws_ssm_parameter" "isolated_subnets" {
-  count       = length(aws_subnet.isolated_subnets)
-  name        = "/arcgis/${var.site_id}/vpc/isolated-subnet-${count.index + 1}"
+resource "aws_ssm_parameter" "internal_subnets" {
+  count       = length(aws_subnet.internal_subnets)
+  name        = "/arcgis/${var.site_id}/vpc/internal-subnet-${count.index + 1}"
   type        = "String"
-  value       = aws_subnet.isolated_subnets[count.index].id
-  description = "Id of isolated VPC subnet ${count.index + 1}"
+  value       = aws_subnet.internal_subnets[count.index].id
+  description = "Id of internal VPC subnet ${count.index + 1}"
 }
 
 resource "aws_ssm_parameter" "private_subnets" {

@@ -28,7 +28,7 @@ output "private_subnets" {
 }
 
 output "internal_subnets" {
-  description = "Isolated subnets Ids"
+  description = "Internal subnets Ids"
   value       = azurerm_subnet.internal_subnets.*.id
 }
 

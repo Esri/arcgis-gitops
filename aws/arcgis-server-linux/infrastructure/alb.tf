@@ -16,7 +16,7 @@
 resource "aws_security_group" "arcgis_alb" {
   name        = "${var.deployment_id}-alb"
   description = "Allow inbound traffic to load balancer ports"
-  vpc_id      = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id      = module.site_core_info.vpc_id
 
   egress {
     from_port        = 0
@@ -69,8 +69,8 @@ resource "aws_lb" "alb" {
   security_groups    = [aws_security_group.arcgis_alb.id]
 
   subnets = (var.internal_load_balancer ?
-    data.aws_ssm_parameter.private_subnets[*].value :
-    data.aws_ssm_parameter.public_subnets[*].value)
+    module.site_core_info.private_subnets :
+    module.site_core_info.public_subnets)
 
   drop_invalid_header_fields = true
 }
@@ -125,7 +125,7 @@ resource "aws_lb_target_group" "default" {
   name     = "${var.deployment_id}-default"
   port     = 443
   protocol = "HTTPS"
-  vpc_id   = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id   = module.site_core_info.vpc_id
 }
 
 # Create Application Load Balancer target group for HTTPS port 443, attach 
@@ -134,7 +134,7 @@ resource "aws_lb_target_group" "default" {
 module "server_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "${var.deployment_id}-443"
-  vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id            = module.site_core_info.vpc_id
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
   alb_port          = 443
@@ -154,7 +154,7 @@ module "server_https_alb_target" {
 module "private_server_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "${var.deployment_id}-6443"
-  vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id            = module.site_core_info.vpc_id
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
   alb_port          = 6443

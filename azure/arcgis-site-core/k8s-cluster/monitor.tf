@@ -61,7 +61,7 @@ resource "azurerm_monitor_data_collection_rule_association" "dcra" {
 #   name                  = local.private_dns_zones[count.index]
 #   private_dns_zone_name = local.private_dns_zones[count.index]
 #   resource_group_name   = azurerm_resource_group.cluster_rg.name
-#   virtual_network_id    = data.azurerm_key_vault_secret.vnet_id.value
+#   virtual_network_id    = module.site_core_info.vnet_id
 
 #   depends_on = [
 #     azurerm_private_dns_zone.prometheus_private_dns_zone
@@ -72,7 +72,7 @@ resource "azurerm_monitor_data_collection_rule_association" "dcra" {
 #   name                = "${azurerm_monitor_workspace.prometheus.name}-prometheus-private-endpoint"
 #   resource_group_name = azurerm_resource_group.cluster_rg.name
 #   location            = azurerm_resource_group.cluster_rg.location
-#   subnet_id           = data.azurerm_key_vault_secret.internal_subnet_1.value
+#   subnet_id           = module.site_core_info.internal_subnets[0]
 
 #   private_service_connection {
 #     name                           = "${azurerm_monitor_workspace.prometheus.name}-psc"

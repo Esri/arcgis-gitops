@@ -59,11 +59,12 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "s3_backup" {
-  name = "/arcgis/${var.site_id}/s3/backup"
-}
-
 data "aws_region" "current" {}
+
+module "site_core_info" {
+  source = "../../modules/site_core_info"
+  site_id = var.site_id
+}
 
 # Backup ArcGIS Server configurtion
 module "arcgis_server_backup" {
@@ -78,8 +79,8 @@ module "arcgis_server_backup" {
     admin_password = var.admin_password
     install_dir = "/opt"
     run_as_user = var.run_as_user
-    s3_bucket = data.aws_ssm_parameter.s3_backup.value
-    s3_region = data.aws_region.current.name  
+    s3_bucket = module.site_core_info.s3_backup
+    s3_region = module.site_core_info.s3_region
     s3_prefix = var.s3_prefix
   }
 }

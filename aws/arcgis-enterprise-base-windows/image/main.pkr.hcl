@@ -52,7 +52,7 @@
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
  * | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
  * | /arcgis/${var.site_id}/s3/repository | Private repository S3 bucket |
- * | /arcgis/${var.site_id}/vpc/private-subnet-1 | Private VPC subnet Id|
+ * | /arcgis/${var.site_id}/vpc/private-subnet/1 | Private VPC subnet Id|
  */
 
 # Copyright 2024 Esri
@@ -84,7 +84,7 @@ data "amazon-parameterstore" "source_ami" {
 }
 
 data "amazon-parameterstore" "subnet" {
-  name = "/arcgis/${var.site_id}/vpc/private-subnet-1"
+  name = "/arcgis/${var.site_id}/vpc/private-subnet/1"
   region = var.aws_region    
 }
 

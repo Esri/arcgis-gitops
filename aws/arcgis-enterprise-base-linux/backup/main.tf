@@ -66,15 +66,13 @@ provider "aws" {
   }
 }
 
-
-data "aws_ssm_parameter" "s3_backup" {
-  name = "/arcgis/${var.site_id}/s3/backup"
-}
-
-data "aws_region" "current" {}
-
 locals {
   shared_location = "/mnt/efs/gisdata/arcgisbackup/webgisdr"
+}
+
+module "site_core_info" {
+  source         = "../../modules/site_core_info"
+  site_id        = var.site_id
 }
 
 # Run webgisdr utility on primary EC2 instance.
@@ -101,11 +99,11 @@ module "arcgis_enterprise_webgisdr_export" {
           INCLUDE_SCENE_TILE_CACHES       = false
           BACKUP_STORE_PROVIDER           = "AmazonS3"
           S3_ENCRYPTED                    = false
-          S3_BUCKET                       = nonsensitive(data.aws_ssm_parameter.s3_backup.value)
+          S3_BUCKET                       = module.site_core_info.s3_backup
           S3_CREDENTIALTYPE               = "IAMRole"
-          S3_REGION                       = data.aws_region.current.name
-          PORTAL_BACKUP_S3_BUCKET         = nonsensitive(data.aws_ssm_parameter.s3_backup.value)
-          PORTAL_BACKUP_S3_REGION         = data.aws_region.current.name
+          S3_REGION                       = module.site_core_info.s3_region
+          PORTAL_BACKUP_S3_BUCKET         = module.site_core_info.s3_backup
+          PORTAL_BACKUP_S3_REGION         = module.site_core_info.s3_region
         }
       }
     }

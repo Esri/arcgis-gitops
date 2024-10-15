@@ -25,24 +25,12 @@ The module uses the following SSM parameters:
 | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
 
-## Providers
-
-| Name | Version |
-|------|---------|
-| aws | ~> 5.22 |
-
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
 | arcgis_enterprise_webgisdr_export | ../../modules/run_chef | n/a |
-
-## Resources
-
-| Name | Type |
-|------|------|
-| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.s3_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| site_core_info | ../../modules/site_core_info | n/a |
 
 ## Inputs
 

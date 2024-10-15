@@ -30,7 +30,7 @@ resource "aws_ssm_parameter" "hosted_zone_id" {
 
 resource "aws_ssm_parameter" "internal_subnets" {
   count       = length(aws_subnet.internal_subnets)
-  name        = "/arcgis/${var.site_id}/vpc/internal-subnet-${count.index + 1}"
+  name        = "/arcgis/${var.site_id}/vpc/internal-subnet/${count.index + 1}"
   type        = "String"
   value       = aws_subnet.internal_subnets[count.index].id
   description = "Id of internal VPC subnet ${count.index + 1}"
@@ -38,7 +38,7 @@ resource "aws_ssm_parameter" "internal_subnets" {
 
 resource "aws_ssm_parameter" "private_subnets" {
   count       = length(aws_subnet.private_subnets)
-  name        = "/arcgis/${var.site_id}/vpc/private-subnet-${count.index + 1}"
+  name        = "/arcgis/${var.site_id}/vpc/private-subnet/${count.index + 1}"
   type        = "String"
   value       = aws_subnet.private_subnets[count.index].id
   description = "Id of private VPC subnet ${count.index + 1}"
@@ -46,7 +46,7 @@ resource "aws_ssm_parameter" "private_subnets" {
 
 resource "aws_ssm_parameter" "public_subnets" {
   count       = length(aws_subnet.public_subnets)
-  name        = "/arcgis/${var.site_id}/vpc/public-subnet-${count.index + 1}"
+  name        = "/arcgis/${var.site_id}/vpc/public-subnet/${count.index + 1}"
   type        = "String"
   value       = aws_subnet.public_subnets[count.index].id
   description = "Id of public VPC subnet ${count.index + 1}"

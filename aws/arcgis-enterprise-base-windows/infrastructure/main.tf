@@ -62,10 +62,10 @@
  * | /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver | Id of the fileserver AMI |
  * | /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main | Id of the main AMI |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
- * | /arcgis/${var.site_id}/vpc/public-subnet-1 | public VPC subnet 1 Id |
- * | /arcgis/${var.site_id}/vpc/public-subnet-2 | public VPC subnet 2 Id |
- * | /arcgis/${var.site_id}/vpc/private-subnet-1 | private VPC subnet 1 Id |
- * | /arcgis/${var.site_id}/vpc/private-subnet-2 | private VPC subnet 2 Id |
+ * | /arcgis/${var.site_id}/vpc/public-subnet/1 | public VPC subnet 1 Id |
+ * | /arcgis/${var.site_id}/vpc/public-subnet/2 | public VPC subnet 2 Id |
+ * | /arcgis/${var.site_id}/vpc/private-subnet/1 | private VPC subnet 1 Id |
+ * | /arcgis/${var.site_id}/vpc/private-subnet/2 | private VPC subnet 2 Id |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id |
  */
@@ -112,34 +112,12 @@ provider "aws" {
 
 # Retrieve configuration parameters from SSM Parameter Store
 
-data "aws_ssm_parameter" "vpc_id" {
-  name = "/arcgis/${var.site_id}/vpc/id"
-}
-
-data "aws_ssm_parameter" "hosted_zone_id" {
-  name = "/arcgis/${var.site_id}/vpc/hosted-zone-id"
-}
-
 data "aws_ssm_parameter" "fileserver_ami" {
   name = "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver"
 }
 
 data "aws_ssm_parameter" "ami" {
   name = "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main"
-}
-
-data "aws_ssm_parameter" "public_subnets" {
-  count = local.subnets_count
-  name  = "/arcgis/${var.site_id}/vpc/public-subnet-${count.index + 1}"
-}
-
-data "aws_ssm_parameter" "private_subnets" {
-  count = local.subnets_count
-  name  = "/arcgis/${var.site_id}/vpc/private-subnet-${count.index + 1}"
-}
-
-data "aws_ssm_parameter" "instance_profile_name" {
-  name = "/arcgis/${var.site_id}/iam/instance-profile-name"
 }
 
 data "aws_ami" "ami" {
@@ -150,20 +128,24 @@ data "aws_ami" "ami" {
 }
 
 locals {
-  subnets_count = 2
-  primary_subnet = length(var.subnet_ids) < 2 ? nonsensitive(data.aws_ssm_parameter.private_subnets[0].value) : var.subnet_ids[0]  
-  standby_subnet = length(var.subnet_ids) < 2 ? nonsensitive(data.aws_ssm_parameter.private_subnets[1].value) : var.subnet_ids[1]
+  primary_subnet = length(var.subnet_ids) < 2 ? module.site_core_info.private_subnets[0] : var.subnet_ids[0]  
+  standby_subnet = length(var.subnet_ids) < 2 ? module.site_core_info.private_subnets[1] : var.subnet_ids[1]
 
   # Get values of ArcGISTemplateId and ArcGISVersion tags from the AMI to copy them to the EC2 instances.
   arcgis_template_id = "arcgis-enterprise-base"
   arcgis_version     = try(data.aws_ami.ami.tags.ArcGISVersion, null)
 }
 
+module "site_core_info" {
+  source  = "../../modules/site_core_info"
+  site_id = var.site_id
+}
+
 # Create and configure the deployment's EC2 security group 
 module "security_group" {
   source                = "../../modules/security_group"
   name                  = var.deployment_id
-  vpc_id                = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id                = module.site_core_info.vpc_id
   alb_security_group_id = aws_security_group.arcgis_alb.id
   alb_ports             = [80, 443, 6443, 7443]
 }
@@ -182,7 +164,7 @@ resource "aws_instance" "fileserver" {
   vpc_security_group_ids = [module.security_group.id]
   instance_type          = var.fileserver_instance_type
   key_name               = var.key_name
-  iam_instance_profile   = nonsensitive(data.aws_ssm_parameter.instance_profile_name.value)
+  iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
 
   metadata_options {
@@ -220,7 +202,7 @@ resource "aws_instance" "primary" {
   vpc_security_group_ids = [module.security_group.id]
   instance_type          = var.instance_type
   key_name               = var.key_name
-  iam_instance_profile   = nonsensitive(data.aws_ssm_parameter.instance_profile_name.value)
+  iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
 
   metadata_options {
@@ -258,7 +240,7 @@ resource "aws_instance" "standby" {
   vpc_security_group_ids = [module.security_group.id]
   instance_type          = var.instance_type
   key_name               = var.key_name
-  iam_instance_profile   = nonsensitive(data.aws_ssm_parameter.instance_profile_name.value)
+  iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
 
   metadata_options {
@@ -290,7 +272,7 @@ resource "aws_instance" "standby" {
 }
 
 resource "aws_route53_record" "fileserver" {
-  zone_id = data.aws_ssm_parameter.hosted_zone_id.value
+  zone_id = module.site_core_info.hosted_zone_id
   name    = "fileserver.${var.deployment_id}"
   type    = "A"
   ttl     = 300
@@ -298,7 +280,7 @@ resource "aws_route53_record" "fileserver" {
 }
 
 resource "aws_route53_record" "primary" {
-  zone_id = data.aws_ssm_parameter.hosted_zone_id.value
+  zone_id = module.site_core_info.hosted_zone_id
   name    = "primary.${var.deployment_id}"
   type    = "A"
   ttl     = 300
@@ -306,7 +288,7 @@ resource "aws_route53_record" "primary" {
 }
 
 resource "aws_route53_record" "standby" {
-  zone_id = data.aws_ssm_parameter.hosted_zone_id.value
+  zone_id = module.site_core_info.hosted_zone_id
   name    = "standby.${var.deployment_id}"
   type    = "A"
   ttl     = 300

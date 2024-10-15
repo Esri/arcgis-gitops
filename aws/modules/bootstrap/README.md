@@ -28,15 +28,19 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [null_resource.bootstrap](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [aws_ssm_parameter.output_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+| [aws_ssm_parameter.chef_client_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.chef_cookbooks_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| chef_client_url | S3 or HTTP URL of Chef client installer | `string` | n/a | yes |
-| chef_cookbooks_url | S3 or HTTP URL of ArcGIS Chef cookbooks archive | `string` | n/a | yes |
+| chef_client_url | S3 or HTTP URL of Chef client installer | `string` | `null` | no |
+| chef_cookbooks_url | S3 or HTTP URL of ArcGIS Chef cookbooks archive | `string` | `null` | no |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
+| os | Operating system id | `string` | n/a | yes |
+| output_s3_bucket | S3 bucket for the SSM command output | `string` | n/a | yes |
 | site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

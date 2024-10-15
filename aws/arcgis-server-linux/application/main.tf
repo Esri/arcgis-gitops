@@ -93,10 +93,6 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "s3_repository" {
-  name = "/arcgis/${var.site_id}/s3/repository"
-}
-
 data "aws_ssm_parameter" "sns_topic" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
 }
@@ -136,11 +132,16 @@ locals {
   timestamp               = formatdate("YYYYMMDDhhmm", timestamp())
 }
 
+module "site_core_info" {
+  source = "../../modules/site_core_info"
+  site_id = var.site_id
+}
+
 # Copy ArcGIS Server setup archives to the private repository S3 bucket
 module "copy_server_files" {
   count                  = var.is_upgrade ? 1 : 0
   source                 = "../../modules/s3_copy_files"
-  bucket_name            = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
+  bucket_name            = module.site_core_info.s3_repository
   index_file             = local.server_manifest_path
 }
 
@@ -156,7 +157,7 @@ module "arcgis_server_files" {
   external_vars = {
     local_repository = "/opt/software/archives"
     manifest         = local.server_manifest_path
-    bucket_name      = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
+    bucket_name      = module.site_core_info.s3_repository
     region           = data.aws_region.current.name
   }
   depends_on = [

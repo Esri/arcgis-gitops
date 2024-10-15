@@ -16,7 +16,7 @@
 resource "aws_security_group" "arcgis_alb" {
   name        = "${var.deployment_id}-alb"
   description = "Allow inbound traffic to load balancer ports"
-  vpc_id      = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id      = module.site_core_info.vpc_id
 
   egress {
     from_port        = 0
@@ -91,16 +91,10 @@ resource "aws_lb" "alb" {
   security_groups    = [aws_security_group.arcgis_alb.id]
 
   subnets = (var.internal_load_balancer ?
-    data.aws_ssm_parameter.private_subnets[*].value :
-    data.aws_ssm_parameter.public_subnets[*].value)
+    module.site_core_info.private_subnets :
+    module.site_core_info.public_subnets)
 
   drop_invalid_header_fields = true
-
-  # access_logs {
-  #   bucket  = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
-  #   prefix  = "access-logs/${var.deployment_id}"
-  #   enabled = true
-  # }
 }
 
 # HTTP listener
@@ -168,7 +162,7 @@ resource "aws_lb_target_group" "default" {
   name     = "${var.deployment_id}-default"
   port     = 443
   protocol = "HTTPS"
-  vpc_id   = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id   = module.site_core_info.vpc_id
 }
 
 # Create Application Load Balancer target group for HTTP port 80, attach 
@@ -177,7 +171,7 @@ resource "aws_lb_target_group" "default" {
 # module "server_http_alb_target" {
 #   source            = "../../modules/alb_target_group"
 #   name              = "${var.deployment_id}-s-80"
-#   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+#   vpc_id            = module.site_core_info.vpc_id
 #   alb_arn           = aws_lb.alb.arn
 #   protocol          = "HTTP"
 #   alb_port          = 80
@@ -197,7 +191,7 @@ resource "aws_lb_target_group" "default" {
 # module "portal_http_alb_target" {
 #   source            = "../../modules/alb_target_group"
 #   name              = "${var.deployment_id}-p-80"
-#   vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+#   vpc_id            = module.site_core_info.vpc_id
 #   alb_arn           = aws_lb.alb.arn
 #   protocol          = "HTTP"
 #   alb_port          = 80
@@ -217,7 +211,7 @@ resource "aws_lb_target_group" "default" {
 module "server_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "${var.deployment_id}-s-443"
-  vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id            = module.site_core_info.vpc_id
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
   alb_port          = 443
@@ -237,7 +231,7 @@ module "server_https_alb_target" {
 module "portal_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "${var.deployment_id}-p-443"
-  vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id            = module.site_core_info.vpc_id
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
   alb_port          = 443
@@ -257,7 +251,7 @@ module "portal_https_alb_target" {
 module "private_server_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "${var.deployment_id}-6443"
-  vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id            = module.site_core_info.vpc_id
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
   alb_port          = 6443
@@ -277,7 +271,7 @@ module "private_server_https_alb_target" {
 module "private_portal_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "${var.deployment_id}-7443"
-  vpc_id            = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
+  vpc_id            = module.site_core_info.vpc_id
   alb_arn           = aws_lb.alb.arn
   protocol          = "HTTPS"
   alb_port          = 7443

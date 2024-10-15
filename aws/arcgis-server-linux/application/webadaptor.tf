@@ -10,7 +10,7 @@ locals {
 module "copy_webadaptor_files" {
   count                  = var.is_upgrade && var.configure_webadaptor ? 1 : 0
   source                 = "../../modules/s3_copy_files"
-  bucket_name            = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
+  bucket_name            = module.site_core_info.s3_repository
   index_file             = local.webadaptor_manifest_path
   depends_on = [
     module.arcgis_server_node
@@ -28,8 +28,8 @@ module "download_webadaptor_files" {
   external_vars = {
     local_repository = "/opt/software/archives"
     manifest         = local.webadaptor_manifest_path
-    bucket_name      = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
-    region           = data.aws_region.current.name
+    bucket_name      = module.site_core_info.s3_repository
+    region           = module.site_core_info.s3_region
   }
   depends_on = [
     module.copy_webadaptor_files

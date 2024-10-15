@@ -27,9 +27,9 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/vpc/public-subnet-* | Public VPC subnets Ids |
- * | /arcgis/${var.site_id}/vpc/private-subnet-* | Private VPC subnets Ids |
- * | /arcgis/${var.site_id}/vpc/internal-subnet-* | Internal VPC subnets Ids |
+ * | /arcgis/${var.site_id}/vpc/public-subnet/* | Public VPC subnets Ids |
+ * | /arcgis/${var.site_id}/vpc/private-subnet/* | Private VPC subnets Ids |
+ * | /arcgis/${var.site_id}/vpc/internal-subnet/* | Internal VPC subnets Ids |
  */
 
 # Copyright 2024 Esri
@@ -75,33 +75,22 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "public_subnets" {
-  count = local.subnets_count
-  name  = "/arcgis/${var.site_id}/vpc/public-subnet-${count.index + 1}"
-}
-
-data "aws_ssm_parameter" "private_subnets" {
-  count = local.subnets_count
-  name  = "/arcgis/${var.site_id}/vpc/private-subnet-${count.index + 1}"
-}
-
-data "aws_ssm_parameter" "internal_subnets" {
-  count = local.subnets_count
-  name  = "/arcgis/${var.site_id}/vpc/internal-subnet-${count.index + 1}"
-}
-
 data "tls_certificate" "cluster" {
   url = aws_eks_cluster.cluster.identity.0.oidc.0.issuer
 }
 
 locals {
-  subnets_count = 2 # Number of VPC subnets of each type to use for the EKS cluster by default
   containerinsights_log_groups = [
     "application",
     "dataplane",
     "host",
     "performance"
   ]
+}
+
+module "site_core_info" {
+  source = "../../modules/site_core_info"
+  site_id = var.site_id
 }
 
 # Create Key Management Service (KMS) key.
@@ -138,9 +127,9 @@ resource "aws_eks_cluster" "cluster" {
     endpoint_private_access = true
     endpoint_public_access  = true
     subnet_ids = length(var.subnet_ids) < 2 ? concat(
-      data.aws_ssm_parameter.public_subnets[*].value,
-      data.aws_ssm_parameter.private_subnets[*].value,
-      data.aws_ssm_parameter.internal_subnets[*].value
+      module.site_core_info.public_subnets,
+      module.site_core_info.private_subnets,
+      module.site_core_info.internal_subnets
     ) : var.subnet_ids
   }
 
@@ -203,7 +192,7 @@ resource "aws_eks_node_group" "node_groups" {
   # Use the first two private subnets if the subnets list of the node group 
   # contains less then 2 elements.
   subnet_ids = (length(var.node_groups[count.index].subnet_ids) < 2 ?
-    data.aws_ssm_parameter.private_subnets[*].value :
+    module.site_core_info.private_subnets :
   var.node_groups[count.index].subnet_ids)
 
   launch_template {

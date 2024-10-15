@@ -10,7 +10,7 @@
  *
  * * AKS cluster with default node pool in the private subnet 1 and ingress controller in App Gateway subnet 1.
  * * Container registry with private endpoint in internal subnet 1, private DNS zone, and cache rules to pull images from Docker Hub container registry.
- * * Monitoring subsyatem that include Azure Monitor workspace and Azure Managed Grafana instances.
+ * * Monitoring subsystem that include Azure Monitor workspace and Azure Managed Grafana instances.
  *
  * Once the AKS cluster is available, the module creates storage classes for Azure Disk CSI driver.
  *
@@ -64,32 +64,9 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
-# Retrieve Id of Application Gateway subnet 1 from Azure Key Vault secret
-data "azurerm_key_vault_secret" "app_gateway_subnet_1" {
-  name         = "app-gateway-subnet-1"
-  key_vault_id = data.azurerm_key_vault.site_vault.id
-}
-
-# Retrieve Id of private subnet 1 from Azure Key Vault secret
-data "azurerm_key_vault_secret" "private_subnet_1" {
-  name         = "private-subnet-1"
-  key_vault_id = data.azurerm_key_vault.site_vault.id
-}
-
-# Retrieve Id of internal subnet 1 from Azure Key Vault secret
-data "azurerm_key_vault_secret" "internal_subnet_1" {
-  name         = "internal-subnet-1"
-  key_vault_id = data.azurerm_key_vault.site_vault.id
-}
-
-data "azurerm_key_vault_secret" "vnet_id" {
-  name         = "vnet-id"
-  key_vault_id = data.azurerm_key_vault.site_vault.id
-}
-
-data "azurerm_key_vault" "site_vault" {
-  name                = var.site_id
-  resource_group_name = "${var.site_id}-infrastructure-core"
+module "site_core_info" {
+  source = "../../modules/site_core_info"
+  site_id = var.site_id
 }
 
 resource "azurerm_resource_provider_registration" "microsoft_monitor" {
@@ -124,12 +101,12 @@ resource "azurerm_kubernetes_cluster" "site_cluster" {
     name           = var.default_node_pool.name
     node_count     = var.default_node_pool.node_count
     vm_size        = var.default_node_pool.vm_size
-    vnet_subnet_id = data.azurerm_key_vault_secret.private_subnet_1.value
+    vnet_subnet_id = module.site_core_info.private_subnets[0]
     temporary_name_for_rotation = "temporary"
   }
 
   ingress_application_gateway {
-    subnet_id = data.azurerm_key_vault_secret.app_gateway_subnet_1.value
+    subnet_id = module.site_core_info.app_gateway_subnets[0]
   }
 
   identity {
@@ -225,13 +202,13 @@ resource "azurerm_container_registry" "cluster_acr" {
 resource "azurerm_key_vault_secret" "cr_user" {
   name         = "cr-user"
   value        = var.container_registry_user
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = module.site_core_info.vault_id
 }
 
 resource "azurerm_key_vault_secret" "cr_password" {
   name         = "cr-password"
   value        = var.container_registry_password
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = module.site_core_info.vault_id
 }
 
 # Unfortunatelly, azurerm provider does not support creating container registry credential sets.
@@ -244,9 +221,9 @@ resource "null_resource" "credential_set" {
 
   provisioner "local-exec" {
     command = <<-EOT
-    credential=$(az acr credential-set create -r ${azurerm_container_registry.cluster_acr.name} -n pullthroughcache -l ${var.container_registry_url} -u ${data.azurerm_key_vault.site_vault.vault_uri}secrets/cr-user -p ${data.azurerm_key_vault.site_vault.vault_uri}secrets/cr-password)
+    credential=$(az acr credential-set create -r ${azurerm_container_registry.cluster_acr.name} -n pullthroughcache -l ${var.container_registry_url} -u ${module.site_core_info.vault_uri}secrets/cr-user -p ${module.site_core_info.vault_uri}secrets/cr-password)
     principal=$(echo $credential | jq -r '.identity.principalId')
-    az keyvault set-policy --name ${data.azurerm_key_vault.site_vault.name} --object-id $principal --secret-permissions get
+    az keyvault set-policy --name ${module.site_core_info.vault_name} --object-id $principal --secret-permissions get
     EOT
   }
 }
@@ -281,14 +258,14 @@ resource "azurerm_private_dns_zone_virtual_network_link" "acr_private_dns_zone_v
   name                  = "acr-private-dns-zone-vnet-link"
   private_dns_zone_name = azurerm_private_dns_zone.acr_private_dns_zone.name
   resource_group_name   = azurerm_resource_group.cluster_rg.name
-  virtual_network_id    = data.azurerm_key_vault_secret.vnet_id.value
+  virtual_network_id    = module.site_core_info.vnet_id
 }
 
 resource "azurerm_private_endpoint" "acr_private_endpoint" {
   name                = "${azurerm_container_registry.cluster_acr.name}-private-endpoint"
   resource_group_name = azurerm_resource_group.cluster_rg.name
   location            = azurerm_resource_group.cluster_rg.location
-  subnet_id           = data.azurerm_key_vault_secret.internal_subnet_1.value
+  subnet_id           = module.site_core_info.internal_subnets[0]
 
   private_service_connection {
     name                           = "${azurerm_container_registry.cluster_acr.name}-service-connection"

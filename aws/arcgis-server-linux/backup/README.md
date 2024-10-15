@@ -29,13 +29,13 @@ The module retrieves the backup S3 bucket name from '/arcgis/${var.site_id}/s3/b
 | Name | Source | Version |
 |------|--------|---------|
 | arcgis_server_backup | ../../modules/ansible_playbook | n/a |
+| site_core_info | ../../modules/site_core_info | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.s3_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 

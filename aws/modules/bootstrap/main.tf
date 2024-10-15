@@ -42,8 +42,17 @@ terraform {
 
 data "aws_region" "current" {}
 
-data "aws_ssm_parameter" "output_s3_bucket" {
-  name  = "/arcgis/${var.site_id}/s3/logs"
+data "aws_ssm_parameter" "chef_client_url" {
+  name  = "/arcgis/${var.site_id}/chef-client-url/${var.os}"
+}
+
+data "aws_ssm_parameter" "chef_cookbooks_url" {
+  name  = "/arcgis/${var.site_id}/cookbooks-url"
+}
+
+locals {
+  chef_client_url     = var.chef_client_url != null ? var.chef_client_url : data.aws_ssm_parameter.chef_client_url.value
+  chef_cookbooks_url  = var.chef_cookbooks_url != null ? var.chef_cookbooks_url : data.aws_ssm_parameter.chef_cookbooks_url.value
 }
 
 resource "null_resource" "bootstrap" {
@@ -56,6 +65,6 @@ resource "null_resource" "bootstrap" {
       AWS_DEFAULT_REGION = data.aws_region.current.name
     }
 
-    command = "python -m ssm_bootstrap -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -c ${var.chef_client_url} -k ${var.chef_cookbooks_url} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
+    command = "python -m ssm_bootstrap -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -c ${local.chef_client_url} -k ${local.chef_cookbooks_url} -b ${var.output_s3_bucket}"
   }
 }

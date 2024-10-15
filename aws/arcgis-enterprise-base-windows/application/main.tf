@@ -99,22 +99,6 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "chef_client_url" {
-  name  = "/arcgis/${var.site_id}/chef-client-url/${var.os}"
-}
-
-data "aws_ssm_parameter" "chef_cookbooks_url" {
-  name  = "/arcgis/${var.site_id}/cookbooks-url"
-}
-
-data "aws_ssm_parameter" "s3_repository" {
-  name = "/arcgis/${var.site_id}/s3/repository"
-}
-
-data "aws_ssm_parameter" "s3_backup" {
-  name = "/arcgis/${var.site_id}/s3/backup"
-}
-
 data "aws_ssm_parameter" "s3_content" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket"
 }
@@ -211,10 +195,15 @@ locals {
   timestamp = formatdate("YYYYMMDDHHmmss", timestamp())
 }
 
+module "site_core_info" {
+  source         = "../../modules/site_core_info"
+  site_id        = var.site_id
+}
+
 module "s3_copy_files" {
   count                  = var.is_upgrade ? 1 : 0
   source                 = "../../modules/s3_copy_files"
-  bucket_name            = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
+  bucket_name            = module.site_core_info.s3_repository
   index_file             = local.index_file_path
 }
 
@@ -224,8 +213,8 @@ module "bootstrap_deployment" {
   site_id       = var.site_id
   deployment_id = var.deployment_id
   machine_roles = ["fileserver", "primary", "standby"]
-  chef_client_url = nonsensitive(data.aws_ssm_parameter.chef_client_url.value)
-  chef_cookbooks_url = nonsensitive(data.aws_ssm_parameter.chef_cookbooks_url.value)
+  os           = var.os
+  output_s3_bucket = module.site_core_info.s3_logs
 }
 
 # Download base ArcGIS Enterprise setup archives to primary and standby EC2 instances
@@ -239,8 +228,8 @@ module "arcgis_enterprise_files" {
   json_attributes = templatefile(
     local.index_file_path,
     {
-      s3bucket = data.aws_ssm_parameter.s3_repository.value
-      region   = data.aws_region.current.name
+      s3bucket = module.site_core_info.s3_repository
+      region   = module.site_core_info.s3_region
   })
   execution_timeout = 1800
   depends_on = [
@@ -437,14 +426,14 @@ module "arcgis_enterprise_fileserver" {
 
 # Upload ArcGIS Server authorization file to the private repository S3 bucket
 resource "aws_s3_object" "server_authorization_file" {
-  bucket = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
+  bucket = module.site_core_info.s3_repository
   key    = "${local.authorization_files_s3_prefix}/${basename(var.server_authorization_file_path)}"
   source = var.server_authorization_file_path
 }
 
 # Upload Portal for ArcGIS authorization file to the private repository S3 bucket
 resource "aws_s3_object" "portal_authorization_file" {
-  bucket = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
+  bucket = module.site_core_info.s3_repository
   key    = "${local.authorization_files_s3_prefix}/${basename(var.portal_authorization_file_path)}"
   source = var.portal_authorization_file_path
 }
@@ -452,7 +441,7 @@ resource "aws_s3_object" "portal_authorization_file" {
 # If specified, upload keystore file to the private repository S3 bucket
 resource "aws_s3_object" "keystore_file" {
   count  = var.keystore_file_path != null ? 1 : 0
-  bucket = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
+  bucket = module.site_core_info.s3_repository
   key    = "${local.certificates_s3_prefix}/${basename(var.keystore_file_path)}"
   source = var.keystore_file_path
 }
@@ -460,7 +449,7 @@ resource "aws_s3_object" "keystore_file" {
 # If specified, upload root certificate file to the private repository S3 bucket
 resource "aws_s3_object" "root_cert_file" {
   count  = var.root_cert_file_path != null ? 1 : 0
-  bucket = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
+  bucket = module.site_core_info.s3_repository
   key    = "${local.certificates_s3_prefix}/${basename(var.root_cert_file_path)}"
   source = var.root_cert_file_path
 }
@@ -478,8 +467,8 @@ module "authorization_files" {
       repository = {
         local_archives = local.authorization_files_dir
         server = {
-          s3bucket = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
-          region   = data.aws_region.current.name
+          s3bucket = module.site_core_info.s3_repository
+          region   = module.site_core_info.s3_region
         }
         files = {
           "${basename(var.server_authorization_file_path)}" = {
@@ -516,8 +505,8 @@ module "keystore_file" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          s3bucket = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
-          region   = data.aws_region.current.name
+          s3bucket = module.site_core_info.s3_repository
+          region   = module.site_core_info.s3_region
         }
         files = {
           "${basename(var.keystore_file_path)}" = {
@@ -550,8 +539,8 @@ module "root_cert" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          s3bucket = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
-          region   = data.aws_region.current.name
+          s3bucket = module.site_core_info.s3_repository
+          region   = module.site_core_info.s3_region
         }
         files = {
           "${basename(var.root_cert_file_path)}" = {
@@ -634,11 +623,11 @@ module "arcgis_enterprise_primary" {
         types                       = "tileCache,relational"
         tilecache = {
           backup_type     = "s3"
-          backup_location = "type=s3;location=${nonsensitive(data.aws_ssm_parameter.s3_backup.value)}/tilecache-${local.timestamp};name=tc_default;region=${data.aws_region.current.name}"
+          backup_location = "type=s3;location=${module.site_core_info.s3_backup}/tilecache-${local.timestamp};name=tc_default;region=${module.site_core_info.s3_region}"
         }
         relational = {
           backup_type     = "s3"
-          backup_location = "type=s3;location=${nonsensitive(data.aws_ssm_parameter.s3_backup.value)}/relational-${local.timestamp};name=re_default;region=${data.aws_region.current.name}"
+          backup_location = "type=s3;location=${module.site_core_info.s3_backup}/relational-${local.timestamp};name=re_default;region=${module.site_core_info.s3_region}"
         }
         # tilecache = {
         #   backup_type     = "fs"

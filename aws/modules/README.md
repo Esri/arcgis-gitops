@@ -12,3 +12,4 @@ A Terraform module can call other modules to include their resources into the co
 * [run_chef](run_chef/README.md) - runs Cinc Client in local mode on EC2 instances
 * [s3_copy_files](s3_copy_files/README.md) - copies files from local file system, public URLs, and, My Esri repository to S3 bucket
 * [security_group](security_group/README.md) - creates and configures EC2 security group for a deployment
+* [site_core_info](site_core_info/README.md) - retrieves names and Ids of core AWS resources from AWS Systems Manager parameters

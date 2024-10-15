@@ -64,10 +64,10 @@ The module uses the following SSM parameters:
 | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
 | /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id} | Id of the built AMI |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
-| /arcgis/${var.site_id}/vpc/public-subnet-1 | public VPC subnet 1 Id |
-| /arcgis/${var.site_id}/vpc/public-subnet-2 | public VPC subnet 2 Id |
-| /arcgis/${var.site_id}/vpc/private-subnet-1 | private VPC subnet 1 Id |
-| /arcgis/${var.site_id}/vpc/private-subnet-2 | private VPC subnet 2 Id |
+| /arcgis/${var.site_id}/vpc/public-subnet/1 | public VPC subnet 1 Id |
+| /arcgis/${var.site_id}/vpc/public-subnet/2 | public VPC subnet 2 Id |
+| /arcgis/${var.site_id}/vpc/private-subnet/1 | private VPC subnet 1 Id |
+| /arcgis/${var.site_id}/vpc/private-subnet/2 | private VPC subnet 2 Id |
 | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
 | /arcgis/${var.site_id}/vpc/id | VPC Id |
 
@@ -87,6 +87,7 @@ The module uses the following SSM parameters:
 | private_server_https_alb_target | ../../modules/alb_target_group | n/a |
 | security_group | ../../modules/security_group | n/a |
 | server_https_alb_target | ../../modules/alb_target_group | n/a |
+| site_core_info | ../../modules/site_core_info | n/a |
 
 ## Resources
 
@@ -111,11 +112,6 @@ The module uses the following SSM parameters:
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.hosted_zone_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.instance_profile_name](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.private_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.public_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.vpc_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 

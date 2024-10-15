@@ -107,6 +107,7 @@ resource "azurerm_key_vault_access_policy" "current_user" {
     "Set",
     "Get",
     "Delete",
+    "List",
     "Purge",
     "Recover"
   ]
@@ -230,6 +231,11 @@ resource "azurerm_key_vault_secret" "app_gateway_subnets" {
   value        = azurerm_subnet.app_gateway_subnets[count.index].id
   key_vault_id = azurerm_key_vault.site_vault.id
 
+  tags = {
+    ArcGISSiteId  = var.site_id
+    ParameterRole = "AppGatewaySubnet"
+  }
+
   depends_on = [
     azurerm_key_vault_access_policy.current_user
   ]
@@ -272,6 +278,11 @@ resource "azurerm_key_vault_secret" "private_subnets" {
   value        = azurerm_subnet.private_subnets[count.index].id
   key_vault_id = azurerm_key_vault.site_vault.id
 
+  tags = {
+    ArcGISSiteId  = var.site_id
+    ParameterRole = "PrivateSubnet"
+  }
+
   depends_on = [
     azurerm_key_vault_access_policy.current_user
   ]
@@ -308,6 +319,11 @@ resource "azurerm_key_vault_secret" "internal_subnets" {
   name         = "internal-subnet-${count.index + 1}"
   value        = azurerm_subnet.internal_subnets[count.index].id
   key_vault_id = azurerm_key_vault.site_vault.id
+
+  tags = {
+    ArcGISSiteId  = var.site_id
+    ParameterRole = "InternalSubnet"
+  }
 
   depends_on = [
     azurerm_key_vault_access_policy.current_user

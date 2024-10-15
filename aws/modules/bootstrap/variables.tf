@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+variable "os" {
+  description = "Operating system id"
+  type        = string
+}
+
 variable "site_id" {
   description = "ArcGIS Enterprise site Id"
   type        = string
@@ -40,9 +45,16 @@ variable "machine_roles" {
 variable "chef_client_url" {
   description = "S3 or HTTP URL of Chef client installer"
   type        = string
+  default     = null
 }
 
 variable "chef_cookbooks_url" {
   description = "S3 or HTTP URL of ArcGIS Chef cookbooks archive"
-  type = string
+  type        = string
+  default     = null
+}
+
+variable "output_s3_bucket" {
+  description = "S3 bucket for the SSM command output"
+  type        = string
 }

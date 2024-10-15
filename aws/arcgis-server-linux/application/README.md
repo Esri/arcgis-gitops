@@ -74,6 +74,7 @@ The module uses the following SSM parameters:
 | download_webadaptor_files | ../../modules/ansible_playbook | n/a |
 | keystore_file | ../../modules/ansible_playbook | n/a |
 | openjdk_upgrade | ../../modules/ansible_playbook | n/a |
+| site_core_info | ../../modules/site_core_info | n/a |
 | tomcat_keystore_file | ../../modules/ansible_playbook | n/a |
 | tomcat_ssl_config | ../../modules/ansible_playbook | n/a |
 | tomcat_upgrade | ../../modules/ansible_playbook | n/a |
@@ -86,7 +87,6 @@ The module uses the following SSM parameters:
 | [aws_sns_topic_subscription.infrastructure_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.s3_repository](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.sns_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs

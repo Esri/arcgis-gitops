@@ -39,9 +39,9 @@ Instructions:
 ### 2. Create Ingress Resources
 
 GitHub Actions workflow **enterprise-k8s-azure-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on
-Kubernetes deployment in the Azure AKS cluster and ingress  that routes traffic to the deployment.
+Kubernetes deployment in the Azure AKS cluster and ingress resources that routes traffic to the deployment.
 
-> The "deployment_id" determines the Kubernetes namespace for the deployment. The "deployment_id" must be unique within the EKS cluster.
+> The "deployment_id" determines the Kubernetes namespace for the deployment. The "deployment_id" must be unique within the AKS cluster.
 
 The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/azure/arcgis-enterprise-k8s/ingress.tfvars.json) config file.
 
@@ -59,7 +59,7 @@ Instructions:
 1. Add TLS certificate for the deployment's frontend HTTPS listener and the certificate's private key files in PEM format to `/config/certificates/` directory of the repository and set "tls_certificate_path" and "tls_private_key_path" config properties to the files' paths.
 2. Add CA certificate file for backend TLS certificate validation in PEM format to `/config/certificates/` directory of the repository and set "ca_certificate_path" config property to the file path.
 3. Set "deployment_fqdn" property to the ArcGIS Enterprise deployment domain name.
-4. If Azure DNS is used, set "hosted_zone_name" and "hosted_zone_resource_group" properties to the hosted zone name and resource of the ArcGIS Enterprise domain name DNS.
+4. If Azure DNS is used, set "hosted_zone_name" and "hosted_zone_resource_group" properties to the hosted zone name and resource group name of the ArcGIS Enterprise domain name DNS.
 5. Commit the changes to a Git branch and push the branch to GitHub.
 6. Run enterprise-k8s-azure-ingress workflow using the branch.
 7. If Azure DNS is not user, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.

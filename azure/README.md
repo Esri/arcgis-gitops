@@ -29,7 +29,7 @@ The templates automate provisioning of infrastructure shared by the deployments 
 The following templates are available for Microsoft Azure:
 
 * [arcgis-site-core](arcgis-site-core/README.md) - Provision core Azure resources for ArcGIS Enterprise site
-* [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes Deployment in AKS
+* [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment in AKS
 
 ## Triggering Workflows
 

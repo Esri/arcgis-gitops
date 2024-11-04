@@ -50,7 +50,7 @@ variable "default_node_pool" {
   })
   default = {
     name            = "default"
-    vm_size         = "Standard_D4s_v5"
+    vm_size         = "Standard_D8s_v5"
     os_disk_size_gb = 1024
     node_count      = 4
     max_count       = 8

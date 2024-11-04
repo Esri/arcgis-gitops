@@ -27,18 +27,22 @@ output "cluster_resource_group" {
   description = "AKS cluster resource group"
 }
 
-output "container_registry_login_server" {
-  value       = azurerm_container_registry.cluster_acr.login_server
-  description = "Container registry login server"
+output "acr_login_server" {
+  value       = module.container_registry.acr_login_server
+  description = "Private container registry login server"
+}
+
+output "alb_id" {
+  description = "The ID of the Azure Application Load Balancer"
+  value       = module.alb_controller.alb_id
 }
 
 output "prometheus_query_endpoint" {
-  value       = azurerm_monitor_workspace.prometheus.query_endpoint
+  value       = module.monitoring.prometheus_query_endpoint
   description = "Prometheus query endpoint"
-
 }
 
 output "grafana_endpoint" {
-  value       = azurerm_dashboard_grafana.grafana.endpoint
+  value       = module.monitoring.grafana_endpoint
   description = "Grafana endpoint"
 }

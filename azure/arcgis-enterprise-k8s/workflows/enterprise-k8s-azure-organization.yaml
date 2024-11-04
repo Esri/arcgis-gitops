@@ -1,0 +1,91 @@
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: enterprise-k8s-azure-organization
+
+on: 
+  workflow_dispatch:
+
+env:
+  TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY: ${{ secrets.TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY }}
+  TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
+  TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
+  MAX_UPGRADE_TIME: 720 # 12 hours
+  CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-k8s/organization.tfvars.json
+  ADMIN_CLI_METADATA_FILE: ${{ github.workspace }}/enterprise-admin-cli/metadata.json  
+
+concurrency:
+  group: ${{ github.ref_name }}
+  
+jobs:
+  organization:
+    name: ArcGIS Enterprise Organization
+    runs-on: ubuntu-22.04
+    outputs:
+      arcgis_enterprise_manager_url: ${{ steps.output.outputs.arcgis_enterprise_manager_url }}
+      arcgis_enterprise_portal_url: ${{ steps.output.outputs.arcgis_enterprise_portal_url }}
+    defaults:
+      run:
+        working-directory: azure/arcgis-enterprise-k8s/organization
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Link config directory
+        id: symlink
+        run: ln -s ${{ github.workspace }}/config ~/config
+      - name: Update kubeconfig
+        id: update-kubeconfig
+        run: |
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+          az account set --subscription $ARM_SUBSCRIPTION_ID
+          az aks get-credentials --resource-group "$SITE_ID"-k8s-cluster --name $SITE_ID --overwrite-existing
+      - name: Run Terraform
+        id: terraform
+        run: |
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+          ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
+          UPGRADE_TOKEN=$(kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis generate-token --expiration $MAX_UPGRADE_TIME) || UPGRADE_TOKEN="token"
+          terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
+                         -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
+                         -backend-config="access_key=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY" \
+                         -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/organization.tfstate"
+          terraform apply -var-file=$CONFIG_FILE -var "upgrade_token=$UPGRADE_TOKEN" -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve 
+      - name: Retrieve Logs
+        id: retrieve-logs
+        env:
+          IS_UPGRADE: ${{ steps.terraform.outputs.is-upgrade }}
+        continue-on-error: true
+        if: always()
+        run: |
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+          if [ $IS_UPGRADE -eq 1 ]; then
+            POD_NAME=$(kubectl get pods --namespace $DEPLOYMENT_ID --selector=job-name=arcgis-pre-upgrade-hook-job --output=jsonpath='{.items[*].metadata.name}')
+          else
+            POD_NAME=$(kubectl get pods --namespace $DEPLOYMENT_ID --selector=job-name=arcgis-pre-install-hook-job --output=jsonpath='{.items[*].metadata.name}')
+          fi
+          kubectl logs --namespace $DEPLOYMENT_ID $POD_NAME || true
+      - name: Terraform Output
+        id: output  
+        run: |
+          echo arcgis_enterprise_manager_url=$(terraform output arcgis_enterprise_manager_url) >> $GITHUB_OUTPUT
+          echo arcgis_enterprise_portal_url=$(terraform output arcgis_enterprise_portal_url) >> $GITHUB_OUTPUT  

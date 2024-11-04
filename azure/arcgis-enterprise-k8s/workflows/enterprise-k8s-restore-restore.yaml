@@ -1,0 +1,54 @@
+# Copyright 2024 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: enterprise-k8s-azure-restore
+
+on: 
+  workflow_dispatch:
+ 
+env:
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-k8s/restore.vars.json
+
+jobs:
+  restore:
+    name: Restore Organization
+    runs-on: ubuntu-22.04
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      with:
+        ref: ${{ github.ref_name }}
+    - name: Update kubeconfig
+      run: |
+        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+        az account set --subscription $ARM_SUBSCRIPTION_ID
+        az aks get-credentials --resource-group "$SITE_ID"-k8s-cluster --name $SITE_ID --overwrite-existing
+    - name: Restore Organization
+      run: |
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+        STORE=$(jq -r '.store' $CONFIG_FILE)
+        PASSCODE=$(jq -r '.passcode' $CONFIG_FILE)
+        BACKUP=$(jq -r '.backup' $CONFIG_FILE)
+        TIMEOUT=$(jq -r '.timeout' $CONFIG_FILE)
+        [[ "$STORE" == "null" || "$STORE" == "" ]] && STORE_ARG="" || STORE_ARG="--store $STORE"
+        [[ "$BACKUP" == "null" || "$BACKUP" == "" ]] && BACKUP_ARG="" || BACKUP_ARG="--backup $BACKUP"
+        kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis restore-organization $STORE_ARG $BACKUP_ARG --passcode "$PASSCODE" --wait --timeout $TIMEOUT

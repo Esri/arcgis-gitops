@@ -149,8 +149,8 @@ Arguments:
                         Azure storage account name
   --account-endpoint-url ACCOUNT_ENDPOINT_URL
                         Blob service endpoint URL
-  --region REGION       S3 bucket region
   --client-id CLIENT_ID User-assigned managed identity client Id
+  --root ROOT           blob container root directory  
   --is-default          make the store default
 ```
 

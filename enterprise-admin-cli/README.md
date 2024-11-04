@@ -123,6 +123,37 @@ Arguments:
                         ArcGIS Enterprise user password
 ```
 
+## register-az-backup-store command
+
+Registers or updates backup store in Microsoft Azure blobs
+
+Usage:
+
+```text
+gis register-az-backup-store [-h] [--url URL] [-u USER] [-p PASSWORD]
+                             --store STORE --storage-account STORAGE_ACCOUNT
+                             [--account-endpoint-url ACCOUNT_ENDPOINT_URL]
+                             --client-id CLIENT_ID [--root ROOT] [--is-default]
+```
+
+Arguments:
+
+```text
+  -h, --help            show this help message and exit
+  --url URL             ArcGIS Enterprise URL
+  -u USER, --user USER  ArcGIS Enterprise user name
+  -p PASSWORD, --password PASSWORD
+                        ArcGIS Enterprise user password
+  --store STORE         backup store name
+  --storage-account STORAGE_ACCOUNT 
+                        Azure storage account name
+  --account-endpoint-url ACCOUNT_ENDPOINT_URL
+                        Blob service endpoint URL
+  --client-id CLIENT_ID User-assigned managed identity client Id
+  --root ROOT           blob container root directory  
+  --is-default          make the store default
+```
+
 ## register-pv-backup-store command
 
 Registers or updates backup store in a persistent volume.

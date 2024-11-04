@@ -58,7 +58,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.1"
+      version = "~> 4.6"
     }
   }
 }
@@ -202,6 +202,15 @@ resource "azurerm_subnet" "app_gateway_subnets" {
   resource_group_name             = azurerm_resource_group.site_rg.name
   virtual_network_name            = azurerm_virtual_network.site_vnet.name
   default_outbound_access_enabled = false
+
+  delegation {
+    name = "Microsoft.ServiceNetworking/trafficControllers"
+
+    service_delegation {
+      name    = "Microsoft.ServiceNetworking/trafficControllers"
+    }
+  }
+
   address_prefixes = [
     var.app_gateway_subnets_cidr_blocks[count.index]
   ]

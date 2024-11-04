@@ -23,6 +23,7 @@ returns them as output values.
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vnet_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secrets.secrets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secrets) | data source |
+| [azurerm_storage_account.site_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
 
 ## Inputs
 
@@ -37,6 +38,9 @@ returns them as output values.
 | app_gateway_subnets | Ids of app gateway subnets |
 | internal_subnets | Ids of internal subnets |
 | private_subnets | Ids of private subnets |
+| resource_group_name | Resource Group Name |
+| storage_account_blob_endpoint | Azure storage account primary blob endpoint |
+| storage_account_id | Azure storage account Id |
 | storage_account_key | Azure storage account key |
 | storage_account_name | Azure storage account name |
 | vault_id | Azure Key Vault Id |

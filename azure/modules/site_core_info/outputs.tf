@@ -12,6 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+output "resource_group_name" {
+  description = "Resource Group Name"
+  value       = "${var.site_id}-infrastructure-core"
+}
+
 output "vault_name" {
   description = "Azure Key Vault Name"
   value       = data.azurerm_key_vault.site_vault.name
@@ -56,4 +61,14 @@ output "storage_account_key" {
   description = "Azure storage account key"
   value       = data.azurerm_key_vault_secret.storage_account_key.value
   sensitive   = true
+}
+
+output "storage_account_id" {
+  description = "Azure storage account Id"
+  value       = data.azurerm_storage_account.site_storage.id
+}
+
+output "storage_account_blob_endpoint" {
+  description = "Azure storage account primary blob endpoint"
+  value       = data.azurerm_storage_account.site_storage.primary_blob_endpoint
 }

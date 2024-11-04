@@ -30,20 +30,20 @@ data "azurerm_key_vault_secrets" "secrets" {
 }
 
 data "azurerm_key_vault_secret" "app_gateway_subnets" {
-  for_each ={
+  for_each = {
     for secret in data.azurerm_key_vault_secrets.secrets.names : secret => secret
     if startswith(secret, "app-gateway-subnet")
   }
-  name = each.key
+  name         = each.key
   key_vault_id = data.azurerm_key_vault.site_vault.id
 }
 
 data "azurerm_key_vault_secret" "private_subnets" {
-  for_each ={
+  for_each = {
     for secret in data.azurerm_key_vault_secrets.secrets.names : secret => secret
     if startswith(secret, "private-subnet")
   }
-  name = each.key
+  name         = each.key
   key_vault_id = data.azurerm_key_vault.site_vault.id
 }
 
@@ -52,7 +52,7 @@ data "azurerm_key_vault_secret" "internal_subnets" {
     for secret in data.azurerm_key_vault_secrets.secrets.names : secret => secret
     if startswith(secret, "internal-subnet")
   }
-  name = each.key
+  name         = each.key
   key_vault_id = data.azurerm_key_vault.site_vault.id
 }
 
@@ -69,4 +69,9 @@ data "azurerm_key_vault_secret" "storage_account_name" {
 data "azurerm_key_vault_secret" "storage_account_key" {
   name         = "storage-account-key"
   key_vault_id = data.azurerm_key_vault.site_vault.id
+}
+
+data "azurerm_storage_account" "site_storage" {
+  name                = data.azurerm_key_vault_secret.storage_account_name.value
+  resource_group_name = "${var.site_id}-infrastructure-core"
 }

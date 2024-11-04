@@ -8,7 +8,8 @@
  *
  * The module creates a resource group with the following Azure resouces: 
  *
- * * AKS cluster with default node pool in the private subnet 1 and ingress controller in App Gateway subnet 1.
+ * * AKS cluster with default node pool in the private subnet 1 
+ * * ALB Controller and Application Gateway for Containers associated with app gateway subnet 1.
  * * Container registry with private endpoint in internal subnet 1, private DNS zone, and cache rules to pull images from Docker Hub container registry.
  * * Monitoring subsystem that include Azure Monitor workspace and Azure Managed Grafana instances.
  *
@@ -23,7 +24,7 @@
  *
  * * Azure subscription Id must be specified by ARM_SUBSCRIPTION_ID environment variable.
  * * Azure service principal credentials must be configured by ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
- * * Azure CLI and kubectl must be installed.
+ * * Azure CLI, Helm and kubectl must be installed.
  */
 
 # Copyright 2024 Esri
@@ -48,13 +49,12 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.1"
+      version = "~> 4.6"
     }
   }
 }
 
 provider "azurerm" {
-  # resource_provider_registrations = "none"
   features {
     resource_group {
       prevent_deletion_if_contains_resources = false
@@ -64,8 +64,18 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
+locals {
+  backend_address_pool_name      = "${var.site_id}-beap"
+  frontend_port_name             = "${var.site_id}-feport"
+  frontend_ip_configuration_name = "${var.site_id}-feip"
+  http_setting_name              = "${var.site_id}-be-htst"
+  listener_name                  = "${var.site_id}-httplstn"
+  request_routing_rule_name      = "${var.site_id}-rqrt"
+  redirect_configuration_name    = "${var.site_id}-rdrcfg"
+}
+
 module "site_core_info" {
-  source = "../../modules/site_core_info"
+  source  = "../../modules/site_core_info"
   site_id = var.site_id
 }
 
@@ -77,6 +87,14 @@ resource "azurerm_resource_provider_registration" "microsoft_dashboard" {
   name = "Microsoft.Dashboard"
 }
 
+resource "azurerm_resource_provider_registration" "microsoft_network_function" {
+  name = "Microsoft.NetworkFunction"
+}
+
+resource "azurerm_resource_provider_registration" "microsoft_service_networking" {
+  name = "Microsoft.ServiceNetworking"
+}
+
 # Create a resource group
 resource "azurerm_resource_group" "cluster_rg" {
   name     = "${var.site_id}-k8s-cluster"
@@ -84,29 +102,29 @@ resource "azurerm_resource_group" "cluster_rg" {
 
   depends_on = [
     azurerm_resource_provider_registration.microsoft_monitor,
-    azurerm_resource_provider_registration.microsoft_dashboard
+    azurerm_resource_provider_registration.microsoft_dashboard,
+    azurerm_resource_provider_registration.microsoft_network_function,
+    azurerm_resource_provider_registration.microsoft_service_networking
   ]
 }
 
 # Create an AKS cluster
 resource "azurerm_kubernetes_cluster" "site_cluster" {
-  name                  = var.site_id
-  location              = azurerm_resource_group.cluster_rg.location
-  resource_group_name   = azurerm_resource_group.cluster_rg.name
-  dns_prefix            = var.site_id
-  sku_tier              = "Standard"
-  cost_analysis_enabled = true
+  name                      = var.site_id
+  location                  = azurerm_resource_group.cluster_rg.location
+  resource_group_name       = azurerm_resource_group.cluster_rg.name
+  dns_prefix                = var.site_id
+  sku_tier                  = "Standard"
+  cost_analysis_enabled     = true
+  oidc_issuer_enabled       = true
+  workload_identity_enabled = true
 
   default_node_pool {
-    name           = var.default_node_pool.name
-    node_count     = var.default_node_pool.node_count
-    vm_size        = var.default_node_pool.vm_size
-    vnet_subnet_id = module.site_core_info.private_subnets[0]
+    name                        = var.default_node_pool.name
+    node_count                  = var.default_node_pool.node_count
+    vm_size                     = var.default_node_pool.vm_size
+    vnet_subnet_id              = module.site_core_info.private_subnets[0]
     temporary_name_for_rotation = "temporary"
-  }
-
-  ingress_application_gateway {
-    subnet_id = module.site_core_info.app_gateway_subnets[0]
   }
 
   identity {
@@ -118,19 +136,34 @@ resource "azurerm_kubernetes_cluster" "site_cluster" {
     labels_allowed      = true
   }
 
-  # network_profile {
-  #   network_plugin    = "azure"
-  #   load_balancer_sku = "standard"
-  # }
-
-  # oms_agent {
-  #   log_analytics_workspace_id      = azurerm_log_analytics_workspace.cluster_log_analytics.id
-  #   msi_auth_for_monitoring_enabled = true
-  # }
+  network_profile {
+    network_plugin = "azure"
+    network_policy = "azure"
+  }
 
   tags = {
     ArcGISSiteId = var.site_id
   }
+}
+
+resource "azurerm_key_vault_secret" "aks_identity_client_id" {
+  name         = "aks-identity-client-id"
+  value        = azurerm_kubernetes_cluster.site_cluster.kubelet_identity[0].client_id
+  key_vault_id = module.site_core_info.vault_id
+}
+
+resource "azurerm_key_vault_secret" "aks_identity_principal_id" {
+  name         = "aks-identity-principal-id"
+  value        = azurerm_kubernetes_cluster.site_cluster.kubelet_identity[0].object_id
+  key_vault_id = module.site_core_info.vault_id
+}
+
+# Assign Storage Blob Data Contributor role to the AKS cluster identity
+resource "azurerm_role_assignment" "storage_blob_data_contributor" {
+  principal_id                     = azurerm_kubernetes_cluster.site_cluster.kubelet_identity[0].object_id
+  role_definition_name             = "Storage Blob Data Contributor"
+  scope                            = module.site_core_info.storage_account_id
+  skip_service_principal_aad_check = true
 }
 
 # Update kubeconfig to access the AKS cluster
@@ -177,114 +210,50 @@ resource "null_resource" "storage_class" {
 
 # Create a container registry 
 
-resource "random_id" "container_registry_suffix" {
-  keepers = {
-    # Generate a new id each time we switch to a new site id
-    site_id = var.site_id
-  }
+module "container_registry" {
+  source                      = "./modules/container-registry"
+  azure_region                = var.azure_region
+  site_id                     = var.site_id
+  resource_group_name         = azurerm_resource_group.cluster_rg.name
+  container_registry_url      = var.container_registry_url
+  container_registry_user     = var.container_registry_user
+  container_registry_password = var.container_registry_password
+  principal_id                = azurerm_kubernetes_cluster.site_cluster.kubelet_identity[0].object_id
+  subnet_id                   = module.site_core_info.internal_subnets[0]
+  vnet_id                     = module.site_core_info.vnet_id
 
-  byte_length = 8
-}
-
-resource "azurerm_container_registry" "cluster_acr" {
-  # ACR name must be unique and contain only alphanumeric characters
-  name                          = "${replace(var.site_id, "-", "")}${random_id.container_registry_suffix.hex}"
-  resource_group_name           = azurerm_resource_group.cluster_rg.name
-  location                      = azurerm_resource_group.cluster_rg.location
-  public_network_access_enabled = true
-  sku                           = "Premium"
-
-  tags = {
-    ArcGISSiteId = var.site_id
-  }
-}
-
-resource "azurerm_key_vault_secret" "cr_user" {
-  name         = "cr-user"
-  value        = var.container_registry_user
-  key_vault_id = module.site_core_info.vault_id
-}
-
-resource "azurerm_key_vault_secret" "cr_password" {
-  name         = "cr-password"
-  value        = var.container_registry_password
-  key_vault_id = module.site_core_info.vault_id
-}
-
-# Unfortunatelly, azurerm provider does not support creating container registry credential sets.
-# See https://github.com/hashicorp/terraform-provider-azurerm/issues/26539
-# Use Azure CLI to create credential set and grant its principal access the Key Vault secrets.
-resource "null_resource" "credential_set" {
-  triggers = {
-    always_run = "${timestamp()}"
-  }
-
-  provisioner "local-exec" {
-    command = <<-EOT
-    credential=$(az acr credential-set create -r ${azurerm_container_registry.cluster_acr.name} -n pullthroughcache -l ${var.container_registry_url} -u ${module.site_core_info.vault_uri}secrets/cr-user -p ${module.site_core_info.vault_uri}secrets/cr-password)
-    principal=$(echo $credential | jq -r '.identity.principalId')
-    az keyvault set-policy --name ${module.site_core_info.vault_name} --object-id $principal --secret-permissions get
-    EOT
-  }
-}
-
-resource "azurerm_container_registry_cache_rule" "pull_through_cache" {
-  name                  = "pullthroughcache"
-  container_registry_id = azurerm_container_registry.cluster_acr.id
-  target_repo           = "docker-hub/*"
-  source_repo           = "${var.container_registry_url}/*"
-  credential_set_id     = "${azurerm_container_registry.cluster_acr.id}/credentialSets/pullthroughcache"
   depends_on = [
-    null_resource.credential_set
+    azurerm_kubernetes_cluster.site_cluster
   ]
 }
 
-# Assign AcrPull role to the AKS cluster identity
-resource "azurerm_role_assignment" "acr" {
-  principal_id                     = azurerm_kubernetes_cluster.site_cluster.kubelet_identity[0].object_id
-  role_definition_name             = "AcrPull"
-  scope                            = azurerm_container_registry.cluster_acr.id
-  skip_service_principal_aad_check = true
-}
-
-# Create azure private endpoint for the container registry
-
-resource "azurerm_private_dns_zone" "acr_private_dns_zone" {
-  name                = "privatelink.azurecr.io"
+# Create ALB Controller and Application Gateway for Containers
+module "alb_controller" {
+  source              = "./modules/alb-controller"
+  azure_region        = var.azure_region
   resource_group_name = azurerm_resource_group.cluster_rg.name
+  cluster_name        = azurerm_kubernetes_cluster.site_cluster.name
+  alb_subnet_id       = module.site_core_info.app_gateway_subnets[0]
+
+  depends_on = [
+    azurerm_kubernetes_cluster.site_cluster
+  ]
 }
 
-resource "azurerm_private_dns_zone_virtual_network_link" "acr_private_dns_zone_virtual_network_link" {
-  name                  = "acr-private-dns-zone-vnet-link"
-  private_dns_zone_name = azurerm_private_dns_zone.acr_private_dns_zone.name
-  resource_group_name   = azurerm_resource_group.cluster_rg.name
-  virtual_network_id    = module.site_core_info.vnet_id
+resource "azurerm_key_vault_secret" "alb_id" {
+  name         = "alb-id"
+  value        = module.alb_controller.alb_id
+  key_vault_id = module.site_core_info.vault_id
 }
 
-resource "azurerm_private_endpoint" "acr_private_endpoint" {
-  name                = "${azurerm_container_registry.cluster_acr.name}-private-endpoint"
+module "monitoring" {
+  source              = "./modules/monitoring"
+  azure_region        = var.azure_region
   resource_group_name = azurerm_resource_group.cluster_rg.name
-  location            = azurerm_resource_group.cluster_rg.location
-  subnet_id           = module.site_core_info.internal_subnets[0]
+  cluster_name        = azurerm_kubernetes_cluster.site_cluster.name
+  site_id             = var.site_id
 
-  private_service_connection {
-    name                           = "${azurerm_container_registry.cluster_acr.name}-service-connection"
-    private_connection_resource_id = azurerm_container_registry.cluster_acr.id
-    is_manual_connection           = false
-    subresource_names = [
-      "registry"
-    ]
-  }
-
-  private_dns_zone_group {
-    name = "${azurerm_container_registry.cluster_acr.name}-private-dns-zone-group"
-
-    private_dns_zone_ids = [
-      azurerm_private_dns_zone.acr_private_dns_zone.id
-    ]
-  }
-
-  tags = {
-    ArcGISSiteId = var.site_id
-  }
+  depends_on = [
+    azurerm_kubernetes_cluster.site_cluster
+  ]
 }

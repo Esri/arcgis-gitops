@@ -1,3 +1,17 @@
+/**
+ * # Terraform module monitoring
+ * 
+ * The module deploys Monitoring subsystem that include Azure Monitor workspace and Azure Managed Grafana instances.
+ *
+ * 1. Creates Azure Monitor Workspace.
+ * 2. Create data collection rule associations (DCRAs) for the AKS cluster and the default data collection rule of the monitor workspace.
+ * 3. Create Azure Managed Grafana instance.
+ * 4. Assign Grafana dashboard identity "Monitoring Data Reader" role to read data from the Azure Monitor Workspace.
+ * 5. Creates Prometheus rule groups with default recording rules. 
+ *
+ * See: https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/quickstart-deploy-application-gateway-for-containers-alb-controller
+ */
+
 # Copyright 2024 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
@@ -15,21 +29,16 @@
 # Monitoring subsystem for Azure Kubernetes Service (AKS)
 # See https://learn.microsoft.com/en-us/azure/aks/monitor-aks
 
-# locals {
-#   private_dns_zones = [
-#     "privatelink.agentsvc.azure-automation.net",
-#     "privatelink.blob.core.windows.net",
-#     "privatelink.monitor.azure.com",
-#     "privatelink.ods.opinsights.azure.com",
-#     "privatelink.oms.opinsights.azure.com"
-#   ]
-# }
+data "azurerm_kubernetes_cluster" "site_cluster" {
+  name                = var.cluster_name
+  resource_group_name = var.resource_group_name
+}
 
 # Azure Monitor workspace (Managed Prometheus)
 resource "azurerm_monitor_workspace" "prometheus" {
   name                          = var.site_id
-  resource_group_name           = azurerm_resource_group.cluster_rg.name
-  location                      = azurerm_resource_group.cluster_rg.location
+  resource_group_name           = var.resource_group_name
+  location                      = var.azure_region
   public_network_access_enabled = true
 
   tags = {
@@ -39,13 +48,11 @@ resource "azurerm_monitor_workspace" "prometheus" {
 
 # Create data collection rule associations (DCRAs) for the AKS cluster and the default data collection rule of the monitor workspace.
 resource "azurerm_monitor_data_collection_rule_association" "dcra" {
-  name               = "MSProm-${azurerm_resource_group.cluster_rg.location}-${azurerm_kubernetes_cluster.site_cluster.name}"
-  target_resource_id = azurerm_kubernetes_cluster.site_cluster.id
-  # data_collection_rule_id = azurerm_monitor_data_collection_rule.dcr.id
+  name                    = "MSProm-${var.azure_region}-${var.cluster_name}"
+  target_resource_id      = data.azurerm_kubernetes_cluster.site_cluster.id
   data_collection_rule_id = azurerm_monitor_workspace.prometheus.default_data_collection_rule_id
   description             = "Association of data collection rule. Deleting this association will break the data collection for this AKS Cluster."
 }
-
 
 # Create azure private endpoint for the monitor workspace data collection endpoint.
 # See https://learn.microsoft.com/en-us/azure/azure-monitor/logs/private-link-security
@@ -120,10 +127,11 @@ resource "azurerm_monitor_data_collection_rule_association" "dcra" {
 #   linked_resource_id = azurerm_monitor_workspace.prometheus.default_data_collection_endpoint_id
 # }
 
+# Create Azure Managed Grafana instance
 resource "azurerm_dashboard_grafana" "grafana" {
   name                              = var.site_id
-  resource_group_name               = azurerm_resource_group.cluster_rg.name
-  location                          = azurerm_resource_group.cluster_rg.location
+  resource_group_name               = var.resource_group_name
+  location                          = var.azure_region
   grafana_major_version             = 10
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
@@ -155,14 +163,14 @@ resource "azurerm_role_assignment" "data_reader_role" {
 # See https://learn.microsoft.com/en-us/azure/azure-monitor/containers/prometheus-metrics-scrape-default
 
 resource "azurerm_monitor_alert_prometheus_rule_group" "node_recording_rules_rule_group" {
-  name                = "NodeRecordingRulesRuleGroup - ${azurerm_kubernetes_cluster.site_cluster.name}"
-  location            = azurerm_resource_group.cluster_rg.location
-  resource_group_name = azurerm_resource_group.cluster_rg.name
-  cluster_name        = azurerm_kubernetes_cluster.site_cluster.name
+  name                = "NodeRecordingRulesRuleGroup - ${var.cluster_name}"
+  location            = var.azure_region
+  resource_group_name = var.resource_group_name
+  cluster_name        = var.cluster_name
   description         = "Node Recording Rules Rule Group"
   rule_group_enabled  = true
   interval            = "PT1M"
-  scopes              = [azurerm_monitor_workspace.prometheus.id, azurerm_kubernetes_cluster.site_cluster.id]
+  scopes              = [azurerm_monitor_workspace.prometheus.id, data.azurerm_kubernetes_cluster.site_cluster.id]
 
   rule {
     enabled    = true
@@ -244,14 +252,14 @@ EOF
 }
 
 resource "azurerm_monitor_alert_prometheus_rule_group" "kubernetes_recording_rules_rule_group" {
-  name                = "KubernetesRecordingRulesRuleGroup - ${azurerm_kubernetes_cluster.site_cluster.name}"
-  location            = azurerm_resource_group.cluster_rg.location
-  resource_group_name = azurerm_resource_group.cluster_rg.name
-  cluster_name        = azurerm_kubernetes_cluster.site_cluster.name
+  name                = "KubernetesRecordingRulesRuleGroup - ${var.cluster_name}"
+  location            = var.azure_region
+  resource_group_name = var.resource_group_name
+  cluster_name        = var.cluster_name
   description         = "Kubernetes Recording Rules Rule Group"
   rule_group_enabled  = true
   interval            = "PT1M"
-  scopes              = [azurerm_monitor_workspace.prometheus.id, azurerm_kubernetes_cluster.site_cluster.id]
+  scopes              = [azurerm_monitor_workspace.prometheus.id, data.azurerm_kubernetes_cluster.site_cluster.id]
 
   rule {
     enabled    = true
@@ -401,14 +409,14 @@ EOF
 }
 
 resource "azurerm_monitor_alert_prometheus_rule_group" "ux_recording_rules_rule_group" {
-  name                = "UXRecordingRulesRuleGroup - ${azurerm_kubernetes_cluster.site_cluster.name}"
-  location            = azurerm_resource_group.cluster_rg.location
-  resource_group_name = azurerm_resource_group.cluster_rg.name
-  cluster_name        = azurerm_kubernetes_cluster.site_cluster.name
+  name                = "UXRecordingRulesRuleGroup - ${var.cluster_name}"
+  location            = var.azure_region
+  resource_group_name = var.resource_group_name
+  cluster_name        = var.cluster_name
   description         = "UX Recording Rules for Linux"
   rule_group_enabled  = true
   interval            = "PT1M"
-  scopes              = [azurerm_monitor_workspace.prometheus.id, azurerm_kubernetes_cluster.site_cluster.id]
+  scopes              = [azurerm_monitor_workspace.prometheus.id, data.azurerm_kubernetes_cluster.site_cluster.id]
 
   rule {
     enabled    = true

@@ -39,7 +39,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 4.1 |
+| azurerm | ~> 4.6 |
 | random | n/a |
 
 ## Resources
@@ -92,16 +92,16 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| app_gateway_subnets_cidr_blocks | CIDR blocks of Application Gateway subnets | `list(string)` | ```[ "10.1.1.0/24", "10.1.2.0/24", "10.1.3.0/24" ]``` | no |
+| app_gateway_subnets_cidr_blocks | CIDR blocks of Application Gateway subnets | `list(string)` | ```[ "10.4.0.0/16" ]``` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | bastion_enabled | Enable Azure Bastion host | `bool` | `true` | no |
 | bastion_source_cidr_blocks | CIDR blocks of bastion source traffic | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | bastion_subnet_cidr_block | CIDR block of bastion subnet | `string` | `"10.1.0.0/24"` | no |
-| internal_subnets_cidr_blocks | CIDR blocks of internal subnets | `list(string)` | ```[ "10.1.128.0/24", "10.1.129.0/24", "10.1.130.0/24" ]``` | no |
-| private_subnets_cidr_blocks | CIDR blocks of private subnets | `list(string)` | ```[ "10.1.64.0/24", "10.1.65.0/24", "10.1.66.0/24" ]``` | no |
+| internal_subnets_cidr_blocks | CIDR blocks of internal subnets | `list(string)` | ```[ "10.2.0.0/16" ]``` | no |
+| private_subnets_cidr_blocks | CIDR blocks of private subnets | `list(string)` | ```[ "10.3.0.0/16" ]``` | no |
 | service_endpoints | Service endpoints of internal subnets | `list(string)` | `[]` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
-| vnet_cidr_block | CIDR block for the site's virtual network | `string` | `"10.1.0.0/16"` | no |
+| vnet_cidr_block | CIDR block for the site's virtual network | `string` | `"10.0.0.0/8"` | no |
 
 ## Outputs
 

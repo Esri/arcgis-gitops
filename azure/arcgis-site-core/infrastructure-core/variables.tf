@@ -28,26 +28,10 @@ variable "site_id" {
   }
 }
 
-# variable "private_dns_zones" {
-#   description = "Names of Private DNS Zones"
-#   type        = list(string)
-#   default = [
-#     "privatelink.azurecr.io",
-#     "privatelink.eastus.prometheus.monitor.azure.com"
-#   ]
-
-#   validation {
-#     condition = alltrue([
-#       for z in var.private_dns_zones : can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", z))
-#     ])
-#     error_message = "All elements in private_dns_zones value must be valid domain names."
-#   }
-# }
-
 variable "vnet_cidr_block" {
   description = "CIDR block for the site's virtual network"
   type        = string
-  default     = "10.1.0.0/16"
+  default     = "10.0.0.0/8"
 
   validation {
     condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.vnet_cidr_block))
@@ -89,9 +73,7 @@ variable "app_gateway_subnets_cidr_blocks" {
   description = "CIDR blocks of Application Gateway subnets"
   type        = list(string)
   default = [
-    "10.1.1.0/24",
-    "10.1.2.0/24",
-    "10.1.3.0/24"
+    "10.4.0.0/16"
   ]
 
   validation {
@@ -106,9 +88,7 @@ variable "private_subnets_cidr_blocks" {
   description = "CIDR blocks of private subnets"
   type        = list(string)
   default = [
-    "10.1.64.0/24",
-    "10.1.65.0/24",
-    "10.1.66.0/24"
+    "10.3.0.0/16"
   ]
 
   validation {
@@ -123,9 +103,7 @@ variable "internal_subnets_cidr_blocks" {
   description = "CIDR blocks of internal subnets"
   type        = list(string)
   default = [
-    "10.1.128.0/24",
-    "10.1.129.0/24",
-    "10.1.130.0/24"
+    "10.2.0.0/16"
   ]
 
   validation {

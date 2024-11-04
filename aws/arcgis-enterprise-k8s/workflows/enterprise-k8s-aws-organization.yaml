@@ -77,7 +77,7 @@ jobs:
           else
             POD_NAME=$(kubectl get pods --namespace $DEPLOYMENT_ID --selector=job-name=arcgis-pre-install-hook-job --output=jsonpath='{.items[*].metadata.name}')
           fi
-          kubectl logs --namespace $DEPLOYMENT_ID -f $POD_NAME || true
+          kubectl logs --namespace $DEPLOYMENT_ID $POD_NAME || true
       - name: Terraform Output
         id: output  
         run: |

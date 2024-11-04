@@ -17,7 +17,7 @@ Builds container image for Enterprise Admin CLI and pushes it to private ECR rep
 
 ```bash
 chmod +x ./build-admin-cli-image.sh
-./build-admin-cli-image.sh <ECR repository name> <build context path>
+./build-admin-cli-image.sh <ECR repository name> <admin CLI version> <build context path>
 ```
 
 ## copy-docker-hub-images.sh

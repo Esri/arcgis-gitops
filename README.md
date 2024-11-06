@@ -8,13 +8,14 @@ The template repository provides [GitHub Actions](https://docs.github.com/en/act
 
 For the supported ArcGIS Enterprise deployment options the workflows provide:
 
-* Version control of infrastructure and application configurations
 * Automation of initial deployment, updates, upgrades, and disaster recovery operations
+* Built-in observability and monitoring subsystems
+* Integration with existing network and security infrastructure
+* Machine image building subsystems
 * Standardized approach to security assessments and authorizations
 * Tracking and managing changes to both application and infrastructure configurations
 * Transparent and modular design that is easy to understand, customize, or extend
-* Machine image building subsystems
-* Built-in observability and monitoring subsystems
+* Version control of infrastructure and application configurations
 
 The workflows leverage popular DevOps tools, including Terraform, Ansible, and Packer, to automate provisioning infrastructure and application configuration management.
 

@@ -1,6 +1,6 @@
 # ArcGIS Automation using GitHub Actions
 
-The template repository provides [GitHub Actions](https://docs.github.com/en/actions) workflows that follow Infrastructure as Code methodology, system patterns, and best practices recommended for automated operation of [ArcGIS Enterprise](https://enterprise.arcgis.com).
+The template repository provides [GitHub Actions](https://docs.github.com/en/actions) workflows that follow Infrastructure as Code methodologies, system patterns, and best practices recommended for the automated operation of [ArcGIS Enterprise](https://enterprise.arcgis.com).
 
 &nbsp;![ArcGIS Automation using GitHub Actions](arcgis-gitops.png "ArcGIS Automation using GitHub Actions")
 
@@ -15,6 +15,8 @@ For the supported ArcGIS Enterprise deployment options the workflows provide:
 * Transparent and modular design that is easy to understand, customize, or extend
 * Machine image building subsystems
 * Built-in observability and monitoring subsystems
+
+The workflows leverage popular DevOps tools, including Terraform, Ansible, and Packer, to automate provisioning infrastructure and application configuration management.
 
 ## Instructions
 

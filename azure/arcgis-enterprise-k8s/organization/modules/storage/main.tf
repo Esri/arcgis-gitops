@@ -44,8 +44,8 @@ resource "azurerm_resource_group" "storage" {
 }
 
 # Create storage account for the organization's object store.
-# Public network access and shared access keys are enabled for the storage account
-# because it is required to create the blob container.
+# Public network access is enabled for the storage account because it is required
+# to create the blob container.
 resource "azurerm_storage_account" "deployment_storage" {
   name                            = "arcgis${random_id.storage_account_suffix.hex}"
   resource_group_name             = azurerm_resource_group.storage.name
@@ -53,7 +53,7 @@ resource "azurerm_storage_account" "deployment_storage" {
   account_tier                    = "Standard"
   account_replication_type        = "ZRS"
   public_network_access_enabled   = true
-  shared_access_key_enabled       = true
+  shared_access_key_enabled       = false
   allow_nested_items_to_be_public = false
 
   tags = {

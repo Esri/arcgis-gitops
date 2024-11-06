@@ -54,3 +54,9 @@ variable "principal_id" {
   description = "Principal Id of the AKS cluster identity"
   type        = string
 }
+
+variable "subnet_id" {
+  description = "Subnet Id of the private endpoint"
+  type        = string
+}
+

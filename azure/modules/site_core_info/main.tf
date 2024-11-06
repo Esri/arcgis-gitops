@@ -66,11 +66,6 @@ data "azurerm_key_vault_secret" "storage_account_name" {
   key_vault_id = data.azurerm_key_vault.site_vault.id
 }
 
-data "azurerm_key_vault_secret" "storage_account_key" {
-  name         = "storage-account-key"
-  key_vault_id = data.azurerm_key_vault.site_vault.id
-}
-
 data "azurerm_storage_account" "site_storage" {
   name                = data.azurerm_key_vault_secret.storage_account_name.value
   resource_group_name = "${var.site_id}-infrastructure-core"

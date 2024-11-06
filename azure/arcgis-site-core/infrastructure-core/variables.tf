@@ -117,6 +117,6 @@ variable "internal_subnets_cidr_blocks" {
 variable "service_endpoints" {
   description = "Service endpoints of internal subnets"
   type        = list(string)
-  default = [ ]
+  default     = []
 }
 

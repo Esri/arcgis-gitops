@@ -11,7 +11,7 @@ The Helm charts package for the version used by the deployment must be extracted
 The module:
 
 1. Creates a Kubernetes pod to execute Enterprise Admin CLI commands,
-2. Creates an Azure storage account and a blob container for the organization object store,
+2. Creates an Azure storage account with private endpoint for the blob store and a blob container for the organization object store,
 3. Create Helm release to deploy ArcGIS Enterprise on Kubernetes,
 4. Updates the DR settings to use the specified storage class and size for staging volume,
 5. Registers backup store using blob container in azure storage account specified by "storage-account-name" Key Vault secret.

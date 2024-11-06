@@ -58,6 +58,12 @@ variable "default_node_pool" {
   }
 }
 
+variable "subnet_id" {
+  description = "AKS cluster subnet ID"
+  type        = string
+  default     = null
+}
+
 variable "container_registry_url" {
   description = "Source container registry URL"
   type        = string

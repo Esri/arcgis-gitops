@@ -26,7 +26,6 @@
  * | internal-subnet-N | Id of internal subnet N |
  * | private-subnet-N | Id of private subnet N |
  * | storage-account-name | Storage account name |
- * | storage-account-key | Storage account key |
  *
  * ## Requirements
  * 
@@ -64,7 +63,9 @@ terraform {
 }
 
 provider "azurerm" {
-  features {}
+  storage_use_azuread = true
+  features {
+  }
 }
 
 data "azurerm_client_config" "current" {}
@@ -207,7 +208,7 @@ resource "azurerm_subnet" "app_gateway_subnets" {
     name = "Microsoft.ServiceNetworking/trafficControllers"
 
     service_delegation {
-      name    = "Microsoft.ServiceNetworking/trafficControllers"
+      name = "Microsoft.ServiceNetworking/trafficControllers"
     }
   }
 

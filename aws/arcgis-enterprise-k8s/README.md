@@ -198,6 +198,6 @@ When deploying ArcGIS Enterprise on Kubernetes in disconnected environments:
 
 1. Make sure that the EKS cluster nodes are running in "internal" subnets.
 2. When creating ingress with arcgis-enterprise-k8s-ingress workflow, set "internal_load_balancer" property to `true` in ingress.tfvars.json config file.
-3. Use private Route53 VPC hosted zone for the deployment DNS as public DNS servers are not available.
+3. Use private Route53 VPC hosted zone for the deployment DNS because public DNS servers are not available.
 
 > The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, pollination services, and time services.

@@ -42,8 +42,9 @@ Required service principal roles:
 Instructions:
 
 1. Set "default_node_pool" properties to the required node pool configuration.
-2. Commit the changes to the `main` branch and push the branch to GitHub.
-3. Run site-k8s-cluster-azure workflow using the `main` branch.
+2. If a specific subnet is required for the AKS cluster, set "subnet_id" property to the subnet Id from the site's VNet. By default, the first private subnet is used.
+3. Commit the changes to the `main` branch and push the branch to GitHub.
+4. Run site-k8s-cluster-azure workflow using the `main` branch.
 
 ## Destroy K8s Cluster
 

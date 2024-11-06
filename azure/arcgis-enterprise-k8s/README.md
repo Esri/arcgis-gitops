@@ -187,3 +187,12 @@ Inputs:
 Instructions:
 
 1. Run enterprise-k8s-azure-destroy workflow using the branch.
+
+## Disconnected Environments
+
+When deploying ArcGIS Enterprise on Kubernetes in disconnected environments:
+
+1. Make sure that the AKS cluster nodes are running in "internal" subnets.
+2. Use private DNS hosted zone for the deployment DNS.
+
+> The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, pollination services, and time services.

@@ -123,7 +123,7 @@ resource "azurerm_kubernetes_cluster" "site_cluster" {
     name                        = var.default_node_pool.name
     node_count                  = var.default_node_pool.node_count
     vm_size                     = var.default_node_pool.vm_size
-    vnet_subnet_id              = module.site_core_info.private_subnets[0]
+    vnet_subnet_id              = var.subnet_id != null ? var.subnet_id : module.site_core_info.private_subnets[0]
     temporary_name_for_rotation = "temporary"
   }
 

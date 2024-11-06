@@ -5,6 +5,7 @@ The module:
 
 * Creates an Azure resource group for the organization's stores,
 * Creates an Azure storage account and a blob container for the organization's object store,
+* Creates an Azure private endpoint for the blob store,
 * Grants the specified principal Storage Blob Data Contributor role in the storage accounts, and
 * Creates cloud config JSON file for the object store.
 
@@ -20,12 +21,14 @@ The module:
 
 | Name | Type |
 |------|------|
+| [azurerm_private_endpoint.object_store_private_endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_resource_group.storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_role_assignment.storage_blob_data_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_storage_account.deployment_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
 | [azurerm_storage_container.object_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) | resource |
 | [local_sensitive_file.cloud_config_json_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
 | [random_id.storage_account_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
+| [azurerm_private_dns_zone.blob_private_dns_zone](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
 
 ## Inputs
 
@@ -37,6 +40,7 @@ The module:
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
 | principal_id | Principal Id of the AKS cluster identity | `string` | n/a | yes |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| subnet_id | Subnet Id of the private endpoint | `string` | n/a | yes |
 
 ## Outputs
 

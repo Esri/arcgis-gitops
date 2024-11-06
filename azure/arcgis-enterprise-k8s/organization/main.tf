@@ -11,7 +11,7 @@
  * The module:
  * 
  * 1. Creates a Kubernetes pod to execute Enterprise Admin CLI commands,
- * 2. Creates an Azure storage account and a blob container for the organization object store, 
+ * 2. Creates an Azure storage account with private endpoint for the blob store and a blob container for the organization object store, 
  * 3. Create Helm release to deploy ArcGIS Enterprise on Kubernetes,
  * 4. Updates the DR settings to use the specified storage class and size for staging volume,
  * 5. Registers backup store using blob container in azure storage account specified by "storage-account-name" Key Vault secret.
@@ -224,6 +224,7 @@ module "azure_storage" {
   azure_region                = var.azure_region
   site_id                     = var.site_id
   deployment_id               = var.deployment_id
+  subnet_id                   = module.site_core_info.internal_subnets[0]
   cloud_config_json_file_path = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/cloud-config.json"
   client_id                   = data.azurerm_key_vault_secret.aks_identity_client_id.value
   principal_id                = data.azurerm_key_vault_secret.aks_identity_principal_id.value

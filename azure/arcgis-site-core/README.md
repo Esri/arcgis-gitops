@@ -31,7 +31,7 @@ Instructions:
 
 ## Deploy K8s Cluster
 
-GitHub Actions workflow **site-k8s-cluster-azure** deploys Azure AKS cluster that meets ArcGIS Enterprise on Kubernetes system requirements.
+GitHub Actions workflow **site-k8s-cluster-azure** deploys Azure AKS cluster that meets the ArcGIS Enterprise on Kubernetes system requirements.
 
 The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8s-cluster.tfvars.json](../../config/azure/arcgis-site-core/k8s-cluster.tfvars.json) config file.
 
@@ -41,14 +41,14 @@ Required service principal roles:
 
 Instructions:
 
-1. Set "default_node_pool" properties to the required node pool configuration.
-2. If a specific subnet is required for the AKS cluster, set "subnet_id" property to the subnet Id from the site's VNet. By default, the first private subnet is used.
+1. (Optional) Set "default_node_pool" properties to the required node pool configuration.
+2. (Optional) Set "subnet_id" property to the subnet Id from the site's VNet. By default, the first private subnet is used.
 3. Commit the changes to the `main` branch and push the branch to GitHub.
 4. Run site-k8s-cluster-azure workflow using the `main` branch.
 
 ## Destroy K8s Cluster
 
-GitHub Actions workflow **site-k8s-cluster-azure-destroy** destroys Azure AKS cluster created by site-k8s-cluster-azure workflow.
+GitHub Actions workflow **site-k8s-cluster-azure-destroy** destroys the AKS cluster and other Azure resource created by site-k8s-cluster-azure workflow.
 
 The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8s-cluster.tfvars.json](../../config/azure/arcgis-site-core/k8s-cluster.tfvars.json) config file.
 

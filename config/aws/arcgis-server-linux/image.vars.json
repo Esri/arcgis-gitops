@@ -1,8 +1,8 @@
 {
     "arcgis_server_patches": [
-        "ArcGIS-113-S-*-linux.tar"
+        "ArcGIS-114-S-*-linux.tar"
     ],
-    "arcgis_version": "11.3",
+    "arcgis_version": "11.4",
     "deployment_id": "arcgis-server",
     "instance_type": "m6i.2xlarge",
     "os": "rhel8",

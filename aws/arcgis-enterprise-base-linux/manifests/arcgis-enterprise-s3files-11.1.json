@@ -45,15 +45,15 @@
           "subfolder": "software/arcgis/11.1",
           "sha256": "763DB0056DFDFF262CF74BEB77CC2C5F570D2EC67A13707E556CD4D71C1ED6C5"
         },
-        "apache-tomcat-9.0.48.tar.gz": {
-          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.48/bin/apache-tomcat-9.0.48.tar.gz",
+        "apache-tomcat-9.0.83.tar.gz": {
+          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.83/bin/apache-tomcat-9.0.83.tar.gz",
           "subfolder": "thirdparty",
-          "sha256": "9CA3AD448505E05E6D057A9D71C120FBED3F042975A4B000C7135017C96B00AA"
+          "sha256": "76092DAE89DC1F3AE6DD11404D64852761A401F18CD373C93B5FF7EF2CE4F90A"
         },
-        "jdk-11.0.20.tar.gz": {
-          "url": "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.20.1%2B1/OpenJDK11U-jdk_x64_linux_hotspot_11.0.20.1_1.tar.gz",
+        "jdk-11.0.21.tar.gz": {
+          "url": "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.21%2B9/OpenJDK11U-jdk_x64_linux_hotspot_11.0.21_9.tar.gz",
           "subfolder": "thirdparty",
-          "sha256": "398a64bff002f0e3b0c01ecd24a1a32c83cb72a5255344219e9757d4ddd9f857"
+          "sha256": "60EA98DAA09834FDD3162CA91DDC8D92A155AB3121204F6F643176EE0C2D0D5E"
         }
       }
     }

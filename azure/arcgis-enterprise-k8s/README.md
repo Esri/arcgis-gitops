@@ -38,12 +38,11 @@ Instructions:
 
 ### 2. Create Ingress Resources
 
-GitHub Actions workflow **enterprise-k8s-azure-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on
-Kubernetes deployment in the Azure AKS cluster and ingress resources that routes traffic to the deployment.
-
-> The "deployment_id" determines the Kubernetes namespace for the deployment. The "deployment_id" must be unique within the AKS cluster.
+GitHub Actions workflow **enterprise-k8s-azure-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on Kubernetes deployment in the AKS cluster and ingress resources that routes traffic to the deployment.
 
 The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/azure/arcgis-enterprise-k8s/ingress.tfvars.json) config file.
+
+> The "deployment_id" config property value is used as the Kubernetes namespace for the deployment. The "deployment_id" value must be unique within the AKS cluster.
 
 Required user roles:
 
@@ -57,12 +56,12 @@ Workflow Outputs:
 Instructions:
 
 1. Add TLS certificate for the deployment's frontend HTTPS listener and the certificate's private key files in PEM format to `/config/certificates/` directory of the repository and set "tls_certificate_path" and "tls_private_key_path" config properties to the files' paths.
-2. Add CA certificate file for backend TLS certificate validation in PEM format to `/config/certificates/` directory of the repository and set "ca_certificate_path" config property to the file path.
+2. Add CA certificate file for backend TLS certificate validation in PEM format to `/config/certificates/` directory of the repository and set "ca_certificate_path" config property to the file's path.
 3. Set "deployment_fqdn" property to the ArcGIS Enterprise deployment domain name.
 4. If Azure DNS is used, set "hosted_zone_name" and "hosted_zone_resource_group" properties to the hosted zone name and resource group name of the ArcGIS Enterprise domain name DNS.
 5. Commit the changes to a Git branch and push the branch to GitHub.
 6. Run enterprise-k8s-azure-ingress workflow using the branch.
-7. If Azure DNS is not user, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
+7. If Azure DNS is not used, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
 > Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs, check the run logs of "Run Terraform" step.
 
@@ -130,7 +129,7 @@ Required user roles:
 Instructions:
 
 1. Set "passcode" property in the config file to the pass code that will be used to encrypt content of the backup.
-2. Set "retention" property in the config file to backup retention interval (in days).
+2. (Optional) Set "retention" property in the config file to backup retention interval (in days).
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-k8s-azure-backup workflow using the branch.
 
@@ -150,7 +149,7 @@ Required user roles:
 
 Instructions:
 
-1. Set "backup" property in the config file to the backup name. If "backup" property is set to null or empty string, the latest completed backup in the store will be used.
+1. (Optional) Set "backup" property in the config file to the backup name. If "backup" property is set to null or empty string, the latest completed backup in the store will be used.
 2. Set "passcode" property in the config file to the pass code used to create the backup.
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-k8s-azure-restore workflow using the branch.

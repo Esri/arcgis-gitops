@@ -97,7 +97,7 @@ The module uses the following SSM parameters:
 | admin_password | Primary ArcGIS Server administrator user password | `string` | n/a | yes |
 | admin_username | Primary ArcGIS Server administrator user name | `string` | `"siteadmin"` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Server version | `string` | `"11.3"` | no |
+| arcgis_version | ArcGIS Server version | `string` | `"11.4"` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | configure_webadaptor | If true, ArcGIS Web Adaptor will be registered with ArcGIS Server. | `bool` | `false` | no |

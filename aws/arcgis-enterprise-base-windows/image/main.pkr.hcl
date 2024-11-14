@@ -143,13 +143,15 @@ locals {
     "11.1" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
     "11.2" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
     "11.3" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
+    "11.4" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
   }
 
   web_deploy_setup_path = {
     "11.0" = null
     "11.1" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
     "11.2" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
-    "11.3" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"    
+    "11.3" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi" 
+    "11.4" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"    
   }
 }
 

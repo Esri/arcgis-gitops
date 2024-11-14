@@ -35,8 +35,6 @@ Basic knowledge of Git and AWS is required to use the templates. Knowledge of th
 
 An *ArcGIS Enterprise site* in this context is a group of *deployments* that typically include a [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) or [ArcGIS Enterprise on Kubernetes deployment](https://enterprise-k8s.arcgis.com/en/latest/deploy/system-architecture.htm) plus [additional server deployments](https://enterprise.arcgis.com/en/get-started/latest/windows/additional-server-deployment.htm) in different roles.
 
-The templates automate provisioning of infrastructure shared by the deployments and ArcGIS Enterprise site deployments operations.
-
 The following templates are available for AWS:
 
 * [arcgis-site-core](arcgis-site-core/README.md) - Provision core AWS resources for ArcGIS Enterprise site

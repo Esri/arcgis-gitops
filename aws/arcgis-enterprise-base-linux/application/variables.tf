@@ -18,13 +18,13 @@ variable "aws_region" {
 }
 
 variable "os" {
-  description = "Operating system id (rhel8|rhel9|ubuntu20|ubuntu22|sles15)"
+  description = "Operating system id (rhel8|rhel9|ubuntu20|ubuntu22|ubuntu24|sles15)"
   type        = string
   default     = "rhel8"
 
   validation {
-    condition     = contains(["rhel8", "rhel9", "ubuntu20", "ubuntu22", "sles15"], var.os)
-    error_message = "Valid values for os variable are rhel8, rhel9, ubuntu20, ubuntu22, and sles15."
+    condition     = contains(["rhel8", "rhel9", "ubuntu20", "ubuntu22", "ubuntu24", "sles15"], var.os)
+    error_message = "Valid values for os variable are rhel8, rhel9, ubuntu20, ubuntu22, ubuntu24, and sles15."
   }
 }
 
@@ -63,11 +63,11 @@ variable "deployment_id" {
 variable "arcgis_version" {
   description = "ArcGIS Enterprise version"
   type        = string
-  default     = "11.3"
+  default     = "11.4"
 
   validation {
-    condition     = contains(["11.0", "11.1", "11.2", "11.3"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.0, 11.1, 11.2, and 11.3."
+    condition     = contains(["11.0", "11.1", "11.2", "11.3", "11.4"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.0, 11.1, 11.2, 11.3, and 11.4."
   }
 }
 
@@ -86,13 +86,13 @@ variable "run_as_user" {
 variable "java_version" {
   description = "OpenJDK version"
   type        = string
-  default     = "11.0.20"
+  default     = "11.0.21"
 }
 
 variable "tomcat_version" {
   description = "Apache Tomcat version"
   type        = string
-  default     = "9.0.48"
+  default     = "9.0.83"
 }
 
 variable "server_authorization_file_path" {

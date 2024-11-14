@@ -139,6 +139,7 @@
                 "elasticloadbalancing:CreateTargetGroup",
                 "elasticloadbalancing:CreateTrustStore",
                 "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:DescribeListenerAttributes",
                 "elasticloadbalancing:DescribeLoadBalancerAttributes",
                 "elasticloadbalancing:DescribeLoadBalancers",
                 "elasticloadbalancing:DescribeRules",

@@ -272,7 +272,7 @@ module "arcgis_enterprise_upgrade" {
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
     java = {
-      version      = "${var.java_version}.1+1"
+      version      = "${var.java_version}+9"
       tarball_path = "/opt/software/archives/jdk-${var.java_version}.tar.gz"
     }
     tomcat = {
@@ -573,7 +573,7 @@ module "arcgis_enterprise_primary" {
       version     = var.arcgis_version
       run_as_user = var.run_as_user
       hosts = {
-        "${var.deployment_fqdn}" = ""
+        "primary.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = "/opt/software/archives"
@@ -706,7 +706,7 @@ module "arcgis_enterprise_standby" {
       version     = var.arcgis_version
       run_as_user = var.run_as_user
       hosts = {
-        "${var.deployment_fqdn}" = ""
+        "standby.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = "/opt/software/archives"

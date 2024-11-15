@@ -27,8 +27,8 @@
           "subfolder": "cinc",
           "sha256": "67e1e9610d6fce1ac1eb1ab7bff427917a572608cfcaa84b3363320d8eaa66b1"
         },
-        "arcgis-5.0.0-cookbooks.tar.gz": {
-          "path": "cookbooks/arcgis-5.0.0-cookbooks.tar.gz",
+        "arcgis-5.1.0-cookbooks.tar.gz": {
+          "path": "cookbooks/arcgis-5.1.0-cookbooks.tar.gz",
           "subfolder": "cookbooks"
         }
       }

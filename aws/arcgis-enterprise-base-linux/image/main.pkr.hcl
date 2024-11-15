@@ -250,7 +250,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         java = {
-          version = "${var.java_version}.1+1"
+          version = "${var.java_version}+9"
           tarball_path = "/opt/software/archives/jdk-${var.java_version}.tar.gz"
         }
         tomcat = {

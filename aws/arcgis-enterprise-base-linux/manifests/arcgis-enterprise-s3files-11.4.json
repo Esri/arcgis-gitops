@@ -17,33 +17,33 @@
           "ArcGIS Web Adaptor (Java)"
         ],
         "versions": [
-          "11.3"
+          "11.4"
         ],
         "patches": [
-          "ArcGIS-113-*-linux.tar"
+          "ArcGIS-114-*-linux.tar"
         ],
-        "subfolder": "software/arcgis/11.3/patches"        
+        "subfolder": "software/arcgis/11.4/patches"        
       },
       "files": {
-        "ArcGIS_Server_Linux_113_190305.tar.gz": {
-          "subfolder": "software/arcgis/11.3",
-          "sha256": "7FF5E19A7311A4649CDEAC85CA69DCBA9DD798AD6F7056ECA932D2D453D6498F"
+        "ArcGIS_Server_Linux_114_192977.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "1B766ECDF0B16635F195EBD25151C4E2E7755197C743AE8D25790A07CB4E9B61"
         },
-        "Portal_for_ArcGIS_Linux_113_190316.tar.gz": {
-          "subfolder": "software/arcgis/11.3",
-          "sha256": "E9DCAD599EED26C702D513B3AD1896E3231A58DDF232912C3D9DCEB98CCA6060"
+        "Portal_for_ArcGIS_Linux_114_192978.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "57B06474E1EE66047468307EF08E5C4F9FB2C5560282515DC4633D9B388EC0B5"
         },
-        "Portal_for_ArcGIS_Web_Styles_Linux_113_190317.tar.gz": {
-          "subfolder": "software/arcgis/11.3",
-          "sha256": "0ADCEFF773FA6B45551A61073EDE9CAAF4E878B932320F8C521C612A8BD22C1A"
+        "Portal_for_ArcGIS_Web_Styles_Linux_114_192979.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "06902133A7036D816350ABFD4B18A0E20D6D71B90F700CDE8D8DE81A628CAE2D" 
         },
-        "ArcGIS_DataStore_Linux_113_190318.tar.gz": {
-          "subfolder": "software/arcgis/11.3",
-          "sha256": "E786EA311D6A9F9A78FA2A10A74CE1F842678273813BB0F5DD678ECCF9AA80BC"
+        "ArcGIS_DataStore_Linux_114_192981.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "8207EA907EFD2E2ADDDBF95AB05A1740A7FC5EE2E521C9E3DB473A4286426C16"
         },
-        "ArcGIS_Web_Adaptor_Java_Linux_113_190319.tar.gz": {
-          "subfolder": "software/arcgis/11.3",
-          "sha256": "F472D09125AC6E539A5FEDDDEC4D2540A3529E12C302CCE2D576B55F69708C03"
+        "ArcGIS_Web_Adaptor_Java_Linux_114_192983.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "D01B9EBFF0FEA724266128F57369D0CAF9F4EC99C21DFA386634BAACAFBCBE55"
         },
         "apache-tomcat-9.0.83.tar.gz": {
           "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.83/bin/apache-tomcat-9.0.83.tar.gz",

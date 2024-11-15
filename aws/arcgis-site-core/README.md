@@ -55,7 +55,7 @@ Instructions:
 
 ## Deploy K8s Cluster
 
-GitHub Actions workflow **site-k8s-cluster-aws** deploys Amazon EKS cluster that meets ArcGIS Enterprise on Kubernetes system requirements.
+GitHub Actions workflow **site-k8s-cluster-aws** deploys Amazon EKS cluster that meets the ArcGIS Enterprise on Kubernetes system requirements.
 
 The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8s-cluster.tfvars.json](../../config/aws/arcgis-site-core/k8s-cluster.tfvars.json) config file.
 

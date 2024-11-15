@@ -184,12 +184,16 @@ locals {
     "11.0" = null
     "11.1" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
     "11.2" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
+    "11.3" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
+    "11.4" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"    
   }
 
   web_deploy_setup_path = {
     "11.0" = null
     "11.1" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
     "11.2" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
+    "11.3" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"    
+    "11.4" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"    
   }
 
   timestamp = formatdate("YYYYMMDDHHmmss", timestamp())
@@ -574,7 +578,7 @@ module "arcgis_enterprise_primary" {
       run_as_password            = var.run_as_password
       configure_windows_firewall = true
       hosts = {
-        "${var.deployment_fqdn}" = ""
+        "primary.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = "C:\\Software\\Archives"
@@ -717,7 +721,7 @@ module "arcgis_enterprise_standby" {
       run_as_password            = var.run_as_password
       configure_windows_firewall = true
       hosts = {
-        "${var.deployment_fqdn}" = ""
+        "standby.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = "C:\\Software\\Archives"

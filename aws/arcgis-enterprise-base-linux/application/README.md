@@ -108,18 +108,18 @@ The module uses the following SSM parameters:
 | arcgis_data_store_patches | File names of ArcGIS Data Store patches to install. | `list(string)` | `[]` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install. | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"11.3"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"11.4"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"arcgis-enterprise-base"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
-| java_version | OpenJDK version | `string` | `"11.0.20"` | no |
+| java_version | OpenJDK version | `string` | `"11.0.21"` | no |
 | keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
 | keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
-| os | Operating system id (rhel8\|rhel9\|ubuntu20\|ubuntu22\|sles15) | `string` | `"rhel8"` | no |
+| os | Operating system id (rhel8\|rhel9\|ubuntu20\|ubuntu22\|ubuntu24\|sles15) | `string` | `"rhel8"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |
 | portal_user_license_type_id | Portal for ArcGIS administrator user license type Id | `string` | `""` | no |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
@@ -129,7 +129,7 @@ The module uses the following SSM parameters:
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
 | server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
-| tomcat_version | Apache Tomcat version | `string` | `"9.0.48"` | no |
+| tomcat_version | Apache Tomcat version | `string` | `"9.0.83"` | no |
 
 ## Outputs
 

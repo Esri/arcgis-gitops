@@ -42,12 +42,11 @@ Instructions:
 
 ### 2. Create Ingress Controller
 
-GitHub Actions workflow **enterprise-k8s-aws-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on
-Kubernetes deployment in Amazon EKS cluster and a cluster-level ingress controller that routes traffic to the deployment.
-
-> The "deployment_id" determines the Kubernetes namespace for the deployment. The "deployment_id" must be unique within the EKS cluster.
+GitHub Actions workflow **enterprise-k8s-aws-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on Kubernetes deployment in Amazon EKS cluster and a cluster-level ingress controller that routes traffic to the deployment.
 
 The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/aws/arcgis-enterprise-k8s/ingress.tfvars.json) config file.
+
+> The "deployment_id" config property value is used as the Kubernetes namespace for the deployment. The "deployment_id" value must be unique within the AKS cluster.
 
 Required IAM policies:
 
@@ -134,7 +133,7 @@ Required IAM policies:
 Instructions:
 
 1. Set "passcode" property in the config file to the pass code that will be used to encrypt content of the backup.
-2. Set "retention" property in the config file to backup retention interval (in days).
+2. (Optional) Set "retention" property in the config file to backup retention interval (in days).
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-k8s-aws-backup workflow using the branch.
 
@@ -154,7 +153,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "backup" property in the config file to the backup name. If "backup" property is set to null or empty string, the latest completed backup in the store will be used.
+1. (Optional) Set "backup" property in the config file to the backup name. If "backup" property is set to null or empty string, the latest completed backup in the store will be used.
 2. Set "passcode" property in the config file to the pass code used to create the backup.
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-k8s-aws-restore workflow using the branch.

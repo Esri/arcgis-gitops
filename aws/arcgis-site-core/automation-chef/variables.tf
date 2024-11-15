@@ -63,7 +63,7 @@ variable "chef_client_paths" {
 variable "arcgis_cookbooks_path" {
   description = "S3 repository key of Chef cookbooks for ArcGIS distribution archive in the repository bucket"
   type        = string
-  default     = "cookbooks/arcgis-5.0.0-cookbooks.tar.gz"
+  default     = "cookbooks/arcgis-5.1.0-cookbooks.tar.gz"
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9!_.*'()-]+(\\/[a-zA-Z0-9!_.*'()-]+)*$", var.arcgis_cookbooks_path))

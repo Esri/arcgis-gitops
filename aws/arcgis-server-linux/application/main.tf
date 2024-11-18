@@ -124,6 +124,9 @@ data "aws_region" "current" {}
 
 locals {
   server_manifest_path    = "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
+  server_manifest         = jsondecode(file(local.server_manifest_path))
+  archives_dir            = local.server_manifest.arcgis.repository.local_archives
+  patches_dir             = local.server_manifest.arcgis.repository.local_patches
   mount_point             = "/mnt/efs"
   primary_hostname        = data.aws_instance.primary.private_ip
   software_dir            = "/opt/software/*"
@@ -133,16 +136,16 @@ locals {
 }
 
 module "site_core_info" {
-  source = "../../modules/site_core_info"
+  source  = "../../modules/site_core_info"
   site_id = var.site_id
 }
 
 # Copy ArcGIS Server setup archives to the private repository S3 bucket
 module "copy_server_files" {
-  count                  = var.is_upgrade ? 1 : 0
-  source                 = "../../modules/s3_copy_files"
-  bucket_name            = module.site_core_info.s3_repository
-  index_file             = local.server_manifest_path
+  count       = var.is_upgrade ? 1 : 0
+  source      = "../../modules/s3_copy_files"
+  bucket_name = module.site_core_info.s3_repository
+  index_file  = local.server_manifest_path
 }
 
 # Download ArcGIS Server setup archives from the private repository S3 bucket
@@ -155,7 +158,7 @@ module "arcgis_server_files" {
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.s3_files"
   external_vars = {
-    local_repository = "/opt/software/archives"
+    local_repository = local.archives_dir
     manifest         = local.server_manifest_path
     bucket_name      = module.site_core_info.s3_repository
     region           = data.aws_region.current.name
@@ -190,7 +193,8 @@ module "arcgis_server_upgrade" {
   external_vars = {
     arcgis_version   = var.arcgis_version
     install_dir      = "/opt"
-    local_repository = "/opt/software/archives"
+    local_repository = local.archives_dir
+    setups_directory = "/opt/software/setups"
     run_as_user      = var.run_as_user
   }
   depends_on = [
@@ -211,7 +215,7 @@ module "arcgis_server_patch" {
     arcgis_version        = var.arcgis_version
     arcgis_server_patches = var.arcgis_server_patches
     install_dir           = "/opt"
-    patches_directory     = "/opt/software/archives/patches"
+    patches_directory     = local.patches_dir
     run_as_user           = var.run_as_user
   }
   depends_on = [
@@ -274,13 +278,13 @@ module "arcgis_server_primary" {
   machine_roles = ["primary"]
   playbook      = "arcgis.server.primary"
   external_vars = {
-    install_dir        = "/opt"
-    authorization_file = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
+    install_dir           = "/opt"
+    authorization_file    = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
     authorization_options = var.server_authorization_options
-    admin_username     = var.admin_username
-    admin_password     = var.admin_password
-    directories_root   = "${local.mount_point}/gisdata/arcgisserver"
-    config_store_type  = var.config_store_type
+    admin_username        = var.admin_username
+    admin_password        = var.admin_password
+    directories_root      = "${local.mount_point}/gisdata/arcgisserver"
+    config_store_type     = var.config_store_type
     config_store_connection_string = (var.config_store_type == "AMAZON" ?
       "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
     "${local.mount_point}/gisdata/arcgisserver/config-store")
@@ -310,16 +314,16 @@ module "arcgis_server_node" {
   machine_roles = ["node"]
   playbook      = "arcgis.server.node"
   external_vars = {
-    install_dir        = "/opt"
-    authorization_file = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
+    install_dir           = "/opt"
+    authorization_file    = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
     authorization_options = var.server_authorization_options
-    admin_username     = var.admin_username
-    admin_password     = var.admin_password
-    primary_server_url = "https://${local.primary_hostname}:6443/arcgis"
-    run_as_user        = var.run_as_user
-    keystore_file      = local.keystore_file
-    keystore_password  = var.keystore_file_password
-    cert_alias         = var.deployment_fqdn
+    admin_username        = var.admin_username
+    admin_password        = var.admin_password
+    primary_server_url    = "https://${local.primary_hostname}:6443/arcgis"
+    run_as_user           = var.run_as_user
+    keystore_file         = local.keystore_file
+    keystore_password     = var.keystore_file_password
+    cert_alias            = var.deployment_fqdn
   }
   depends_on = [
     module.authorization_file,
@@ -335,7 +339,12 @@ module "clean" {
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.clean"
-  external_vars = {}
+  external_vars = {
+    directories = [
+      local.archives_dir,
+      "/opt/software/setups"
+    ]
+  }
   depends_on = [
     module.arcgis_server_node,
     module.arcgis_webadaptor

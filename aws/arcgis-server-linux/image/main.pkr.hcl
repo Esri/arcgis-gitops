@@ -140,9 +140,18 @@ locals {
     }
   })
 
-  arcgis_server_s3_files =  "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
-  arcgis_webadaptor_s3_files =  "${abspath(path.root)}/../manifests/arcgis-webadaptor-s3files-${var.arcgis_version}.json"
-  
+  arcgis_server_manifest_path =  "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
+  server_manifest    = jsondecode(file(local.arcgis_server_manifest_path))
+  archives_dir       = local.server_manifest.arcgis.repository.local_archives
+  patches_dir        = local.server_manifest.arcgis.repository.local_patches
+
+  arcgis_webadaptor_manifest_path =  "${abspath(path.root)}/../manifests/arcgis-webadaptor-s3files-${var.arcgis_version}.json"
+  webadaptor_manifest = jsondecode(file(local.arcgis_webadaptor_manifest_path))
+  java_tarball        = local.webadaptor_manifest.arcgis.repository.metadata.java_tarball
+  java_version        = local.webadaptor_manifest.arcgis.repository.metadata.java_version
+  tomcat_tarball      = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_tarball
+  tomcat_version      = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_version  
+
   server_vars = yamlencode({
     ansible_aws_ssm_bucket_name = data.amazon-parameterstore.s3_logs.value
     ansible_aws_ssm_region = data.amazon-parameterstore.s3_region.value
@@ -150,8 +159,9 @@ locals {
     arcgis_server_patches = var.arcgis_server_patches
     arcgis_version = var.arcgis_version
     bucket_name = data.amazon-parameterstore.s3_repository.value
-    # local_repository = "/opt/software/archives"
-    manifest = local.arcgis_server_s3_files
+    local_repository =  local.archives_dir
+    patches_directory = local.patches_dir
+    manifest = local.arcgis_server_manifest_path
     region = var.aws_region
     run_as_user = var.run_as_user
     # ansible_python_interpreter="/usr/bin/python3"
@@ -164,9 +174,13 @@ locals {
     arcgis_version = var.arcgis_version
     wa_name = var.webadaptor_name
     bucket_name = data.amazon-parameterstore.s3_repository.value
-    # local_repository = "/opt/software/archives"
-    manifest = local.arcgis_webadaptor_s3_files
+    local_repository =  local.archives_dir
+    manifest = local.arcgis_webadaptor_manifest_path
     region = var.aws_region
+    jdk_version = local.java_version
+    jdk_setup_archive = local.java_tarball
+    tomcat_version = local.tomcat_version
+    tomcat_setup_archive = local.tomcat_tarball
     # ansible_python_interpreter="/usr/bin/python3"
   })
 }
@@ -237,7 +251,7 @@ build {
     inline = [
       "echo '${local.server_vars}' > /tmp/server_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
-      "python -m s3_copy_files -f ${local.arcgis_server_s3_files} -b ${data.amazon-parameterstore.s3_repository.value}",      
+      "python -m s3_copy_files -f ${local.arcgis_server_manifest_path} -b ${data.amazon-parameterstore.s3_repository.value}",      
       "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
       "ansible-playbook arcgis.common.system -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
       "ansible-playbook arcgis.server.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",      
@@ -256,12 +270,10 @@ build {
     inline = var.install_webadaptor ? [
       "echo '${local.webadaptor_vars}' > /tmp/webadaptor_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
-      "JDK_VERSION=$(cat ${local.arcgis_webadaptor_s3_files} | jq -r '.arcgis.repository.files.\"jdk_x64_linux.tar.gz\".version')",
-      "TOMCAT_VERSION=$(cat ${local.arcgis_webadaptor_s3_files} | jq -r '.arcgis.repository.files.\"tomcat.tar.gz\".version')",
-      "python -m s3_copy_files -f ${local.arcgis_webadaptor_s3_files} -b ${data.amazon-parameterstore.s3_repository.value}",
+      "python -m s3_copy_files -f ${local.arcgis_webadaptor_manifest_path} -b ${data.amazon-parameterstore.s3_repository.value}",
       "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
-      "ansible-playbook arcgis.webadaptor.openjdk -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml -e jdk_version=$JDK_VERSION",
-      "ansible-playbook arcgis.webadaptor.tomcat -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml -e tomcat_version=$TOMCAT_VERSION",
+      "ansible-playbook arcgis.webadaptor.openjdk -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
+      "ansible-playbook arcgis.webadaptor.tomcat -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
       "ansible-playbook arcgis.webadaptor.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
       "ansible-playbook arcgis.webadaptor.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
       "ansible-playbook arcgis.common.clean -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml"

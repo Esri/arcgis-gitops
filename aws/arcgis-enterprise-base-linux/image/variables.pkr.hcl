@@ -85,18 +85,6 @@ variable "run_as_user" {
   default     = "arcgis"
 }
 
-variable "java_version" {
-  description = "OpenJDK version"
-  type        = string
-  default    = "11.0.21"
-}
-
-variable "tomcat_version" {
-  description = "Apache Tomcat version"
-  type        = string
-  default     = "9.0.83"
-}
-
 variable "arcgis_portal_patches" {
   description = "File names of Portal for ArcGIS patches to install."
   type        = list(string)

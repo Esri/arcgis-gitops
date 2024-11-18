@@ -55,6 +55,10 @@
         admin_username: '{{ admin_username }}'
         admin_password: '{{ admin_password }}'
         primary_server_url: '{{ primary_server_url }}'
+    - name: Check if the keystore file exists
+      ansible.builtin.stat:
+        path: '{{ keystore_file }}'
+      register: keystore        
     - name: Configure SSL certificates in ArcGIS Server machine
       vars:
         ansible_aws_ssm_timeout: 600
@@ -68,3 +72,4 @@
         keystore_file: '{{ keystore_file }}'
         keystore_password: '{{ keystore_password }}'
         cert_alias: '{{ cert_alias }}'
+      when: keystore.stat.exists        

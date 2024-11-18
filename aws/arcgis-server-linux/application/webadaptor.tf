@@ -3,15 +3,19 @@
 locals {
   webadaptor_manifest_path = "${abspath(path.root)}/../manifests/arcgis-webadaptor-s3files-${var.arcgis_version}.json"
   webadaptor_manifest      = jsondecode(file(local.webadaptor_manifest_path))
+  java_tarball             = local.webadaptor_manifest.arcgis.repository.metadata.java_tarball
+  java_version             = local.webadaptor_manifest.arcgis.repository.metadata.java_version
+  tomcat_tarball           = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_tarball
+  tomcat_version           = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_version
   tomcat_keystore_file     = "/opt/tomcat_arcgis/conf/certificate.pfx"
 }
 
 # Copy ArcGIS Web Adaptor, OpenJDK, and Apache Tomcat setup archives to the private repository S3 bucket.
 module "copy_webadaptor_files" {
-  count                  = var.is_upgrade && var.configure_webadaptor ? 1 : 0
-  source                 = "../../modules/s3_copy_files"
-  bucket_name            = module.site_core_info.s3_repository
-  index_file             = local.webadaptor_manifest_path
+  count       = var.is_upgrade && var.configure_webadaptor ? 1 : 0
+  source      = "../../modules/s3_copy_files"
+  bucket_name = module.site_core_info.s3_repository
+  index_file  = local.webadaptor_manifest_path
   depends_on = [
     module.arcgis_server_node
   ]
@@ -26,7 +30,7 @@ module "download_webadaptor_files" {
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.s3_files"
   external_vars = {
-    local_repository = "/opt/software/archives"
+    local_repository = local.archives_dir
     manifest         = local.webadaptor_manifest_path
     bucket_name      = module.site_core_info.s3_repository
     region           = module.site_core_info.s3_region
@@ -59,9 +63,10 @@ module "openjdk_upgrade" {
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.webadaptor.openjdk"
   external_vars = {
-    jdk_version      = local.webadaptor_manifest.arcgis.repository.files["jdk_x64_linux.tar.gz"].version
-    install_dir      = "/opt"
-    local_repository = "/opt/software/archives"
+    jdk_version       = local.java_version
+    jdk_setup_archive = local.java_tarball
+    install_dir       = "/opt"
+    local_repository  = local.archives_dir
   }
   depends_on = [
     module.download_webadaptor_files
@@ -77,9 +82,10 @@ module "tomcat_upgrade" {
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.webadaptor.tomcat"
   external_vars = {
-    tomcat_version   = local.webadaptor_manifest.arcgis.repository.files["tomcat.tar.gz"].version
-    install_dir      = "/opt"
-    local_repository = "/opt/software/archives"
+    tomcat_version       = local.tomcat_version
+    tomcat_setup_archive = local.tomcat_tarball
+    install_dir          = "/opt"
+    local_repository     = local.archives_dir
   }
   depends_on = [
     module.openjdk_upgrade
@@ -97,7 +103,7 @@ module "arcgis_webadaptor_upgrade" {
   external_vars = {
     arcgis_version   = var.arcgis_version
     install_dir      = "/opt"
-    local_repository = "/opt/software/archives"
+    local_repository = local.archives_dir
     run_as_user      = var.run_as_user
   }
   depends_on = [

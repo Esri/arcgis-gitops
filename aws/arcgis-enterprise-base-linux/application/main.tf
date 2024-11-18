@@ -174,7 +174,15 @@ data "aws_instances" "deployment" {
 data "aws_region" "current" {}
 
 locals {
-  index_file_path               = "../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest_file_path = "../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest           = jsondecode(file(local.manifest_file_path))
+  archives_dir       = local.manifest.arcgis.repository.local_archives
+  patches_dir        = local.manifest.arcgis.repository.local_patches
+  java_tarball       = local.manifest.arcgis.repository.metadata.java_tarball
+  java_version       = local.manifest.arcgis.repository.metadata.java_version
+  tomcat_tarball     = local.manifest.arcgis.repository.metadata.tomcat_tarball
+  tomcat_version     = local.manifest.arcgis.repository.metadata.tomcat_version
+
   authorization_files_s3_prefix = "software/authorization/${var.arcgis_version}"
   certificates_s3_prefix        = "software/certificates"
 
@@ -201,7 +209,7 @@ module "s3_copy_files" {
   count                  = var.is_upgrade ? 1 : 0
   source                 = "../../modules/s3_copy_files"
   bucket_name            = module.site_core_info.s3_repository
-  index_file             = local.index_file_path
+  index_file             = local.manifest_file_path
 }
 
 # Install Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment
@@ -223,7 +231,7 @@ module "arcgis_enterprise_files" {
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
   json_attributes = templatefile(
-    local.index_file_path,
+    local.manifest_file_path,
     {
       s3bucket = module.site_core_info.s3_repository
       region   = module.site_core_info.s3_region
@@ -272,23 +280,23 @@ module "arcgis_enterprise_upgrade" {
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
     java = {
-      version      = "${var.java_version}+9"
-      tarball_path = "/opt/software/archives/jdk-${var.java_version}.tar.gz"
+      version      = local.java_version
+      tarball_path = "${local.archives_dir}/${local.java_tarball}"
     }
     tomcat = {
-      version      = var.tomcat_version
-      tarball_path = "/opt/software/archives/apache-tomcat-${var.tomcat_version}.tar.gz"
-      install_path = "/opt/tomcat_arcgis_${var.tomcat_version}"
+      version      = local.tomcat_version
+      tarball_path = "${local.archives_dir}/${local.tomcat_tarball}"
+      install_path = "/opt/tomcat_arcgis_${local.tomcat_version}"
     }
     arcgis = {
       version     = var.arcgis_version
       run_as_user = var.run_as_user
       repository = {
-        archives = "/opt/software/archives"
+        archives = local.archives_dir
         setups   = "/opt/software/setups"
       }
       web_server = {
-        webapp_dir = "/opt/tomcat_arcgis_${var.tomcat_version}/webapps"
+        webapp_dir = "/opt/tomcat_arcgis_${local.tomcat_version}/webapps"
       }
       server = {
         install_dir                 = "/opt"
@@ -329,7 +337,7 @@ module "arcgis_enterprise_upgrade" {
       "recipe[arcgis-enterprise::start_datastore]"
     ]
   })
-  execution_timeout = 3600
+  execution_timeout = 7200
   depends_on = [
     module.begin_upgrade_standby
   ]
@@ -348,7 +356,7 @@ module "arcgis_enterprise_patch" {
       version     = var.arcgis_version
       run_as_user = var.run_as_user
       repository = {
-        patches = "/opt/software/archives/patches"
+        patches = local.patches_dir
       }
       portal = {
         install_dir = "/opt"
@@ -371,7 +379,7 @@ module "arcgis_enterprise_patch" {
       "recipe[arcgis-enterprise::install_patches]"
     ]
   })
-  execution_timeout = 3600
+  execution_timeout = 7200
   depends_on = [
     module.arcgis_enterprise_upgrade
   ]
@@ -576,7 +584,7 @@ module "arcgis_enterprise_primary" {
         "primary.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
       }
       repository = {
-        archives = "/opt/software/archives"
+        archives = local.archives_dir
         setups   = "/opt/software/setups"
       }
       web_server = {
@@ -709,7 +717,7 @@ module "arcgis_enterprise_standby" {
         "standby.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
       }
       repository = {
-        archives = "/opt/software/archives"
+        archives = local.archives_dir
         setups   = "/opt/software/setups"
       }
       web_server = {

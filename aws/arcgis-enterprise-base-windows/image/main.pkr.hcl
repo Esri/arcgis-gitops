@@ -119,7 +119,12 @@ data "amazon-parameterstore" "chef_cookbooks_url" {
 }
 
 locals {
-  index_file_path =  "${path.root}/../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest_file_path = "${path.root}/../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest           = jsondecode(file(local.manifest_file_path))
+  archives_dir       = local.manifest.arcgis.repository.local_archives
+  patches_dir        = local.manifest.arcgis.repository.local_patches
+  dotnet_setup       = local.manifest.arcgis.repository.metadata.dotnet_setup
+  web_deploy_setup   = local.manifest.arcgis.repository.metadata.web_deploy_setup
 
   timestamp = formatdate("YYYYMMDDhhmm", timestamp())
   
@@ -136,23 +141,6 @@ locals {
   # Platform-specific attributes
 
   chef_client_url = "{{ssm:/arcgis/${var.site_id}/chef-client-url/${var.os}}}"
-
-  # ArcGIS version-specific attributes
-  dotnet_setup_path = {
-    "11.0" = null
-    "11.1" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
-    "11.2" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
-    "11.3" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
-    "11.4" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
-  }
-
-  web_deploy_setup_path = {
-    "11.0" = null
-    "11.1" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
-    "11.2" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
-    "11.3" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi" 
-    "11.4" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"    
-  }
 }
 
 source "amazon-ebs" "main" {
@@ -229,7 +217,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m s3_copy_files -f ${local.index_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
+    command = "python -m s3_copy_files -f ${local.manifest_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
   }
 
   # Install AWS CLI
@@ -264,7 +252,7 @@ build {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(templatefile(
-        local.index_file_path, 
+        local.manifest_file_path, 
         { 
           s3bucket = data.amazon-parameterstore.s3_repository.value, 
           region = data.amazon-parameterstore.s3_region.value
@@ -285,7 +273,7 @@ build {
           run_as_password = var.run_as_password
           configure_windows_firewall = true
           repository = {
-            archives = "C:\\Software\\Archives"
+            archives = local.archives_dir
             setups = "C:\\Software\\Setups"
           }
           server = {
@@ -295,8 +283,8 @@ build {
           }
           web_adaptor = {
             install_system_requirements = true
-            dotnet_setup_path = local.dotnet_setup_path[var.arcgis_version]
-            web_deploy_setup_path = local.web_deploy_setup_path[var.arcgis_version]
+            dotnet_setup_path = "${local.archives_dir}\\${local.dotnet_setup}"
+            web_deploy_setup_path = "${local.archives_dir}\\${local.web_deploy_setup}"
             admin_access = true
             reindex_portal_content = false
           }
@@ -341,7 +329,7 @@ build {
         arcgis = {
           version = var.arcgis_version
           repository = {
-            patches = "C:\\Software\\Archives\\Patches"
+            patches = local.patches_dir
           }
           portal = {
             patches = var.arcgis_portal_patches

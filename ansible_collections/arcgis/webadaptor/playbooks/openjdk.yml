@@ -13,6 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# This playbook installs OpenJDK on all hosts.
+# Variables:
+# - local_repository: Path to the local repository where the JDK setup archive is stored.
+# - jdk_version: Version of the JDK to be installed.
+# - jdk_setup_archive: Name of the JDK setup archive file.
+# - install_dir: Directory where the JDK will be installed.
+# 
+# Tasks:
+# 1. Extract setup archive: Extracts the JDK setup archive to the specified installation directory.
+# 2. Display java alternatives: Displays the current java alternatives configuration.
+# 3. Remove java alternatives: Removes all existing java alternatives if any are found.
+# 4. Update java alternatives: Updates the java alternatives to point to the newly installed JDK.
+
 - name: Install OpenJDK
   hosts: all
   vars:

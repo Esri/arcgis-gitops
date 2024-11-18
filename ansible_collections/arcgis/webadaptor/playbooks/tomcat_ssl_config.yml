@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# The playbook configures SSL in server.xml file of Apache Tomcat.
+# If the keystore file does not exist, the playbook creates a self-signed certificate and a PKCS12 file.
+# If the keystore file exists, the playbook just updates the server.xml file with the keystore information.
+
 - name: Configure SSL in Apache Tomcat
   hosts: all
   vars:
@@ -47,14 +51,26 @@
     - name: Generate PKCS12 file
       community.crypto.openssl_pkcs12:
         action: export
-        path: '{{ keystore_file }}'
+        path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.pfx'
         privatekey_path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.key'
         certificate_path: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.pem'
-        passphrase: '{{ keystore_password }}' 
+        passphrase: 'test' 
         friendly_name: 'tomcat'
         owner: '{{ tomcat_user }}'
         state: present
-      when: not keystore.stat.exists                
+      when: not keystore.stat.exists
+    - name: Use self-signed certificate
+      ansible.builtin.set_fact:
+        certificate_keystore_file: '{{ install_dir }}/tomcat_{{ instance_name }}/conf/certificate.pfx'
+        certificate_keystore_password: 'test'
+        certificate_keystore_type: 'PKCS12'
+      when: not keystore.stat.exists                        
+    - name: Use external keystore file
+      ansible.builtin.set_fact:
+        certificate_keystore_file: '{{ keystore_file }}'
+        certificate_keystore_password: '{{ keystore_password }}'
+        certificate_keystore_type: '{{ keystore_type }}'
+      when: keystore.stat.exists                        
     - name: Update server.xml
       ansible.builtin.template:
         src: 'server.xml.j2'

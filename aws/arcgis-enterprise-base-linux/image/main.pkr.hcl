@@ -113,7 +113,14 @@ data "amazon-parameterstore" "chef_cookbooks_url" {
 }
 
 locals {
-  s3_files_json_path =  "${path.root}/../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest_file_path =  "${path.root}/../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest           = jsondecode(file(local.manifest_file_path))
+  archives_dir       = local.manifest.arcgis.repository.local_archives
+  patches_dir        = local.manifest.arcgis.repository.local_patches
+  java_tarball       = local.manifest.arcgis.repository.metadata.java_tarball
+  java_version       = local.manifest.arcgis.repository.metadata.java_version
+  tomcat_tarball     = local.manifest.arcgis.repository.metadata.tomcat_tarball
+  tomcat_version     = local.manifest.arcgis.repository.metadata.tomcat_version
 
   machine_role = "packer"
   timestamp = formatdate("YYYYMMDDhhmm", timestamp())
@@ -190,7 +197,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m s3_copy_files -f ${local.s3_files_json_path} -b ${data.amazon-parameterstore.s3_repository.value}"
+        command = "python -m s3_copy_files -f ${local.manifest_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
   }
 
   # Install AWS CLI
@@ -234,7 +241,7 @@ build {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(templatefile(
-        local.s3_files_json_path, 
+        local.manifest_file_path, 
         { 
           s3bucket = data.amazon-parameterstore.s3_repository.value, 
           region = data.amazon-parameterstore.s3_region.value
@@ -250,23 +257,23 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         java = {
-          version = "${var.java_version}+9"
-          tarball_path = "/opt/software/archives/jdk-${var.java_version}.tar.gz"
+          version = local.java_version
+          tarball_path = "${local.archives_dir}/${local.java_tarball}"
         }
         tomcat = {
-          version = var.tomcat_version
-          tarball_path = "/opt/software/archives/apache-tomcat-${var.tomcat_version}.tar.gz"
-          install_path = "/opt/tomcat_arcgis_${var.tomcat_version}"
+          version = local.tomcat_version
+          tarball_path = "${local.archives_dir}/${local.tomcat_tarball}"
+          install_path = "/opt/tomcat_arcgis_${local.tomcat_version}"
         }
         arcgis = {
           version = var.arcgis_version
           run_as_user = var.run_as_user
           repository = {
-            archives = "/opt/software/archives"
+            archives = local.archives_dir
             setups = "/opt/software/setups"
           }
           web_server = {
-            webapp_dir = "/opt/tomcat_arcgis_${var.tomcat_version}/webapps"
+            webapp_dir = "/opt/tomcat_arcgis_${local.tomcat_version}/webapps"
           }
           server = {
             install_dir = "/opt"
@@ -321,7 +328,7 @@ build {
           version = var.arcgis_version
           run_as_user = var.run_as_user
           repository = {
-            patches = "/opt/software/archives/patches"
+            patches = local.patches_dir
           }
           portal = {
             install_dir = "/opt"

@@ -24,6 +24,12 @@
         ],
         "subfolder": "software/arcgis/11.3/patches"        
       },
+      "metadata": {
+        "java_tarball": "jdk-11.0.21.tar.gz",
+        "java_version": "11.0.21+9",
+        "tomcat_tarball": "apache-tomcat-9.0.83.tar.gz",
+        "tomcat_version": "9.0.83"
+      },
       "files": {
         "ArcGIS_Server_Linux_113_190305.tar.gz": {
           "subfolder": "software/arcgis/11.3",

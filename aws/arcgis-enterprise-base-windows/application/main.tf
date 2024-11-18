@@ -164,7 +164,13 @@ data "aws_ami" "primary" {
 data "aws_region" "current" {}
 
 locals {
-  index_file_path               = "../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest_file_path = "../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest           = jsondecode(file(local.manifest_file_path))
+  archives_dir       = local.manifest.arcgis.repository.local_archives
+  patches_dir        = local.manifest.arcgis.repository.local_patches
+  dotnet_setup       = local.manifest.arcgis.repository.metadata.dotnet_setup
+  web_deploy_setup   = local.manifest.arcgis.repository.metadata.web_deploy_setup
+
   authorization_files_s3_prefix = "software/authorization/${var.arcgis_version}"
   certificates_s3_prefix        = "software/certificates"
 
@@ -179,23 +185,6 @@ locals {
   keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}\\${basename(var.keystore_file_path)}" : "C:\\chef\\keystore.pfx"
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}\\${basename(var.root_cert_file_path)}" : ""
 
-  # ArcGIS version-specific attributes
-  dotnet_setup_path = {
-    "11.0" = null
-    "11.1" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
-    "11.2" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
-    "11.3" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"
-    "11.4" = "C:\\Software\\Archives\\dotnet-hosting-win.exe"    
-  }
-
-  web_deploy_setup_path = {
-    "11.0" = null
-    "11.1" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
-    "11.2" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"
-    "11.3" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"    
-    "11.4" = "C:\\Software\\Archives\\WebDeploy_amd64_en-US.msi"    
-  }
-
   timestamp = formatdate("YYYYMMDDHHmmss", timestamp())
 }
 
@@ -208,7 +197,7 @@ module "s3_copy_files" {
   count                  = var.is_upgrade ? 1 : 0
   source                 = "../../modules/s3_copy_files"
   bucket_name            = module.site_core_info.s3_repository
-  index_file             = local.index_file_path
+  index_file             = local.manifest_file_path
 }
 
 # Install Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment
@@ -230,7 +219,7 @@ module "arcgis_enterprise_files" {
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
   json_attributes = templatefile(
-    local.index_file_path,
+    local.manifest_file_path,
     {
       s3bucket = module.site_core_info.s3_repository
       region   = module.site_core_info.s3_region
@@ -283,7 +272,7 @@ module "arcgis_enterprise_upgrade" {
       run_as_password            = var.run_as_password
       configure_windows_firewall = true
       repository = {
-        archives = "C:\\Software\\Archives"
+        archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
       }
       server = {
@@ -293,8 +282,8 @@ module "arcgis_enterprise_upgrade" {
       }
       web_adaptor = {
         install_system_requirements = true
-        dotnet_setup_path           = local.dotnet_setup_path[var.arcgis_version]
-        web_deploy_setup_path       = local.web_deploy_setup_path[var.arcgis_version]
+        dotnet_setup_path           = "${local.archives_dir}\\${local.dotnet_setup}"
+        web_deploy_setup_path       = "${local.archives_dir}\\${local.web_deploy_setup}"
         admin_access                = true
         reindex_portal_content      = false
       }
@@ -326,7 +315,7 @@ module "arcgis_enterprise_upgrade" {
       "recipe[arcgis-enterprise::start_datastore]"
     ]
   })
-  execution_timeout = 3600
+  execution_timeout = 7200
   depends_on = [
     module.begin_upgrade_standby
   ]
@@ -344,7 +333,7 @@ module "arcgis_enterprise_patch" {
     arcgis = {
       version = var.arcgis_version
       repository = {
-        patches = "C:\\Software\\Archives\\Patches"
+        patches = local.patches_dir
       }
       portal = {
         patches = var.arcgis_portal_patches
@@ -363,7 +352,7 @@ module "arcgis_enterprise_patch" {
       "recipe[arcgis-enterprise::install_patches]"
     ]
   })
-  execution_timeout = 3600
+  execution_timeout = 7200
   depends_on = [
     module.arcgis_enterprise_upgrade
   ]
@@ -581,7 +570,7 @@ module "arcgis_enterprise_primary" {
         "primary.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
       }
       repository = {
-        archives = "C:\\Software\\Archives"
+        archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
       }
       iis = {
@@ -724,7 +713,7 @@ module "arcgis_enterprise_standby" {
         "standby.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
       }
       repository = {
-        archives = "C:\\Software\\Archives"
+        archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
       }
       iis = {

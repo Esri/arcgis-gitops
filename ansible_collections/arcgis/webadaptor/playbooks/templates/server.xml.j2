@@ -86,9 +86,9 @@
                maxThreads="150" SSLEnabled="true">
         <UpgradeProtocol className="org.apache.coyote.http2.Http2Protocol" />
         <SSLHostConfig>
-            <Certificate certificateKeystoreFile="{{ keystore_file }}"
-                         certificateKeystorePassword="{{ keystore_password }}"
-                         certificateKeystoreType="{{ keystore_type }}"
+            <Certificate certificateKeystoreFile="{{ certificate_keystore_file }}"
+                         certificateKeystorePassword="{{ certificate_keystore_password }}"
+                         certificateKeystoreType="{{ certificate_keystore_type }}"
                          type="RSA" />
         </SSLHostConfig>
     </Connector>

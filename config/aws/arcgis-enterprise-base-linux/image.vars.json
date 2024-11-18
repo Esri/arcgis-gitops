@@ -12,11 +12,9 @@
     "arcgis_web_adaptor_patches": [],
     "deployment_id": "arcgis-enterprise-base",
     "instance_type": "m6i.2xlarge",
-    "java_version": "11.0.21",
     "os": "rhel8",
     "root_volume_size": 100,
     "run_as_user": "arcgis",
     "site_id": "arcgis-enterprise",
-    "skip_create_ami": false,
-    "tomcat_version": "9.0.83"
+    "skip_create_ami": false
 }

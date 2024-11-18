@@ -23,7 +23,11 @@
           "ArcGIS-113-*.msp"
         ],
         "subfolder": "software/arcgis/11.3/patches"
-      },      
+      },
+      "metadata": {
+        "dotnet_setup": "dotnet-hosting-win.exe",
+        "web_deploy_setup": "WebDeploy_amd64_en-US.msi"
+      },
       "files": {
         "ArcGIS_Server_Windows_113_190188.exe": {
           "subfolder": "software/arcgis/11.3",

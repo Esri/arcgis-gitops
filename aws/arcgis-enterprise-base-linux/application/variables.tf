@@ -83,18 +83,6 @@ variable "run_as_user" {
   default     = "arcgis"
 }
 
-variable "java_version" {
-  description = "OpenJDK version"
-  type        = string
-  default     = "11.0.21"
-}
-
-variable "tomcat_version" {
-  description = "Apache Tomcat version"
-  type        = string
-  default     = "9.0.83"
-}
-
 variable "server_authorization_file_path" {
   description = "Local path of ArcGIS Server authorization file"
   type        = string

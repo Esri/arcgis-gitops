@@ -23,7 +23,7 @@ env:
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY: ${{ secrets.TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY }}
+  ARM_USE_AZUREAD: true
   TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
   TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
   MAX_UPGRADE_TIME: 720 # 12 hours
@@ -67,7 +67,6 @@ jobs:
           UPGRADE_TOKEN=$(kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis generate-token --expiration $MAX_UPGRADE_TIME) || UPGRADE_TOKEN="token"
           terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                         -backend-config="access_key=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY" \
                          -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/organization.tfstate"
           terraform apply -var-file=$CONFIG_FILE -var "upgrade_token=$UPGRADE_TOKEN" -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve 
       - name: Retrieve Logs

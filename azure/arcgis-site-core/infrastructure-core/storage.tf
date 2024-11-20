@@ -43,19 +43,19 @@ resource "azurerm_storage_account" "site_storage" {
 
 resource "azurerm_storage_container" "repository" {
   name                  = "repository"
-  storage_account_name  = azurerm_storage_account.site_storage.name
+  storage_account_id    = azurerm_storage_account.site_storage.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "logs" {
   name                  = "logs"
-  storage_account_name  = azurerm_storage_account.site_storage.name
+  storage_account_id    = azurerm_storage_account.site_storage.id
   container_access_type = "private"
 }
 
 resource "azurerm_storage_container" "backups" {
   name                  = "backups"
-  storage_account_name  = azurerm_storage_account.site_storage.name
+  storage_account_id    = azurerm_storage_account.site_storage.id
   container_access_type = "private"
 }
 

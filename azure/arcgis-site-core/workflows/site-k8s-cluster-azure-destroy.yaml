@@ -14,16 +14,16 @@
 
 name: site-k8s-cluster-azure-destroy
 
-on: 
+on:
   workflow_dispatch:
 
 env:
-  TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}  
+  TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY: ${{ secrets.TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY }}
+  ARM_USE_AZUREAD: true
   TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
   TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
   CONTAINER_REGISTRY_USER: ${{ secrets.CONTAINER_REGISTRY_USER }}
@@ -44,16 +44,15 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.ref_name }}
-    - name: Terraform Init
-      run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-        terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
-                       -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                       -backend-config="access_key=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY" \
-                       -backend-config="key=$SITE_ID/azure/k8s-cluster.tfstate"
-    - name: Terraform Destroy
-      run: terraform destroy -var-file $CONFIG_FILE  -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Terraform Init
+        run: |
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
+                         -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
+                         -backend-config="key=$SITE_ID/azure/k8s-cluster.tfstate"
+      - name: Terraform Destroy
+        run: terraform destroy -var-file $CONFIG_FILE  -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve

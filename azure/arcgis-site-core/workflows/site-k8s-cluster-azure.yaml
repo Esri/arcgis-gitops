@@ -14,23 +14,23 @@
 
 name: site-k8s-cluster-azure
 
-on: 
+on:
   workflow_dispatch:
     inputs:
       terraform_command:
-        description: 'Terraform Command'
+        description: "Terraform Command"
         type: choice
         options:
-        - apply
-        - plan
+          - apply
+          - plan
 
 env:
-  TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}  
+  TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY: ${{ secrets.TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY }}
+  ARM_USE_AZUREAD: true
   TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
   TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
   CONTAINER_REGISTRY_USER: ${{ secrets.CONTAINER_REGISTRY_USER }}
@@ -51,32 +51,31 @@ jobs:
       contents: read
       pull-requests: write
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-      with:
-        ref: ${{ github.ref_name }}
-    - name: Terraform Init
-      run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-        terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
-                       -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                       -backend-config="access_key=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY" \
-                       -backend-config="key=$SITE_ID/azure/k8s-cluster.tfstate"
-    - name: Terraform Apply
-      if: github.event.inputs.terraform_command == 'apply'
-      run: |
-        az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
-        az account set --subscription $ARM_SUBSCRIPTION_ID
-        terraform apply -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve
-    - name: Terraform Plan
-      if: github.event.inputs.terraform_command == 'plan'
-      run: terraform plan -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD 
-    - name: Test AKS cluster access
-      if: github.event.inputs.terraform_command == 'apply'      
-      run: |
-        echo "Test"
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-        az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
-        az account set --subscription $ARM_SUBSCRIPTION_ID
-        az aks get-credentials --resource-group "$SITE_ID"-k8s-cluster --name $SITE_ID --overwrite-existing
-        kubectl get nodes
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.ref_name }}
+      - name: Terraform Init
+        run: |
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
+                         -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
+                         -backend-config="key=$SITE_ID/azure/k8s-cluster.tfstate"
+      - name: Terraform Apply
+        if: github.event.inputs.terraform_command == 'apply'
+        run: |
+          az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+          az account set --subscription $ARM_SUBSCRIPTION_ID
+          terraform apply -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve
+      - name: Terraform Plan
+        if: github.event.inputs.terraform_command == 'plan'
+        run: terraform plan -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD
+      - name: Test AKS cluster access
+        if: github.event.inputs.terraform_command == 'apply'
+        run: |
+          echo "Test"
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+          az account set --subscription $ARM_SUBSCRIPTION_ID
+          az aks get-credentials --resource-group "$SITE_ID"-k8s-cluster --name $SITE_ID --overwrite-existing
+          kubectl get nodes

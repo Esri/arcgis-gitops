@@ -326,13 +326,16 @@ module "arcgis_enterprise_upgrade" {
       "recipe[arcgis-enterprise::system]",
       "recipe[esri-tomcat::openjdk]",
       "recipe[esri-tomcat]",
+      "recipe[arcgis-enterprise::stop_portal]",      
       "recipe[arcgis-enterprise::install_portal]",
       "recipe[arcgis-enterprise::webstyles]",
       "recipe[arcgis-enterprise::start_portal]",
       "recipe[arcgis-enterprise::install_portal_wa]",
+      "recipe[arcgis-enterprise::stop_server]",
       "recipe[arcgis-enterprise::install_server]",
       "recipe[arcgis-enterprise::start_server]",
       "recipe[arcgis-enterprise::install_server_wa]",
+      "recipe[arcgis-enterprise::stop_datastore]",
       "recipe[arcgis-enterprise::install_datastore]",
       "recipe[arcgis-enterprise::start_datastore]"
     ]

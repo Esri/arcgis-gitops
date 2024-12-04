@@ -34,7 +34,7 @@ concurrency:
 jobs:
   destroy:
     name: Destroy Deployment
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pull-requests: write
@@ -46,6 +46,9 @@ jobs:
       - name: Install boto3
         id: install-boto3
         run: pip install boto3
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.0"
       - name: Destroy Application
         id: application-destroy
         working-directory: aws/arcgis-server-linux/application

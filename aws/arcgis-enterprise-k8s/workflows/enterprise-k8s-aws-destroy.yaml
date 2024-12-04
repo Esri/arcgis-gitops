@@ -38,7 +38,7 @@ concurrency:
 jobs:
   destroy:
     name: Destroy Deployment
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: aws/arcgis-enterprise-k8s/organization
@@ -57,6 +57,9 @@ jobs:
           [[ "$AWS_REGION" == "null" || "$AWS_REGION" == "" ]] && AWS_REGION=$TF_VAR_aws_region
           SITE_ID=$(jq -r '.site_id' $ORGANIZATION_CONFIG_FILE)
           aws eks update-kubeconfig --region $AWS_REGION --name $SITE_ID
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.0"
       - name: Destroy Organization
         id: destroy-organization
         working-directory: aws/arcgis-enterprise-k8s/organization

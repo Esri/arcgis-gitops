@@ -22,7 +22,6 @@ env:
   AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
-  TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY: ${{ secrets.TERRAFORM_BACKEND_STORAGE_ACCOUNT_KEY }}
   TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
   TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
   ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
@@ -34,7 +33,7 @@ env:
 jobs:
   validate_settings_aws:
     name: Validate GitHub Actions secrets and variables
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     permissions:
       contents: read
       pull-requests: write

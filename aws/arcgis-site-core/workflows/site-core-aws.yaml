@@ -37,7 +37,7 @@ concurrency:
 jobs:
   infrastructure_core:
     name: Core AWS Infrastructure
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       vpc_id: ${{ steps.terraform-output.outputs.vpc_id }}
     defaults:
@@ -51,6 +51,9 @@ jobs:
       uses: actions/checkout@v4
       with:
         ref: ${{ github.ref_name }}
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.10.0"
     - name: Terraform Init
       id: terraform-init
       run: |

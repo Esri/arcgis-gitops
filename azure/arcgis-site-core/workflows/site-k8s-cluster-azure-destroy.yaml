@@ -36,7 +36,7 @@ concurrency:
 jobs:
   k8s-cluster-destroy:
     name: Destroy K8s cluster
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: azure/arcgis-site-core/k8s-cluster
@@ -48,6 +48,9 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.0"
       - name: Terraform Init
         run: |
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)

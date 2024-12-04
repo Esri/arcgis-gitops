@@ -33,7 +33,7 @@ concurrency:
 jobs:
   organization:
     name: ArcGIS Enterprise Organization
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       arcgis_enterprise_manager_url: ${{ steps.output.outputs.arcgis_enterprise_manager_url }}
       arcgis_enterprise_portal_url: ${{ steps.output.outputs.arcgis_enterprise_portal_url }}
@@ -55,6 +55,9 @@ jobs:
           [[ "$AWS_REGION" == "null" || "$AWS_REGION" == "" ]] && AWS_REGION=$TF_VAR_aws_region
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
           aws eks update-kubeconfig --region $AWS_REGION --name $SITE_ID
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.0"
       - name: Run Terraform
         id: terraform
         run: |

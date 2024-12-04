@@ -30,7 +30,7 @@ concurrency:
 jobs:
   image:
     name: Build container images and copy to ACR
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: azure/arcgis-enterprise-k8s/image

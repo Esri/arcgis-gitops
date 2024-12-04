@@ -38,7 +38,7 @@ concurrency:
 jobs:
   infrastructure:
     name: Provision AWS Resources
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     outputs:
       alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
     defaults:
@@ -60,6 +60,9 @@ jobs:
     - name: Install Ansible Collections
       id: install-collections
       run: ansible-galaxy collection install ${{ github.workspace }}/ansible_collections/arcgis -p /usr/share/ansible/collections
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.10.0"
     - name: Terraform Init
       id: init
       run: |

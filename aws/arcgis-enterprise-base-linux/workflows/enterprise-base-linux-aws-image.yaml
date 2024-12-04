@@ -33,7 +33,7 @@ concurrency:
 jobs:
   image:
     name: Build Images
-    runs-on: ubuntu-22.04
+    runs-on: ubuntu-24.04
     defaults:
       run:
         working-directory: aws/arcgis-enterprise-base-linux/image
@@ -45,6 +45,9 @@ jobs:
       - name: Install Boto3
         id: install-boto3
         run: pip install boto3
+      - uses: hashicorp/setup-packer@main
+        with:
+          version: "1.11.2"
       - name: Run Packer
         id: packer
         run: |

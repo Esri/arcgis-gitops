@@ -39,14 +39,6 @@ jobs:
         uses: actions/checkout@v4
         with:
           ref: ${{ github.ref_name }}
-      - name: Clean up space
-        run: |
-          # Clean up space for the image copy
-          sudo rm -rf /usr/share/dotnet
-          sudo rm -rf /opt/ghc
-          sudo rm -rf "/usr/local/share/boost"
-          sudo rm -rf "$AGENT_TOOLSDIRECTORY"
-          docker rmi node:16 node:18 node:20 > /dev/null 2>&1
       - name: Build Admin CLI Image
         run: |
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)

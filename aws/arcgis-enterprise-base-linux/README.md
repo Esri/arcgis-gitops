@@ -15,6 +15,8 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of base ArcGIS Enterprise includes building images, provisioning AWS resources, configuring the applications, and testing the deployment web services.
 
+![Base ArcGIS Enterprise on Linux Configuration Flow](./arcgis-enterprise-base-linux-flowchart.png)
+
 ### 1. Build Images
 
 GitHub Actions workflow **enterprise-base-linux-aws-image** creates EC2 AMIs for base ArcGIS Enterprise deployment.

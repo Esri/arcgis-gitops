@@ -19,6 +19,8 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of ArcGIS Enterprise on Kubernetes includes provisioning container images, creating ingress resources, creating ArcGIS Enterprise organization, and testing the deployment web services.
 
+![ArcGIS Enterprise on Kubernetes Configuration Flow](./arcgis-enterprise-k8s-flowchart.png)
+
 > The service principal used by the template's workflows must have the cluster administrator permissions.
 
 ### 1. Provisioning Container Images

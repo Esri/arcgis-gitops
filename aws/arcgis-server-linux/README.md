@@ -15,6 +15,8 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of ArcGIS Server includes building images, provisioning AWS resources, configuring the applications, and testing the deployment web services.
 
+![ArcGIS Server on Linux Configuration Flow](./arcgis-server-linux-flowchart.png)
+
 ### 1. Build Images
 
 GitHub Actions workflow **server-linux-aws-image** creates EC2 AMIs for ArcGIS Server deployment.

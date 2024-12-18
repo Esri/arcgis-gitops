@@ -108,6 +108,7 @@
                 "ssm:DescribeDocument",
                 "ssm:DescribeDocumentPermission",
                 "ssm:DescribeParameters",
+                "ssm:GetParameter",
                 "ssm:GetParameters",
                 "ssm:ListTagsForResource",
                 "ssm:PutParameter"

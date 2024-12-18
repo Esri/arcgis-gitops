@@ -60,7 +60,9 @@ if __name__ == '__main__':
 
         if args.wait:
             print("Waiting for the restore operation to complete...")
-           
+
+            time.sleep(60.0)
+
             for i in range(args.timeout // SLEEP_TIME):
                 try:
                     dr_status = admin.get_disaster_recovery_status()

@@ -31,10 +31,12 @@ def publish_csv(gis):
 
     csv_properties = {'title': 'Test CSV',
                       'description': 'CSV publishing test',
+                      'type': 'CSV',
                       'tags': 'arcgis, python, csv',}
 
     print("Uploading CSV...")
-    csv_item = gis.content.add(item_properties=csv_properties, data=csv_path)
+    root_folder = gis.content.folders.get(folder="/")
+    csv_item = root_folder.add(item_properties=csv_properties, file=csv_path).result()
     print("CSV uploaded. Item Id: {0}".format(csv_item.id))
 
     sleep(10.0)

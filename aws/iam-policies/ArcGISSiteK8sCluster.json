@@ -107,7 +107,8 @@
                 "secretsmanager:GetResourcePolicy",
                 "secretsmanager:GetSecretValue",
                 "secretsmanager:PutSecretValue",
-                "secretsmanager:TagResource"
+                "secretsmanager:TagResource",
+                "secretsmanager:UpdateSecretVersionStage"
             ],
             "Resource": "*"
         },

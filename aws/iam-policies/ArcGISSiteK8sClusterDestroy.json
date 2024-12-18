@@ -72,7 +72,8 @@
                 "secretsmanager:DeleteSecret",
                 "secretsmanager:DescribeSecret",
                 "secretsmanager:GetResourcePolicy",
-                "secretsmanager:GetSecretValue"
+                "secretsmanager:GetSecretValue",
+                "secretsmanager:UpdateSecretVersionStage"
             ],
             "Resource": "*"
         },

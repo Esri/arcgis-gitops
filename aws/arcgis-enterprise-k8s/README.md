@@ -6,6 +6,7 @@ Supported ArcGIS Enterprise on Kubernetes versions:
 
 * 11.2.0
 * 11.3.0
+* 11.4.0
 
 Before running the template workflows:
 

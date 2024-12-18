@@ -42,11 +42,11 @@ variable "deployment_id" {
 variable "helm_charts_version" {
   description = "Helm Charts for ArcGIS Enterprise on Kubernetes version"
   type        = string
-  default     = "1.3.0"
+  default     = "1.4.0"
 
   validation {
-    condition     = contains(["1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.3.0"], var.helm_charts_version)
-    error_message = "Valid values for helm_charts_version variable are 1.2.0, 1.2.1, 1.2.2, 1.2.3 and 1.3.0."
+    condition     = contains(["1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.3.0", "1.3.1", "1.3.2", "1.3.3", "1.3.4", "1.4.0"], var.helm_charts_version)
+    error_message = "Valid values for helm_charts_version variable are 1.2.0, 1.2.1, 1.2.2, 1.2.3, 1.3.0, 1.3.1, 1.3.2, 1.3.3, 1.3.4 and 1.4.0."
   }
 }
 
@@ -255,7 +255,7 @@ variable "backup_job_timeout" {
 variable "enterprise_admin_cli_version" {
   description = "ArcGIS Enterprise Admin CLI image tag"
   type        = string
-  default     = "0.2.0"
+  default     = "0.4.0"
 }
 
 variable "storage" {

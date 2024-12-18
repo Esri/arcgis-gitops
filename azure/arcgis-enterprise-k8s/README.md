@@ -5,6 +5,7 @@ The template provides GitHub Actions workflows for [ArcGIS Enterprise on Kuberne
 Supported ArcGIS Enterprise on Kubernetes versions:
 
 * 11.3.0
+* 11.4.0
 
 Before running the template workflows:
 

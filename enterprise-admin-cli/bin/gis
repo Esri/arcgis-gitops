@@ -16,9 +16,6 @@
 
 command=$1
 
-bindir=$(dirname "$0")
-clidir=$(dirname "$bindir")
-
 admin_commands=( \
     "create-backup" \
     "generate-token" \
@@ -54,6 +51,7 @@ if [[ -z "$command" ]]; then
     exit 1
 fi
 
+# Replace dashes with underscores to match module names
 if [[ " ${admin_commands[@]} " =~ " $command " ]]; then
     module=$(echo "commands.$command" | sed -r 's/[-]+/_/g')
 elif [[ " ${gis_commands[@]} " =~ " $command " ]]; then
@@ -66,7 +64,5 @@ fi
 
 source activate base
 conda activate arcgis
-
-export PYTHONPATH=$clidir:$PYTHONPATH
 
 python -m $module "${@:2}"

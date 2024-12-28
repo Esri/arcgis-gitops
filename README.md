@@ -1,6 +1,6 @@
 # ArcGIS Automation using GitHub Actions
 
-The template repository provides [GitHub Actions](https://docs.github.com/en/actions) workflows that follow Infrastructure as Code methodologies, system patterns, and best practices recommended for the automated operation of [ArcGIS Enterprise](https://enterprise.arcgis.com).
+The template repository provides [GitHub Actions](https://docs.github.com/en/actions) workflows that automate deployment and operation of [ArcGIS Enterprise](https://enterprise.arcgis.com) following Infrastructure as Code methodologies, foundational system patterns, and best practices recommended for enterprise IT systems.
 
 &nbsp;![ArcGIS Automation using GitHub Actions](arcgis-gitops.png "ArcGIS Automation using GitHub Actions")
 
@@ -27,6 +27,8 @@ Refer to the READMEs of the cloud platform templates for specific usage instruct
 
 * [Templates for ArcGIS Enterprise on AWS](aws/README.md)
 * [Templates for ArcGIS Enterprise on Microsoft Azure](azure/README.md)
+
+The [Getting Started walkthrough](https://github.com/Esri/arcgis-gitops/wiki/Getting-Started) will guide you through the process of initial deployment, disaster recovery, and patching of a highly available ArcGIS Server site in Amazon Web Services public cloud using GitHub Actions.
 
 ## Issues
 

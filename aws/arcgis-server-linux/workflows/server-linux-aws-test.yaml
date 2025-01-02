@@ -44,4 +44,4 @@ jobs:
         ARCGIS_ENTERPRISE_CONTEXT=arcgis
         ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
         ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
-        docker run enterprise-admin-cli gis test-server-admin --url https://$DEPLOYMENT_FQDN:6443/$ARCGIS_ENTERPRISE_CONTEXT -u $ADMIN_USERNAME -p $ADMIN_PASSWORD
+        docker run -e ARCGIS_SERVER_USER=$ADMIN_USERNAME -e ARCGIS_SERVER_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-server-admin --url https://$DEPLOYMENT_FQDN:6443/$ARCGIS_ENTERPRISE_CONTEXT

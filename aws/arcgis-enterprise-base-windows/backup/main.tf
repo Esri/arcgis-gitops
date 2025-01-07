@@ -103,8 +103,8 @@ module "arcgis_enterprise_webgisdr_export" {
           S3_BUCKET                       = module.site_core_info.s3_backup
           S3_CREDENTIALTYPE               = "IAMRole"
           S3_REGION                       = module.site_core_info.s3_region
-          PORTAL_BACKUP_S3_BUCKET         = module.site_core_info.s3_backup
-          PORTAL_BACKUP_S3_REGION         = module.site_core_info.s3_region
+          BACKUP_S3_BUCKET                = module.site_core_info.s3_backup
+          BACKUP_S3_REGION                = module.site_core_info.s3_region
         }
       }
     }

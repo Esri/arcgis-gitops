@@ -29,7 +29,7 @@ env:
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
 
 jobs:
-  validate_settings_aws:
+  validate_settings:
     name: Validate GitHub Actions secrets and variables
     runs-on: ubuntu-24.04
     permissions:
@@ -47,9 +47,10 @@ jobs:
       id: test-aws-credentials
       run: python -m test_aws_credentials -b $TERRAFORM_BACKEND_S3_BUCKET
     - name: Test ArcGIS Online credentials
+      if: ${{ env.ARCGIS_ONLINE_USERNAME }}
       id: test-arcgis-online-credentials
       run: python -m token_service_client 
     - name: Test Docker Hub credentials
-      if: ${{ env.CONTAINER_REGISTRY_USER }} 
+      if: ${{ env.CONTAINER_REGISTRY_USER }}
       id: test-docker-hub-credentials
       run: echo $CONTAINER_REGISTRY_PASSWORD | docker login --username $CONTAINER_REGISTRY_USER --password-stdin

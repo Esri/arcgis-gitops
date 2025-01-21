@@ -19,7 +19,6 @@ Azure CLI must be installed on the machine where terraform is executed.
 | Name | Version |
 |------|---------|
 | azurerm | n/a |
-| null | n/a |
 | random | n/a |
 
 ## Resources
@@ -28,6 +27,8 @@ Azure CLI must be installed on the machine where terraform is executed.
 |------|------|
 | [azurerm_container_registry.cluster_acr](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry) | resource |
 | [azurerm_container_registry_cache_rule.pull_through_cache](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry_cache_rule) | resource |
+| [azurerm_container_registry_credential_set.credential_set](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/container_registry_credential_set) | resource |
+| [azurerm_key_vault_access_policy.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_access_policy) | resource |
 | [azurerm_key_vault_secret.acr_login_server](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.acr_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.cr_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
@@ -36,7 +37,6 @@ Azure CLI must be installed on the machine where terraform is executed.
 | [azurerm_private_dns_zone_virtual_network_link.acr_private_dns_zone_virtual_network_link](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) | resource |
 | [azurerm_private_endpoint.acr_private_endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_role_assignment.acr](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
-| [null_resource.credential_set](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [random_id.container_registry_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [azurerm_key_vault.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 

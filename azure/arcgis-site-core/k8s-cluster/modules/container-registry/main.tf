@@ -15,7 +15,7 @@
  * Azure CLI must be installed on the machine where terraform is executed.
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -83,21 +83,31 @@ resource "azurerm_key_vault_secret" "cr_password" {
   key_vault_id = data.azurerm_key_vault.site_vault.id
 }
 
-# Unfortunatelly, azurerm provider does not support creating container registry credential sets.
-# See https://github.com/hashicorp/terraform-provider-azurerm/issues/26539
-# Use Azure CLI to create credential set and grant its principal access the Key Vault secrets.
-resource "null_resource" "credential_set" {
-  triggers = {
-    always_run = "${timestamp()}"
+# Create container registry credential set for the pull-through cache.
+resource "azurerm_container_registry_credential_set" "credential_set" {
+  name                  = "pullthroughcache"
+  container_registry_id = azurerm_container_registry.cluster_acr.id
+  login_server          = var.container_registry_url
+  
+  identity {
+    type = "SystemAssigned"
   }
+  
+  authentication_credentials {
+    username_secret_id = "${data.azurerm_key_vault.site_vault.vault_uri}secrets/cr-user"
+    password_secret_id = "${data.azurerm_key_vault.site_vault.vault_uri}secrets/cr-password"
+  }
+}
 
-  provisioner "local-exec" {
-    command = <<-EOT
-    credential=$(az acr credential-set create -r ${azurerm_container_registry.cluster_acr.name} -n pullthroughcache -l ${var.container_registry_url} -u ${data.azurerm_key_vault.site_vault.vault_uri}secrets/cr-user -p ${data.azurerm_key_vault.site_vault.vault_uri}secrets/cr-password)
-    principal=$(echo $credential | jq -r '.identity.principalId')
-    az keyvault set-policy --name ${data.azurerm_key_vault.site_vault.name} --object-id $principal --secret-permissions get
-    EOT
-  }
+# Grant the ACR pull-through cache principal access to the Key Vault secrets.
+resource "azurerm_key_vault_access_policy" "pull_through_cache" {
+  key_vault_id = data.azurerm_key_vault.site_vault.id
+  tenant_id    = azurerm_container_registry_credential_set.credential_set.identity[0].tenant_id
+  object_id    = azurerm_container_registry_credential_set.credential_set.identity[0].principal_id
+
+  secret_permissions = [
+    "Get"
+  ]
 }
 
 resource "azurerm_container_registry_cache_rule" "pull_through_cache" {
@@ -107,7 +117,7 @@ resource "azurerm_container_registry_cache_rule" "pull_through_cache" {
   source_repo           = "${var.container_registry_url}/*"
   credential_set_id     = "${azurerm_container_registry.cluster_acr.id}/credentialSets/pullthroughcache"
   depends_on = [
-    null_resource.credential_set
+    azurerm_container_registry_credential_set.credential_set
   ]
 }
 

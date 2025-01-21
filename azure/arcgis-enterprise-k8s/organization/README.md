@@ -37,7 +37,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 4.6 |
+| azurerm | ~> 4.16 |
 | helm | ~> 2.12 |
 | kubernetes | ~> 2.26 |
 | local | n/a |

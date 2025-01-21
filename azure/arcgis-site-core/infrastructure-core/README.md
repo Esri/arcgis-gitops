@@ -38,7 +38,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 4.6 |
+| azurerm | ~> 4.16 |
 | random | n/a |
 
 ## Resources

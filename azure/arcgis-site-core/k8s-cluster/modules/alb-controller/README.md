@@ -45,7 +45,7 @@ Helm must be installed on the machine where terraform is executed.
 | alb_subnet_id | Subnet Id for the ALB | `string` | n/a | yes |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | cluster_name | Name of the AKS cluster | `string` | n/a | yes |
-| controller_version | Version of the ALB Controller | `string` | `"1.2.3"` | no |
+| controller_version | Version of the ALB Controller | `string` | `"1.3.7"` | no |
 | resource_group_name | AKS cluster resource group name | `string` | n/a | yes |
 
 ## Outputs

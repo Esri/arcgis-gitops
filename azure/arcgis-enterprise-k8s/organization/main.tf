@@ -34,7 +34,7 @@
  * * AKS cluster configuration information must be provided in ~/.kube/config file.
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +56,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.6"
+      version = "~> 4.16"
     }
     helm = {
       source  = "hashicorp/helm"

@@ -30,7 +30,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 4.6 |
+| azurerm | ~> 4.16 |
 | null | n/a |
 
 ## Modules

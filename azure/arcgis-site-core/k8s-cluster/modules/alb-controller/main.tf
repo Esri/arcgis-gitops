@@ -59,8 +59,9 @@ resource "azurerm_role_assignment" "aks_cluster_reader" {
   principal_id                     = azurerm_user_assigned_identity.azure_alb_identity.principal_id
   principal_type                   = "ServicePrincipal"
   role_definition_name             = "Reader"
-  scope                            = data.azurerm_kubernetes_cluster.site_cluster.node_resource_group_id
-  # scope                            = data.azurerm_resource_group.cluster_rg.id
+  # In ALB Controller 1.2.3 the scope had to be the node resource group of the AKS cluster.
+  # scope                            = data.azurerm_kubernetes_cluster.site_cluster.node_resource_group_id
+  scope                            = data.azurerm_resource_group.cluster_rg.id
   skip_service_principal_aad_check = true
 
   depends_on = [

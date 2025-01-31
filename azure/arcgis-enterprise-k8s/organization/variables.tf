@@ -59,7 +59,7 @@ variable "mandatory_update_target_id" {
 }
 
 variable "image_repository_prefix" {
-  description = "Prefix of images in ECR repositories"
+  description = "Prefix of images in ACR repositories"
   type        = string
   default     = "docker-hub/esridocker"
 }

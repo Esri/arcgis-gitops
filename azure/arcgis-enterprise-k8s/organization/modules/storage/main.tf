@@ -10,7 +10,7 @@
  * * Creates cloud config JSON file for the object store.
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -65,7 +65,7 @@ resource "azurerm_storage_account" "deployment_storage" {
 # Create blob container for the organization object store if cloud_config_json_file_path is not specified.
 resource "azurerm_storage_container" "object_store" {
   name                  = "object-store"
-  storage_account_name  = azurerm_storage_account.deployment_storage.name
+  storage_account_id    = azurerm_storage_account.deployment_storage.id
   container_access_type = "private"
 }
 
@@ -128,9 +128,7 @@ resource "local_sensitive_file" "cloud_config_json_file" {
       usage = "DEFAULT"
       connection = {
         containerName = azurerm_storage_container.object_store.name
-        # regionEndpointUrl = "https://${module.site_core_info.storage_account_name}.blob.core.windows.net"
         accountEndpointUrl = trimsuffix(azurerm_storage_account.deployment_storage.primary_blob_endpoint, "/")
-        # rootDir = var.deployment_id
       }
       category = "storage"
     }]

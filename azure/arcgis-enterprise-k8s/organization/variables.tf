@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -43,11 +43,6 @@ variable "helm_charts_version" {
   description = "Helm Charts for ArcGIS Enterprise on Kubernetes version"
   type        = string
   default     = "1.4.0"
-
-  validation {
-    condition     = contains(["1.2.0", "1.2.1", "1.2.2", "1.2.3", "1.3.0", "1.3.1", "1.3.2", "1.3.3", "1.3.4", "1.4.0"], var.helm_charts_version)
-    error_message = "Valid values for helm_charts_version variable are 1.2.0, 1.2.1, 1.2.2, 1.2.3, 1.3.0, 1.3.1, 1.3.2, 1.3.3, 1.3.4 and 1.4.0."
-  }
 }
 
 variable "upgrade_token" {
@@ -64,7 +59,7 @@ variable "mandatory_update_target_id" {
 }
 
 variable "image_repository_prefix" {
-  description = "Prefix of images in ECR repositories"
+  description = "Prefix of images in ACR repositories"
   type        = string
   default     = "docker-hub/esridocker"
 }

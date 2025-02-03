@@ -175,6 +175,17 @@ resource "azurerm_network_security_rule" "allow_http_outbound" {
 resource "azurerm_subnet_network_security_group_association" "bastion_subnet" {
   subnet_id                 = azurerm_subnet.bastion_subnet.id
   network_security_group_id = azurerm_network_security_group.bastion_nsg.id
+  # Ensure that the NSG rules are created before the NSG association is created
+  depends_on = [
+    azurerm_network_security_rule.allow_https_inbound,
+    azurerm_network_security_rule.allow_gateway_manager_inbound,
+    azurerm_network_security_rule.allow_azure_load_balancer_inbound,
+    azurerm_network_security_rule.allow_bastion_host_communication_inbound,
+    azurerm_network_security_rule.allow_ssh_rdp_outbound,
+    azurerm_network_security_rule.allow_azure_cloud_outbound,
+    azurerm_network_security_rule.allow_bastion_communications_outbound,
+    azurerm_network_security_rule.allow_http_outbound
+  ]
 }
 
 resource "azurerm_public_ip" "bastion" {

@@ -68,15 +68,15 @@ provider "kubernetes" {
   config_path = "~/.kube/config"
 }
 
-data "azurerm_key_vault" "site_vault" {
-  name                = var.site_id
-  resource_group_name = "${var.site_id}-infrastructure-core"
+module "site_core_info" {
+  source  = "../../modules/site_core_info"
+  site_id = var.site_id
 }
 
 # Retrieve the Application Load Balancer ID from the Key Vault
 data "azurerm_key_vault_secret" "alb_id" {
   name         = "alb-id"
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = module.site_core_info.vault_id
 }
 
 locals {

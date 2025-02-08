@@ -6,7 +6,7 @@
  * returns them as output values. 
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,39 +20,22 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "azurerm_key_vault" "site_vault" {
-  name                = var.site_id
+data "azurerm_resources" "site_vault" {
   resource_group_name = "${var.site_id}-infrastructure-core"
-}
 
-data "azurerm_key_vault_secrets" "secrets" {
-  key_vault_id = data.azurerm_key_vault.site_vault.id
-}
-
-data "azurerm_key_vault_secret" "app_gateway_subnets" {
-  for_each = {
-    for secret in data.azurerm_key_vault_secrets.secrets.names : secret => secret
-    if startswith(secret, "app-gateway-subnet")
+  required_tags = {
+    ArcGISSiteId = var.site_id
+    ArcGISRole   = "site-vault"
   }
-  name         = each.key
-  key_vault_id = data.azurerm_key_vault.site_vault.id
 }
 
-data "azurerm_key_vault_secret" "private_subnets" {
-  for_each = {
-    for secret in data.azurerm_key_vault_secrets.secrets.names : secret => secret
-    if startswith(secret, "private-subnet")
-  }
-  name         = each.key
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+data "azurerm_key_vault" "site_vault" {
+  name                = data.azurerm_resources.site_vault.resources[0].name
+  resource_group_name = data.azurerm_resources.site_vault.resource_group_name
 }
 
-data "azurerm_key_vault_secret" "internal_subnets" {
-  for_each = {
-    for secret in data.azurerm_key_vault_secrets.secrets.names : secret => secret
-    if startswith(secret, "internal-subnet")
-  }
-  name         = each.key
+data "azurerm_key_vault_secret" "subnets" {
+  name         = "subnets"
   key_vault_id = data.azurerm_key_vault.site_vault.id
 }
 

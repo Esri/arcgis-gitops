@@ -39,17 +39,17 @@ output "vnet_id" {
 
 output "app_gateway_subnets" {
   description = "Ids of app gateway subnets"
-  value       = values(data.azurerm_key_vault_secret.app_gateway_subnets).*.value
+  value       = jsondecode(data.azurerm_key_vault_secret.subnets.value).app_gateway
 }
 
 output "private_subnets" {
   description = "Ids of private subnets"
-  value       = values(data.azurerm_key_vault_secret.private_subnets).*.value
+  value       = jsondecode(data.azurerm_key_vault_secret.subnets.value).private
 }
 
 output "internal_subnets" {
   description = "Ids of internal subnets"
-  value       = values(data.azurerm_key_vault_secret.internal_subnets).*.value
+  value       = jsondecode(data.azurerm_key_vault_secret.subnets.value).internal
 }
 
 output "storage_account_name" {

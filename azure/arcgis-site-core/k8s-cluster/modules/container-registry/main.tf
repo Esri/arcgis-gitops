@@ -29,9 +29,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "azurerm_key_vault" "site_vault" {
-  name                = var.site_id
-  resource_group_name = "${var.site_id}-infrastructure-core"
+module "site_core_info" {
+  source  = "../../../../modules/site_core_info"
+  site_id = var.site_id
 }
 
 resource "random_id" "container_registry_suffix" {
@@ -61,26 +61,26 @@ resource "azurerm_container_registry" "cluster_acr" {
 resource "azurerm_key_vault_secret" "acr_name" {
   name         = "acr-name"
   value        = azurerm_container_registry.cluster_acr.name
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = module.site_core_info.vault_id
 }
 
 # Create Key Vault secrets for the ACR login server
 resource "azurerm_key_vault_secret" "acr_login_server" {
   name         = "acr-login-server"
   value        = azurerm_container_registry.cluster_acr.login_server
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = module.site_core_info.vault_id
 }
 
 resource "azurerm_key_vault_secret" "cr_user" {
   name         = "cr-user"
   value        = var.container_registry_user
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = module.site_core_info.vault_id
 }
 
 resource "azurerm_key_vault_secret" "cr_password" {
   name         = "cr-password"
   value        = var.container_registry_password
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = module.site_core_info.vault_id
 }
 
 # Create container registry credential set for the pull-through cache.
@@ -94,14 +94,14 @@ resource "azurerm_container_registry_credential_set" "credential_set" {
   }
   
   authentication_credentials {
-    username_secret_id = "${data.azurerm_key_vault.site_vault.vault_uri}secrets/cr-user"
-    password_secret_id = "${data.azurerm_key_vault.site_vault.vault_uri}secrets/cr-password"
+    username_secret_id = "${module.site_core_info.vault_uri}secrets/cr-user"
+    password_secret_id = "${module.site_core_info.vault_uri}secrets/cr-password"
   }
 }
 
 # Grant the ACR pull-through cache principal access to the Key Vault secrets.
 resource "azurerm_key_vault_access_policy" "pull_through_cache" {
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = module.site_core_info.vault_id
   tenant_id    = azurerm_container_registry_credential_set.credential_set.identity[0].tenant_id
   object_id    = azurerm_container_registry_credential_set.credential_set.identity[0].principal_id
 

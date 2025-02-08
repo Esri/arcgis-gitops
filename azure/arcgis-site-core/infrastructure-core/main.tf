@@ -70,6 +70,15 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
+resource "random_id" "unique_name_suffix" {
+  keepers = {
+    # Generate a new id each time we switch to a new site id
+    site_id = var.site_id
+  }
+
+  byte_length = 8
+}
+
 resource "azurerm_resource_group" "site_rg" {
   name     = "${var.site_id}-infrastructure-core"
   location = var.azure_region
@@ -83,9 +92,8 @@ resource "azurerm_resource_group" "site_rg" {
 }
 
 # Key Vault of ArcGIS Enterprise site
-
 resource "azurerm_key_vault" "site_vault" {
-  name                     = var.site_id
+  name                     = "site${random_id.unique_name_suffix.hex}" # must be globally unique
   location                 = azurerm_resource_group.site_rg.location
   resource_group_name      = azurerm_resource_group.site_rg.name
   tenant_id                = data.azurerm_client_config.current.tenant_id
@@ -94,6 +102,7 @@ resource "azurerm_key_vault" "site_vault" {
 
   tags = {
     ArcGISSiteId = var.site_id
+    ArcGISRole   = "site-vault"
   }
 }
 
@@ -235,22 +244,6 @@ resource "azurerm_subnet_nat_gateway_association" "app_gateway" {
   nat_gateway_id = azurerm_nat_gateway.nat.id
 }
 
-resource "azurerm_key_vault_secret" "app_gateway_subnets" {
-  count        = length(azurerm_subnet.app_gateway_subnets)
-  name         = "app-gateway-subnet-${count.index + 1}"
-  value        = azurerm_subnet.app_gateway_subnets[count.index].id
-  key_vault_id = azurerm_key_vault.site_vault.id
-
-  tags = {
-    ArcGISSiteId  = var.site_id
-    ParameterRole = "AppGatewaySubnet"
-  }
-
-  depends_on = [
-    azurerm_key_vault_access_policy.current_user
-  ]
-}
-
 # Private subnets are routed to NAT Gateway
 
 resource "azurerm_subnet" "private_subnets" {
@@ -282,22 +275,6 @@ resource "azurerm_subnet_nat_gateway_association" "private" {
   nat_gateway_id = azurerm_nat_gateway.nat.id
 }
 
-resource "azurerm_key_vault_secret" "private_subnets" {
-  count        = length(azurerm_subnet.private_subnets)
-  name         = "private-subnet-${count.index + 1}"
-  value        = azurerm_subnet.private_subnets[count.index].id
-  key_vault_id = azurerm_key_vault.site_vault.id
-
-  tags = {
-    ArcGISSiteId  = var.site_id
-    ParameterRole = "PrivateSubnet"
-  }
-
-  depends_on = [
-    azurerm_key_vault_access_policy.current_user
-  ]
-}
-
 # Internal subnets are routed to service endpoints only
 
 resource "azurerm_subnet" "internal_subnets" {
@@ -324,15 +301,17 @@ resource "azurerm_subnet_network_security_group_association" "internal_subnets" 
   network_security_group_id = azurerm_network_security_group.internal_nsg.id
 }
 
-resource "azurerm_key_vault_secret" "internal_subnets" {
-  count        = length(azurerm_subnet.internal_subnets)
-  name         = "internal-subnet-${count.index + 1}"
-  value        = azurerm_subnet.internal_subnets[count.index].id
+resource "azurerm_key_vault_secret" "subnets" {
+  name         = "subnets"
+  value        = jsonencode({
+    app_gateway = azurerm_subnet.app_gateway_subnets.*.id
+    private     = azurerm_subnet.private_subnets.*.id
+    internal    = azurerm_subnet.internal_subnets.*.id
+  })
   key_vault_id = azurerm_key_vault.site_vault.id
 
   tags = {
     ArcGISSiteId  = var.site_id
-    ParameterRole = "InternalSubnet"
   }
 
   depends_on = [

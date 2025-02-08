@@ -33,6 +33,12 @@ On the machine where Terraform is executed:
 | azurerm | ~> 4.16 |
 | kubernetes | ~> 2.26 |
 
+## Modules
+
+| Name | Source | Version |
+|------|--------|---------|
+| site_core_info | ../../modules/site_core_info | n/a |
+
 ## Resources
 
 | Name | Type |
@@ -46,7 +52,6 @@ On the machine where Terraform is executed:
 | [kubernetes_namespace.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 | [kubernetes_secret.ca_bundle_secret](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
 | [kubernetes_secret.listener_tls_secret](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
-| [azurerm_key_vault.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault_secret.alb_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 
 ## Inputs

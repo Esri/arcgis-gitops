@@ -31,8 +31,9 @@ SITE_ID=$4
 
 az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
 
-ACR_NAME=$(az keyvault secret show --name acr-name --vault-name $SITE_ID --query value -o tsv)
-ACR_LOGIN_SERVER=$(az keyvault secret show --name acr-login-server --vault-name $SITE_ID --query value -o tsv)
+VAULT_NAME=$(az resource list --resource-group $SITE_ID-infrastructure-core --resource-type=Microsoft.KeyVault/vaults --query "[].{name:name}" -o tsv)
+ACR_NAME=$(az keyvault secret show --name acr-name --vault-name $VAULT_NAME --query value -o tsv)
+ACR_LOGIN_SERVER=$(az keyvault secret show --name acr-login-server --vault-name $VAULT_NAME --query value -o tsv)
 
 az acr login --name $ACR_NAME
 

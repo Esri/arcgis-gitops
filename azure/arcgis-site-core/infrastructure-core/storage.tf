@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,20 +14,12 @@
 
 # Storage account and blob containers for ArcGIS Enterprise site
 
-resource "random_id" "storage_account_suffix" {
-  keepers = {
-    # Generate a new id each time we switch to a new site id
-    site_id = var.site_id
-  }
-
-  byte_length = 8
-}
 
 # Create storage account for the site's repository, backups, and logs.
 # Public network access is enabled for the storage account because it is required
 # to create the blob containers.
 resource "azurerm_storage_account" "site_storage" {
-  name                            = "site${random_id.storage_account_suffix.hex}"
+  name                            = "site${random_id.unique_name_suffix.hex}"
   resource_group_name             = azurerm_resource_group.site_rg.name
   location                        = azurerm_resource_group.site_rg.location
   account_tier                    = "Standard"

@@ -164,9 +164,10 @@ GitHub Actions workflow enterprise-k8s-azure-organization supports [updates and 
 Instructions:
 
 1. In case of upgrade to a new version, add ArcGIS Enterprise on Kubernetes authorization files for the new ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property in [organization.tfvars.json](../../config/azure/arcgis-enterprise-k8s/organization.tfvars.json) config file to the file paths.
-2. Set "helm_charts_version" property to the Helm Charts version of the new ArcGIS Enterprise on Kubernetes version (see "Chart Version Compatibility" section in the charts' READMEs).
-3. Commit the changes to the Git branch and push the branch to GitHub.
-4. Run enterprise-k8s-azure-organization workflow using the branch.
+2. Download the ArcGIS Enterprise on Kubernetes Helm Charts package archive for the new charts version from [My Esri](https://www.esri.com/en-us/my-esri-login) and extract the archive to `azure/arcgis-enterprise-k8s/organization/helm-charts/arcgis-enterprise/<Helm Charts version>` folder in the repository.
+3. Set "helm_charts_version" property to the Helm Charts version of the new ArcGIS Enterprise on Kubernetes version (see "Chart Version Compatibility" section in the charts' READMEs).
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run enterprise-k8s-azure-organization workflow using the branch.
 
 > Make a backup of the organization before performing an update or upgrade.
 

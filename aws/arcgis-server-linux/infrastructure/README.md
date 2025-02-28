@@ -6,7 +6,7 @@ The Terraform module provisions AWS resources for highly available ArcGIS Server
 ![Infrastructure for ArcGIS Server on Linux](arcgis-server-linux-infrastructure.png "Infrastructure for ArcGIS Server on Linux")  
 
 The module launches two SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
-The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}' SSM parameter.
+The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameter.
 The image must be created by the Packer Template for ArcGIS Server on Linux AMI.
 
 For the primary EC2 instances the module creates "A" record in the VPC Route53 private hosted zone to make the instance addressable using permanent DNS names.
@@ -62,7 +62,8 @@ The module uses the following SSM parameters:
 | SSM parameter name | Description |
 |--------------------|-------------|
 | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
-| /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id} | Id of the built AMI |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI Id |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
 | /arcgis/${var.site_id}/vpc/public-subnet/1 | public VPC subnet 1 Id |
 | /arcgis/${var.site_id}/vpc/public-subnet/2 | public VPC subnet 2 Id |
@@ -110,8 +111,8 @@ The module uses the following SSM parameters:
 | [aws_security_group_rule.allow_https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_ssm_parameter.alb_security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
-| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.node_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.primary_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 
@@ -127,8 +128,9 @@ The module uses the following SSM parameters:
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | node_count | Number of node EC2 instances | `number` | `1` | no |
-| os | Operating system id (rhel8\|rhel9) | `string` | `"rhel8"` | no |
+| root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
+| root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listeners of the load balancer | `string` | n/a | yes |
 | ssl_policy | Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers | `string` | `"ELBSecurityPolicy-TLS13-1-2-2021-06"` | no |

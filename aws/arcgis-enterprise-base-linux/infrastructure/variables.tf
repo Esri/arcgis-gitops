@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,17 +15,6 @@
 variable "aws_region" {
   description = "AWS region Id"
   type        = string
-}
-
-variable "os" {
-  description = "Operating system id (rhel8|rhel9|ubuntu20|ubuntu22|ubuntu24|sles15)"
-  type        = string
-  default     = "rhel8"
-
-  validation {
-    condition     = contains(["rhel8", "rhel9", "ubuntu20", "ubuntu22", "ubuntu24", "sles15"], var.os)
-    error_message = "Valid values for os variable are rhel8, rhel9, ubuntu20, ubuntu22, ubuntu24, and sles15."
-  }
 }
 
 variable "site_id" {
@@ -127,6 +116,28 @@ variable "root_volume_size" {
   validation {
     condition     = var.root_volume_size >= 100 && var.root_volume_size <= 16384
     error_message = "The root_volume_size value must be between 100 and 16384."
+  }
+}
+
+variable "root_volume_iops" {
+  description = "Root EBS volume IOPS of primary and standby EC2 instances"
+  type        = number
+  default     = 3000
+
+  validation {
+    condition     = var.root_volume_iops >= 3000   && var.root_volume_iops <= 16000
+    error_message = "The root_volume_iops value must be between 3000 and 16000."
+  }    
+}
+
+variable "root_volume_throughput" {
+  description = "Root EBS volume throughput in MB/s of primary and standby EC2 instances"
+  type        = number
+  default     = 125
+
+  validation {
+    condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
+    error_message = "The root_volume_throughput value must be between 125 and 1000."
   }
 }
 

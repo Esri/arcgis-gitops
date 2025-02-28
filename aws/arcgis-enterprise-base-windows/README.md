@@ -177,6 +177,31 @@ To activate the failover deployment:
 
 > Don't backup failover deployment until it is activated.
 
+### Create Snapshots and Restore from Snapshots (EXPERIMENTAL)
+
+GitHub Actions workflow **enterprise-base-windows-aws-snapshot** creates a system-level backup by creating AMIs from all EC2 instances of base ArcGIS Enterprise deployment. The workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-enterprise-base-windows/image.vars.json) config file and runs snapshot_deployment Python script.
+
+The workflows overwrites the AMI IDs in SSM Parameter Store written there by enterprise-base-windows-aws-image workflow. When necessary, the deployment can be rolled back to state captured in the snapshot by running enterprise-base-windows-aws-infrastructure workflow.
+
+Note that enterprise-base-windows-aws-infrastructure workflow run will replace the EC2 instances with new ones, so the deployment will be rolled back to the state captured in the snapshot, but the new EC2 instances will have new private IP addresses. To complete the rollback:
+
+1. Update C:\Windows\System32\drivers\etc\hosts file on the primary and standby EC2 instances to use the new private IP addresses instead of the old ones.
+2. Update C:\arcgisportal\db\pg_hba.conf file on the primary and standby EC2 instances to use the new private IP addresses.
+3. Update C:\arcgisdatastore\pgdata\pg_hba.conf file on the primary and standby EC2 instances to use the new private IP addresses.
+4. Restart ArcGIS Server, Portal For ArcGIS, and ArcGIS Data Store windows services on the primary and standby EC2 instances.
+
+> Alternatively, to prevent changing the IP addresses, the private IP addresses of the deployment's primary and standby could be fixed. Currently, the IP addresses cannot be configured in the config files. Achieving this requires updating the "infrastructure" Terraform template by adding "private_ip" property to aws_instance.primary and aws_instance.standby resources.
+
+> Running enterprise-base-windows-aws-snapshot workflow causes a short downtime because it reboots the EC2 instances.
+
+> The snapshot captures only the data on the EC2 instances that does not include the content of other storage services, such as S3 buckets used to store Portal for ArcGIS content.
+
+Since creating snapshots involves downtime and integrity of the data cannot be guaranteed if data in the storage services was updated after the snapshot creation, snapshots are not recommended for use as backups for active deployments. Snapshots should be created during planned downtime, after deactivating the deployment, and before applying system and application patches or other system-level updates.
+
+> The snapshot creation time depends on the size and throughput of the root EBS volumes of the EC2 instances.
+
+> Retrieving Administrator password will be disabled on the EC2 instances started from snapshots. To reset the password, login the the EC2 instances using SSM Session Manager and change the password using Set-LocalUser PowerShell command.
+
 ## In-Place Updates and Upgrades
 
 GitHub Actions workflow enterprise-base-windows-aws-application supports upgrade mode used to in-place patch or upgrade the base ArcGIS Enterprise applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Enterprise version was changed, it installs the new version of the ArcGIS Enterprise applications and re-configures the applications.

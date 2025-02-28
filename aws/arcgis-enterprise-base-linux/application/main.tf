@@ -7,7 +7,7 @@
  *
  * First, the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment.
  *
- * If is_upgrade input variable is set to true, the module:
+ * If "is_upgrade" input variable is set to `true`, the module:
  *
  * * Unregisters ArcGIS Server's Web Adaptor on standby EC2 instance
  * * Copies the installation media for the ArcGIS Enterprise version specified by arcgis_version input variable to the private repository S3 bucket
@@ -35,7 +35,7 @@
  * 
  * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
  * * Path to aws/scripts directory must be added to PYTHONPATH
- * * The working directury must be set to the arcgis-enterprise-base-linux/application module path
+ * * The working directory must be set to the arcgis-enterprise-base-linux/application module path
  * * AWS credentials must be configured
  *
  * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
@@ -55,7 +55,7 @@
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -107,7 +107,7 @@ data "aws_ssm_parameter" "sns_topic" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
 }
 
-# Retrieve attributes of primary EC2 instance
+# Retrieve attributes of the primary EC2 instance
 data "aws_instance" "primary" {
   filter {
     name   = "tag:ArcGISSiteId"
@@ -130,7 +130,7 @@ data "aws_instance" "primary" {
   }
 }
 
-# Retrieve attributes of standby EC2 instance
+# Retrieve attributes of the standby EC2 instance
 data "aws_instance" "standby" {
   filter {
     name   = "tag:ArcGISSiteId"
@@ -187,8 +187,8 @@ locals {
   certificates_s3_prefix        = "software/certificates"
 
   mount_point             = "/mnt/efs"
-  primary_hostname        = data.aws_instance.primary.private_ip
-  standby_hostname        = data.aws_instance.standby.private_ip
+  primary_hostname        = "primary.${var.deployment_id}.${var.site_id}.internal"
+  standby_hostname        = "standby.${var.deployment_id}.${var.site_id}.internal"
   software_dir            = "/opt/software/*"
   authorization_files_dir = "/opt/software/authorization"
   certificates_dir        = "/opt/software/certificates"
@@ -255,6 +255,7 @@ module "begin_upgrade_standby" {
   json_attributes = jsonencode({
     arcgis = {
       version = var.arcgis_version
+      configure_cloud_settings   = false
       server = {
         admin_username = var.admin_username
         admin_password = var.admin_password
@@ -289,8 +290,9 @@ module "arcgis_enterprise_upgrade" {
       install_path = "/opt/tomcat_arcgis_${local.tomcat_version}"
     }
     arcgis = {
-      version     = var.arcgis_version
-      run_as_user = var.run_as_user
+      version                  = var.arcgis_version
+      run_as_user              = var.run_as_user
+      configure_cloud_settings = false
       repository = {
         archives = local.archives_dir
         setups   = "/opt/software/setups"
@@ -312,7 +314,7 @@ module "arcgis_enterprise_upgrade" {
         setup_options               = "-f Relational,TileCache"
         data_dir                    = "/gisdata/arcgisdatastore"
         configure_autostart         = true
-        preferredidentifier         = "ip"
+        preferredidentifier         = "hostname"
         install_system_requirements = true
       }
       portal = {
@@ -356,8 +358,9 @@ module "arcgis_enterprise_patch" {
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
     arcgis = {
-      version     = var.arcgis_version
-      run_as_user = var.run_as_user
+      version                  = var.arcgis_version
+      run_as_user              = var.run_as_user
+      configure_cloud_settings = false
       repository = {
         patches = local.patches_dir
       }
@@ -408,8 +411,9 @@ module "arcgis_enterprise_fileserver" {
   machine_roles  = ["primary"]
   json_attributes = jsonencode({
     arcgis = {
-      version     = var.arcgis_version
-      run_as_user = var.run_as_user
+      version                  = var.arcgis_version
+      run_as_user              = var.run_as_user
+      configure_cloud_settings = false
       fileserver = {
         directories = [
           "${local.mount_point}/gisdata/arcgisserver",
@@ -469,7 +473,8 @@ module "authorization_files" {
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
     arcgis = {
-      version = var.arcgis_version
+      version                  = var.arcgis_version
+      configure_cloud_settings = false
       repository = {
         local_archives = local.authorization_files_dir
         server = {
@@ -507,7 +512,8 @@ module "keystore_file" {
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
     arcgis = {
-      version = var.arcgis_version
+      version                  = var.arcgis_version
+      configure_cloud_settings = false
       repository = {
         local_archives = local.certificates_dir
         server = {
@@ -541,7 +547,8 @@ module "root_cert" {
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
     arcgis = {
-      version = var.arcgis_version
+      version                  = var.arcgis_version
+      configure_cloud_settings = false
       repository = {
         local_archives = local.certificates_dir
         server = {
@@ -581,10 +588,17 @@ module "arcgis_enterprise_primary" {
       keystore_password = var.keystore_file_password
     }
     arcgis = {
-      version     = var.arcgis_version
-      run_as_user = var.run_as_user
+      version                  = var.arcgis_version
+      run_as_user              = var.run_as_user
+      configure_cloud_settings = false
+      # Loopback for deployment_fqdn is required for arcgis-enterprise::federation to succeed
+      # without activating the deployment (routing deployment_fqdn to the deployment's ALB).
+      # Though primary_hostname resolves to the instance's private IP by the Route53 private hosted zone,
+      # the loopback for primary_hostname is required to prevent the reverse IP lookup of the Portal's
+      # Apache Ignite using deployment_fqdn for the node hostname instead of primary_hostname.  
+      # without activating the deployment (routing deployment_fqdn to the deployment's ALB).
       hosts = {
-        "primary.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
+        "${local.primary_hostname} ${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = local.archives_dir
@@ -594,6 +608,8 @@ module "arcgis_enterprise_primary" {
         webapp_dir = "/opt/tomcat_arcgis/webapps"
       }
       server = {
+        url                            = "https://${local.primary_hostname}:6443/arcgis"
+        wa_url                         = "https://${local.primary_hostname}/server"
         install_dir                    = "/opt"
         private_url                    = "https://${var.deployment_fqdn}:6443/arcgis"
         web_context_url                = "https://${var.deployment_fqdn}/server"
@@ -625,7 +641,8 @@ module "arcgis_enterprise_primary" {
         install_dir                 = "/opt"
         setup_options               = "-f Relational,TileCache"
         data_dir                    = "/gisdata/arcgisdatastore"
-        preferredidentifier         = "ip"
+        preferredidentifier         = "hostname"
+        hostidentifier              = local.primary_hostname
         install_system_requirements = true
         types                       = "tileCache,relational"
         tilecache = {
@@ -638,9 +655,12 @@ module "arcgis_enterprise_primary" {
         }
       }
       portal = {
+        url                      = "https://${local.primary_hostname}:7443/arcgis"
+        wa_url                   = "https://${local.primary_hostname}/portal"
         private_url              = "https://${var.deployment_fqdn}:7443/arcgis"
         hostname                 = local.primary_hostname
         hostidentifier           = local.primary_hostname
+        preferredidentifier      = "hostname"
         install_dir              = "/opt"
         admin_username           = var.admin_username
         admin_password           = var.admin_password
@@ -651,6 +671,7 @@ module "arcgis_enterprise_primary" {
         security_question_answer = var.security_question_answer
         log_dir                  = "/opt/arcgis/portal/usr/arcgisportal/logs"
         log_level                = var.log_level
+        enable_debug             = false
         content_store_type       = "CloudStore"
         content_store_provider   = "Amazon"
         content_store_connection_string = {
@@ -699,7 +720,7 @@ module "arcgis_enterprise_primary" {
   ]
 }
 
-# Configure base ArcGIS Enterprise on stanby EC2 instance
+# Configure base ArcGIS Enterprise on standby EC2 instance
 module "arcgis_enterprise_standby" {
   source         = "../../modules/run_chef"
   parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/standby"
@@ -714,10 +735,11 @@ module "arcgis_enterprise_standby" {
       keystore_password = var.keystore_file_password
     }
     arcgis = {
-      version     = var.arcgis_version
-      run_as_user = var.run_as_user
+      version                  = var.arcgis_version
+      run_as_user              = var.run_as_user
+      configure_cloud_settings = false
       hosts = {
-        "standby.${var.deployment_id}.${var.site_id}.internal ${var.deployment_fqdn}" = ""
+        "${local.standby_hostname} ${var.deployment_fqdn}" = ""
       }
       repository = {
         archives = local.archives_dir
@@ -727,6 +749,8 @@ module "arcgis_enterprise_standby" {
         webapp_dir = "/opt/tomcat_arcgis/webapps"
       }
       server = {
+        url                         = "https://${local.standby_hostname}:6443/arcgis"
+        wa_url                      = "https://${local.standby_hostname}/server"
         hostname                    = local.standby_hostname   
         install_dir                 = "/opt"
         primary_server_url          = "https://${local.primary_hostname}/server"
@@ -746,11 +770,14 @@ module "arcgis_enterprise_standby" {
         install_dir                 = "/opt"
         setup_options               = "-f Relational,TileCache"
         data_dir                    = "/gisdata/arcgisdatastore"
-        preferredidentifier         = "ip"
+        preferredidentifier         = "hostname"
+        hostidentifier              = local.standby_hostname
         install_system_requirements = true
         types                       = "tileCache,relational"
       }
       portal = {
+        url                         = "https://${local.standby_hostname}:7443/arcgis"
+        wa_url                      = "https://${local.standby_hostname}/portal"
         hostname                    = local.standby_hostname   
         hostidentifier              = local.standby_hostname
         install_dir                 = "/opt"
@@ -789,7 +816,7 @@ module "arcgis_enterprise_standby" {
   ]
 }
 
-# Delete the downloaded setup archives, the extracted setups and other 
+# Delete the downloaded setup archives, the extracted setups, and other 
 # temporary files from primary and standby EC2 instances.
 module "clean_up" {
   source        = "../../modules/clean_up"

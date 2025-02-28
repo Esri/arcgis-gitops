@@ -22,7 +22,7 @@ If the "install_webadaptor" variable is set to true, the template will also:
 2. Install Apache Tomcat
 3. Install ArcGIS Web Adaptor with name specified by "webadaptor_name" variable.
 
-Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}" SSM parameter.
+Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.site_id}/images/${var.deployment_id}/node" SSM parameters.
 
 ## Requirements
 

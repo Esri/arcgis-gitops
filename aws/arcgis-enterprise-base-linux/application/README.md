@@ -7,7 +7,7 @@ The Terraform module configures or upgrades applications of highly available bas
 
 First, the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment.
 
-If is_upgrade input variable is set to true, the module:
+If "is_upgrade" input variable is set to `true`, the module:
 
 * Unregisters ArcGIS Server's Web Adaptor on standby EC2 instance
 * Copies the installation media for the ArcGIS Enterprise version specified by arcgis_version input variable to the private repository S3 bucket
@@ -35,7 +35,7 @@ On the machine where Terraform is executed:
 
 * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
 * Path to aws/scripts directory must be added to PYTHONPATH
-* The working directury must be set to the arcgis-enterprise-base-linux/application module path
+* The working directory must be set to the arcgis-enterprise-base-linux/application module path
 * AWS credentials must be configured
 
 My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.

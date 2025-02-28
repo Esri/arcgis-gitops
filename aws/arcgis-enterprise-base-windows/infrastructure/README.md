@@ -6,8 +6,7 @@ The Terraform module creates AWS resources for highly available base ArcGIS Ente
 ![Base ArcGIS Enterprise on Windows / Infrastructure](arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
 
 The module launches three SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
-The primary and standby instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main' SSM parameter.
-The fileserver instance is launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver' SSM parameter.
+The EC2 instances are launched from images retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters.
 The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows.
 
 For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instances addressable using permanent DNS names.
@@ -59,8 +58,9 @@ The module uses the following SSM parameters:
 | SSM parameter name | Description |
 |--------------------|-------------|
 | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
-| /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver | Id of the fileserver AMI |
-| /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main | Id of the main AMI |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/fileserver | Fileserver EC2 instance AMI Id |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI Id |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
 | /arcgis/${var.site_id}/vpc/public-subnet/1 | public VPC subnet 1 Id |
 | /arcgis/${var.site_id}/vpc/public-subnet/2 | public VPC subnet 2 Id |
@@ -114,8 +114,9 @@ The module uses the following SSM parameters:
 | [aws_ssm_parameter.alb_security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.portal_content_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
-| [aws_ssm_parameter.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.fileserver_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.primary_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.standby_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 
@@ -126,13 +127,16 @@ The module uses the following SSM parameters:
 | deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | `null` | no |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-base"` | no |
 | fileserver_instance_type | EC2 instance type of fileserver | `string` | `"m6i.xlarge"` | no |
-| fileserver_volume_size | Root EBS volume size in GB of fileserver EC2 instance | `number` | `100` | no |
+| fileserver_volume_iops | Root EBS volume IOPS of fileserver EC2 instance | `number` | `3000` | no |
+| fileserver_volume_size | Root EBS volume size in GB of fileserver EC2 instance | `number` | `1024` | no |
+| fileserver_volume_throughput | Root EBS volume throughput in MB/s of fileserver EC2 instance | `number` | `125` | no |
 | hosted_zone_id | The Route 53 hosted zone ID for the deployment FQDN | `string` | `null` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
-| os | Operating system id (windows2022) | `string` | `"windows2022"` | no |
+| root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |
 | root_volume_size | Root EBS volume size in GB of primary and standby EC2 instances | `number` | `1024` | no |
+| root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis-enterprise"` | no |
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listener of the load balancer | `string` | n/a | yes |
 | ssl_policy | Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers | `string` | `"ELBSecurityPolicy-TLS13-1-2-2021-06"` | no |

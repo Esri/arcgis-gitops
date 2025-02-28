@@ -35,7 +35,9 @@ resource "aws_iam_role" "arcgis_enterprise_role" {
     "arn:${local.arn_identifier}:iam::aws:policy/AmazonDynamoDBFullAccess",
     "arn:${local.arn_identifier}:iam::aws:policy/AmazonS3FullAccess",
     "arn:${local.arn_identifier}:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    "arn:${local.arn_identifier}:iam::aws:policy/CloudWatchAgentServerPolicy"
+    "arn:${local.arn_identifier}:iam::aws:policy/CloudWatchAgentServerPolicy",
+    "arn:${local.arn_identifier}:iam::aws:policy/AmazonElasticFileSystemClientFullAccess",
+    "arn:${local.arn_identifier}:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
   ]
 
   tags = {

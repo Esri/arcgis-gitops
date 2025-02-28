@@ -86,17 +86,6 @@ variable "node_count" {
   default     = 1
 }
 
-variable "os" {
-  description = "Operating system id (rhel8|rhel9)"
-  type        = string
-  default     = "rhel8"
-
-  validation {
-    condition     = contains(["rhel8", "rhel9"], var.os)
-    error_message = "Valid values for os variable are rhel8 and rhel9."
-  }
-}
-
 variable "root_volume_size" {
   description = "Root EBS volume size in GB"
   type        = number
@@ -105,6 +94,28 @@ variable "root_volume_size" {
   validation {
     condition     = var.root_volume_size >= 100 && var.root_volume_size <= 16384
     error_message = "The root_volume_size value must be between 100 and 16384."
+  }
+}
+
+variable "root_volume_iops" {
+  description = "Root EBS volume IOPS of primary and standby EC2 instances"
+  type        = number
+  default     = 3000
+
+  validation {
+    condition     = var.root_volume_iops >= 3000   && var.root_volume_iops <= 16000
+    error_message = "The root_volume_iops value must be between 3000 and 16000."
+  }    
+}
+
+variable "root_volume_throughput" {
+  description = "Root EBS volume throughput in MB/s of primary and standby EC2 instances"
+  type        = number
+  default     = 125
+
+  validation {
+    condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
+    error_message = "The root_volume_throughput value must be between 125 and 1000."
   }
 }
 

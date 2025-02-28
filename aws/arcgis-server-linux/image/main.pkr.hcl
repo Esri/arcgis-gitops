@@ -26,7 +26,8 @@
  * 2. Install Apache Tomcat
  * 3. Install ArcGIS Web Adaptor with name specified by "webadaptor_name" variable.
  * 
- * Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}" SSM parameter.
+ * Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary"
+ * and "/arcgis/${var.site_id}/images/${var.deployment_id}/node" SSM parameters.
  * 
  * ## Requirements
  * 
@@ -51,7 +52,7 @@
  * | /arcgis/${var.site_id}/vpc/private-subnet/1 | Private VPC subnet Id|
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -212,6 +213,7 @@ source "amazon-ebs" "main" {
     ArcGISVersion = var.arcgis_version
     ArcGISDeploymentId = var.deployment_id    
     ArcGISMachineRole = local.machine_role
+    OperatingSystem = var.os    
   }
 
   skip_create_ami = var.skip_create_ami
@@ -292,12 +294,20 @@ build {
     }
   }
 
-  # Retrive the the AMI Id from packer-manifest.json manifest file and save it in SSM parameter.
+  # Retrieve the the AMI Id from packer-manifest.json manifest file and save it in SSM parameters.
   post-processor "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id} -f packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/primary -f packer-manifest.json -r ${build.PackerRunUUID}"
+  }
+
+  post-processor "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
+    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/node -f packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }

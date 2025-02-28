@@ -97,7 +97,7 @@ data "aws_ssm_parameter" "sns_topic" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
 }
 
-# Retrieve attributes of primary EC2 instance
+# Retrieve attributes of the primary EC2 instance
 data "aws_instance" "primary" {
   filter {
     name   = "tag:ArcGISSiteId"

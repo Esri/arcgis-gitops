@@ -64,6 +64,24 @@ My Esri credentials can alo be specified with environment variables:
 
 Refer to the [repository index JSON file format](./index_json_file_format.md) for the JSON file specification.
 
+## snapshot_deployment
+
+Creates AMIs from deployment EC2 instances and stores the AMI IDs in SSM parameters.
+
+usage:
+
+```shell
+python -m snapshot_deployment [-h] [-s SITE_ID] [-d DEPLOYMENT_ID]
+```
+
+options:
+
+```shell
+  -h, --help            show this help message and exit
+  -s SITE_ID            ArcGIS Enterprise site Id
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment Id
+```
+
 ## ssm_bootstrap
 
 Runs `<site id>-bootstrap` SSM command on EC2 instances in a deployment with specified roles.

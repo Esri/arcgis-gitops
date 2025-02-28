@@ -28,7 +28,9 @@
  * 2. Install CloudWatch Agent
  * 3. Delete unused files, uninstall Cinc Client, run sysprep
  * 
- * Ids of "main" and "fileserver" AMIs are saved in "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main" and "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver" SSM parameters.
+ * IDs of the AMIs are saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/fileserver",
+ * "/arcgis/${var.site_id}/images/${var.deployment_id}/primary", and 
+ * "/arcgis/${var.site_id}/images/${var.deployment_id}/standby" SSM parameters.
  * 
  * ## Requirements
  * 
@@ -55,7 +57,7 @@
  * | /arcgis/${var.site_id}/vpc/private-subnet/1 | Private VPC subnet Id|
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -199,6 +201,7 @@ source "amazon-ebs" "fileserver" {
     ArcGISSiteId = var.site_id    
     ArcGISDeploymentId = var.deployment_id    
     ArcGISMachineRole = local.fileserver_machine_role
+    OperatingSystem = var.os
   }
 
   skip_create_ami = var.skip_create_ami
@@ -272,6 +275,7 @@ build {
           run_as_user = var.run_as_user
           run_as_password = var.run_as_password
           configure_windows_firewall = true
+          configure_cloud_settings   = false
           repository = {
             archives = local.archives_dir
             setups = "C:\\Software\\Setups"
@@ -293,12 +297,13 @@ build {
             setup_options = "ADDLOCAL=relational,tilecache"
             data_dir = "C:\\arcgisdatastore"
             install_system_requirements = true
-            preferredidentifier = "ip"
+            preferredidentifier = "hostname"
           }
           portal = {
             install_dir = "C:\\Program Files\\ArcGIS\\Portal"
             install_system_requirements = true
             data_dir = "C:\\arcgisportal"
+            preferredidentifier = "hostname"
             wa_name = "portal"
           }
         }
@@ -306,14 +311,11 @@ build {
           "recipe[arcgis-enterprise::system]",
           "recipe[esri-iis::install]",
           "recipe[arcgis-enterprise::install_portal]",
-          "recipe[arcgis-enterprise::start_portal]",
           "recipe[arcgis-enterprise::webstyles]",
           "recipe[arcgis-enterprise::install_portal_wa]",
           "recipe[arcgis-enterprise::install_server]",
-          "recipe[arcgis-enterprise::start_server]",
           "recipe[arcgis-enterprise::install_server_wa]",
-          "recipe[arcgis-enterprise::install_datastore]",
-          "recipe[arcgis-enterprise::start_datastore]"
+          "recipe[arcgis-enterprise::install_datastore]"
         ]
       }))
     }
@@ -328,6 +330,7 @@ build {
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
           version = var.arcgis_version
+          configure_cloud_settings = false
           repository = {
             patches = local.patches_dir
           }
@@ -372,13 +375,21 @@ build {
     }
   }
 
-  # Retrive the the AMI Id from main-packer-manifest.json manifest file and save it in SSM parameter.
+  # Retrieve the the AMI Id from main-packer-manifest.json manifest file and save it in SSM parameters.
   post-processor "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main -f main-packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/primary -f main-packer-manifest.json -r ${build.PackerRunUUID}"
+  }
+
+  post-processor "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
+    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/standby -f main-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }
 
@@ -426,12 +437,12 @@ build {
     }
   }
 
-  # Retrive the the AMI Id from fileserver-packer-manifest.json manifest file and save it in SSM parameter.
+  # Retrieve the the AMI Id from fileserver-packer-manifest.json manifest file and save it in SSM parameter.
   post-processor "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver -f fileserver-packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/fileserver -f fileserver-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }

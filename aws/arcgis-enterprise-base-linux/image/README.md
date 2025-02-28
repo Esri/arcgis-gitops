@@ -18,7 +18,7 @@ Then the template uses python scripts to run SSM commands on the source EC2 inst
 6. Install patches for the base ArcGIS Enterprise applications
 7. Delete unused files and uninstall Cinc Client
 
-Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}" SSM parameter.
+Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.site_id}/images/${var.deployment_id}/standby" SSM parameters.
 
 ## Requirements
 

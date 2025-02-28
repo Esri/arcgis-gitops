@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +17,6 @@ variable "aws_region" {
   type        = string
 }
  
-variable "os" {
-  description = "Operating system id (windows2022)"
-  type        = string
-  default     = "windows2022"
-}
-
 variable "site_id" {
   description = "ArcGIS site Id"
   type        = string
@@ -125,6 +119,28 @@ variable "root_volume_size" {
   }    
 }
 
+variable "root_volume_iops" {
+  description = "Root EBS volume IOPS of primary and standby EC2 instances"
+  type        = number
+  default     = 3000
+
+  validation {
+    condition     = var.root_volume_iops >= 3000   && var.root_volume_iops <= 16000
+    error_message = "The root_volume_iops value must be between 3000 and 16000."
+  }    
+}
+
+variable "root_volume_throughput" {
+  description = "Root EBS volume throughput in MB/s of primary and standby EC2 instances"
+  type        = number
+  default     = 125
+
+  validation {
+    condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
+    error_message = "The root_volume_throughput value must be between 125 and 1000."
+  }
+}
+
 variable "fileserver_instance_type" {
   description = "EC2 instance type of fileserver"
   type        = string
@@ -134,12 +150,34 @@ variable "fileserver_instance_type" {
 variable "fileserver_volume_size" {
   description = "Root EBS volume size in GB of fileserver EC2 instance"
   type        = number
-  default     = 100
+  default     = 1024
 
   validation {
     condition     = var.fileserver_volume_size >= 100   && var.fileserver_volume_size <= 16384
     error_message = "The fileserver_volume_size value must be between 100 and 16384."
   }    
+}
+
+variable "fileserver_volume_iops" {
+  description = "Root EBS volume IOPS of fileserver EC2 instance"
+  type        = number
+  default     = 3000
+
+  validation {
+    condition     = var.fileserver_volume_iops >= 3000   && var.fileserver_volume_iops <= 16000
+    error_message = "The fileserver_volume_iops value must be between 3000 and 16000."
+  }    
+}
+
+variable "fileserver_volume_throughput" {
+  description = "Root EBS volume throughput in MB/s of fileserver EC2 instance"
+  type        = number
+  default     = 125
+
+  validation {
+    condition     = var.fileserver_volume_throughput >= 125   && var.fileserver_volume_throughput <= 1000
+    error_message = "The fileserver_volume_throughput value must be between 125 and 1000."
+  }
 }
 
 variable "key_name" {

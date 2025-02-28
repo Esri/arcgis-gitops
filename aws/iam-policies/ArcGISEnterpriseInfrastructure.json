@@ -155,6 +155,7 @@
             "Action": [
                 "elasticloadbalancing:DeregisterTargets",
                 "elasticloadbalancing:ModifyListener",
+                "elasticloadbalancing:ModifyListenerAttributes",
                 "elasticloadbalancing:ModifyLoadBalancerAttributes",
                 "elasticloadbalancing:ModifyRule",
                 "elasticloadbalancing:ModifyTargetGroup",

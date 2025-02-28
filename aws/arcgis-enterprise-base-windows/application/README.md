@@ -35,7 +35,7 @@ On the machine where Terraform is executed:
 
 * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
 * Path to aws/scripts directory must be added to PYTHONPATH
-* The working directury must be set to the arcgis-enterprise-base-windows/application module path
+* The working directory must be set to the arcgis-enterprise-base-windows/application module path
 * AWS credentials must be configured
 
 My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.

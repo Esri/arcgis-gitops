@@ -24,7 +24,7 @@ On "fileserver" instance:
 2. Install CloudWatch Agent
 3. Delete unused files, uninstall Cinc Client, run sysprep
 
-Ids of "main" and "fileserver" AMIs are saved in "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main" and "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver" SSM parameters.
+IDs of the AMIs are saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/fileserver", "/arcgis/${var.site_id}/images/${var.deployment_id}/primary", and "/arcgis/${var.site_id}/images/${var.deployment_id}/standby" SSM parameters.
 
 ## Requirements
 

@@ -6,8 +6,7 @@
  * ![Base ArcGIS Enterprise on Windows / Infrastructure](arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
  *
  * The module launches three SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable. 
- * The primary and standby instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main' SSM parameter. 
- * The fileserver instance is launched from image retrieved from '/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver' SSM parameter. 
+ * The EC2 instances are launched from images retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
  * The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows. 
  *
  * For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instances addressable using permanent DNS names.
@@ -59,8 +58,9 @@
  * | SSM parameter name | Description |
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
- * | /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver | Id of the fileserver AMI |
- * | /arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main | Id of the main AMI |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/fileserver | Fileserver EC2 instance AMI Id |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
  * | /arcgis/${var.site_id}/vpc/public-subnet/1 | public VPC subnet 1 Id |
  * | /arcgis/${var.site_id}/vpc/public-subnet/2 | public VPC subnet 2 Id |
@@ -70,7 +70,7 @@
  * | /arcgis/${var.site_id}/vpc/id | VPC Id |
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -113,17 +113,21 @@ provider "aws" {
 # Retrieve configuration parameters from SSM Parameter Store
 
 data "aws_ssm_parameter" "fileserver_ami" {
-  name = "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/fileserver"
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/fileserver"
 }
 
-data "aws_ssm_parameter" "ami" {
-  name = "/arcgis/${var.site_id}/images/${var.os}/${var.deployment_id}/main"
+data "aws_ssm_parameter" "primary_ami" {
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/primary"
+}
+
+data "aws_ssm_parameter" "standby_ami" {
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/standby"
 }
 
 data "aws_ami" "ami" {
   filter {
     name   = "image-id"
-    values = [data.aws_ssm_parameter.ami.value]
+    values = [data.aws_ssm_parameter.primary_ami.value]
   }
 }
 
@@ -176,8 +180,8 @@ resource "aws_instance" "fileserver" {
     volume_type = "gp3"
     volume_size = var.fileserver_volume_size
     encrypted   = true
-    iops        = 3000
-    throughput  = 125
+    iops        = var.fileserver_volume_iops
+    throughput  = var.fileserver_volume_throughput
   }
 
   tags = {
@@ -197,8 +201,9 @@ resource "aws_instance" "fileserver" {
 
 # Create primary EC2 instance
 resource "aws_instance" "primary" {
-  ami                    = nonsensitive(data.aws_ssm_parameter.ami.value)
+  ami                    = nonsensitive(data.aws_ssm_parameter.primary_ami.value)
   subnet_id              = local.primary_subnet
+  # private_ip             = "10.0.64.XXX" 
   vpc_security_group_ids = [module.security_group.id]
   instance_type          = var.instance_type
   key_name               = var.key_name
@@ -214,8 +219,8 @@ resource "aws_instance" "primary" {
     volume_type = "gp3"
     volume_size = var.root_volume_size
     encrypted   = true
-    iops        = 3000
-    throughput  = 125
+    iops        = var.root_volume_iops
+    throughput  = var.root_volume_throughput
   }
 
   tags = {
@@ -235,8 +240,9 @@ resource "aws_instance" "primary" {
 
 # Create standby EC2 instance
 resource "aws_instance" "standby" {
-  ami                    = nonsensitive(data.aws_ssm_parameter.ami.value)
+  ami                    = nonsensitive(data.aws_ssm_parameter.standby_ami.value)
   subnet_id              = local.standby_subnet
+  # private_ip             = "10.0.65.XXX"
   vpc_security_group_ids = [module.security_group.id]
   instance_type          = var.instance_type
   key_name               = var.key_name
@@ -252,8 +258,8 @@ resource "aws_instance" "standby" {
     volume_type = "gp3"
     volume_size = var.root_volume_size
     encrypted   = true
-    iops        = 3000
-    throughput  = 125
+    iops        = var.root_volume_iops
+    throughput  = var.root_volume_throughput
   }
 
   tags = {

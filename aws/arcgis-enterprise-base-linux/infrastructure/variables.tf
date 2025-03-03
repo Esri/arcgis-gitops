@@ -125,7 +125,7 @@ variable "root_volume_iops" {
   default     = 3000
 
   validation {
-    condition     = var.root_volume_iops >= 3000   && var.root_volume_iops <= 16000
+    condition     = var.root_volume_iops >= 3000 && var.root_volume_iops <= 16000
     error_message = "The root_volume_iops value must be between 3000 and 16000."
   }    
 }

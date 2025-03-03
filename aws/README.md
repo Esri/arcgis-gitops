@@ -47,9 +47,11 @@ The following templates are available for AWS:
 
 By default, the workflows are configured with "workflow_dispatch" event that enables workflows to be triggered manually. To trigger a workflow manually, navigate to the repository on GitHub, click on the "Actions" tab, select the workflow to run, select the branch, and click the "Run workflow" button.
 
-> Note that the deployments may belong to different *environments* such as "production" and "staging". Each environment may have its own branch in the repository. The list of workflows in GitHub Actions page shows only the workflows present in /.github/workflows directory of the "main" branch, but the workflow runs use the workflow files from the selected branch. To enable workflows, copy the workflows' .yaml files from the template's `workflows` directory to `/.github/workflows` directory in both the `main` branch and the environment branch, commit the changes, and push the branches to GitHub.
+> Note that the deployments may belong to different *environments* such as "production" and "staging". Each environment may have its own branch in the repository. It's recommended to use protected `main` branch for the production environment and create separate branches for other environments.
+ 
+The list of workflows in GitHub Actions page shows only the workflows present in /.github/workflows directory of the "main" branch, but the workflow runs use the workflow files from the selected branch. To enable workflows, copy the workflows' .yaml files from the template's `workflows` directory to `/.github/workflows` directory in both the `main` branch and the environment branch, commit the changes, and push the branches to GitHub.
 
-The workflows can be modified to use other triggering events such as push, pull_request, or schedule. Consider using "schedule" event to schedule backups and "pull_request" event to check the infrastructure changes by "terraform plan" command.
+The workflows can be modified to use other triggering events such as push, pull_request, or schedule. Consider using "schedule" event to schedule backups and "pull_request" event to check the infrastructure changes by "terraform plan" command. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
 
 ## Configuration Files
 

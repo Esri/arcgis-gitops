@@ -125,7 +125,7 @@ Instructions:
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-base-windows-aws-backup workflow using the branch.
 
-> To meet the required recovery point objective (RPO), schedule runs of enterprise-base-windows-aws-backup workflow by configuring 'schedule' event in enterprise-base-windows-aws-backup.yaml file.
+> To meet the required recovery point objective (RPO), schedule runs of enterprise-base-windows-aws-backup workflow by configuring 'schedule' event in enterprise-base-windows-aws-backup.yaml file. When the backup workflow is triggered manually, the backup-restore mode is specified by the workflow inputs. However, when the workflow is triggered on schedule, the backup-restore mode is retrieved from the backup.tfvars.json config file. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
 
 > Base ArcGIS Enterprise deployments in a site use the same S3 bucket for backups. Run backups only for the active deployment branch.
 

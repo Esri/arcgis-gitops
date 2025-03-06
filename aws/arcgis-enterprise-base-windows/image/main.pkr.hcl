@@ -54,7 +54,7 @@
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
  * | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
  * | /arcgis/${var.site_id}/s3/repository | Private repository S3 bucket |
- * | /arcgis/${var.site_id}/vpc/private-subnet/1 | Private VPC subnet Id|
+ * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  */
 
 # Copyright 2024-2025 Esri
@@ -85,8 +85,8 @@ data "amazon-parameterstore" "source_ami" {
   region = var.aws_region  
 }
 
-data "amazon-parameterstore" "subnet" {
-  name = "/arcgis/${var.site_id}/vpc/private-subnet/1"
+data "amazon-parameterstore" "subnets" {
+  name = "/arcgis/${var.site_id}/vpc/subnets"
   region = var.aws_region    
 }
 
@@ -151,7 +151,7 @@ source "amazon-ebs" "main" {
   ami_description = local.main_ami_description
   instance_type = var.instance_type
   source_ami    = data.amazon-parameterstore.source_ami.value
-  subnet_id     = data.amazon-parameterstore.subnet.value
+  subnet_id     = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
   iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
   communicator = "none"
   
@@ -182,7 +182,7 @@ source "amazon-ebs" "fileserver" {
   ami_description = local.fileserver_ami_description
   instance_type = var.instance_type
   source_ami    = data.amazon-parameterstore.source_ami.value
-  subnet_id     = data.amazon-parameterstore.subnet.value
+  subnet_id     = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
   iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
   communicator = "none"
   

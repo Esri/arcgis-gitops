@@ -27,12 +27,10 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/vpc/public-subnet/* | Public VPC subnets Ids |
- * | /arcgis/${var.site_id}/vpc/private-subnet/* | Private VPC subnets Ids |
- * | /arcgis/${var.site_id}/vpc/internal-subnet/* | Internal VPC subnets Ids |
+ * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

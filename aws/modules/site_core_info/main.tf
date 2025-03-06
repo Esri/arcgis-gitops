@@ -6,7 +6,7 @@
  * returns them as output values. 
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,16 +30,8 @@ data "aws_ssm_parameter" "hosted_zone_id" {
   name = "/arcgis/${var.site_id}/vpc/hosted-zone-id"
 }
 
-data "aws_ssm_parameters_by_path" "public_subnets" {
-  path = "/arcgis/${var.site_id}/vpc/public-subnet/"
-}
-
-data "aws_ssm_parameters_by_path" "private_subnets" {
-  path  = "/arcgis/${var.site_id}/vpc/private-subnet/"
-}
-
-data "aws_ssm_parameters_by_path" "internal_subnets" {
-  path  = "/arcgis/${var.site_id}/vpc/internal-subnet/"
+data "aws_ssm_parameter" "subnets" {
+  name = "/arcgis/${var.site_id}/vpc/subnets"
 }
 
 data "aws_ssm_parameter" "instance_profile_name" {

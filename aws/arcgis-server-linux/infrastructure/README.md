@@ -65,10 +65,7 @@ The module uses the following SSM parameters:
 | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI Id |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
-| /arcgis/${var.site_id}/vpc/public-subnet/1 | public VPC subnet 1 Id |
-| /arcgis/${var.site_id}/vpc/public-subnet/2 | public VPC subnet 2 Id |
-| /arcgis/${var.site_id}/vpc/private-subnet/1 | private VPC subnet 1 Id |
-| /arcgis/${var.site_id}/vpc/private-subnet/2 | private VPC subnet 2 Id |
+| /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
 | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
 | /arcgis/${var.site_id}/vpc/id | VPC Id |
 

@@ -19,17 +19,17 @@ output "vpc_id" {
 
 output "public_subnets" {
   description = "Public subnets"
-  value       = nonsensitive(data.aws_ssm_parameters_by_path.public_subnets.values)
+  value       = jsondecode(data.aws_ssm_parameter.subnets.value).public
 }
 
 output "private_subnets" {
   description = "Private subnets"
-  value       = nonsensitive(data.aws_ssm_parameters_by_path.private_subnets.values)
+  value       = jsondecode(data.aws_ssm_parameter.subnets.value).private
 }
 
 output "internal_subnets" {
   description = "Internal subnets"
-  value       = nonsensitive(data.aws_ssm_parameters_by_path.internal_subnets.values)
+  value       = jsondecode(data.aws_ssm_parameter.subnets.value).internal
 }
 
 output "instance_profile_name" {

@@ -20,9 +20,11 @@
         {
             "Effect": "Allow",
             "Action": [
+                "ec2:DeleteNetworkInterface",
                 "ec2:DeleteSecurityGroup",
                 "ec2:DeleteTags",
                 "ec2:DeleteVolume",
+                "ec2:DetachNetworkInterface",
                 "ec2:RevokeSecurityGroupEgress",
                 "ec2:RevokeSecurityGroupIngress",
                 "ec2:TerminateInstances"

@@ -177,18 +177,11 @@ To activate the failover deployment:
 
 > Don't backup failover deployment until it is activated.
 
-### Create Snapshots and Restore from Snapshots (EXPERIMENTAL)
+### Create Snapshots and Restore from Snapshots
 
-GitHub Actions workflow **enterprise-base-windows-aws-snapshot** creates a system-level backup by creating AMIs from all EC2 instances of base ArcGIS Enterprise deployment. The workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-enterprise-base-windows/image.vars.json) config file and runs snapshot_deployment Python script.
+GitHub Actions workflow **enterprise-base-windows-aws-snapshot** creates a system-level backup by creating AMIs from all EC2 instances of base ArcGIS Enterprise deployment. The workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-enterprise-base-windows/image.vars.json) config file and runs snapshot_deployment Python script. The workflow requires ArcGISEnterpriseImage IAM policy.
 
 The workflows overwrites the AMI IDs in SSM Parameter Store written there by enterprise-base-windows-aws-image workflow. When necessary, the deployment can be rolled back to state captured in the snapshot by running enterprise-base-windows-aws-infrastructure workflow.
-
-Note that enterprise-base-windows-aws-infrastructure workflow run will replace the EC2 instances with new ones, so the deployment will be rolled back to the state captured in the snapshot, but the new EC2 instances will have new private IP addresses. To complete the rollback:
-
-1. Update C:\Windows\System32\drivers\etc\hosts file on the primary and standby EC2 instances to use the new private IP addresses instead of the old ones.
-2. Update C:\arcgisportal\db\pg_hba.conf file on the primary and standby EC2 instances to use the new private IP addresses.
-3. Update C:\arcgisdatastore\pgdata\pg_hba.conf file on the primary and standby EC2 instances to use the new private IP addresses.
-4. Restart ArcGIS Server, Portal For ArcGIS, and ArcGIS Data Store windows services on the primary and standby EC2 instances.
 
 > Alternatively, to prevent changing the IP addresses, the private IP addresses of the deployment's primary and standby could be fixed. Currently, the IP addresses cannot be configured in the config files. Achieving this requires updating the "infrastructure" Terraform template by adding "private_ip" property to aws_instance.primary and aws_instance.standby resources.
 

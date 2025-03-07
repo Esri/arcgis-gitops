@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,51 +14,50 @@
 
 output "vpc_id" {
   description = "VPC Id of ArcGIS Enterprise site"
-  value       = data.aws_ssm_parameter.vpc_id.value
+  value       = nonsensitive(data.aws_ssm_parameter.vpc_id.value)
 }
 
 output "public_subnets" {
   description = "Public subnets"
-  value       = nonsensitive(data.aws_ssm_parameters_by_path.public_subnets.values)
+  value       = jsondecode(nonsensitive(data.aws_ssm_parameter.subnets.value)).public
 }
 
 output "private_subnets" {
   description = "Private subnets"
-  value       = nonsensitive(data.aws_ssm_parameters_by_path.private_subnets.values)
+  value       = jsondecode(nonsensitive(data.aws_ssm_parameter.subnets.value)).private
 }
 
 output "internal_subnets" {
   description = "Internal subnets"
-  value       = nonsensitive(data.aws_ssm_parameters_by_path.internal_subnets.values)
+  value       = jsondecode(nonsensitive(data.aws_ssm_parameter.subnets.value)).internal
 }
 
 output "instance_profile_name" {
   description = "Name of IAM instance profile"
-  value       = data.aws_ssm_parameter.instance_profile_name.value
+  value       = nonsensitive(data.aws_ssm_parameter.instance_profile_name.value)
 }
 
 output "hosted_zone_id" {
   description = "Private hosted zone Id"
-  value       = data.aws_ssm_parameter.hosted_zone_id.value
+  value       = nonsensitive(data.aws_ssm_parameter.hosted_zone_id.value)
 }
 
 output "s3_repository" {
   description = "S3 repository"
-  value       = data.aws_ssm_parameter.s3_repository.value
+  value       = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
 }
 
 output "s3_backup" {
   description = "S3 backup"
-  value       = data.aws_ssm_parameter.s3_backup.value
+  value       = nonsensitive(data.aws_ssm_parameter.s3_backup.value)
 }
 
 output "s3_logs" {
   description = "S3 logs"
-  value       = data.aws_ssm_parameter.s3_logs.value
+  value       = nonsensitive(data.aws_ssm_parameter.s3_logs.value)
 }
 
 output "s3_region" {
   description = "S3 region"
-  value       = data.aws_ssm_parameter.s3_region.value
+  value       = nonsensitive(data.aws_ssm_parameter.s3_region.value)
 }
-

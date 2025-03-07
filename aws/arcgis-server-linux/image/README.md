@@ -42,12 +42,12 @@ The template uses the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name|
+| /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
 | /arcgis/${var.site_id}/images/${var.os} | Source AMI Id|
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
 | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
 | /arcgis/${var.site_id}/s3/repository | Private repository S3 bucket |
-| /arcgis/${var.site_id}/vpc/private-subnet-1 | Private VPC subnet Id|
+| /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
 
 ## Inputs
 

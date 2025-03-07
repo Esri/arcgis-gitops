@@ -27,9 +27,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/vpc/public-subnet-* | Public VPC subnets Ids |
-| /arcgis/${var.site_id}/vpc/private-subnet-* | Private VPC subnets Ids |
-| /arcgis/${var.site_id}/vpc/internal-subnet-* | Internal VPC subnets Ids |
+| /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
 
 ## Providers
 
@@ -45,6 +43,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 | cloudwatch_observability | ./modules/cloudwatch-observability | n/a |
 | ebs_csi_driver | ./modules/ebs-csi-driver | n/a |
 | load_balancer_controller | ./modules/load-balancer-controller | n/a |
+| site_core_info | ../../modules/site_core_info | n/a |
 
 ## Resources
 
@@ -63,9 +62,6 @@ the subnet IDs are retrieved from the following SSM parameters:
 | [aws_secretsmanager_secret.aws_ecrpullthroughcache](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret) | resource |
 | [aws_secretsmanager_secret_version.aws_ecrpullthroughcache](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/secretsmanager_secret_version) | resource |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.internal_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.private_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.public_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [tls_certificate.cluster](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/data-sources/certificate) | data source |
 
 ## Inputs

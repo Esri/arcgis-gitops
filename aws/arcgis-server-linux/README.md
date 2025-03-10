@@ -181,6 +181,20 @@ To activate the failover deployment:
 
 > Don't backup failover deployment until it is activated.
 
+### Create Snapshots and Restore from Snapshots
+
+GitHub Actions workflow **server-linux-aws-snapshot** creates a system-level backup by creating AMIs from EC2 instances of ArcGIS Server deployment. The workflow the workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-server-linux/image.vars.json) config file and runs snapshot_deployment Python script. The workflow requires ArcGISEnterpriseImage IAM policy.
+
+The workflows overwrites the AMI IDs in SSM Parameter Store written there by server-linux-aws-image workflow. When necessary, the deployment can be rolled back to state captured in the snapshot by running server-linux-aws-infrastructure workflow.
+
+> Running server-linux-aws-snapshot workflow causes a short downtime because it reboots the EC2 instances.
+
+> The snapshot captures only the data on the EC2 instances that does not include the content of other storage services, such as EFS filesystems used by ArcGIS Server config store.
+
+Since creating snapshots involves downtime and integrity of the data cannot be guaranteed if data in the storage services was updated after the snapshot creation, snapshots are not recommended for use as backups for active deployments. Snapshots should be created during planned downtime, after deactivating the deployment, and before applying system and application patches or other system-level updates.
+
+> The snapshot creation time depends on the size and throughput of the root EBS volumes of the EC2 instances.
+
 ## In-Place Updates and Upgrades
 
 GitHub Actions workflow server-linux-aws-application supports upgrade mode used to in-place patch or upgrade the ArcGIS Server applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Server version was changed, it installs the new version of ArcGIS Server and re-configures it.

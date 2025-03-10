@@ -161,15 +161,27 @@ resource "aws_ssm_parameter" "alb_security_group_id" {
   description = "Deployment security group Id"
 }
 
+resource "aws_network_interface" "fileserver" {
+  subnet_id = local.primary_subnet
+  security_groups = [module.security_group.id]
+
+  tags = {
+    Name = "${var.site_id}/${var.deployment_id}/fileserver"
+  }
+}
+
 # Create fileserver EC2 instance
 resource "aws_instance" "fileserver" {
   ami                    = data.aws_ssm_parameter.fileserver_ami.value
-  subnet_id              = local.primary_subnet
-  vpc_security_group_ids = [module.security_group.id]
   instance_type          = var.fileserver_instance_type
   key_name               = var.key_name
   iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
+
+  network_interface {
+    network_interface_id = aws_network_interface.fileserver.id
+    device_index         = 0
+  }
 
   metadata_options {
     http_endpoint = "enabled"
@@ -199,16 +211,27 @@ resource "aws_instance" "fileserver" {
   }
 }
 
+resource "aws_network_interface" "primary" {
+  subnet_id = local.primary_subnet
+  security_groups = [module.security_group.id]
+
+  tags = {
+    Name = "${var.site_id}/${var.deployment_id}/primary"
+  }
+}
+
 # Create primary EC2 instance
 resource "aws_instance" "primary" {
   ami                    = nonsensitive(data.aws_ssm_parameter.primary_ami.value)
-  subnet_id              = local.primary_subnet
-  # private_ip             = "10.0.64.XXX" 
-  vpc_security_group_ids = [module.security_group.id]
   instance_type          = var.instance_type
   key_name               = var.key_name
   iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
+
+  network_interface {
+    network_interface_id = aws_network_interface.primary.id
+    device_index         = 0
+  }
 
   metadata_options {
     http_endpoint = "enabled"
@@ -238,17 +261,29 @@ resource "aws_instance" "primary" {
   }
 }
 
+resource "aws_network_interface" "standby" {
+  subnet_id = local.standby_subnet
+  # private_ips    = ["10.0.65.XXX"]  
+  security_groups = [module.security_group.id]
+
+  tags = {
+    Name = "${var.site_id}/${var.deployment_id}/standby"
+  }
+}
+
 # Create standby EC2 instance
 resource "aws_instance" "standby" {
   ami                    = nonsensitive(data.aws_ssm_parameter.standby_ami.value)
-  subnet_id              = local.standby_subnet
-  # private_ip             = "10.0.65.XXX"
-  vpc_security_group_ids = [module.security_group.id]
   instance_type          = var.instance_type
   key_name               = var.key_name
   iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
 
+  network_interface {
+    network_interface_id = aws_network_interface.standby.id
+    device_index         = 0
+  }
+  
   metadata_options {
     http_endpoint = "enabled"
     http_tokens   = "required"

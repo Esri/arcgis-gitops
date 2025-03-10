@@ -689,7 +689,7 @@ module "arcgis_enterprise_primary" {
           region         = data.aws_region.current.name
           credentialType = "IAMRole"
         }
-        object_store         = data.aws_ssm_parameter.s3_content.value
+        object_store         = nonsensitive(data.aws_ssm_parameter.s3_content.value)
         authorization_file   = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
         user_license_type_id = var.portal_user_license_type_id
         keystore_file        = var.keystore_file_path != null ? local.keystore_file : ""

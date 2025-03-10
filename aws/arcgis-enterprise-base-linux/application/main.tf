@@ -47,6 +47,7 @@
  * | SSM parameter name | Description |
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
  * | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
  * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
@@ -101,6 +102,10 @@ provider "aws" {
 
 data "aws_ssm_parameter" "s3_content" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket"
+}
+
+data "aws_ssm_parameter" "object_store" {
+  name = "/arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket"
 }
 
 data "aws_ssm_parameter" "sns_topic" {
@@ -311,7 +316,7 @@ module "arcgis_enterprise_upgrade" {
       }
       data_store = {
         install_dir                 = "/opt"
-        setup_options               = "-f Relational,TileCache"
+        setup_options               = "-f Relational"
         data_dir                    = "/gisdata/arcgisdatastore"
         configure_autostart         = true
         preferredidentifier         = "hostname"
@@ -636,19 +641,35 @@ module "arcgis_enterprise_primary" {
         system_properties = {
           WebContextURL = "https://${var.deployment_fqdn}/server"
         }
+        # Configure the object store in S3 bucket
+        data_items = [{
+          path = "/cloudStores/cloudObjectStore"
+          type = "objectStore"
+          provider = "amazon"
+          info = {
+            isManaged = true
+            systemManaged = false
+            isManagedData = true
+            purposes = [ "feature-tile", "scene" ]
+            connectionString = jsonencode({
+              regionEndpointUrl = "https://s3.${data.aws_region.current.name}.amazonaws.com"
+              defaultEndpointsProtocol = "https"
+              credentialType = "IAMRole"
+              region = data.aws_region.current.name
+            })
+            objectStore = "${nonsensitive(data.aws_ssm_parameter.object_store.value)}/store"
+            encryptAttributes = [ "info.connectionString" ]
+          }
+        }]
       }
       data_store = {
         install_dir                 = "/opt"
-        setup_options               = "-f Relational,TileCache"
+        setup_options               = "-f Relational"
         data_dir                    = "/gisdata/arcgisdatastore"
         preferredidentifier         = "hostname"
         hostidentifier              = local.primary_hostname
         install_system_requirements = true
-        types                       = "tileCache,relational"
-        tilecache = {
-          backup_type     = "s3"
-          backup_location = "type=s3;location=${module.site_core_info.s3_backup}/tilecache-${local.timestamp};name=tc_default;region=${module.site_core_info.s3_region}"
-        }
+        types                       = "relational"
         relational = {
           backup_type     = "s3"
           backup_location = "type=s3;location=${nonsensitive(module.site_core_info.s3_backup)}/relational-${local.timestamp};name=re_default;region=${module.site_core_info.s3_region}"
@@ -678,7 +699,7 @@ module "arcgis_enterprise_primary" {
           region         = data.aws_region.current.name
           credentialType = "IAMRole"
         }
-        object_store                = data.aws_ssm_parameter.s3_content.value
+        object_store                = nonsensitive(data.aws_ssm_parameter.s3_content.value)
         authorization_file          = "${local.authorization_files_dir}/${basename(var.portal_authorization_file_path)}"
         user_license_type_id        = var.portal_user_license_type_id
         keystore_file               = local.keystore_file
@@ -708,6 +729,7 @@ module "arcgis_enterprise_primary" {
       "recipe[arcgis-enterprise::server]",
       "recipe[arcgis-enterprise::server_wa]",
       "recipe[arcgis-enterprise::datastore]",
+      "recipe[arcgis-enterprise::server_data_items]",
       "recipe[arcgis-enterprise::federation]"
     ]
   })
@@ -768,12 +790,12 @@ module "arcgis_enterprise_standby" {
       }
       data_store = {
         install_dir                 = "/opt"
-        setup_options               = "-f Relational,TileCache"
+        setup_options               = "-f Relational"
         data_dir                    = "/gisdata/arcgisdatastore"
         preferredidentifier         = "hostname"
         hostidentifier              = local.standby_hostname
         install_system_requirements = true
-        types                       = "tileCache,relational"
+        types                       = "relational"
       }
       portal = {
         url                         = "https://${local.standby_hostname}:7443/arcgis"

@@ -294,7 +294,7 @@ build {
           }
           data_store = {
             install_dir = "C:\\Program Files\\ArcGIS\\DataStore"
-            setup_options = "ADDLOCAL=relational,tilecache"
+            setup_options = "ADDLOCAL=relational"
             data_dir = "C:\\arcgisdatastore"
             install_system_requirements = true
             preferredidentifier = "hostname"

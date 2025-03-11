@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -74,8 +74,8 @@ variable "arcgis_version" {
   default     = "11.4"
 
   validation {
-    condition     = contains(["11.0", "11.1", "11.2", "11.3", "11.4"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.0, 11.1, 11.2, 11.3, and 11.4."
+    condition     = contains(["11.4"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.4."
   }
 }
 

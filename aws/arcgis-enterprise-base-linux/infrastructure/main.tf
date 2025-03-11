@@ -15,6 +15,8 @@
  *
  * A highly available EFS file system is created and mounted to the EC2 instances. 
  *
+ * S3 buckets for the portal content and object store are created. The S3 buckets names are stored in the SSM parameters.
+ *
  * The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, 6443, and 7443 and target groups for the listeners that target the EC2 instances.
  * Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
  *  
@@ -63,10 +65,7 @@
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
- * | /arcgis/${var.site_id}/vpc/public-subnet-1 | public VPC subnet 1 Id |
- * | /arcgis/${var.site_id}/vpc/public-subnet-2 | public VPC subnet 2 Id |
- * | /arcgis/${var.site_id}/vpc/private-subnet-1 | private VPC subnet 1 Id |
- * | /arcgis/${var.site_id}/vpc/private-subnet-2 | private VPC subnet 2 Id |
+ * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id |
  */
@@ -325,6 +324,19 @@ resource "aws_ssm_parameter" "portal_content_s3_bucket" {
   type        = "String"
   value       = aws_s3_bucket.portal_content.bucket
   description = "Portal for ArcGIS content store S3 bucket"
+}
+
+# Create S3 bucket for the object store
+resource "aws_s3_bucket" "object_store" {
+  bucket_prefix = "${var.site_id}-object-store"
+  force_destroy = true
+}
+
+resource "aws_ssm_parameter" "object_store_s3_bucket" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket"
+  type        = "String"
+  value       = aws_s3_bucket.object_store.bucket
+  description = "Object store S3 bucket"
 }
 
 module "cw_agent" {

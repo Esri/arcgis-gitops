@@ -288,7 +288,7 @@ build {
           }
           data_store = {
             install_dir = "/opt"
-            setup_options = "-f Relational,TileCache"
+            setup_options = "-f Relational"
             data_dir = "/gisdata/arcgisdatastore"
             configure_autostart = true
             preferredidentifier = "hostname"

@@ -15,6 +15,8 @@ For the EC2 instances the module creates "A" records in the VPC Route53 private 
 
 A highly available EFS file system is created and mounted to the EC2 instances.
 
+S3 buckets for the portal content and object store are created. The S3 buckets names are stored in the SSM parameters.
+
 The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, 6443, and 7443 and target groups for the listeners that target the EC2 instances.
 Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
 
@@ -63,10 +65,7 @@ The module uses the following SSM parameters:
 | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI Id |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
-| /arcgis/${var.site_id}/vpc/public-subnet-1 | public VPC subnet 1 Id |
-| /arcgis/${var.site_id}/vpc/public-subnet-2 | public VPC subnet 2 Id |
-| /arcgis/${var.site_id}/vpc/private-subnet-1 | private VPC subnet 1 Id |
-| /arcgis/${var.site_id}/vpc/private-subnet-2 | private VPC subnet 2 Id |
+| /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
 | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
 | /arcgis/${var.site_id}/vpc/id | VPC Id |
 
@@ -110,6 +109,7 @@ The module uses the following SSM parameters:
 | [aws_route53_record.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_s3_bucket.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket.portal_content](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_security_group.arcgis_alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
 | [aws_security_group_rule.allow_arcgis_portal_https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
@@ -117,6 +117,7 @@ The module uses the following SSM parameters:
 | [aws_security_group_rule.allow_http](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_security_group_rule.allow_https](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group_rule) | resource |
 | [aws_ssm_parameter.alb_security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.object_store_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.portal_content_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |

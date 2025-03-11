@@ -13,6 +13,8 @@
  * 
  * > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module is applied again after the SSM parameter value was modified by a new image build.
  *
+ * S3 buckets for the portal content and object store are created. The S3 buckets names are stored in the SSM parameters.
+ *
  * The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, 6443, and 7443 and target groups for the listeners that target the EC2 instances.
  * Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
  *

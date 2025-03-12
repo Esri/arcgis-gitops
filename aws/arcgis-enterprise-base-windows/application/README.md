@@ -124,6 +124,7 @@ The module uses the following SSM parameters:
 | os | Operating system id (windows2022) | `string` | `"windows2022"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |
 | portal_user_license_type_id | Portal for ArcGIS administrator user license type Id | `string` | `""` | no |
+| portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
 | run_as_password | Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | n/a | yes |
 | run_as_user | User name for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
@@ -131,6 +132,7 @@ The module uses the following SSM parameters:
 | security_question_answer | Primary ArcGIS Enterprise administrator security question answer | `string` | n/a | yes |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
 | server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
+| server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 
 ## Outputs

@@ -14,12 +14,12 @@
 
 output "arcgis_server_url" {
   description = "ArcGIS Server URL"
-  value       = "https://${var.deployment_fqdn}/server"
+  value       = "https://${var.deployment_fqdn}/${var.server_web_context}"
 }
 
 output "arcgis_portal_url" {
   description = "Portal for ArcGIS URL"
-  value       = "https://${var.deployment_fqdn}/portal"
+  value       = "https://${var.deployment_fqdn}/${var.portal_web_context}"
 }
 
 output "arcgis_server_private_url" {

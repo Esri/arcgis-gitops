@@ -285,7 +285,7 @@ module "arcgis_enterprise_upgrade" {
       server = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements = true
-        wa_name                     = "server"
+        wa_name                     = var.server_web_context
       }
       web_adaptor = {
         install_system_requirements = true
@@ -305,7 +305,7 @@ module "arcgis_enterprise_upgrade" {
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
         install_system_requirements = true
         data_dir                    = "C:\\arcgisportal"
-        wa_name                     = "portal"
+        wa_name                     = var.portal_web_context
       }
     }
     run_list = [
@@ -599,11 +599,11 @@ module "arcgis_enterprise_primary" {
       }
       server = {
         url                            = "https://${local.primary_hostname}:6443/arcgis"
-        wa_url                         = "https://${local.primary_hostname}/server"
+        wa_url                         = "https://${local.primary_hostname}/${var.server_web_context}"
         install_dir                    = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements    = true
         private_url                    = "https://${var.deployment_fqdn}:6443/arcgis"
-        web_context_url                = "https://${var.deployment_fqdn}/server"
+        web_context_url                = "https://${var.deployment_fqdn}/${var.server_web_context}"
         hostname                       = local.primary_hostname
         admin_username                 = var.admin_username
         admin_password                 = var.admin_password
@@ -621,10 +621,10 @@ module "arcgis_enterprise_primary" {
           "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
           "\\\\${local.fileserver_hostname}\\arcgisserver\\config-store")
         config_store_connection_secret = ""
-        wa_name                        = "server"
+        wa_name                        = var.server_web_context
         services_dir_enabled           = true
         system_properties = {
-          WebContextURL = "https://${var.deployment_fqdn}/server"
+          WebContextURL = "https://${var.deployment_fqdn}/${var.server_web_context}"
         }
         # Configure the object store in S3 bucket
         data_items = [{
@@ -666,7 +666,7 @@ module "arcgis_enterprise_primary" {
       }
       portal = {
         url                         = "https://${local.primary_hostname}:7443/arcgis"
-        wa_url                      = "https://${local.primary_hostname}/portal"
+        wa_url                      = "https://${local.primary_hostname}/${var.portal_web_context}"
         preferredidentifier         = "hostname"
         hostname                    = local.primary_hostname
         hostidentifier              = local.primary_hostname
@@ -696,10 +696,10 @@ module "arcgis_enterprise_primary" {
         keystore_password    = var.keystore_file_password
         root_cert            = local.root_cert
         root_cert_alias      = "rootcert"
-        wa_name              = "portal"
+        wa_name              = var.portal_web_context
         system_properties = {
           privatePortalURL = "https://${var.deployment_fqdn}:7443/arcgis"
-          WebContextURL    = "https://${var.deployment_fqdn}/portal"
+          WebContextURL    = "https://${var.deployment_fqdn}/${var.portal_web_context}"
         }
       }
       web_adaptor = {
@@ -762,11 +762,11 @@ module "arcgis_enterprise_standby" {
       }
       server = {
         url                         = "https://${local.standby_hostname}:6443/arcgis"
-        wa_url                      = "https://${local.standby_hostname}/server"
+        wa_url                      = "https://${local.standby_hostname}/${var.server_web_context}"
         hostname                    = local.standby_hostname
         install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements = true
-        primary_server_url          = "https://${local.primary_hostname}/server"
+        primary_server_url          = "https://${local.primary_hostname}/${var.server_web_context}"
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         authorization_file          = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
@@ -776,7 +776,7 @@ module "arcgis_enterprise_standby" {
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
         log_dir                     = "C:\\arcgisserver\\logs"
-        wa_name                     = "server"
+        wa_name                     = var.server_web_context
       }
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
@@ -789,7 +789,7 @@ module "arcgis_enterprise_standby" {
       }
       portal = {
         url                         = "https://${local.standby_hostname}:7443/arcgis"
-        wa_url                      = "https://${local.standby_hostname}/portal"
+        wa_url                      = "https://${local.standby_hostname}/${var.portal_web_context}"
         preferredidentifier         = "hostname"
         hostname                    = local.standby_hostname
         hostidentifier              = local.standby_hostname
@@ -804,7 +804,7 @@ module "arcgis_enterprise_standby" {
         root_cert_alias             = "rootcert"
         data_dir                    = "C:\\arcgisportal"
         log_dir                     = "C:\\arcgisportal\\logs"
-        wa_name                     = "portal"
+        wa_name                     = var.portal_web_context
       }
       web_adaptor = {
         install_system_requirements = true

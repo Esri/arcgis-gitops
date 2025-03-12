@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -216,8 +216,8 @@ module "server_https_alb_target" {
   protocol          = "HTTPS"
   alb_port          = 443
   instance_port     = 443
-  health_check_path = "/server/rest/info/healthcheck"
-  path_patterns     = ["/server", "/server/*"]
+  health_check_path = "/${var.server_web_context}/rest/info/healthcheck"
+  path_patterns     = ["/${var.server_web_context}", "/${var.server_web_context}/*"]
   priority          = 100
   target_instances  = [aws_instance.primary.id, aws_instance.standby.id]
   depends_on = [
@@ -236,8 +236,8 @@ module "portal_https_alb_target" {
   protocol          = "HTTPS"
   alb_port          = 443
   instance_port     = 443
-  health_check_path = "/portal/portaladmin/healthCheck"
-  path_patterns     = ["/portal", "/portal/*"]
+  health_check_path = "/${var.portal_web_context}/portaladmin/healthCheck"
+  path_patterns     = ["/${var.portal_web_context}", "/${var.portal_web_context}/*"]
   priority          = 101
   target_instances  = [aws_instance.primary.id, aws_instance.standby.id]
   depends_on = [

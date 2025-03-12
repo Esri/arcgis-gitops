@@ -364,7 +364,7 @@ module "arcgis_server_federation" {
     portal_url       = var.portal_url
     username         = var.portal_username
     password         = var.portal_password
-    server_url       = "https://${var.deployment_fqdn}/${var.web_context}"
+    server_url       = "https://${var.deployment_fqdn}/${var.server_web_context}"
     server_admin_url = "https://${var.deployment_fqdn}:6443/arcgis"
     server_username  = var.admin_username
     server_password  = var.admin_password

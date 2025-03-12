@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -103,7 +103,7 @@ variable "install_webadaptor" {
   default     = false
 }
 
-variable "webadaptor_name" {
+variable "server_web_context" {
   description = "ArcGIS Web Adaptor name"
   type        = string
   default     = "arcgis"

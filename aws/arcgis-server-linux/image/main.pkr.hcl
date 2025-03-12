@@ -24,7 +24,7 @@
  *
  * 1. Install OpenJDK
  * 2. Install Apache Tomcat
- * 3. Install ArcGIS Web Adaptor with name specified by "webadaptor_name" variable.
+ * 3. Install ArcGIS Web Adaptor with name specified by "server_web_context" variable.
  * 
  * Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary"
  * and "/arcgis/${var.site_id}/images/${var.deployment_id}/node" SSM parameters.
@@ -173,7 +173,7 @@ locals {
     ansible_aws_ssm_region = data.amazon-parameterstore.s3_region.value
     ansible_connection = "aws_ssm"
     arcgis_version = var.arcgis_version
-    wa_name = var.webadaptor_name
+    wa_name = var.server_web_context
     bucket_name = data.amazon-parameterstore.s3_repository.value
     local_repository =  local.archives_dir
     manifest = local.arcgis_webadaptor_manifest_path

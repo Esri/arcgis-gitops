@@ -281,7 +281,7 @@ build {
             install_dir = "/opt"
             configure_autostart = true
             install_system_requirements = true
-            wa_name = "server"
+            wa_name = var.server_web_context
           }
           web_adaptor = {
             install_dir = "/opt"
@@ -299,7 +299,7 @@ build {
             configure_autostart = true
             preferredidentifier = "hostname"
             install_system_requirements = true
-            wa_name = "portal"
+            wa_name = var.portal_web_context
           }
         }
         run_list = [

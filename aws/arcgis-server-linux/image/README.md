@@ -20,7 +20,7 @@ If the "install_webadaptor" variable is set to true, the template will also:
 
 1. Install OpenJDK
 2. Install Apache Tomcat
-3. Install ArcGIS Web Adaptor with name specified by "webadaptor_name" variable.
+3. Install ArcGIS Web Adaptor with name specified by "server_web_context" variable.
 
 Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.site_id}/images/${var.deployment_id}/node" SSM parameters.
 
@@ -64,4 +64,4 @@ The template uses the following SSM parameters:
 | site_id | ArcGIS site Id | `string` | `"arcgis-enterprise"` | no |
 | skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |
 | install_webadaptor | If true, OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor will be installed on the AMI. | `bool` | `false` | no |
-| webadaptor_name | ArcGIS Web Adaptor name | `string` | `"arcgis"` | no |
+| server_web_context | ArcGIS Web Adaptor name | `string` | `"arcgis"` | no |

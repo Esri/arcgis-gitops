@@ -38,6 +38,18 @@ variable "deployment_fqdn" {
   }
 }
 
+variable "portal_web_context" {
+  description = "Portal for ArcGIS web context"
+  type        = string
+  default     = "portal"  
+}
+
+variable "server_web_context" {
+  description = "ArcGIS Server web context"
+  type        = string
+  default     = "server"  
+}
+
 variable "site_id" {
   description = "ArcGIS Enterprise site Id"
   type        = string

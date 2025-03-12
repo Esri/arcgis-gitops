@@ -51,6 +51,18 @@ variable "deployment_id" {
   }
 }
 
+variable "portal_web_context" {
+  description = "Portal for ArcGIS web context"
+  type        = string
+  default     = "portal"
+}
+
+variable "server_web_context" {
+  description = "ArcGIS Server web context"
+  type        = string
+  default     = "server"
+}
+
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string

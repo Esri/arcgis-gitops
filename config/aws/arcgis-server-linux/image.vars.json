@@ -4,12 +4,12 @@
     ],
     "arcgis_version": "11.4",
     "deployment_id": "arcgis-server",
+    "install_webadaptor": false,
     "instance_type": "m6i.2xlarge",
     "os": "rhel8",
     "root_volume_size": 100,
     "run_as_user": "arcgis",
+    "server_web_context": "arcgis",
     "site_id": "arcgis-enterprise",
-    "skip_create_ami": false,
-    "install_webadaptor": false,
-    "webadaptor_name": "arcgis"
+    "skip_create_ami": false
 }

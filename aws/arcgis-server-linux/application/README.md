@@ -118,10 +118,10 @@ The module uses the following SSM parameters:
 | server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
 | server_functions | Functions of the federated server | `list(string)` | `[]` | no |
 | server_role | ArcGIS Server role | `string` | `""` | no |
+| server_web_context | ArcGIS Server web context | `string` | `"arcgis"` | no |
 | services_dir_enabled | Enable REST handler services directory | `bool` | `true` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 | system_properties | ArcGIS Server system properties | `map(any)` | `{}` | no |
-| web_context | Services web context | `string` | `"arcgis"` | no |
 
 ## Outputs
 

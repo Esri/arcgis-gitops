@@ -283,7 +283,7 @@ build {
           server = {
             install_dir = "C:\\Program Files\\ArcGIS\\Server"
             install_system_requirements = true
-            wa_name = "server"
+            wa_name = var.server_web_context
           }
           web_adaptor = {
             install_system_requirements = true
@@ -304,7 +304,7 @@ build {
             install_system_requirements = true
             data_dir = "C:\\arcgisportal"
             preferredidentifier = "hostname"
-            wa_name = "portal"
+            wa_name = var.portal_web_context
           }
         }
         run_list = [

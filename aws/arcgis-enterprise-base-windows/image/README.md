@@ -63,8 +63,10 @@ The template uses the following SSM parameters:
 | deployment_id | Deployment Id | `string` | `"arcgis-enterprise-base"` | no |
 | instance_type | EC2 instance type | `string` | `"6i.xlarge"` | no |
 | os | Operating system Id | `string` | `"windows2022"` | no |
+| portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `100` | no |
 | run_as_password | Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | | yes |
 | run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
+| server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 | skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |

@@ -13,8 +13,10 @@
     "deployment_id": "arcgis-enterprise-base",
     "instance_type": "m6i.2xlarge",
     "os": "rhel8",
+    "portal_web_context": "portal",
     "root_volume_size": 100,
     "run_as_user": "arcgis",
+    "server_web_context": "server",
     "site_id": "arcgis-enterprise",
     "skip_create_ami": false
 }

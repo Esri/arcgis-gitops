@@ -13,9 +13,11 @@
     "deployment_id": "arcgis-enterprise-base",    
     "instance_type": "m6i.2xlarge",
     "os": "windows2022",
+    "portal_web_context": "portal",
     "root_volume_size": 100,
     "run_as_password": "<run_as_password>",
     "run_as_username": "arcgis",
+    "server_web_context": "server",
     "site_id": "arcgis-enterprise",
     "skip_create_ami": false
 }

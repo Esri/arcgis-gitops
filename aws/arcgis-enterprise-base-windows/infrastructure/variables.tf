@@ -91,6 +91,18 @@ variable "deployment_fqdn" {
   }
 }
 
+variable "portal_web_context" {
+  description = "Portal for ArcGIS web context"
+  type        = string
+  default     = "portal"  
+}
+
+variable "server_web_context" {
+  description = "ArcGIS Server web context"
+  type        = string
+  default     = "server"  
+}
+
 variable "hosted_zone_id" {
   description = "The Route 53 hosted zone ID for the deployment FQDN"
   type        = string

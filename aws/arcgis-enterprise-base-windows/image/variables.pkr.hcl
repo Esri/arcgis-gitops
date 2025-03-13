@@ -86,8 +86,8 @@ variable "arcgis_version" {
   default     = "11.4"
 
   validation {
-    condition     = contains(["11.4"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.4."
+    condition     = contains(["11.3", "11.4"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.3 and 11.4."
   }
 }
 

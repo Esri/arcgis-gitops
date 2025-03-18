@@ -11,7 +11,7 @@
  * * Downloads the installation media from the private repository S3 bucket to primary and node EC2 instances
  * * Upgrades ArcGIS Server on primary and node EC2 instances
  * * Installs ArcGIS Server patches on primary and node EC2 instances
- * * If configure_webadaptor input variable is set to true, upgrades OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor on primary and node EC2 instances
+ * * If use_webadaptor input variable is set to true, upgrades OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor on primary and node EC2 instances
  *
  * Then the module:
  *
@@ -19,7 +19,7 @@
  * * Copies the ArcGIS Server authorization file to the EC2 instances
  * * Configures ArcGIS Server on primary EC2 instance
  * * Configures ArcGIS Server on node EC2 instances
- * * If configure_webadaptor input variable is set to true:
+ * * If use_webadaptor input variable is set to true:
  * * * Configures HTTPS listener in Apache Tomcat on primary and node EC2 instances to use either the SSL certificate specified by keystore_file_path input variable or a self signed certificate if keystore_file_path is not specified
  * * * Registers ArcGIS Web Adaptor with ArcGIS Server on primary and node EC2 instances
  * * If server_role is specified, federates ArcGIS Server with Portal for ArcGIS
@@ -170,7 +170,7 @@ module "arcgis_server_files" {
 
 # Unregister ArcGIS Web Adaptor from the node EC2 instance before upgrading.
 module "unregister_web_adaptors" {
-  count         = var.is_upgrade && var.configure_webadaptor ? 1 : 0
+  count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
   site_id       = var.site_id
   deployment_id = var.deployment_id
@@ -365,7 +365,7 @@ module "arcgis_server_federation" {
     username         = var.portal_username
     password         = var.portal_password
     server_url       = "https://${var.deployment_fqdn}/${var.server_web_context}"
-    server_admin_url = "https://${var.deployment_fqdn}:6443/arcgis"
+    server_admin_url = "https://${var.deployment_fqdn}/${var.server_web_context}"
     server_username  = var.admin_username
     server_password  = var.admin_password
     server_role      = var.server_role

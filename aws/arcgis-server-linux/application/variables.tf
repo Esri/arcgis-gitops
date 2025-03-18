@@ -171,9 +171,9 @@ variable "server_functions" {
 
   validation {
     condition = alltrue([
-      for f in var.server_functions : contains(["GeoAnalytics", "RasterAnalytics", "ImageHosting", "KnowledgeServer"], f)
+      for f in var.server_functions : contains(["RasterAnalytics", "ImageHosting", "KnowledgeServer"], f)
     ])
-    error_message = "Valid values for server_functions list elements are GeoAnalytics, RasterAnalytics, ImageHosting, and KnowledgeServer"
+    error_message = "Valid values for server_functions list elements are RasterAnalytics, ImageHosting, and KnowledgeServer"
   }
 }
 
@@ -211,7 +211,7 @@ variable "system_properties" {
   default     = {}
 }
 
-variable "configure_webadaptor" {
+variable "use_webadaptor" {
   description = "If true, ArcGIS Web Adaptor will be registered with ArcGIS Server."
   type        = bool
   default     = false

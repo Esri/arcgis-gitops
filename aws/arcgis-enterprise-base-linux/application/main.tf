@@ -616,7 +616,7 @@ module "arcgis_enterprise_primary" {
         url                            = "https://${local.primary_hostname}:6443/arcgis"
         wa_url                         = "https://${local.primary_hostname}/${var.server_web_context}"
         install_dir                    = "/opt"
-        private_url                    = "https://${var.deployment_fqdn}:6443/arcgis"
+        private_url                    = "https://${var.deployment_fqdn}/${var.server_web_context}"
         web_context_url                = "https://${var.deployment_fqdn}/${var.server_web_context}"
         hostname                       = local.primary_hostname
         admin_username                 = var.admin_username
@@ -678,7 +678,7 @@ module "arcgis_enterprise_primary" {
       portal = {
         url                      = "https://${local.primary_hostname}:7443/arcgis"
         wa_url                   = "https://${local.primary_hostname}/${var.portal_web_context}"
-        private_url              = "https://${var.deployment_fqdn}:7443/arcgis"
+        private_url              = "https://${var.deployment_fqdn}/${var.portal_web_context}"
         hostname                 = local.primary_hostname
         hostidentifier           = local.primary_hostname
         preferredidentifier      = "hostname"
@@ -709,7 +709,7 @@ module "arcgis_enterprise_primary" {
         install_system_requirements = true
         wa_name                     = var.portal_web_context
         system_properties = {
-          privatePortalURL = "https://${var.deployment_fqdn}:7443/arcgis"
+          privatePortalURL = "https://${var.deployment_fqdn}/${var.portal_web_context}"
           WebContextURL    = "https://${var.deployment_fqdn}/${var.portal_web_context}"
         }
       }

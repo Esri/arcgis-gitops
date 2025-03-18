@@ -11,7 +11,7 @@ If is_upgrade input variable is set to true, the module:
 * Downloads the installation media from the private repository S3 bucket to primary and node EC2 instances
 * Upgrades ArcGIS Server on primary and node EC2 instances
 * Installs ArcGIS Server patches on primary and node EC2 instances
-* If configure_webadaptor input variable is set to true, upgrades OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor on primary and node EC2 instances
+* If use_webadaptor input variable is set to true, upgrades OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor on primary and node EC2 instances
 
 Then the module:
 
@@ -19,7 +19,7 @@ Then the module:
 * Copies the ArcGIS Server authorization file to the EC2 instances
 * Configures ArcGIS Server on primary EC2 instance
 * Configures ArcGIS Server on node EC2 instances
-* If configure_webadaptor input variable is set to true:
+* If use_webadaptor input variable is set to true:
 * * Configures HTTPS listener in Apache Tomcat on primary and node EC2 instances to use either the SSL certificate specified by keystore_file_path input variable or a self signed certificate if keystore_file_path is not specified
 * * Registers ArcGIS Web Adaptor with ArcGIS Server on primary and node EC2 instances
 * If server_role is specified, federates ArcGIS Server with Portal for ArcGIS
@@ -100,7 +100,6 @@ The module uses the following SSM parameters:
 | arcgis_version | ArcGIS Server version | `string` | `"11.4"` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
-| configure_webadaptor | If true, ArcGIS Web Adaptor will be registered with ArcGIS Server. | `bool` | `false` | no |
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"arcgis-server"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
@@ -122,11 +121,11 @@ The module uses the following SSM parameters:
 | services_dir_enabled | Enable REST handler services directory | `bool` | `true` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
 | system_properties | ArcGIS Server system properties | `map(any)` | `{}` | no |
+| use_webadaptor | If true, ArcGIS Web Adaptor will be registered with ArcGIS Server. | `bool` | `false` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| arcgis_server_private_url | ArcGIS Server private URL |
 | arcgis_server_url | ArcGIS Server URL |
 <!-- END_TF_DOCS -->

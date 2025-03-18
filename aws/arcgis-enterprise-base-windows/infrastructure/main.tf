@@ -149,11 +149,11 @@ module "security_group" {
   source                = "../../modules/security_group"
   name                  = var.deployment_id
   vpc_id                = module.site_core_info.vpc_id
-  alb_security_group_id = aws_security_group.arcgis_alb.id
+  alb_security_group_id = module.alb.security_group_id
   alb_ports             = [80, 443, 6443, 7443]
 }
 
-resource "aws_ssm_parameter" "alb_security_group_id" {
+resource "aws_ssm_parameter" "security_group_id" {
   name        = "/arcgis/${var.site_id}/${var.deployment_id}/security-group-id"
   type        = "String"
   value       = module.security_group.id
@@ -378,7 +378,7 @@ module "dashboard" {
   platform      = "windows"
   site_id       = var.site_id
   deployment_id = var.deployment_id
-  alb_arn       = aws_lb.alb.arn
+  alb_arn       = module.alb.alb_arn
   log_group_name = module.cw_agent.log_group_name
   depends_on = [
     module.cw_agent

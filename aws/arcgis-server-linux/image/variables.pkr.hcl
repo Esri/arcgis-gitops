@@ -97,7 +97,7 @@ variable "skip_create_ami" {
   default = false
 }
 
-variable "install_webadaptor" {
+variable "use_webadaptor" {
   description = "If true, OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor will be installed on the AMI."
   type        = bool
   default     = false

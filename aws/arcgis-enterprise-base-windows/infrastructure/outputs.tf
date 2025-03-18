@@ -19,10 +19,5 @@ output "security_group_id" {
 
 output "alb_dns_name" {
   description = "DNS name of application load balancer"
-  value       = aws_lb.alb.dns_name
-}
-
-output "alb_arn" {
-  description = "ARN of application load balancer"
-  value       = aws_lb.alb.arn
+  value       = module.alb.alb_dns_name
 }

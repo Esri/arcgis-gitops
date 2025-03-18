@@ -22,12 +22,3 @@ output "arcgis_portal_url" {
   value       = "https://${var.deployment_fqdn}/${var.portal_web_context}"
 }
 
-output "arcgis_server_private_url" {
-  description = "ArcGIS Server private URL"
-  value       = "https://${var.deployment_fqdn}:6443/arcgis"
-}
-
-output "arcgis_portal_private_url" {
-  description = "Portal for ArcGIS private URL"
-  value       = "https://${var.deployment_fqdn}:7443/arcgis"
-}

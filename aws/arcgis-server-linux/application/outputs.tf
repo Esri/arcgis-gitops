@@ -17,8 +17,3 @@ output "arcgis_server_url" {
   value       = "https://${var.deployment_fqdn}/${var.server_web_context}"
 }
 
-output "arcgis_server_private_url" {
-  description = "ArcGIS Server private URL"
-  value       = "https://${var.deployment_fqdn}:6443/arcgis"
-}
-

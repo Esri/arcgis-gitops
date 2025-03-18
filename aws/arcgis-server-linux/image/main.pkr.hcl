@@ -20,7 +20,7 @@
  * 4. Install ArcGIS Server patches
  * 5. Delete unused files
  *
- * If the "install_webadaptor" variable is set to true, the template will also:
+ * If the "use_webadaptor" variable is set to true, the template will also:
  *
  * 1. Install OpenJDK
  * 2. Install Apache Tomcat
@@ -269,7 +269,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    inline = var.install_webadaptor ? [
+    inline = var.use_webadaptor ? [
       "echo '${local.webadaptor_vars}' > /tmp/webadaptor_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
       "python -m s3_copy_files -f ${local.arcgis_webadaptor_manifest_path} -b ${data.amazon-parameterstore.s3_repository.value}",

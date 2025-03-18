@@ -26,7 +26,7 @@ locals {
 
 # Copy ArcGIS Web Adaptor, OpenJDK, and Apache Tomcat setup archives to the private repository S3 bucket.
 module "copy_webadaptor_files" {
-  count       = var.is_upgrade && var.configure_webadaptor ? 1 : 0
+  count       = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source      = "../../modules/s3_copy_files"
   bucket_name = module.site_core_info.s3_repository
   index_file  = local.webadaptor_manifest_path
@@ -37,7 +37,7 @@ module "copy_webadaptor_files" {
 
 # Download ArcGIS Web Adaptor, OpenJDK, and Apache Tomcat setup archives from the private repository S3 bucket.
 module "download_webadaptor_files" {
-  count         = var.is_upgrade && var.configure_webadaptor ? 1 : 0
+  count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
   site_id       = var.site_id
   deployment_id = var.deployment_id
@@ -70,7 +70,7 @@ module "tomcat_keystore_file" {
 
 # Upgrade OpenJDK on primary and node EC2 instances
 module "openjdk_upgrade" {
-  count         = var.is_upgrade && var.configure_webadaptor ? 1 : 0
+  count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
   site_id       = var.site_id
   deployment_id = var.deployment_id
@@ -89,7 +89,7 @@ module "openjdk_upgrade" {
 
 # Upgrade Tomcat on primary and node EC2 instances
 module "tomcat_upgrade" {
-  count         = var.is_upgrade && var.configure_webadaptor ? 1 : 0
+  count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
   site_id       = var.site_id
   deployment_id = var.deployment_id
@@ -108,7 +108,7 @@ module "tomcat_upgrade" {
 
 # Upgrade ArcGIS Web Adaptor on primary and node EC2 instances
 module "arcgis_webadaptor_upgrade" {
-  count         = var.is_upgrade && var.configure_webadaptor ? 1 : 0
+  count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
   site_id       = var.site_id
   deployment_id = var.deployment_id
@@ -128,7 +128,7 @@ module "arcgis_webadaptor_upgrade" {
 
 # Configure SSL in Tomcat on primary and node EC2 instances
 module "tomcat_ssl_config" {
-  count         = var.configure_webadaptor ? 1 : 0
+  count         = var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
   site_id       = var.site_id
   deployment_id = var.deployment_id
@@ -148,7 +148,7 @@ module "tomcat_ssl_config" {
 
 # Configure ArcGIS Web Adaptor on primary and node EC2 instances
 module "arcgis_webadaptor" {
-  count         = var.configure_webadaptor ? 1 : 0
+  count         = var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
   site_id       = var.site_id
   deployment_id = var.deployment_id

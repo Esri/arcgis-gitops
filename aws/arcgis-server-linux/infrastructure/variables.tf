@@ -17,6 +17,17 @@ variable "aws_region" {
   type        = string
 }
 
+variable "alb_deployment_id" {
+  description = "Base ArcGIS Enterprise deployment Id"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,23}$", var.alb_deployment_id)) || var.alb_deployment_id == null
+    error_message = "The alb_deployment_id value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
 variable "client_cidr_blocks" {
   description = "Client CIDR blocks"
   type        = list(string)
@@ -135,7 +146,12 @@ variable "ssl_certificate_arn" {
   type        = string
 
   validation {
-    condition     = can(regex("^arn:.+:acm:.+:\\d+:certificate\\/.+$", var.ssl_certificate_arn))
+    condition     = var.alb_deployment_id != null || var.ssl_certificate_arn != null
+    error_message = "Either ssl_certificate_arn or alb_deployment_id value must be specified."
+  }
+
+  validation {
+    condition     = can(regex("^arn:.+:acm:.+:\\d+:certificate\\/.+$", var.ssl_certificate_arn)) || var.ssl_certificate_arn == null
     error_message = "The ssl_certificate_arn value must be an ACM certificate ARN."
   }
 }
@@ -144,6 +160,11 @@ variable "ssl_policy" {
   description = "Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers"
   type        = string
   default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
+
+  validation {
+    condition     = var.alb_deployment_id != null || var.ssl_policy != null
+    error_message = "Either ssl_policy or alb_deployment_id value must be specified."
+  }
 }
 
 variable "subnet_ids" {
@@ -156,15 +177,15 @@ variable "server_web_context" {
   description = "ArcGIS Server web context"
   type        = string
   default     = "arcgis"
-}
-
-variable "instance_https_port" {
-  description = "ArcGIS Server instance HTTPS port"
-  type        = number
-  default     = 6443
 
   validation {
-    condition     = contains([443, 6443], var.instance_https_port)
-    error_message = "Valid values for instance_https_port variable are 443 and 6443."
+    condition = var.use_webadaptor == true || var.server_web_context == "arcgis"
+    error_message = "The server_web_context value must be 'arcgis' if use_webadaptor is set to false."
   }
+}
+
+variable "use_webadaptor" {
+  description = "If true, port 443 is used as the instance HTTPS port, otherwise 6443 bis used."
+  type        = bool
+  default     = false
 }

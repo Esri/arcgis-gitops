@@ -602,7 +602,7 @@ module "arcgis_enterprise_primary" {
         wa_url                         = "https://${local.primary_hostname}/${var.server_web_context}"
         install_dir                    = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements    = true
-        private_url                    = "https://${var.deployment_fqdn}:6443/arcgis"
+        private_url                    = "https://${var.deployment_fqdn}/${var.server_web_context}"
         web_context_url                = "https://${var.deployment_fqdn}/${var.server_web_context}"
         hostname                       = local.primary_hostname
         admin_username                 = var.admin_username
@@ -672,7 +672,7 @@ module "arcgis_enterprise_primary" {
         hostidentifier              = local.primary_hostname
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
         install_system_requirements = true
-        private_url                 = "https://${var.deployment_fqdn}:7443/arcgis"
+        private_url                 = "https://${var.deployment_fqdn}/${var.portal_web_context}"
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         admin_email                 = var.admin_email
@@ -698,7 +698,7 @@ module "arcgis_enterprise_primary" {
         root_cert_alias      = "rootcert"
         wa_name              = var.portal_web_context
         system_properties = {
-          privatePortalURL = "https://${var.deployment_fqdn}:7443/arcgis"
+          privatePortalURL = "https://${var.deployment_fqdn}/${var.portal_web_context}"
           WebContextURL    = "https://${var.deployment_fqdn}/${var.portal_web_context}"
         }
       }

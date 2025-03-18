@@ -15,10 +15,13 @@
  *
  * A highly available EFS file system is created and mounted to the EC2 instances. 
  *
- * The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, and 6443 and target groups for the listeners that target the EC2 instances.
+ * If alb_deployment_id input variable is null, the module creates and configure an Application Load Balancer (ALB) for the deployment. 
+ * Otherwise, the it uses the ALB from deployment specified by alb_deployment_id and ignores the values of client_cidr_blocks, deployment_fqdn, hosted_zone_id, internal_load_balancer, ssl_certificate_arn, and ssl_policy input variables.
  * Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
- *
- * By default the HTTPS listener on port 443 is forwarded to instance port 6443. Set the instance_https_port input variable to 443, if ArcGIS Web Adaptor on port 443 will be used with ArcGIS Server.
+ * 
+ * For the ALB the module creates target groups that target the EC2 instances. The target group for port 443 is always created. While the target group for port 6443 is created only if use_webadaptor input variable is set to false.
+ * 
+ * By default the HTTPS listener on port 443 is forwarded to instance port 6443. Set the use_webadaptor input variable to true, to use port 443.
  *  
  * The deployment's Monitoring Subsystem consists of:
  *
@@ -61,6 +64,8 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/arn | LBB ARN (if alb_deployment_id is specified) |
+ * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/security-group-id | ALB security group Id (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI Id |
@@ -144,11 +149,11 @@ module "security_group" {
   source                = "../../modules/security_group"
   name                  = var.deployment_id
   vpc_id                = module.site_core_info.vpc_id
-  alb_security_group_id = aws_security_group.arcgis_alb.id
+  alb_security_group_id = local.alb_security_group_id
   alb_ports             = [80, 443, 6443]
 }
 
-resource "aws_ssm_parameter" "alb_security_group_id" {
+resource "aws_ssm_parameter" "security_group_id" {
   name        = "/arcgis/${var.site_id}/${var.deployment_id}/security-group-id"
   type        = "String"
   value       = module.security_group.id
@@ -293,7 +298,7 @@ module "dashboard" {
   platform      = "linux"
   site_id       = var.site_id
   deployment_id = var.deployment_id
-  alb_arn       = aws_lb.alb.arn
+  alb_arn       = local.alb_arn
   log_group_name = module.cw_agent.log_group_name
   depends_on = [
     module.cw_agent

@@ -137,8 +137,6 @@ The module uses the following SSM parameters:
 
 | Name | Description |
 |------|-------------|
-| arcgis_portal_private_url | Portal for ArcGIS private URL |
 | arcgis_portal_url | Portal for ArcGIS URL |
-| arcgis_server_private_url | ArcGIS Server private URL |
 | arcgis_server_url | ArcGIS Server URL |
 <!-- END_TF_DOCS -->

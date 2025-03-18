@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,13 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
-output "security_group_id" {
-  description = "EC2 security group Id"
-  value       = module.security_group.id
+
+output "alb_arn" {
+  description = "Application Load Balancer ARN"
+  value = aws_lb.alb.arn
 }
 
 output "alb_dns_name" {
-  description = "DNS name of the application load balancer"
-  value       = module.alb.alb_dns_name
+  description = "Application Load Balancer DNS name"
+  value = aws_lb.alb.dns_name
+}
+
+output "security_group_id" {
+  description = "Application Load Balancer security group Id"
+  value = aws_security_group.arcgis_alb.id
 }

@@ -135,28 +135,28 @@ Optionally, create deployments for each require additional server roles.
 
 > Consult the README files of the templates to create and operate the required ArcGIS Enterprise deployments.
 
-### 5. Create the Failover Site
+### 5. Create the Standby Site
 
-One common approach to responding to a disaster scenario is to switch traffic to a failover site, which exists to take on traffic when a primary site identifies or experiences issues.
+One common approach to responding to a disaster scenario is to switch traffic to a Standby site, which exists to take on traffic when a primary site identifies or experiences issues.
 
-To create a failover site for Windows and Linux platforms:
+To create a Standby site for Windows and Linux platforms:
 
 1. Create a new Git branch from the branch of the active site.
-2. Change "site_id" property in all the configuration files of the site's deployments to a new unique Id of the failover site.
+2. Change "site_id" property in all the configuration files of the site's deployments to a new unique Id of the standby site.
    > The "site_id" value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-).
-3. Change the "backup_site_id" property in the restore.tfvars.json configuration files of the failover branch to the active "site_id".
+3. Change the "backup_site_id" property in the restore.tfvars.json configuration files of the standby branch to the active "site_id".
 4. Commit the changes to the Git branch and push the branch to GitHub.
-5. Deploy the failover site using the failover branch.
+5. Deploy the standby site using the standby branch.
 6. Backup all the deployments of the active site.
-7. Restore all the deployments of the failover site.
+7. Restore all the deployments of the standby site.
 
 > Sites configured to receive traffic from clients are referred to as *primary*, *active*, or *live*.
 
-To activate the failover site:
+To activate the standby site:
 
 1. Retrieve DNS name of the load balancer created by the infrastructure workflow, and
 2. Update the CNAME record for the base ArcGIS Enterprise domain name in the DNS server.
 
-> The test workflow cannot be used with the failover site deployments until it is activated.
+> The test workflow cannot be used with the standby site deployments until it is activated.
 
-> The failover site deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types could differ from the active deployment.
+> The standby site deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types could differ from the active deployment.

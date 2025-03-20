@@ -40,7 +40,7 @@ variable "admin_username" {
 }
 
 variable "backup_site_id" {
-  description = "ArcGIS site Id of the backup"
+  description = "ArcGIS site Id of the backup to restore from"
   type        = string
   default     = "arcgis-enterprise"
 

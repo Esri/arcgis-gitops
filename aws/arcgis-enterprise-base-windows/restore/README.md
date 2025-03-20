@@ -41,7 +41,7 @@ The module uses the following SSM parameters:
 | admin_username | Portal for ArcGIS administrator user name | `string` | `"siteadmin"` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | backup_restore_mode | Type of backup | `string` | `"backup"` | no |
-| backup_site_id | ArcGIS site Id of the backup | `string` | `"arcgis-enterprise"` | no |
+| backup_site_id | ArcGIS site Id of the backup to restore from | `string` | `"arcgis-enterprise"` | no |
 | deployment_id | Deployment Id | `string` | `"arcgis-enterprise-base"` | no |
 | execution_timeout | Execution timeout in seconds | `number` | `36000` | no |
 | portal_admin_url | Portal for ArcGIS administrative URL | `string` | `"https://localhost:7443/arcgis"` | no |

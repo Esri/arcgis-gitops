@@ -3,7 +3,7 @@
  * 
  * The module creates and configures Application Load Balancer for a deployment.
  * It sets up a security group, HTTP and HTTPS listeners, and a default target group for the load balancer.
- * if the hosted zone ID and domain name are provided, the module also creates Route 53 records for the load balancer.
+ * The module also creates a private Route53 hosted zone and an alias A record for the load balancer DNS name.
  * The load balancer is configured to redirect HTTP ports to HTTPS.
  * The security group Id and ARN of the load balancer are stored in SSM Parameter Store.
  */
@@ -24,7 +24,7 @@
 
 # EC2 security group for Application Load Balancer
 resource "aws_security_group" "arcgis_alb" {
-  name        = "${var.deployment_id}-alb"
+  name        = "${var.site_id}/${var.deployment_id}/alb"
   description = "Allow inbound traffic to load balancer ports"
   vpc_id      = var.vpc_id
 
@@ -37,7 +37,7 @@ resource "aws_security_group" "arcgis_alb" {
   }
 
   tags = {
-    Name = "${var.deployment_id}-alb"
+    Name = "${var.site_id}/${var.deployment_id}/alb"
   }
 }
 
@@ -65,7 +65,7 @@ resource "aws_security_group_rule" "allow_https" {
 
 # Application Load Balancer (ALB)
 resource "aws_lb" "alb" {
-  name               = var.deployment_id
+  # name_prefix        = var.deployment_id
   internal           = var.internal_load_balancer
   load_balancer_type = "application"
   security_groups    = [aws_security_group.arcgis_alb.id]
@@ -77,15 +77,14 @@ resource "aws_lb" "alb" {
 
 # Default target group
 resource "aws_lb_target_group" "default" {
-  name     = "${var.deployment_id}-default"
-  port     = 443
-  protocol = "HTTPS"
-  vpc_id   = var.vpc_id
+  port        = 443
+  protocol    = "HTTPS"
+  vpc_id      = var.vpc_id
 }
 
 # Redirect HTTP listeners to corresponding HTTPS listeners
 resource "aws_lb_listener" "http" {
-  count = length(var.http_ports)
+  count             = length(var.http_ports)
   load_balancer_arn = aws_lb.alb.arn
   port              = var.http_ports[count.index]
   protocol          = "HTTP"
@@ -103,7 +102,7 @@ resource "aws_lb_listener" "http" {
 
 # HTTPS listeners
 resource "aws_lb_listener" "https" {
-  count = length(var.https_ports)
+  count             = length(var.https_ports)
   load_balancer_arn = aws_lb.alb.arn
   port              = var.https_ports[count.index]
   protocol          = "HTTPS"
@@ -114,17 +113,6 @@ resource "aws_lb_listener" "https" {
     type             = "forward"
     target_group_arn = aws_lb_target_group.default.arn
   }
-}
-
-# Create Route 53 record for the Application Load Balancer 
-# if the hosted zone ID and domain name are provided.
-resource "aws_route53_record" "arcgis_server" {
-  count = var.hosted_zone_id != null && var.deployment_fqdn != null ? 1 : 0
-  zone_id = var.hosted_zone_id
-  name    = "${var.deployment_fqdn}."
-  type    = "CNAME"
-  ttl     = 300
-  records = [aws_lb.alb.dns_name]
 }
 
 resource "aws_ssm_parameter" "alb_security_group_id" {
@@ -139,4 +127,26 @@ resource "aws_ssm_parameter" "alb_arn" {
   type        = "String"
   value       = aws_lb.alb.arn
   description = "ARN of the deployment's ALB"
+}
+
+# Route53 private hosted zone for the deployment FQDN
+
+resource "aws_route53_zone" "deployment_fqdn" {
+  name = var.deployment_fqdn
+
+  vpc {
+    vpc_id = var.vpc_id
+  }
+}
+
+# Create Route 53 record for the Application Load Balancer 
+resource "aws_route53_record" "deployment_fqdn" {
+  zone_id = aws_route53_zone.deployment_fqdn.zone_id
+  name    = "" # Apex domain name
+  type    = "A"
+  alias {
+    name                   = aws_lb.alb.dns_name
+    zone_id                = aws_lb.alb.zone_id
+    evaluate_target_health = false
+  }
 }

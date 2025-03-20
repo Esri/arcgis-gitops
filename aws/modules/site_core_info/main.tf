@@ -51,6 +51,6 @@ data "aws_ssm_parameter" "s3_logs" {
 }
 
 data "aws_ssm_parameter" "s3_region" {
-  name        = "/arcgis/${var.site_id}/s3/region"
+  name = "/arcgis/${var.site_id}/s3/region"
 }
 

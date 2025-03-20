@@ -19,6 +19,8 @@
  *
  * The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, 6443, and 7443 and target groups for the listeners that target the EC2 instances.
  * Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
+ * The module also creates a private Route53 hosted zone for the deployment FQDN and an alias A record for the load balancer DNS name in the hosted zone.
+ * This makes the deployment FQDN addressable from the VPC subnets. 
  *  
  * The deployment's Monitoring Subsystem consists of:
  *
@@ -41,13 +43,8 @@
  * must be imported into or issued by AWS Certificate Manager service in the AWS account. The certificate's
  * ARN specified by "ssl_certificate_arn" input variable will be used to configure HTTPS listeners of the load balancer.
  *
- * If deployment_fqdn and hosted_zone_id input variables are specified, 
- * the module creates CNAME records in the hosted zone that routes the deployment FQDN to the load balancer DNS name. 
- * Otherwise, after creating the infrastructure, the domain name must be pointed to the DNS name of Application Load Balancer
+ * After creating the infrastructure, the deployment FQDN also must be pointed to the DNS name of Application Load Balancer
  * exported by "alb_dns_name" output value of the module.
- *
- * > Note that a hosted zone can contain only one record for each domain name. Use different hosted zones for multiple deployments 
- *   with the same deployment_fqdn, or configure the DNS records outside of the module.
  *
  * ## Troubleshooting
  *
@@ -104,6 +101,7 @@ provider "aws" {
 
   default_tags {
     tags = {
+      ArcGISAutomation   = "arcgis-gitops"      
       ArcGISSiteId       = var.site_id
       ArcGISDeploymentId = var.deployment_id
     }

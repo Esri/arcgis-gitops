@@ -90,6 +90,7 @@ provider "aws" {
   
   default_tags {
     tags = {
+      ArcGISAutomation   = "arcgis-gitops"
       ArcGISSiteId       = var.site_id
       ArcGISDeploymentId = var.deployment_id
     }
@@ -596,15 +597,6 @@ module "arcgis_enterprise_primary" {
       version                  = var.arcgis_version
       run_as_user              = var.run_as_user
       configure_cloud_settings = false
-      # Loopback for deployment_fqdn is required for arcgis-enterprise::federation to succeed
-      # without activating the deployment (routing deployment_fqdn to the deployment's ALB).
-      # Though primary_hostname resolves to the instance's private IP by the Route53 private hosted zone,
-      # the loopback for primary_hostname is required to prevent the reverse IP lookup of the Portal's
-      # Apache Ignite using deployment_fqdn for the node hostname instead of primary_hostname.  
-      # without activating the deployment (routing deployment_fqdn to the deployment's ALB).
-      hosts = {
-        "${local.primary_hostname} ${var.deployment_fqdn}" = ""
-      }
       repository = {
         archives = local.archives_dir
         setups   = "/opt/software/setups"
@@ -760,9 +752,6 @@ module "arcgis_enterprise_standby" {
       version                  = var.arcgis_version
       run_as_user              = var.run_as_user
       configure_cloud_settings = false
-      hosts = {
-        "${local.standby_hostname} ${var.deployment_fqdn}" = ""
-      }
       repository = {
         archives = local.archives_dir
         setups   = "/opt/software/setups"

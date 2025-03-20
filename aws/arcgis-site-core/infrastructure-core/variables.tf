@@ -28,17 +28,6 @@ variable "site_id" {
   }
 }
 
-variable "hosted_zone_name" {
-  description = "Private hosted zone name"
-  type        = string
-  default     = "arcgis-enterprise.internal"
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.hosted_zone_name))
-    error_message = "The hosted_zone_name value must be a valid domain name."
-  }
-}
-
 variable "availability_zones" {
   description = "AWS availability zones (if the list contains less that two elements, the first two available availability zones in the AWS region will be used.)"
   type        = list(string)

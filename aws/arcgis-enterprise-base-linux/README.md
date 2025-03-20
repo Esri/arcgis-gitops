@@ -113,7 +113,7 @@ Instructions:
 
 ## Backups and Disaster Recovery
 
-The templates support application-level base ArcGIS Enterprise backup and restore operations using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/linux/create-web-gis-backup.htm) tool.
+The template supports application-level base ArcGIS Enterprise backup and restore operations using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/linux/create-web-gis-backup.htm) tool.
 
 ### Create Backups
 
@@ -153,36 +153,6 @@ Instructions:
 2. Commit the changes to the Git branch and push the branch to GitHub.
 3. Run enterprise-base-linux-aws-restore workflow using the branch.
 
-### Failover Deployment
-
-One common approach to responding to a disaster scenario is to switch traffic to a failover deployment, which exists to take on traffic when a primary deployment identifies or experiences issues.
-
-To create failover deployment:
-
-1. Create a new Git branch from the branch of the active deployment.
-2. Change "deployment_id" property in all the configuration files (image.vars.json, infrastructure.tfvars.json, application.tfvars.json, backup.tfvars.json, restore.tfvars.json) to a new unique Id of the failover deployment.
-   > The "deployment_id" value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-).
-3. Commit the changes to the Git branch and push the branch to GitHub.
-4. Run enterprise-base-linux-aws-backup workflow for the active deployment branch.
-5. Run the following workflows for the failover deployment branch:
-   1. enterprise-base-linux-aws-image
-   2. enterprise-base-linux-aws-infrastructure
-   3. enterprise-base-linux-aws-application
-   4. enterprise-base-linux-aws-restore
-
-> Deployments configured to receive traffic from clients are referred to as *primary*, *active*, or *live*.
-
-To activate the failover deployment:
-
-1. Retrieve DNS name of the load balancer created by the infrastructure workflow, and
-2. Update the CNAME record for the base ArcGIS Enterprise domain name in the DNS server.
-
-> The test workflow cannot be used with the failover deployment until it is activated.
-
-> The failover deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types could differ from the active deployment.
-
-> Don't backup failover deployment until it is activated.
-
 ### Create Snapshots and Restore from Snapshots
 
 GitHub Actions workflow **enterprise-base-linux-aws-snapshot** creates a system-level backup by creating AMIs from all EC2 instances of base ArcGIS Enterprise deployment. The workflow the workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-enterprise-base-linux/image.vars.json) config file and runs snapshot_deployment Python script. The workflow requires ArcGISEnterpriseImage IAM policy.
@@ -209,7 +179,7 @@ Instructions:
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run enterprise-base-linux-aws-application workflow using the branch.
 
-> Back up the deployment and test the upgrade process on a test/failover deployment before upgrading the active deployment.
+
 
 ## Destroying Deployments
 

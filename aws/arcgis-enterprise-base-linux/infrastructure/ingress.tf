@@ -11,13 +11,12 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 module "alb" {
   source                 = "../../modules/alb"
   client_cidr_blocks     = var.client_cidr_blocks
   deployment_fqdn        = var.deployment_fqdn
   deployment_id          = var.deployment_id
-  hosted_zone_id         = var.hosted_zone_id
   http_ports             = [80]
   https_ports            = [443, 6443, 7443, 11443, 13443, 20443, 21443]
   internal_load_balancer = var.internal_load_balancer
@@ -35,7 +34,7 @@ module "alb" {
 # Configure the target group to forward requests to /portal and /server HTTP contexts.
 module "server_https_alb_target" {
   source            = "../../modules/alb_target_group"
-  name              = "${var.deployment_id}-s-443"
+  name              = "server"
   vpc_id            = module.site_core_info.vpc_id
   alb_arn           = module.alb.alb_arn
   protocol          = "HTTPS"
@@ -55,7 +54,7 @@ module "server_https_alb_target" {
 # Configure the target group to forward requests to /portal and /server HTTP contexts.
 module "portal_https_alb_target" {
   source            = "../../modules/alb_target_group"
-  name              = "${var.deployment_id}-p-443"
+  name              = "portal"
   vpc_id            = module.site_core_info.vpc_id
   alb_arn           = module.alb.alb_arn
   protocol          = "HTTPS"

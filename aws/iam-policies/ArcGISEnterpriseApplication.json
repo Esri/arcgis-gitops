@@ -57,7 +57,7 @@
             ],
             "Condition": {
                 "StringEquals": {
-                    "ssm:resourceTag/ArcGISSiteId": "arcgis-enterprise"
+                    "ssm:resourceTag/ArcGISAutomation": "arcgis-gitops"
                 }
             }
         },

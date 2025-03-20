@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,6 +36,17 @@ variable "admin_username" {
   validation {
     condition     = can(regex("^[a-zA-Z0-9.]{6,128}$", var.admin_username))
     error_message = "The admin_username value must be between 6 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.)."
+  }
+}
+
+variable "backup_site_id" {
+  description = "ArcGIS site Id of the backup"
+  type        = string
+  default     = "arcgis-enterprise"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,23}$", var.backup_site_id))
+    error_message = "The backup_site_id value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 

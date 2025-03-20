@@ -83,10 +83,9 @@ variable "ssl_policy" {
 variable "deployment_fqdn" {
   description = "Fully qualified domain name of the base ArcGIS Enterprise deployment"
   type        = string
-  default     = null
 
   validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn)) || var.deployment_fqdn == null
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
     error_message = "The deployment_fqdn value must be a valid domain name."
   }
 }
@@ -103,16 +102,16 @@ variable "server_web_context" {
   default     = "server"  
 }
 
-variable "hosted_zone_id" {
-  description = "The Route 53 hosted zone ID for the deployment FQDN"
-  type        = string
-  default     = null
+# variable "hosted_zone_id" {
+#   description = "The Route 53 hosted zone ID for the deployment FQDN"
+#   type        = string
+#   default     = null
 
-  validation {
-    condition     = can(regex("^Z[0-9A-Z]{14,}$", var.hosted_zone_id)) || var.hosted_zone_id == null
-    error_message = "The hosted_zone_id value must be a valid Route 53 hosted zone ID."
-  }
-}
+#   validation {
+#     condition     = can(regex("^Z[0-9A-Z]{14,}$", var.hosted_zone_id)) || var.hosted_zone_id == null
+#     error_message = "The hosted_zone_id value must be a valid Route 53 hosted zone ID."
+#   }
+# }
 
 variable "instance_type" {
   description = "EC2 instance type"

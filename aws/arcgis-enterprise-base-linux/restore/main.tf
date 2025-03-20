@@ -5,6 +5,8 @@
  *
  * The module runs WebGISDR utility with 'import' option on primary EC2 instance of the deployment.
  *
+ * The backup is retrieved from the backup S3 bucket of the site specified by "backup_site_id" input variable.
+ *
  * ## Requirements
  *
  * The base ArcGIS Enterprise must be configured on the deployment by application terraform module for base ArcGIS Enterprise on Linux.
@@ -21,11 +23,11 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/s3/backup | Backup S3 bucket |
+ * | /arcgis/${var.backup_site_id}/s3/backup | Backup S3 bucket |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -59,6 +61,7 @@ provider "aws" {
 
   default_tags {
     tags = {
+      ArcGISAutomation   = "arcgis-gitops"      
       ArcGISSiteId       = var.site_id
       ArcGISDeploymentId = var.deployment_id
     }
@@ -69,9 +72,9 @@ locals {
   shared_location = "/mnt/efs/gisdata/arcgisbackup/webgisdr"
 }
 
-module "site_core_info" {
+module "backup_site_core_info" {
   source  = "../../modules/site_core_info"
-  site_id = var.site_id
+  site_id = var.backup_site_id
 }
 
 # Run webgisdr utility with import option on primary EC2 instance.
@@ -98,16 +101,16 @@ module "arcgis_enterprise_webgisdr_import" {
           INCLUDE_SCENE_TILE_CACHES       = false
           BACKUP_STORE_PROVIDER           = "AmazonS3"
           S3_ENCRYPTED                    = false
-          S3_BUCKET                       = module.site_core_info.s3_backup
+          S3_BUCKET                       = module.backup_site_core_info.s3_backup
           S3_CREDENTIALTYPE               = "IAMRole"
-          S3_REGION                       = module.site_core_info.s3_region
+          S3_REGION                       = module.backup_site_core_info.s3_region
           #S3_BACKUP_NAME                 = "<backup file name>"
           # In 11.4 PORTAL_BACKUP_S3_BUCKET property was renamed to BACKUP_S3_BUCKET
           # Keeping both properties for backward compatibility
-          BACKUP_S3_BUCKET                = module.site_core_info.s3_backup
-          BACKUP_S3_REGION                = module.site_core_info.s3_region
-          PORTAL_BACKUP_S3_BUCKET         = module.site_core_info.s3_backup
-          PORTAL_BACKUP_S3_REGION         = module.site_core_info.s3_region
+          BACKUP_S3_BUCKET                = module.backup_site_core_info.s3_backup
+          BACKUP_S3_REGION                = module.backup_site_core_info.s3_region
+          PORTAL_BACKUP_S3_BUCKET         = module.backup_site_core_info.s3_backup
+          PORTAL_BACKUP_S3_REGION         = module.backup_site_core_info.s3_region
         }
       }
     }

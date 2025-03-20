@@ -22,6 +22,11 @@ output "alb_dns_name" {
   value = aws_lb.alb.dns_name
 }
 
+output "alb_zone_id" {
+  description = "Application Load Balancer zone ID"
+  value = aws_lb.alb.zone_id
+}
+
 output "security_group_id" {
   description = "Application Load Balancer security group Id"
   value = aws_security_group.arcgis_alb.id

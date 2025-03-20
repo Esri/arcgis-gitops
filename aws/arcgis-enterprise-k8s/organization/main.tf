@@ -36,7 +36,7 @@
  * * EKS cluster configuration information must be provided in ~/.kube/config file.
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -88,6 +88,7 @@ provider "aws" {
   
   default_tags {
     tags = {
+      ArcGISAutomation   = "arcgis-gitops"      
       ArcGISSiteId       = var.site_id
       ArcGISDeploymentId = var.deployment_id
     }

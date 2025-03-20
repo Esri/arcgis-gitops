@@ -175,12 +175,13 @@ source "amazon-ebs" "main" {
   }
 
   run_tags = {
-    Name = local.ami_name
-    ArcGISSiteId = var.site_id    
-    ArcGISVersion = var.arcgis_version
+    Name               = local.ami_name
+    ArcGISAutomation   = "arcgis-gitops"
+    ArcGISSiteId       = var.site_id    
+    ArcGISVersion      = var.arcgis_version
     ArcGISDeploymentId = var.deployment_id    
-    ArcGISMachineRole = local.machine_role
-    OperatingSystem = var.os
+    ArcGISMachineRole  = local.machine_role
+    OperatingSystem    = var.os
   }
 
   skip_create_ami = var.skip_create_ami

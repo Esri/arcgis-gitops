@@ -35,7 +35,7 @@ resource "aws_vpc" "vpc" {
 
 # Route53 private hosted zone
 resource "aws_route53_zone" "private" {
-  name = var.hosted_zone_name
+  name = "${var.site_id}.internal"
 
   vpc {
     vpc_id = aws_vpc.vpc.id

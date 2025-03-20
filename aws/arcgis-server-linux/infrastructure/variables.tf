@@ -63,17 +63,6 @@ variable "deployment_id" {
   }
 }
 
-variable "hosted_zone_id" {
-  description = "The Route 53 hosted zone ID for the deployment FQDN"
-  type        = string
-  default     = null
-
-  validation {
-    condition     = can(regex("^Z[0-9A-Z]{14,}$", var.hosted_zone_id)) || var.hosted_zone_id == null
-    error_message = "The hosted_zone_id value must be a valid Route 53 hosted zone ID."
-  }
-}
-
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string

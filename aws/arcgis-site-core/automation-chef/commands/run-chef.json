@@ -1,6 +1,6 @@
 {
   "schemaVersion": "2.2",
-  "description": "Runs Chef in solo ode with specified JSON attributes",
+  "description": "Runs Chef in solo mode with specified JSON attributes",
   "parameters": {
     "JsonAttributes": {
       "type": "String",

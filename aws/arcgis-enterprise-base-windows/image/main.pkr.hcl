@@ -166,11 +166,12 @@ source "amazon-ebs" "main" {
   }
 
   run_tags = {
-    Name = local.main_ami_name
-    ArcGISSiteId = var.site_id    
-    ArcGISVersion = var.arcgis_version
+    Name               = local.main_ami_name
+    ArcGISAutomation   = "arcgis-gitops"
+    ArcGISSiteId       = var.site_id    
+    ArcGISVersion      = var.arcgis_version
     ArcGISDeploymentId = var.deployment_id    
-    ArcGISMachineRole = local.main_machine_role
+    ArcGISMachineRole  = local.main_machine_role
   }
 
   skip_create_ami = var.skip_create_ami
@@ -197,11 +198,12 @@ source "amazon-ebs" "fileserver" {
   }
 
   run_tags = {
-    Name = local.fileserver_ami_name
-    ArcGISSiteId = var.site_id    
+    Name               = local.fileserver_ami_name
+    ArcGISAutomation   = "arcgis-gitops"
+    ArcGISSiteId       = var.site_id    
     ArcGISDeploymentId = var.deployment_id    
-    ArcGISMachineRole = local.fileserver_machine_role
-    OperatingSystem = var.os
+    ArcGISMachineRole  = local.fileserver_machine_role
+    OperatingSystem    = var.os
   }
 
   skip_create_ami = var.skip_create_ami

@@ -38,7 +38,7 @@
  * Before using the module, the repository S3 bucket must be created by infrastructure-core terraform module.
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -72,7 +72,8 @@ provider "aws" {
   
   default_tags {
     tags = {
-      ArcGISSiteId = var.site_id
+      ArcGISAutomation = "arcgis-gitops"      
+      ArcGISSiteId     = var.site_id
     }
   }
 }
@@ -118,7 +119,10 @@ resource "aws_ssm_document" "bootstrap_command" {
 resource "aws_ssm_document" "run_chef_command" {
   name          = "${var.site_id}-run-chef"
   document_type = "Command"
-  content = file("${path.module}/commands/run-chef.json")
+  content = replace(
+    file("${path.module}/commands/run-chef.json"),
+    "/chef/log_level",
+    "/chef/${var.site_id}/log_level")   
 }
 
 resource "aws_ssm_document" "clean_up_command" {
@@ -138,7 +142,7 @@ resource "aws_ssm_parameter" "chef_client_urls" {
 }
 
 resource "aws_ssm_parameter" "chef_client_log_level" {
-  name  = "/chef/log_level"
+  name  = "/chef/${var.site_id}/log_level"
   type  = "String"
   value = "info"
   description = "Chef/Cinc client log level"

@@ -43,7 +43,6 @@ module "alb" {
   client_cidr_blocks     = var.client_cidr_blocks
   deployment_fqdn        = var.deployment_fqdn
   deployment_id          = var.deployment_id
-  hosted_zone_id         = var.hosted_zone_id
   http_ports             = [80, 6080]
   https_ports            = [443, 6443]
   internal_load_balancer = var.internal_load_balancer
@@ -61,7 +60,7 @@ module "alb" {
 # Configure the target group to forward requests to the HTTP web context.
 module "server_https_alb_target" {
   source            = "../../modules/alb_target_group"
-  name              = "${var.deployment_id}-443"
+  name              = substr(var.server_web_context, 0, 6)
   vpc_id            = module.site_core_info.vpc_id
   alb_arn           = local.alb_arn
   protocol          = "HTTPS"
@@ -84,7 +83,7 @@ module "server_https_alb_target" {
 module "private_server_https_alb_target" {
   count             = var.alb_deployment_id == null ? 1 : 0
   source            = "../../modules/alb_target_group"
-  name              = "${var.deployment_id}-6443"
+  name              = "arcgis"
   vpc_id            = module.site_core_info.vpc_id
   alb_arn           = local.alb_arn
   protocol          = "HTTPS"

@@ -283,7 +283,7 @@ locals {
 }
 
 resource "aws_cloudwatch_log_group" "deployment" {
-  name_prefix       = var.deployment_id
+  name              = "monitoring/${var.site_id}/${var.deployment_id}/deployment"
   retention_in_days = 7
 }
 

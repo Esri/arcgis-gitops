@@ -626,7 +626,7 @@ locals {
 }
 
 resource "aws_sns_topic" "deployment_alarms" {
-  name = var.deployment_id
+  name = "${var.site_id}-${var.deployment_id}-alarms"
 }
 
 resource "aws_ssm_parameter" "sns_topic" {
@@ -657,7 +657,7 @@ resource "aws_cloudwatch_metric_alarm" "unhealthy_alb_instances" {
 }
 
 resource "aws_cloudwatch_dashboard" "dashboard" {
-  dashboard_name = var.deployment_id
+  dashboard_name = "${var.site_id}-${var.deployment_id}"
 
   dashboard_body = (var.platform == "windows" ?
     jsonencode({

@@ -5,6 +5,8 @@
  *
  * The module runs 'restore' admin utility on the primary EC2 instance of the deployment.
  *
+ * The backup is retrieved from the backup S3 bucket of the site specified by "backup_site_id" input variable.
+ *
  * ## Requirements
  *
  * The ArcGIS Server must be configured on the deployment by application terraform module for ArcGIS Server on Linux.
@@ -16,10 +18,11 @@
  * * arcgis.common and arcgis.server Ansible collections must be installed
  * * AWS credentials must be configured
  *
- * The module retrieves the backup S3 bucket name from '/arcgis/${var.site_id}/s3/backup' SSM parameters.
+ * The module retrieves the backup S3 bucket name and region from '/arcgis/${var.backup_site_id}/s3/backup' and 
+ * '/arcgis/${var.backup_site_id}/s3/region' SSM parameters.
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -53,15 +56,16 @@ provider "aws" {
   
   default_tags {
     tags = {
+      ArcGISAutomation   = "arcgis-gitops"      
       ArcGISSiteId       = var.site_id
       ArcGISDeploymentId = var.deployment_id
     }
   }
 }
 
-module "site_core_info" {
+module "backup_site_core_info" {
   source = "../../modules/site_core_info"
-  site_id = var.site_id
+  site_id = var.backup_site_id
 }
 
 data "aws_region" "current" {}
@@ -79,8 +83,8 @@ module "arcgis_server_restore" {
     admin_password = var.admin_password
     install_dir = "/opt"
     run_as_user = var.run_as_user
-    s3_bucket = module.site_core_info.s3_backup
-    s3_region = module.site_core_info.s3_region
+    s3_bucket = module.backup_site_core_info.s3_backup
+    s3_region = module.backup_site_core_info.s3_region
     s3_prefix = var.s3_prefix
   }
 }

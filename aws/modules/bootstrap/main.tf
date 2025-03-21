@@ -51,8 +51,8 @@ data "aws_ssm_parameter" "chef_cookbooks_url" {
 }
 
 locals {
-  chef_client_url     = var.chef_client_url != null ? var.chef_client_url : data.aws_ssm_parameter.chef_client_url.value
-  chef_cookbooks_url  = var.chef_cookbooks_url != null ? var.chef_cookbooks_url : data.aws_ssm_parameter.chef_cookbooks_url.value
+  chef_client_url     = var.chef_client_url != null ? var.chef_client_url : nonsensitive(data.aws_ssm_parameter.chef_client_url.value)
+  chef_cookbooks_url  = var.chef_cookbooks_url != null ? var.chef_cookbooks_url : nonsensitive(data.aws_ssm_parameter.chef_cookbooks_url.value)
 }
 
 resource "null_resource" "bootstrap" {

@@ -67,7 +67,7 @@
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                  "aws:ResourceTag/ArcGISSiteId": "arcgis-enterprise"
+                  "ssm:resourceTag/ArcGISAutomation": "arcgis-gitops"
                 }
             }
         },

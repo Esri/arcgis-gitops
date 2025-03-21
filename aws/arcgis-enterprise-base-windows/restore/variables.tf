@@ -49,6 +49,17 @@ variable "backup_restore_mode" {
   }
 }
 
+variable "backup_site_id" {
+  description = "ArcGIS site Id of the backup to restore from"
+  type        = string
+  default     = "arcgis-enterprise"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,23}$", var.backup_site_id))
+    error_message = "The backup_site_id value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
 variable "deployment_id" {
   description = "Deployment Id"
   type        = string

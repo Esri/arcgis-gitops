@@ -68,7 +68,8 @@ provider "aws" {
   
   default_tags {
     tags = {
-      ArcGISSiteId = var.site_id
+      ArcGISAutomation = "arcgis-gitops"      
+      ArcGISSiteId     = var.site_id
     }
   }
 }

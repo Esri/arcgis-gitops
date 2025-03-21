@@ -28,10 +28,9 @@ variable "client_cidr_blocks" {
 variable "deployment_fqdn" {
   description = "Fully qualified domain name of the ArcGIS Server deployment"
   type        = string
-  default     = null
-
+  
   validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn)) || var.deployment_fqdn == null
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
     error_message = "The deployment_fqdn value must be a valid domain name."
   }
 }
@@ -43,17 +42,6 @@ variable "deployment_id" {
   validation {
     condition     = can(regex("^[a-z0-9-]{3,23}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
-}
-
-variable "hosted_zone_id" {
-  description = "The Route 53 hosted zone ID for the deployment FQDN"
-  type        = string
-  default     = null
-
-  validation {
-    condition     = can(regex("^Z[0-9A-Z]{14,}$", var.hosted_zone_id)) || var.hosted_zone_id == null
-    error_message = "The hosted_zone_id value must be a valid Route 53 hosted zone ID."
   }
 }
 

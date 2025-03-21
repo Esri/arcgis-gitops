@@ -19,6 +19,8 @@ S3 buckets for the portal content and object store are created. The S3 buckets n
 
 The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, 6443, and 7443 and target groups for the listeners that target the EC2 instances.
 Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
+The module also creates a private Route53 hosted zone for the deployment FQDN and an alias A record for the load balancer DNS name in the hosted zone.
+This makes the deployment FQDN addressable from the VPC subnets.
 
 The deployment's Monitoring Subsystem consists of:
 
@@ -41,13 +43,8 @@ Before creating the infrastructure, an SSL certificate for the base ArcGIS Enter
 must be imported into or issued by AWS Certificate Manager service in the AWS account. The certificate's
 ARN specified by "ssl_certificate_arn" input variable will be used to configure HTTPS listeners of the load balancer.
 
-If deployment_fqdn and hosted_zone_id input variables are specified,
-the module creates CNAME records in the hosted zone that routes the deployment FQDN to the load balancer DNS name.
-Otherwise, after creating the infrastructure, the domain name must be pointed to the DNS name of Application Load Balancer
+After creating the infrastructure, the deployment FQDN also must be pointed to the DNS name of Application Load Balancer
 exported by "alb_dns_name" output value of the module.
-
-> Note that a hosted zone can contain only one record for each domain name. Use different hosted zones for multiple deployments
-  with the same deployment_fqdn, or configure the DNS records outside of the module.
 
 ## Troubleshooting
 
@@ -117,9 +114,8 @@ The module uses the following SSM parameters:
 |------|-------------|------|---------|:--------:|
 | aws_region | AWS region Id | `string` | n/a | yes |
 | client_cidr_blocks | Client CIDR blocks | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
-| deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | `null` | no |
+| deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-base"` | no |
-| hosted_zone_id | The Route 53 hosted zone ID for the deployment FQDN | `string` | `null` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |

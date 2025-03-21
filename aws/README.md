@@ -48,7 +48,7 @@ The following templates are available for AWS:
 By default, the workflows are configured with "workflow_dispatch" event that enables workflows to be triggered manually. To trigger a workflow manually, navigate to the repository on GitHub, click on the "Actions" tab, select the workflow to run, select the branch, and click the "Run workflow" button.
 
 > Note that the deployments may belong to different *environments* such as "production" and "staging". Each environment may have its own branch in the repository. It's recommended to use protected `main` branch for the production environment and create separate branches for other environments.
- 
+
 The list of workflows in GitHub Actions page shows only the workflows present in /.github/workflows directory of the "main" branch, but the workflow runs use the workflow files from the selected branch. To enable workflows, copy the workflows' .yaml files from the template's `workflows` directory to `/.github/workflows` directory in both the `main` branch and the environment branch, commit the changes, and push the branches to GitHub.
 
 The workflows can be modified to use other triggering events such as push, pull_request, or schedule. Consider using "schedule" event to schedule backups and "pull_request" event to check the infrastructure changes by "terraform plan" command. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
@@ -125,8 +125,38 @@ Run validate-settings-aws GitHub Actions workflow to validate the settings.
 
 > If the GitHub subscription plan supports GitHub Actions Environments, consider [environment secrets](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) to use secrets specific to each environment.
 
-### 4. Use the Templates
+### 4. Create the Primary Site
 
-Follow the [arcgis-site-core](arcgis-site-core/README.md) template instructions to provision core AWS resources for the ArcGIS Enterprise site.
+Provision core AWS resources for the ArcGIS Enterprise site using the [arcgis-site-core](arcgis-site-core/README.md) template.
 
-Consult the README files of the other templates to create and operate the required ArcGIS Enterprise deployments.
+Create base ArcGIS Enterprise deployment using the [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) or [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) templates.
+
+Optionally, create deployments for each require additional server roles.
+
+> Consult the README files of the templates to create and operate the required ArcGIS Enterprise deployments.
+
+### 5. Create the Standby Site
+
+One common approach to responding to a disaster scenario is to switch traffic to a Standby site, which exists to take on traffic when a primary site identifies or experiences issues.
+
+To create a Standby site for Windows and Linux platforms:
+
+1. Create a new Git branch from the branch of the active site.
+2. Change "site_id" property in all the configuration files of the site's deployments to a new unique Id of the standby site.
+   > The "site_id" value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-).
+3. Change the "backup_site_id" property in the restore.tfvars.json configuration files of the standby branch to the active "site_id".
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Deploy the standby site using the standby branch.
+6. Backup all the deployments of the active site.
+7. Restore all the deployments of the standby site.
+
+> Sites configured to receive traffic from clients are referred to as *primary*, *active*, or *live*.
+
+To activate the standby site:
+
+1. Retrieve DNS name of the load balancer created by the infrastructure workflow, and
+2. Update the CNAME record for the base ArcGIS Enterprise domain name in the DNS server.
+
+> The test workflow cannot be used with the standby site deployments until it is activated.
+
+> The standby site deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types could differ from the active deployment.

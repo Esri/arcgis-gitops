@@ -7,7 +7,7 @@
  *
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,26 +23,26 @@
 
 # Application Load Balancer's target group
 resource "aws_lb_target_group" "target_group" {
-  name = var.name
-  port = var.instance_port
-  protocol = var.protocol
-  vpc_id = var.vpc_id
+  name_prefix = var.name
+  port        = var.instance_port
+  protocol    = var.protocol
+  vpc_id      = var.vpc_id
   health_check {
-    protocol = var.protocol
-    path = var.health_check_path
-    port = "traffic-port"
-    interval = 30
-    healthy_threshold = 3
+    protocol            = var.protocol
+    path                = var.health_check_path
+    port                = "traffic-port"
+    interval            = 30
+    healthy_threshold   = 3
     unhealthy_threshold = 3
-  }  
+  }
 }
 
 # Attach EC2 instances to the target group
 resource "aws_lb_target_group_attachment" "target_group_attachment" {
   target_group_arn = aws_lb_target_group.target_group.arn
-  count = length(var.target_instances)
-  target_id = var.target_instances[count.index]
-  port = var.instance_port
+  count            = length(var.target_instances)
+  target_id        = var.target_instances[count.index]
+  port             = var.instance_port
 }
 
 # Retrieve Application Load Balancer's listener attributes

@@ -152,35 +152,6 @@ Instructions:
 2. Commit the changes to the Git branch and push the branch to GitHub.
 3. Run server-linux-aws-restore workflow using the branch.
 
-### Failover Deployment
-
-One common approach to responding to a disaster scenario is to switch traffic to a failover deployment, which exists to take on traffic when a primary deployment identifies or experiences issues.
-
-To create failover deployment:
-
-1. Create a new Git branch from the branch of the active deployment.
-2. Change "deployment_id" property in all the configuration files (image.vars.json, infrastructure.tfvars.json, application.tfvars.json, backup.tfvars.json, restore.tfvars.json) to a new unique Id of the failover deployment.
-3. Commit the changes to the Git branch and push the branch to GitHub.
-4. Run server-linux-aws-backup workflow for the active deployment branch.
-5. Run the following workflows for the failover deployment branch:
-   1. server-linux-aws-image
-   2. server-linux-aws-infrastructure
-   3. server-linux-aws-application
-   4. server-linux-aws-restore
-
-> Deployments configured to receive traffic from clients are referred to as *primary*, *active*, or *live*.
-
-To activate the failover deployment:
-
-1. Retrieve DNS name of the load balancer created by the infrastructure workflow, and
-2. Update the CNAME record for the ArcGIS Server domain name in the DNS server.
-
-> The test workflow cannot be used with the failover deployment until it is activated.
-
-> The failover deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types could differ from the active deployment.
-
-> Don't backup failover deployment until it is activated.
-
 ### Create Snapshots and Restore from Snapshots
 
 GitHub Actions workflow **server-linux-aws-snapshot** creates a system-level backup by creating AMIs from EC2 instances of ArcGIS Server deployment. The workflow the workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-server-linux/image.vars.json) config file and runs snapshot_deployment Python script. The workflow requires ArcGISEnterpriseImage IAM policy.
@@ -206,8 +177,6 @@ Instructions:
 3. Change "is_upgrade" property in application.tfvars.json file to `true`.
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run server-linux-aws-application workflow using the branch.
-
-> Back up the deployment and test the upgrade process on a test/failover deployment before upgrading the active deployment.
 
 ## Destroying Deployments
 

@@ -9,9 +9,11 @@
  * The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameter. 
  * The image must be created by the Packer Template for ArcGIS Server on Linux AMI. 
  *
- * For the primary EC2 instances the module creates "A" record in the VPC Route53 private hosted zone to make the instance addressable using permanent DNS names.
+ * For the primary EC2 instances the module creates "A" record in the VPC Route53 private hosted zone
+ * to make the instance addressable using permanent DNS names.
  *
- * > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module is applied again after the SSM parameter value was modified by a new image build.
+ * > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module
+ *   is applied again after the SSM parameter value was modified by a new image build.
  *
  * A highly available EFS file system is created and mounted to the EC2 instances. 
  *
@@ -40,12 +42,13 @@
  * * Path to aws/scripts directory must be added to PYTHONPATH.
  * * AWS credentials must be configured.
  *
- * Before creating the infrastructure, an SSL certificate for the ArcGIS Server deployment FQDN 
- * must be imported into or issued by AWS Certificate Manager service in the AWS account. The certificate's
- * ARN specified by "ssl_certificate_arn" input variable will be used to configure HTTPS listeners of the load balancer.
+ * If alb_deployment_id is not set:
  *
- * After creating the infrastructure, the deployment FQDN must be pointed to the DNS name of Application Load Balancer
- * exported by "alb_dns_name" output value of the module.
+ * * Before creating the infrastructure, an SSL certificate for the ArcGIS Server deployment FQDN 
+ *   must be imported into or issued by AWS Certificate Manager service in the AWS account. The certificate's
+ *   ARN specified by "ssl_certificate_arn" input variable will be used to configure HTTPS listeners of the load balancer.
+ * * After creating the infrastructure, the deployment FQDN must be pointed to the DNS name of Application Load Balancer
+ *   exported by "alb_dns_name" output value of the module.
  *
  * ## Troubleshooting
  *
@@ -143,7 +146,7 @@ module "site_core_info" {
 # Create and configure the deployment's EC2 security group 
 module "security_group" {
   source                = "../../modules/security_group"
-  name                  = var.deployment_id
+  name                  = "${var.site_id}-${var.deployment_id}-app"
   vpc_id                = module.site_core_info.vpc_id
   alb_security_group_id = local.alb_security_group_id
   alb_ports             = [80, 443, 6443]

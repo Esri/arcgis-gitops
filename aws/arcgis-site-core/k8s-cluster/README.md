@@ -79,7 +79,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 | key_name | EC2 key pair name | `string` | `null` | no |
 | node_groups | <p>EKS node groups configuration properties:</p>   <ul>   <li>name - Name of the node group</li>   <li>instance_type -Type of EC2 instance to use for the node group</li>   <li>root_volume_size - Size of the root volume in GB</li>   <li>desired_size - Number of nodes to start with</li>   <li>max_size - Maximum number of nodes in the node group</li>   <li>min_size - Minimum number of nodes in the node group</li>   <li>subnet_ids - List of subnet IDs to use for the node group (the first two private subnets are used by default)</li>   </ul> | ```list(object({ name = string instance_type = string root_volume_size = number desired_size = number max_size = number min_size = number subnet_ids = list(string) }))``` | ```[ { "desired_size": 4, "instance_type": "m6i.2xlarge", "max_size": 8, "min_size": 4, "name": "default", "root_volume_size": 1024, "subnet_ids": [] } ]``` | no |
 | pull_through_cache | Configure ECR pull through cache rules | `bool` | `true` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | subnet_ids | EKS cluster subnet IDs (by default, the first two public, two private, and two internal VPC subnets are used) | `list(string)` | `[]` | no |
 
 ## Outputs

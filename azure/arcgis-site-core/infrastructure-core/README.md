@@ -99,7 +99,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | internal_subnets_cidr_blocks | CIDR blocks of internal subnets | `list(string)` | ```[ "10.2.0.0/16" ]``` | no |
 | private_subnets_cidr_blocks | CIDR blocks of private subnets | `list(string)` | ```[ "10.3.0.0/16" ]``` | no |
 | service_endpoints | Service endpoints of internal subnets | `list(string)` | `[]` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | vnet_cidr_block | CIDR block for the site's virtual network | `string` | `"10.0.0.0/8"` | no |
 
 ## Outputs

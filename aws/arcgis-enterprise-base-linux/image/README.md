@@ -56,10 +56,11 @@ The template uses the following SSM parameters:
 | arcgis_version | ArcGIS Enterprise version | `string` | `"11.4"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
 | instance_type | EC2 instance type | `string` | `"6i.xlarge"` | no |
+| deployment_id | Deployment Id | `string` | `"enterprise-base-linux"` | no |
 | os | Operating system | `string` | `"rhel8"` | no |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `100` | no |
 | run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store | `string` | `"arcgis"` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
-| site_id | ArcGIS site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 | skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |

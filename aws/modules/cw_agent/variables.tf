@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,8 +28,8 @@ variable "site_id" {
   type = string
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,23}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
+    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 } 
 
@@ -38,7 +38,7 @@ variable "deployment_id" {
   type = string
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,23}$", var.deployment_id))
-    error_message = "The deployment_id value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+    condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
+    error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 } 

@@ -61,10 +61,10 @@ On the machine where Terraform is executed:
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
 | ca_certificate_path | File path to the CA certificate used to validate the backend TLS certificate | `string` | n/a | yes |
 | deployment_fqdn | Fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
+| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
 | hosted_zone_name | Hosted zone name for the domain | `string` | `null` | no |
 | hosted_zone_resource_group | Resource group name of the hosted zone | `string` | `null` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | tls_certificate_path | File path to the TLS certificate for the HTTPS listener | `string` | n/a | yes |
 | tls_private_key_path | File path to the TLS certificate's private key for the HTTPS listener | `string` | n/a | yes |
 

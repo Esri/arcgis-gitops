@@ -1,7 +1,7 @@
 /**
  * # Application Terraform Module for ArcGIS Server on Linux
  *
- * The Terraform module configures or upgrades applications of highly available ArcGIS Server deployment on Linux platform.
+ * The Terraform module configures or upgrades applications of highly available ArcGIS Server deployment on Linux platforms.
  *
  * ![ArcGIS Server on Linux](arcgis-server-linux-application.png "ArcGIS Server on Linux")
  *
@@ -22,7 +22,7 @@
  * * If use_webadaptor input variable is set to true:
  * * * Configures HTTPS listener in Apache Tomcat on primary and node EC2 instances to use either the SSL certificate specified by keystore_file_path input variable or a self signed certificate if keystore_file_path is not specified
  * * * Registers ArcGIS Web Adaptor with ArcGIS Server on primary and node EC2 instances
- * * If server_role is specified, federates ArcGIS Server with Portal for ArcGIS
+ * * If server_role input variable is specified, federates ArcGIS Server with Portal for ArcGIS
  *
  * ## Requirements
  *

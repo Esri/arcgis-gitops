@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for ArcGIS Server on Linux
 
-The Terraform module configures or upgrades applications of highly available ArcGIS Server deployment on Linux platform.
+The Terraform module configures or upgrades applications of highly available ArcGIS Server deployment on Linux platforms.
 
 ![ArcGIS Server on Linux](arcgis-server-linux-application.png "ArcGIS Server on Linux")
 
@@ -22,7 +22,7 @@ Then the module:
 * If use_webadaptor input variable is set to true:
 * * Configures HTTPS listener in Apache Tomcat on primary and node EC2 instances to use either the SSL certificate specified by keystore_file_path input variable or a self signed certificate if keystore_file_path is not specified
 * * Registers ArcGIS Web Adaptor with ArcGIS Server on primary and node EC2 instances
-* If server_role is specified, federates ArcGIS Server with Portal for ArcGIS
+* If server_role input variable is specified, federates ArcGIS Server with Portal for ArcGIS
 
 ## Requirements
 
@@ -101,7 +101,7 @@ The module uses the following SSM parameters:
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | n/a | yes |
-| deployment_id | Deployment Id | `string` | `"arcgis-server"` | no |
+| deployment_id | Deployment Id | `string` | `"server"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
 | keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |
@@ -119,7 +119,7 @@ The module uses the following SSM parameters:
 | server_role | ArcGIS Server role | `string` | `""` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"arcgis"` | no |
 | services_dir_enabled | Enable REST handler services directory | `bool` | `true` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | system_properties | ArcGIS Server system properties | `map(any)` | `{}` | no |
 | use_webadaptor | If true, ArcGIS Web Adaptor will be registered with ArcGIS Server. | `bool` | `false` | no |
 

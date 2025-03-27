@@ -20,22 +20,22 @@ variable "aws_region" {
 variable "site_id" {
   description = "ArcGIS Enterprise site Id"
   type        = string
-  default     = "arcgis-enterprise"
+  default     = "arcgis"
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,23}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
+    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
 variable "deployment_id" {
   description = "ArcGIS Enterprise deployment Id"
   type        = string
-  default     = "arcgis-enterprise-k8s"
+  default     = "enterprise-k8s"
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,23}$", var.deployment_id))
-    error_message = "The deployment_id value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+    condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
+    error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 

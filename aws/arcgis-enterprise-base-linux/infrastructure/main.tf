@@ -143,7 +143,7 @@ module "site_core_info" {
 # Create and configure the deployment's EC2 security group 
 module "security_group" {
   source                = "../../modules/security_group"
-  name                  = var.deployment_id
+  name                  = "${var.site_id}-${var.deployment_id}-app"
   vpc_id                = module.site_core_info.vpc_id
   alb_security_group_id = module.alb.security_group_id
   alb_ports             = [80, 443, 6443, 7443]

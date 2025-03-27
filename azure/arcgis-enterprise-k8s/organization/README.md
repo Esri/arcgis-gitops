@@ -84,7 +84,7 @@ On the machine where Terraform is executed:
 | configure_enterprise_org | Configure ArcGIS Enterprise on Kubernetes organization | `bool` | `true` | no |
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
 | deployment_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
+| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.4.0"` | no |
 | helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.4.0"` | no |
 | image_repository_prefix | Prefix of images in ACR repositories | `string` | `"docker-hub/esridocker"` | no |
@@ -95,7 +95,7 @@ On the machine where Terraform is executed:
 | mandatory_update_target_id | Patch ID of required update | `string` | `""` | no |
 | security_question_answer | ArcGIS Enterprise on Kubernetes organization administrator account security question answer | `string` | n/a | yes |
 | security_question_index | ArcGIS Enterprise on Kubernetes organization administrator account security question index | `number` | `1` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | staging_volume_class | Staging volume storage class | `string` | `"managed-premium"` | no |
 | staging_volume_size | Staging volume size | `string` | `"64Gi"` | no |
 | storage | Storage properties for the data stores | ```map(object({ type = string size = string class = string label1 = string label2 = string }))``` | ```{ "indexer": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "memory": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "object": { "class": "managed-premium", "label1": "", "label2": "", "size": "32Gi", "type": "DYNAMIC" }, "prometheus": { "class": "managed-premium", "label1": "", "label2": "", "size": "30Gi", "type": "DYNAMIC" }, "queue": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "relational": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "sharing": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" } }``` | no |

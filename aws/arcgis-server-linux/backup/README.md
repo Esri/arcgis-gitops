@@ -44,8 +44,8 @@ The module retrieves the backup S3 bucket name from '/arcgis/${var.site_id}/s3/b
 | admin_password | ArcGIS Server administrator user password | `string` | n/a | yes |
 | admin_username | ArcGIS Server administrator user name | `string` | `"siteadmin"` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
-| deployment_id | Deployment Id | `string` | `"arcgis-server"` | no |
+| deployment_id | Deployment Id | `string` | `"server"` | no |
 | run_as_user | User name for the account used to run ArcGIS Server | `string` | `"arcgis"` | no |
 | s3_prefix | Backup S3 object keys prefix | `string` | `"arcgis-server-backups"` | no |
-| site_id | ArcGIS site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 <!-- END_TF_DOCS -->

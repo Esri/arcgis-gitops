@@ -115,7 +115,7 @@ The module uses the following SSM parameters:
 | aws_region | AWS region Id | `string` | n/a | yes |
 | client_cidr_blocks | Client CIDR blocks | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-base"` | no |
+| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-base-linux"` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
@@ -124,7 +124,7 @@ The module uses the following SSM parameters:
 | root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
 | root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listeners of the load balancer | `string` | n/a | yes |
 | ssl_policy | Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers | `string` | `"ELBSecurityPolicy-TLS13-1-2-2021-06"` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |

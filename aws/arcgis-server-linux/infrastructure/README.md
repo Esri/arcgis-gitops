@@ -9,9 +9,11 @@ The module launches two SSM managed EC2 instances in the private VPC subnets or 
 The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameter.
 The image must be created by the Packer Template for ArcGIS Server on Linux AMI.
 
-For the primary EC2 instances the module creates "A" record in the VPC Route53 private hosted zone to make the instance addressable using permanent DNS names.
+For the primary EC2 instances the module creates "A" record in the VPC Route53 private hosted zone
+to make the instance addressable using permanent DNS names.
 
-> Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module is applied again after the SSM parameter value was modified by a new image build.
+> Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module
+  is applied again after the SSM parameter value was modified by a new image build.
 
 A highly available EFS file system is created and mounted to the EC2 instances.
 
@@ -40,17 +42,13 @@ On the machine where Terraform is executed:
 * Path to aws/scripts directory must be added to PYTHONPATH.
 * AWS credentials must be configured.
 
-Before creating the infrastructure, an SSL certificate for the ArcGIS Server deployment FQDN
-must be imported into or issued by AWS Certificate Manager service in the AWS account. The certificate's
-ARN specified by "ssl_certificate_arn" input variable will be used to configure HTTPS listeners of the load balancer.
+If alb_deployment_id is not set:
 
-If deployment_fqdn and hosted_zone_id input variables are specified,
-the module creates CNAME records in the hosted zone that routes the deployment FQDN to the load balancer DNS name.
-Otherwise, after creating the infrastructure, the domain name must be pointed to the DNS name of Application Load Balancer
-exported by "alb_dns_name" output value of the module.
-
-> Note that a hosted zone can contain only one record for each domain name. Use different hosted zones for multiple deployments
-  with the same deployment_fqdn, or configure the DNS records outside of the module.
+* Before creating the infrastructure, an SSL certificate for the ArcGIS Server deployment FQDN
+  must be imported into or issued by AWS Certificate Manager service in the AWS account. The certificate's
+  ARN specified by "ssl_certificate_arn" input variable will be used to configure HTTPS listeners of the load balancer.
+* After creating the infrastructure, the deployment FQDN must be pointed to the DNS name of Application Load Balancer
+  exported by "alb_dns_name" output value of the module.
 
 ## Troubleshooting
 
@@ -115,11 +113,10 @@ The module uses the following SSM parameters:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | alb_deployment_id | Base ArcGIS Enterprise deployment Id | `string` | `null` | no |
-| aws_region | AWS region Id | `string` | n/a | no |
+| aws_region | AWS region Id | `string` | n/a | yes |
 | client_cidr_blocks | Client CIDR blocks | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | `null` | no |
-| deployment_id | ArcGIS Server deployment Id | `string` | `"arcgis-server"` | no |
-| hosted_zone_id | The Route 53 hosted zone ID for the deployment FQDN | `string` | `null` | no |
+| deployment_id | ArcGIS Server deployment Id | `string` | `"server"` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
@@ -128,7 +125,7 @@ The module uses the following SSM parameters:
 | root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
 | root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"arcgis"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | ssl_certificate_arn | SSL certificate ARN for HTTPS listeners of the load balancer | `string` | n/a | yes |
 | ssl_policy | Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers | `string` | `"ELBSecurityPolicy-TLS13-1-2-2021-06"` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |

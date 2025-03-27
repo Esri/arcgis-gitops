@@ -24,7 +24,7 @@
 
 # EC2 security group for Application Load Balancer
 resource "aws_security_group" "arcgis_alb" {
-  name        = "${var.site_id}/${var.deployment_id}/alb"
+  name        = "${var.site_id}-${var.deployment_id}-alb"
   description = "Allow inbound traffic to load balancer ports"
   vpc_id      = var.vpc_id
 
@@ -37,7 +37,7 @@ resource "aws_security_group" "arcgis_alb" {
   }
 
   tags = {
-    Name = "${var.site_id}/${var.deployment_id}/alb"
+    Name = "${var.site_id}-${var.deployment_id}-alb"
   }
 }
 
@@ -65,7 +65,7 @@ resource "aws_security_group_rule" "allow_https" {
 
 # Application Load Balancer (ALB)
 resource "aws_lb" "alb" {
-  # name_prefix        = var.deployment_id
+  name               = "${var.site_id}-${var.deployment_id}"
   internal           = var.internal_load_balancer
   load_balancer_type = "application"
   security_groups    = [aws_security_group.arcgis_alb.id]

@@ -1,9 +1,9 @@
 {
-  "deployment_id": "arcgis-enterprise-k8s",
+  "deployment_id": "enterprise-k8s",
   "description": "Azure backup",
   "passcode": "<passcode>",
   "prefix": "enterprise-k8s-azure-backup",
   "retention": -1,
-  "site_id": "arcgis-enterprise",
+  "site_id": "arcgis",
   "store": null
 }

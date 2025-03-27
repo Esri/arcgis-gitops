@@ -10,7 +10,7 @@
   ],
   "arcgis_version": "11.4",
   "arcgis_web_adaptor_patches": [],
-  "deployment_id": "arcgis-enterprise-base",
+  "deployment_id": "enterprise-base-windows",
   "instance_type": "m6i.2xlarge",
   "os": "windows2022",
   "portal_web_context": "portal",
@@ -18,6 +18,6 @@
   "run_as_password": "<run_as_password>",
   "run_as_username": "arcgis",
   "server_web_context": "server",
-  "site_id": "arcgis-enterprise",
+  "site_id": "arcgis",
   "skip_create_ami": false
 }

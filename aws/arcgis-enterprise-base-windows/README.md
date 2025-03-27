@@ -9,7 +9,7 @@ Supported ArcGIS Enterprise versions:
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
-2. Provision core AWS resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
+2. Create core AWS resources and Chef automation resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 
@@ -33,8 +33,8 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "arcgis_data_store_patches", "arcgis_portal_patches", "arcgis_server_patches", and "arcgis_web_adaptor_patches" properties in image.vars.json file to the lists of patch file names that must be installed on the images.
-2. Set "run_as_password" property in image.vars.json file to the password of `arcgis` user account.
+1. Set "arcgis_data_store_patches", "arcgis_portal_patches", "arcgis_server_patches", and "arcgis_web_adaptor_patches" properties to the lists of patch file names that must be installed on the images.
+2. Set "run_as_password" property to the password of `arcgis` user account.
 3. Commit the changes to a Git branch and push the branch to GitHub.
 4. Run enterprise-base-windows-aws-image workflow using the branch.
 
@@ -61,12 +61,13 @@ Workflow Outputs:
 
 Instructions:
 
-1. Create an EC2 key pair in the selected AWS region and set "key_name" property in infrastructure.tfvars.json file to the key pair name. Save the private key in a secure location.
-2. Provision or import SSL certificate for the base ArcGIS Enterprise domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property in infrastructure.tfvars.json file to the certificate ARN.
-3. If required, change "instance_type" and "root_volume_size" properties in infrastructure.tfvars.json file to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
-4. Commit the changes to the Git branch and push the branch to GitHub.
-5. Run enterprise-base-windows-aws-infrastructure workflow using the branch.
-6. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
+1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
+2. Provision or import SSL certificate for the base ArcGIS Enterprise domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property to the certificate ARN.
+3. Set "deployment_fqdn" property to the base ArcGIS Enterprise deployment fully qualified domain name.
+4. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+5. Commit the changes to the Git branch and push the branch to GitHub.
+6. Run enterprise-base-windows-aws-infrastructure workflow using the branch.
+7. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
 
 > Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs check the run logs of "Terraform Apply" step.
 
@@ -89,11 +90,11 @@ Outputs:
 
 Instructions:
 
-1. Add Portal for ArcGIS and ArcGIS Server authorization files for the ArcGIS Enterprise version to `config/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties in application.tfvars.json file to the file paths.
-2. Set "deployment_fqdn" property in application.tfvars.json file to the base ArcGIS Enterprise deployment fully qualified domain name.
-3. Set "admin_username", "admin_password", "admin_full_name", "admin_description", "admin_email", "security_question", and "security_question_answer" in application.tfvars.json file to the initial ArcGIS Enterprise administrator account properties.
-4. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties in application.tfvars.json file to the file paths. Set "keystore_file_password" property to password of the keystore file.
-5. Set "run_as_password" property in application.tfvars.json file to the password of `arcgis` user account.
+1. Add Portal for ArcGIS and ArcGIS Server authorization files for the ArcGIS Enterprise version to `config/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties to the file paths.
+2. Set "deployment_fqdn" property to the base ArcGIS Enterprise deployment fully qualified domain name.
+3. Set "admin_username", "admin_password", "admin_full_name", "admin_description", "admin_email", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
+4. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
+5. Set "run_as_password" property to the password of `arcgis` user account.
 6. Commit the changes to the Git branch and push the branch to GitHub.
 7. Run enterprise-base-windows-aws-application workflow using the branch.
 

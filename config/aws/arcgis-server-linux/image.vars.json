@@ -3,13 +3,13 @@
     "ArcGIS-114-S-*-linux.tar"
   ],
   "arcgis_version": "11.4",
-  "deployment_id": "arcgis-server",
+  "deployment_id": "server",
   "instance_type": "m6i.2xlarge",
   "os": "rhel8",
   "root_volume_size": 100,
   "run_as_user": "arcgis",
   "server_web_context": "arcgis",
-  "site_id": "arcgis-enterprise",
+  "site_id": "arcgis",
   "skip_create_ami": false,
-  "use_webadaptor": false
+  "use_webadaptor": true
 }

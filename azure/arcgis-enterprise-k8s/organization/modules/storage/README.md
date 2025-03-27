@@ -37,9 +37,9 @@ The module:
 | azure_region | Azure region display name | `string` | n/a | yes |
 | client_id | Client Id of the AKS cluster identity | `string` | n/a | yes |
 | cloud_config_json_file_path | ArcGIS Enterprise on Kubernetes cloud configuration JSON file path | `string` | `null` | no |
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"arcgis-enterprise-k8s"` | no |
+| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
 | principal_id | Principal Id of the AKS cluster identity | `string` | n/a | yes |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis-enterprise"` | no |
+| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | subnet_id | Subnet Id of the private endpoint | `string` | n/a | yes |
 
 ## Outputs

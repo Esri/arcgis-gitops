@@ -16,6 +16,8 @@ name: verify-site-config-aws
 
 on: 
   workflow_dispatch:
+# pull_request:
+#   types: [opened, reopened]
 
 env:
   PYTHONPATH: ${{ github.workspace }}/aws/scripts

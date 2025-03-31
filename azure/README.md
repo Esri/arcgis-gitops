@@ -106,4 +106,6 @@ Run validate-settings-azure GitHub Actions workflow to validate the settings.
 
 Follow the [arcgis-site-core](arcgis-site-core/README.md) template instructions to provision core Azure resources for the ArcGIS Enterprise site.
 
-Consult the README files of the other templates to create and operate the required ArcGIS Enterprise deployments.
+> Consult the README files of the other templates to create and operate the required ArcGIS Enterprise deployments.
+
+Use **verify-site-config-azure** GitHub Actions workflow to verify the site configuration before running any other workflows. The workflow checks integrity of configuration of the deployments specified by "deployments" array in [site-index.json](../config/azure/site-index.json) file.

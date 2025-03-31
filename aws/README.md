@@ -121,7 +121,7 @@ For ArcGIS Enterprise on Kubernetes:
 | AWS_DEFAULT_REGION          | Default AWS region Id               |
 | TERRAFORM_BACKEND_S3_BUCKET | Terraform backend S3 bucket         |
 
-Run validate-settings-aws GitHub Actions workflow to validate the settings.
+Run **validate-settings-aws** GitHub Actions workflow to validate the settings.
 
 > If the GitHub subscription plan supports GitHub Actions Environments, consider [environment secrets](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) to use secrets specific to each environment.
 
@@ -134,6 +134,8 @@ Create base ArcGIS Enterprise deployment using the [arcgis-enterprise-base-windo
 Optionally, create deployments for each require additional server roles.
 
 > Consult the README files of the templates to create and operate the required ArcGIS Enterprise deployments.
+
+Use **verify-site-config-aws** GitHub Actions workflow to verify the site configuration before running any other workflows. The workflow checks integrity of configuration of the deployments specified by "deployments" array in [site-index.json](../config/aws/site-index.json) file.
 
 ### 5. Create the Standby Site
 
@@ -160,3 +162,4 @@ To activate the standby site:
 > The test workflow cannot be used with the standby site deployments until it is activated.
 
 > The standby site deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types could differ from the active deployment.
+

@@ -1,0 +1,7 @@
+{
+  "provider": "aws",
+  "core": "arcgis-site-core",
+  "deployments": [
+    "arcgis-enterprise-base-linux"
+  ]
+}

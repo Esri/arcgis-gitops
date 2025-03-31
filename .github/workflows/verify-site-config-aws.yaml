@@ -34,8 +34,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.ref_name }}
     - name: Link Config Directory
       run: ln -s ${{ github.workspace }}/config ~/config
     - name: Verify site configuration

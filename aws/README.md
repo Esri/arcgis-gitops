@@ -137,6 +137,8 @@ Optionally, create deployments for each require additional server roles.
 
 Use **verify-site-config-aws** GitHub Actions workflow to verify the site configuration before running any other workflows. The workflow checks integrity of configuration of the deployments specified by "deployments" array in [site-index.json](../config/aws/site-index.json) file.
 
+> Consider triggering verify-site-config-aws workflow by pull requests to the main branch to verify the configuration changes before merging them into the main branch.
+
 ### 5. Create the Standby Site
 
 One common approach to responding to a disaster scenario is to switch traffic to a Standby site, which exists to take on traffic when a primary site identifies or experiences issues.
@@ -162,4 +164,3 @@ To activate the standby site:
 > The test workflow cannot be used with the standby site deployments until it is activated.
 
 > The standby site deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types could differ from the active deployment.
-

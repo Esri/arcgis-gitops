@@ -109,3 +109,5 @@ Follow the [arcgis-site-core](arcgis-site-core/README.md) template instructions 
 > Consult the README files of the other templates to create and operate the required ArcGIS Enterprise deployments.
 
 Use **verify-site-config-azure** GitHub Actions workflow to verify the site configuration before running any other workflows. The workflow checks integrity of configuration of the deployments specified by "deployments" array in [site-index.json](../config/azure/site-index.json) file.
+
+> Consider triggering verify-site-config-azure workflow by pull requests to the main branch to verify the configuration changes before merging them into the main branch.

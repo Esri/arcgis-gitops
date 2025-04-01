@@ -277,10 +277,27 @@ python -m test_aws_credentials [-h] [-b S3_BUCKET]
 options:
 
 ```shell
-  -h, --help            show this help message and exit
-  -b S3_BUCKET          Output S3 bucket
+  -h, --help    show this help message and exit
+  -b S3_BUCKET  output S3 bucket
 ```
 
 ## token_service_client
 
 ArcGIS Online token service client.
+
+## verify_site_config
+
+Verifies configuration of the site referenced by the specified index JSON file.
+
+usage:
+
+```shell
+python -m verify_site_config [-h] [-i SITE_INDEX]
+```
+
+options:
+
+```shell
+  -h, --help     show this help message and exit
+  -i SITE_INDEX  Site index file path
+```

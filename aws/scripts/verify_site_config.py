@@ -17,7 +17,7 @@
 # - The site_id is set and the same in all the config files of the site.
 # - The values of attributes are the same across all the deployment's config files.
 # - The values of attributes are set and not placeholders (e.g., <value>).
-# - The files referenced by properties like "*_file_path" exist.
+# - The files referenced by properties specified by FILE_PATH_PROPERTIES array exist.
 
 import json
 import os

@@ -33,8 +33,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.ref_name }}
     - name: Build Container Image
       run: |
         docker build -t enterprise-admin-cli .

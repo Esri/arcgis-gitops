@@ -36,8 +36,6 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      with:
-        ref: ${{ github.ref_name }}
     - name: Run Tests
       run: |
         AWS_REGION=$(jq -r '.aws_region' $CONFIG_FILE)

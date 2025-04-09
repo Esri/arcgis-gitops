@@ -67,7 +67,7 @@
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                  "ssm:resourceTag/ArcGISAutomation": "arcgis-gitops"
+                  "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
                 }
             }
         },

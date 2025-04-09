@@ -63,7 +63,7 @@ jobs:
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
                          -backend-config="key=$SITE_ID/azure/k8s-cluster.tfstate"
       - name: Terraform Apply
-        if: github.event.inputs.terraform_command == 'apply'
+        if: github.event.inputs.terraform_command != 'plan'
         run: |
           az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
           az account set --subscription $ARM_SUBSCRIPTION_ID
@@ -72,7 +72,7 @@ jobs:
         if: github.event.inputs.terraform_command == 'plan'
         run: terraform plan -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD
       - name: Test AKS cluster access
-        if: github.event.inputs.terraform_command == 'apply'
+        if: github.event.inputs.terraform_command != 'plan'
         run: |
           echo "Test"
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)

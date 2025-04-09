@@ -69,7 +69,7 @@ jobs:
         terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$TF_VAR_aws_region" 
     - name: Terraform Apply
       id: apply
-      if: github.event.inputs.terraform_command == 'apply'
+      if: github.event.inputs.terraform_command != 'plan'
       run: terraform apply -var-file $CONFIG_FILE -auto-approve
     - name: Terraform Plan
       id: plan

@@ -66,11 +66,11 @@ jobs:
       run: terraform plan -var-file $CONFIG_FILE
     - name: Terraform Apply
       id: apply
-      if: github.event.inputs.terraform_command == 'apply'
+      if: github.event.inputs.terraform_command != 'plan'
       run: terraform apply -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve
     - name: Test EKS cluster access
       id: test
-      if: github.event.inputs.terraform_command == 'apply'      
+      if: github.event.inputs.terraform_command != 'plan'      
       run: |
         echo "Test"
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)

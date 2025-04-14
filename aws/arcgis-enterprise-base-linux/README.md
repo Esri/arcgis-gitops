@@ -68,7 +68,7 @@ Instructions:
 6. Run enterprise-base-linux-aws-infrastructure workflow using the branch.
 7. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
 
-> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs, check the run logs of "Terraform Apply" step.
+> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
 
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 

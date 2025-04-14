@@ -69,7 +69,7 @@ Instructions:
 7. Run server-linux-aws-infrastructure workflow using the branch.
 8. If alb_deployment_id is not set, retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Server domain name.
 
-> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs, check the run logs of "Terraform Apply" step.
+> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
 
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 

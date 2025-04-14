@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,6 +13,6 @@
 # limitations under the License.
  
 output "alb_dns_name" {
-  description = "DNS name of the load balancer"
+  description = "DNS name of the deployment's ingress load balancer"
   value = kubernetes_ingress_v1.arcgis_enterprise.status.0.load_balancer.0.ingress.0.hostname
 }

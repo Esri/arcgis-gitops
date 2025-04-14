@@ -62,7 +62,7 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/arn | LBB ARN (if alb_deployment_id is specified) |
+ * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/arn | ALB ARN (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/security-group-id | ALB security group Id (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
@@ -71,6 +71,16 @@
  * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id |
+ *
+ * The module creates the following SSM parameters:
+ *
+ * | SSM parameter name | Description |
+ * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer (if alb_deployment_id is not specified) |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer (if alb_deployment_id is not specified) |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer (if alb_deployment_id is not specified) |
  */
 
 # Copyright 2024-2025 Esri

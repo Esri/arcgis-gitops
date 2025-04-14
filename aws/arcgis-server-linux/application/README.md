@@ -41,7 +41,7 @@ My Esri user name and password must be specified either using environment variab
 
 ## SSM Parameters
 
-The module uses the following SSM parameters:
+The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|

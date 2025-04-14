@@ -52,7 +52,7 @@ The SSM commands output stored in the logs S3 bucket is copied in the Terraform 
 
 ## SSM Parameters
 
-The module uses the following SSM parameters:
+The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
@@ -65,7 +65,7 @@ The module uses the following SSM parameters:
 | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
 | /arcgis/${var.site_id}/vpc/id | VPC Id |
 
-The module creates the following SSM parameters:
+The module writes the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|

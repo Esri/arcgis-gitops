@@ -17,7 +17,7 @@
  *
  * ## SSM Parameters
  *
- * The module uses the following SSM parameters: 
+ * The module reads the following SSM parameters: 
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|

@@ -5,7 +5,7 @@
  * It sets up a security group, HTTP and HTTPS listeners, and a default target group for the load balancer.
  * The module also creates a private Route53 hosted zone and an alias A record for the load balancer DNS name.
  * The load balancer is configured to redirect HTTP ports to HTTPS.
- * The security group Id and ARN of the load balancer are stored in SSM Parameter Store.
+ * The security group Id, ARN, and DNS name of the load balancer are stored in SSM Parameter Store.
  */
 
 # Copyright 2025 Esri
@@ -127,6 +127,13 @@ resource "aws_ssm_parameter" "alb_arn" {
   type        = "String"
   value       = aws_lb.alb.arn
   description = "ARN of the deployment's ALB"
+}
+
+resource "aws_ssm_parameter" "alb_dns_name" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name"
+  type        = "String"
+  value       = aws_lb.alb.dns_name
+  description = "DNS name of the deployment's ALB"
 }
 
 # Route53 private hosted zone for the deployment FQDN

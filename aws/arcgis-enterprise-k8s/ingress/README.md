@@ -8,7 +8,8 @@ a cluster-level ingress controller that routes traffic to the deployment.
 See: https://enterprise-k8s.arcgis.com/en/latest/deploy/use-a-cluster-level-ingress-controller-with-eks.htm
 
 If a Route 53 hosted zone ID is provided, a CNAME record is created in the hosted zone
-that points the deployment's FQDN to the load balancer's DNS name.
+that points the deployment's FQDN to the load balancer's DNS name. The DNS name is also stored in
+"/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
 
 ## Requirements
 
@@ -29,6 +30,7 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [aws_route53_record.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_ssm_parameter.alb_dns_name](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [kubernetes_ingress_v1.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/ingress_v1) | resource |
 | [kubernetes_namespace.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/namespace) | resource |
 
@@ -50,5 +52,5 @@ On the machine where Terraform is executed:
 
 | Name | Description |
 |------|-------------|
-| alb_dns_name | DNS name of the load balancer |
+| alb_dns_name | DNS name of the deployment's ingress load balancer |
 <!-- END_TF_DOCS -->

@@ -8,7 +8,8 @@
  * See: https://enterprise-k8s.arcgis.com/en/latest/deploy/use-a-cluster-level-ingress-controller-with-eks.htm
  *
  * If a Route 53 hosted zone ID is provided, a CNAME record is created in the hosted zone
- * that points the deployment's FQDN to the load balancer's DNS name.
+ * that points the deployment's FQDN to the load balancer's DNS name. The DNS name is also stored in 
+ * "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
  * 
  * ## Requirements
  * 
@@ -119,6 +120,13 @@ resource "kubernetes_ingress_v1" "arcgis_enterprise" {
   depends_on = [
     kubernetes_namespace.arcgis_enterprise
   ]
+}
+
+resource "aws_ssm_parameter" "alb_dns_name" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name"
+  type        = "String"
+  value       = kubernetes_ingress_v1.arcgis_enterprise.status.0.load_balancer.0.ingress.0.hostname
+  description = "DNS name of the deployment's ingress load balancer"
 }
 
 resource "aws_route53_record" "arcgis_enterprise" {

@@ -54,7 +54,7 @@
  * 
  * ## SSM Parameters
  *
- * The module uses the following SSM parameters: 
+ * The module reads the following SSM parameters: 
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
@@ -65,6 +65,18 @@
  * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id |
+ *
+ * The module writes the following SSM parameters:
+ *
+ * | SSM parameter name | Description |
+ * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | Portal for ArcGIS content store S3 bucket |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | Object store S3 bucket |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer (if alb_deployment_id is not specified) |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer (if alb_deployment_id is not specified) |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer (if alb_deployment_id is not specified) |
  */
 
 # Copyright 2024-2025 Esri

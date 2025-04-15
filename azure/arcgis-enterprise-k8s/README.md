@@ -66,7 +66,7 @@ Instructions:
 6. Run enterprise-k8s-azure-ingress workflow using the branch.
 7. If Azure DNS is not used, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
-> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the outputs, check the run logs of "Run Terraform" step.
+> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "${var.deployment_id}-alb-dns-name" secret of the site's key vault.
 
 ### 3. Create ArcGIS Enterprise Organization
 

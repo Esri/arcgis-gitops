@@ -97,4 +97,3 @@ module "private_server_https_alb_target" {
     module.alb
   ]
 }
-

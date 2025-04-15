@@ -17,6 +17,7 @@ This module manages the ingress resources for the deployment of ArcGIS Enterpris
 
 If hosted zone name is provided, a CNAME record is created in the hosted zone
 that points the deployment's FQDN to the Application Gateway's frontend DNS name.
+The DNS name is also stored in "${var.deployment_id}-ingress-dns-name" Key Vault secret.
 
 ## Requirements
 
@@ -45,6 +46,7 @@ On the machine where Terraform is executed:
 |------|------|
 | [azurerm_application_load_balancer_frontend.deployment_frontend](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_load_balancer_frontend) | resource |
 | [azurerm_dns_cname_record.example](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_cname_record) | resource |
+| [azurerm_key_vault_secret.alb_dns_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [kubernetes_manifest.gateway](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_manifest.health_check_policy](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
 | [kubernetes_manifest.http_route](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/manifest) | resource |
@@ -72,6 +74,6 @@ On the machine where Terraform is executed:
 
 | Name | Description |
 |------|-------------|
-| alb_dns_name | FQDN of the Application Gateway frontend |
 | deployment_url | URL of the ArcGIS Enterprise on Kubernetes deployment |
+| alb_dns_name | FQDN of the Application Gateway frontend |
 <!-- END_TF_DOCS -->

@@ -17,6 +17,7 @@
  *
  * If hosted zone name is provided, a CNAME record is created in the hosted zone
  * that points the deployment's FQDN to the Application Gateway's frontend DNS name.
+ * The DNS name is also stored in "${var.deployment_id}-alb-dns-name" Key Vault secret.
  * 
  * ## Requirements
  * 
@@ -293,6 +294,12 @@ resource "kubernetes_manifest" "health_check_policy" {
   depends_on = [
     kubernetes_namespace.arcgis_enterprise
   ]
+}
+
+resource "azurerm_key_vault_secret" "alb_dns_name" {
+  name         = "${var.deployment_id}-alb-dns-name"
+  value        = azurerm_application_load_balancer_frontend.deployment_frontend.fully_qualified_domain_name
+  key_vault_id = module.site_core_info.vault_id
 }
 
 # Create a CNAME record in the hosted zone that points the deployment's FQDN 

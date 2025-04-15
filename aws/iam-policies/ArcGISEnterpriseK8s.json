@@ -51,8 +51,14 @@
         },
         {
             "Effect": "Allow",
-            "Action":[
-                "ssm:GetParameter"
+            "Action": [
+                "ssm:AddTagsToResource",
+                "ssm:DeleteParameter",
+                "ssm:DescribeParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameters",
+                "ssm:ListTagsForResource",
+                "ssm:PutParameter"
             ],
             "Resource": "*"
         },

@@ -176,6 +176,7 @@
         {
             "Effect": "Allow",
             "Action": [
+                "route53:DeleteHostedZone",
                 "route53:GetChange",
                 "route53:GetHostedZone",
                 "route53:ChangeResourceRecordSets",

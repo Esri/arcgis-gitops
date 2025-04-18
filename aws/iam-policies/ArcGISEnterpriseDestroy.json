@@ -4,6 +4,8 @@
         {
             "Effect": "Allow",
             "Action": [
+                "ec2:DeleteSnapshot",
+                "ec2:DeregisterImage",
                 "ec2:DetachNetworkInterface",
                 "ec2:DescribeImages",
                 "ec2:DescribeInstanceAttribute",

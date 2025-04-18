@@ -184,7 +184,7 @@ Instructions:
 
 ## Destroying Deployments
 
-GitHub Actions workflow **enterprise-base-windows-aws-destroy** destroys AWS resources created by enterprise-base-windows-aws-infrastructure and enterprise-base-windows-aws-application workflows.
+GitHub Actions workflow **enterprise-base-windows-aws-destroy** destroys AWS resources created by enterprise-base-windows-aws-image, enterprise-base-windows-aws-snapshot, enterprise-base-windows-aws-infrastructure and enterprise-base-windows-aws-application workflows.
 
 The workflow uses [infrastructure](infrastructure/README.md) and [application](application/README.md) Terraform templates with [infrastructure.tfvars.json](../../config/aws/arcgis-enterprise-base-windows/infrastructure.tfvars.json) and [application.tfvars.json](../../config/aws/arcgis-enterprise-base-windows/application.tfvars.json) config files.
 

@@ -183,7 +183,7 @@ Instructions:
 
 ## Destroying Deployments
 
-GitHub Actions workflow **server-linux-aws-destroy** destroys AWS resources created by server-linux-aws-infrastructure and server-linux-aws-application workflows.
+GitHub Actions workflow **server-linux-aws-destroy** destroys AWS resources created by server-linux-aws-image, server-linux-aws-snapshot, server-linux-aws-infrastructure and server-linux-aws-application workflows.
 
 The workflow uses [infrastructure](infrastructure/README.md) and [application](application/README.md) Terraform templates with [infrastructure.tfvars.json](../../config/aws/arcgis-server-linux/infrastructure.tfvars.json) and [application.tfvars.json](../../config/aws/arcgis-server-linux/application.tfvars.json) config files.
 

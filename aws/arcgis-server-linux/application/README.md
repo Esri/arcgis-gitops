@@ -101,7 +101,7 @@ The module reads the following SSM parameters:
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | n/a | yes |
-| deployment_id | Deployment Id | `string` | `"server"` | no |
+| deployment_id | Deployment Id | `string` | `"server-linux"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
 | keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |

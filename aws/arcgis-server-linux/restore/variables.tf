@@ -53,7 +53,7 @@ variable "backup_site_id" {
 variable "deployment_id" {
   description = "Deployment Id"
   type        = string
-  default     = "server"
+  default     = "server-linux"
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))

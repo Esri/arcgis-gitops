@@ -10,6 +10,24 @@ The scripts retrieve AWS credentials and region from environment variables:
 * AWS_SECRET_ACCESS_KEY - the secret key associated with the access key
 * AWS_DEFAULT_REGION - code of the default AWS region
 
+## delete_deployment_amis
+
+Deletes AMIs used by the specified deployment and SSM parameters referencing the AMIs.
+
+usage:
+
+```shell
+python -m delete_deployment_amis [-h] [-s SITE_ID] [-d DEPLOYMENT_ID]
+```
+
+options:
+
+```shell
+  -h, --help            show this help message and exit
+  -s SITE_ID            ArcGIS Enterprise site Id
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment Id
+```
+
 ## downloads_api
 
 My Esri Downloads API repository client.

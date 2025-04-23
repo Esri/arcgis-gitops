@@ -23,10 +23,7 @@ The workflows leverage popular DevOps tools, including Terraform, Ansible, and P
 
 The workflows designed to be used together to achieve a specific goal are grouped into *templates*.
 
-See the walkthroughs in the wiki pages for detailed instructions on how to use the templates:
-
-* The [Getting Started walkthrough](https://github.com/Esri/arcgis-gitops/wiki/Getting-Started) will guide you through the process of deploying, disaster recovery, and patching of a highly available ArcGIS Server site in Amazon Web Services public cloud using GitHub Actions.
-* The [ArcGIS Enterprise on Kubernetes in AKS walkthrough](https://github.com/Esri/arcgis-gitops/wiki/ArcGIS-Enterprise-on-Kubernetes-in-AKS) will guide you through the process of deploying ArcGIS Enterprise on Kubernetes in Microsoft Azure Kubernetes Service (AKS) using GitHub Actions.
+See the [walkthroughs](https://github.com/Esri/arcgis-gitops/wiki) in the wiki pages for step-by-step instructions on how to use the templates.
 
 Refer to the READMEs of the cloud platform templates for specific usage instructions:
 

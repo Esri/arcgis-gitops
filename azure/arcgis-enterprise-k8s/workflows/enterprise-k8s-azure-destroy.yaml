@@ -21,7 +21,7 @@ on:
         description: 'Delete namespace'
         type: boolean
         required: true
-        default: false
+        default: true
 
 env:
   TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}
@@ -74,7 +74,7 @@ jobs:
           terraform destroy -var-file $ORGANIZATION_CONFIG_FILE -auto-approve
       - name: Destroy Ingress
         id: destroy-ingress
-        if: ${{ inputs.delete_namespace }} 
+        if: ${{ inputs.delete_namespace != false }}
         working-directory: azure/arcgis-enterprise-k8s/ingress
         run: |
           SITE_ID=$(jq -r '.site_id' $INGRESS_CONFIG_FILE)

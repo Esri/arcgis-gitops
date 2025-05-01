@@ -41,6 +41,7 @@ The following templates are available for AWS:
 * [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
 * [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) - Base ArcGIS Enterprise on Linux deployment operations
 * [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment operations
+* [arcgis-notebook-server-linux](arcgis-notebook-server-linux/README.md) - ArcGIS Notebook Server on Linux deployment operations
 * [arcgis-server-linux](arcgis-server-linux/README.md) - ArcGIS Server on Linux deployment operations
 
 ## Triggering Workflows

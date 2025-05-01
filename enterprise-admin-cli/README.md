@@ -264,6 +264,27 @@ Arguments:
   --timeout TIMEOUT     backup job timeout (seconds)
 ```
 
+## test-nb-admin script
+
+Tests ArcGIS Notebook Server admin endpoint accessibility.
+
+Usage:
+
+```text
+gis test-nb-admin [-h] [--nb-url NB_URL] [--url URL] [-u USER] [-p PASSWORD]
+```
+
+Arguments:
+
+```text
+  -h, --help            show this help message and exit
+  --nb-url NB_URL       ArcGIS Notebook Server URL  
+  --url URL             ArcGIS Enterprise URL
+  -u USER, --user USER  ArcGIS Enterprise user name
+  -p PASSWORD, --password PASSWORD
+                        ArcGIS Enterprise user password
+```
+
 ## test-publish-csv script
 
 Tests ArcGIS Enterprise deployment by publishing feature service from CSV file.

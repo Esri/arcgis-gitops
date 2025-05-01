@@ -1,0 +1,56 @@
+# Copyright 2025 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: notebook-server-linux-aws-backup
+
+on: 
+  workflow_dispatch:
+  # schedule:
+  # - cron: '0 0 * * *'
+      
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-notebook-server-linux/backup.vars.json
+
+concurrency:
+  group: ${{ github.ref_name }}
+
+jobs:
+  backup:
+    name: Create Backup
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: aws/arcgis-notebook-server-linux/backup
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install boto3
+      id: install-boto3
+      run: pip install boto3    
+    - name: Export Site
+      id: export-site
+      run: |
+        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+        LOGS_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/s3/logs" --query "Parameter.Value" --output text)
+        export JSON_ATTRIBUTES=$(cat $CONFIG_FILE | base64)
+        JSON_ATTRIBUTES_PARAMETER="/arcgis/$SITE_ID/attributes/$DEPLOYMENT_ID/arcgis-notebook-server/backup"
+        python -m ssm_run_shell_script -s $SITE_ID -d $DEPLOYMENT_ID -m primary -j $JSON_ATTRIBUTES_PARAMETER -f exportSite.sh -b $LOGS_S3_BUCKET -e 600

@@ -39,7 +39,7 @@ jobs:
     - name: Run Tests
       run: |
         DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
-        ARCGIS_ENTERPRISE_CONTEXT=$(jq -r '.server_web_context' $CONFIG_FILE)
+        SERVER_WEB_CONTEXT=$(jq -r '.server_web_context' $CONFIG_FILE)
         ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
         ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
-        docker run -e ARCGIS_SERVER_USER=$ADMIN_USERNAME -e ARCGIS_SERVER_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-server-admin --url https://$DEPLOYMENT_FQDN/$ARCGIS_ENTERPRISE_CONTEXT
+        docker run -e ARCGIS_SERVER_USER=$ADMIN_USERNAME -e ARCGIS_SERVER_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-server-admin --url https://$DEPLOYMENT_FQDN/$SERVER_WEB_CONTEXT

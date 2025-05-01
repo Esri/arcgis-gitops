@@ -156,7 +156,7 @@ Instructions:
 
 ### Create Snapshots and Restore from Snapshots
 
-GitHub Actions workflow **enterprise-base-linux-aws-snapshot** creates a system-level backup by creating AMIs from all EC2 instances of base ArcGIS Enterprise deployment. The workflow the workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-enterprise-base-linux/image.vars.json) config file and runs snapshot_deployment Python script. The workflow requires ArcGISEnterpriseImage IAM policy.
+GitHub Actions workflow **enterprise-base-linux-aws-snapshot** creates a system-level backup by creating AMIs from all EC2 instances of base ArcGIS Enterprise deployment. The workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-enterprise-base-linux/image.vars.json) config file and runs snapshot_deployment Python script. The workflow requires ArcGISEnterpriseImage IAM policy.
 
 The workflows overwrites the AMI IDs in SSM Parameter Store written there by enterprise-base-linux-aws-image workflow. When necessary, the deployment can be rolled back to state captured in the snapshot by running enterprise-base-linux-aws-infrastructure workflow.
 

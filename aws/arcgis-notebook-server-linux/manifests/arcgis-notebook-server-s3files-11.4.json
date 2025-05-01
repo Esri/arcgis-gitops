@@ -1,0 +1,67 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "/opt/software/archives",
+      "local_patches": "/opt/software/archives/patches",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "${s3bucket}",
+        "region": "${region}"
+      },
+      "patch_notification": {
+        "products": [
+          "ArcGIS Notebook Server",
+          "ArcGIS Web Adaptor (Java)"
+        ],
+        "versions": [
+          "11.4"
+        ],
+        "patches": [
+          "ArcGIS-114-NS-*.tar",
+          "ArcGIS-114-NS-*.tar.gz",
+          "ArcGIS-114-WAJ-*.tar",
+          "ArcGIS-114-WAJ-*.tar.gz"
+        ],
+        "subfolder": "software/arcgis/11.4/patches"        
+      },
+      "metadata": {
+        "java_tarball": "jdk-11.0.21.tar.gz",
+        "java_version": "11.0.21+9",
+        "tomcat_tarball": "apache-tomcat-9.0.83.tar.gz",
+        "tomcat_version": "9.0.83"
+      },
+      "files": {
+        "ArcGIS_Notebook_Docker_Advanced_114_192953.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "C9F76DA3590E347EF9A22CBF1D27A77F33695AFEFDAF6D7B5D6EBB8BB6855552"
+        },
+        "ArcGIS_Notebook_Docker_Standard_114_192952.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "ACFCBD55856DC4B9FC37F92E2A6AFB3747B83BEAC8DD00683C3E6C8052EC42D9"
+        },
+        "ArcGIS_Notebook_Server_Linux_114_192992.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "9E456AAC84738993E66CAEE8DEA2E5F353FB9B5FA15CC1B3D05132AF11569B6D"
+        },
+        "ArcGIS_Web_Adaptor_Java_Linux_114_192983.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "D01B9EBFF0FEA724266128F57369D0CAF9F4EC99C21DFA386634BAACAFBCBE55"
+        },
+        "apache-tomcat-9.0.83.tar.gz": {
+          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.83/bin/apache-tomcat-9.0.83.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "76092DAE89DC1F3AE6DD11404D64852761A401F18CD373C93B5FF7EF2CE4F90A"
+        },
+        "jdk-11.0.21.tar.gz": {
+          "url": "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.21%2B9/OpenJDK11U-jdk_x64_linux_hotspot_11.0.21_9.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "60EA98DAA09834FDD3162CA91DDC8D92A155AB3121204F6F643176EE0C2D0D5E"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
+}

@@ -1,0 +1,17 @@
+{
+  "arcgis_notebook_server_patches": [
+    "ArcGIS-114-NS-*.tar",
+    "ArcGIS-114-NS-*.tar.gz"
+  ],
+  "arcgis_version": "11.4",
+  "arcgis_web_adaptor_patches": [],
+  "deployment_id": "notebook-server-linux",
+  "instance_type": "m6i.2xlarge",
+  "license_level": "standard",
+  "notebook_server_web_context": "notebooks",
+  "os": "ubuntu22",
+  "root_volume_size": 100,
+  "run_as_user": "arcgis",
+  "site_id": "arcgis",
+  "skip_create_ami": false
+}

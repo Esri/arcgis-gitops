@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: server-linux-aws-test
+name: notebook-server-linux-aws-test
 
 on: 
   workflow_dispatch:
  
 env:
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-linux/application.tfvars.json
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-notebook-server-linux/application.tfvars.json
 
 jobs:
   test:
@@ -39,7 +39,9 @@ jobs:
     - name: Run Tests
       run: |
         DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
-        ARCGIS_ENTERPRISE_CONTEXT=$(jq -r '.server_web_context' $CONFIG_FILE)
+        NOTEBOOK_SERVER_WEB_CONTEXT=$(jq -r '.notebook_server_web_context' $CONFIG_FILE)
+        NB_URL=https://$DEPLOYMENT_FQDN/$NOTEBOOK_SERVER_WEB_CONTEXT
+        PORTAL_URL=$(jq -r '.portal_url' $CONFIG_FILE)
         ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
         ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
-        docker run -e ARCGIS_SERVER_USER=$ADMIN_USERNAME -e ARCGIS_SERVER_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-server-admin --url https://$DEPLOYMENT_FQDN/$ARCGIS_ENTERPRISE_CONTEXT
+        docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-nb-admin --nb-url $NB_URL --url $PORTAL_URL

@@ -67,7 +67,8 @@ if __name__ == '__main__':
                 continue
 
             if machine_role not in amis_by_role:
-                ami_name  = '{deployment}-{version}-{role}-{timestamp}'.format(
+                ami_name  = '{site}-{deployment}-{version}-{role}-{timestamp}'.format(
+                    site=args.site_id,
                     deployment=args.deployment_id,
                     version=arcgis_version,
                     role=machine_role,

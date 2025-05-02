@@ -36,6 +36,7 @@ SKIP_PROPERTIES = [
 FILE_PATH_PROPERTIES = [
     "portal_authorization_file_path",
     "server_authorization_file_path",
+    "notebook_server_authorization_file_path",
     "keystore_file_path",
     "tls_certificate_path",
     "tls_private_key_path",

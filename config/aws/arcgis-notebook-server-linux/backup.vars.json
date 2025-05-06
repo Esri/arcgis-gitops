@@ -1,6 +1,4 @@
 {
-  "admin_password": "<admin_password>",
-  "admin_username": "siteadmin",
   "deployment_id": "notebook-server-linux",
   "run_as_user": "arcgis",
   "site_id": "arcgis",

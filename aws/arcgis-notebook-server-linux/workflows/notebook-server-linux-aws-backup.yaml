@@ -23,6 +23,8 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
+  ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-notebook-server-linux/backup.vars.json
 
@@ -51,6 +53,6 @@ jobs:
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         LOGS_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/s3/logs" --query "Parameter.Value" --output text)
-        export JSON_ATTRIBUTES=$(cat $CONFIG_FILE | base64)
-        JSON_ATTRIBUTES_PARAMETER="/arcgis/$SITE_ID/attributes/$DEPLOYMENT_ID/arcgis-notebook-server/backup"
+        export JSON_ATTRIBUTES=$(cat $CONFIG_FILE | jq ".admin_username += \"$ADMIN_USERNAME\"" | jq ".admin_password += \"$ADMIN_PASSWORD\"" | base64)
+        JSON_ATTRIBUTES_PARAMETER="/arcgis/$SITE_ID/attributes/$DEPLOYMENT_ID/backup"
         python -m ssm_run_shell_script -s $SITE_ID -d $DEPLOYMENT_ID -m primary -j $JSON_ATTRIBUTES_PARAMETER -f exportSite.sh -b $LOGS_S3_BUCKET -e 600

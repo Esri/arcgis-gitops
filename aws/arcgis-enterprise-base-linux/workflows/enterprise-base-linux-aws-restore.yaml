@@ -30,6 +30,8 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
   TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
+  TF_VAR_admin_username: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
+  TF_VAR_admin_password: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-linux/restore.tfvars.json
 

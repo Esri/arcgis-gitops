@@ -19,7 +19,21 @@ Initial deployment of ArcGIS Server includes building images, provisioning AWS r
 
 ![ArcGIS Server on Linux Configuration Flow](./arcgis-server-linux-flowchart.png)
 
-### 1. Build Images
+### 1. Set GitHub Actions Secrets for the Site
+
+If ArcGIS Server is deployed as a standalone server or federated with ArcGIS Enterprise on Kubernetes, set the primary ArcGIS Server site administrator credentials in the GitHub Actions secrets of the repository settings.
+
+| Name                      | Description                                |
+|---------------------------|--------------------------------------------|
+| ENTERPRISE_ADMIN_USERNAME | ArcGIS Server administrator user name      |
+| ENTERPRISE_ADMIN_PASSWORD | ArcGIS Server administrator user password  |
+| ENTERPRISE_ADMIN_EMAIL    | ArcGIS Server administrator e-mail address |
+
+> The ArcGIS Server administrator user name must be between 6 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
+
+> The ArcGIS Server administrator user password must be between 8 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
+
+### 2. Build Images
 
 GitHub Actions workflow **server-linux-aws-image** creates EC2 AMIs for ArcGIS Server deployment.
 
@@ -39,7 +53,7 @@ Instructions:
 
 > In the configuration files, "os" and "arcgis_version" properties values for the same deployment must match across all the configuration files of the deployment.
 
-### 2. Provision AWS Resources
+### 3. Provision AWS Resources
 
 GitHub Actions workflow **server-linux-aws-infrastructure** creates AWS resources for ArcGIS Server deployment.
 
@@ -73,7 +87,7 @@ Instructions:
 
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 
-### 3. Configure Applications
+### 4. Configure Applications
 
 GitHub Actions workflow **server-linux-aws-application** configures or upgrades ArcGIS Server on EC2 instances.
 
@@ -105,7 +119,7 @@ Instructions:
 
 > '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
-### 4. Test ArcGIS Server Deployment
+### 5. Test ArcGIS Server Deployment
 
 GitHub Actions workflow **server-linux-aws-test** tests ArcGIS Server deployment.
 

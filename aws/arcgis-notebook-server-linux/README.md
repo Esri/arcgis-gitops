@@ -89,10 +89,9 @@ Instructions:
 
 1. Add ArcGIS Notebook Server authorization file to `config/authorization/<ArcGIS version>` directory of the repository and set "notebook_server_authorization_file_path" properties to the file path.
 2. Set "deployment_fqdn" property to the ArcGIS Notebook Server deployment fully qualified domain name.
-3. Set "admin_username", "admin_password", and "admin_email" to the initial ArcGIS Notebook Server administrator account properties.
-4. Set "portal_url", "portal_username", and "portal_password" properties to the base ArcGIS Enterprise portal URL (`"https://<deployment_fqdn>/portal"`) and the administrator account credentials.
-5. Commit the changes to the Git branch and push the branch to GitHub.
-6. Run the notebook-server-linux-aws-application workflow using the branch.
+3. Set "portal_url" property to the base ArcGIS Enterprise portal URL.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run the notebook-server-linux-aws-application workflow using the branch.
 
 > '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
@@ -123,9 +122,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "admin_username" and "admin_password" properties to the ArcGIS Notebook Server administrator user name and password respectively.
-2. Commit the changes to the Git branch and push the branch to GitHub.
-3. Run the notebook-server-linux-aws-backup workflow using the branch.
+1. Run the notebook-server-linux-aws-backup workflow using the main/default branch.
 
 To meet the required recovery point objective (RPO), schedule runs of notebook-server-linux-aws-backup workflow by configuring 'schedule' event in notebook-server-linux-aws-backup.yaml file. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
 
@@ -142,9 +139,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "admin_username" and "admin_password" properties to the portal administrator user name and password respectively.
-2. Commit the changes to the Git branch and push the branch to GitHub.
-3. Run the notebook-server-linux-aws-restore workflow using the branch.
+1. Run the notebook-server-linux-aws-restore workflow using the main/default branch.
 
 ### Create Snapshots and Restore from Snapshots
 

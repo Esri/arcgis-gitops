@@ -21,7 +21,24 @@ Initial deployment of base ArcGIS Enterprise includes building images, provision
 
 ![Base ArcGIS Enterprise on Windows Configuration Flow](./arcgis-enterprise-base-windows-flowchart.png)
 
-### 1. Build Images
+### 1. Set GitHub Actions Secrets for the Site
+
+Set the primary ArcGIS Enterprise site administrator credentials in the GitHub Actions secrets of the repository settings.
+
+| Name                      | Description                                    |
+|---------------------------|------------------------------------------------|
+| ENTERPRISE_ADMIN_USERNAME | ArcGIS Enterprise administrator user name      |
+| ENTERPRISE_ADMIN_PASSWORD | ArcGIS Enterprise administrator user password  |
+| ENTERPRISE_ADMIN_EMAIL    | ArcGIS Enterprise administrator e-mail address |
+| RUN_AS_PASSWORD           | Password of 'arcgis' windows user account      |
+
+> The ArcGIS Enterprise administrator user name must be between 6 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
+
+> The ArcGIS Enterprise administrator user password must be between 8 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
+
+> The password of 'arcgis' windows user account must be at least 8 characters long, include at least three of the four character types: uppercase letters, lowercase letters, numbers, and special characters. Additionally, passwords should not contain the account name ('arcgis').
+
+### 2. Build Images
 
 GitHub Actions workflow **enterprise-base-windows-aws-image** creates EC2 AMIs for base ArcGIS Enterprise deployment.
 
@@ -34,13 +51,12 @@ Required IAM policies:
 Instructions:
 
 1. Set "arcgis_data_store_patches", "arcgis_portal_patches", "arcgis_server_patches", and "arcgis_web_adaptor_patches" properties to the lists of patch file names that must be installed on the images.
-2. Set "run_as_password" property to the password of `arcgis` user account.
-3. Commit the changes to a Git branch and push the branch to GitHub.
-4. Run enterprise-base-windows-aws-image workflow using the branch.
+2. Commit the changes to a Git branch and push the branch to GitHub.
+3. Run the enterprise-base-windows-aws-image workflow using the branch.
 
 > In the configuration files, "os" and "arcgis_version" properties values for the same deployment must match across all the configuration files of the deployment.
 
-### 2. Provision AWS Resources
+### 3. Provision AWS Resources
 
 GitHub Actions workflow **enterprise-base-windows-aws-infrastructure** creates AWS resources for base ArcGIS Enterprise deployment.
 
@@ -66,14 +82,14 @@ Instructions:
 3. Set "deployment_fqdn" property to the base ArcGIS Enterprise deployment fully qualified domain name.
 4. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
 5. Commit the changes to the Git branch and push the branch to GitHub.
-6. Run enterprise-base-windows-aws-infrastructure workflow using the branch.
+6. Run the enterprise-base-windows-aws-infrastructure workflow using the branch.
 7. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
 
 > Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
 
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 
-### 3. Configure Applications
+### 4. Configure Applications
 
 GitHub Actions workflow **enterprise-base-windows-aws-application** configures or upgrades base ArcGIS Enterprise on EC2 instances.
 
@@ -92,13 +108,12 @@ Instructions:
 
 1. Add Portal for ArcGIS and ArcGIS Server authorization files for the ArcGIS Enterprise version to `config/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties to the file paths.
 2. Set "deployment_fqdn" property to the base ArcGIS Enterprise deployment fully qualified domain name.
-3. Set "admin_username", "admin_password", "admin_full_name", "admin_description", "admin_email", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
+3. Set "admin_full_name", "admin_description", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
 4. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
-5. Set "run_as_password" property to the password of `arcgis` user account.
-6. Commit the changes to the Git branch and push the branch to GitHub.
-7. Run enterprise-base-windows-aws-application workflow using the branch.
+5. Commit the changes to the Git branch and push the branch to GitHub.
+6. Run the enterprise-base-windows-aws-application workflow using the branch.
 
-### 4. Test Base ArcGIS Enterprise Deployment
+### 5. Test Base ArcGIS Enterprise Deployment
 
 GitHub Actions workflow **enterprise-base-windows-aws-test** tests base ArcGIS Enterprise deployment.
 
@@ -106,7 +121,7 @@ The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to pu
 
 Instructions:
 
-1. Run enterprise-base-windows-aws-test workflow using the branch.
+1. Run the enterprise-base-windows-aws-test workflow using the branch.
 
 ## Backups and Disaster Recovery
 
@@ -125,10 +140,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "admin_username" and "admin_password" properties in backup.tfvars.json file to the portal administrator user name and password respectively.
-2. Set "run_as_password" property in backup.tfvars.json file to the password of `arcgis` user account.
-3. Commit the changes to the Git branch and push the branch to GitHub.
-4. Run enterprise-base-windows-aws-backup workflow using the branch.
+1. Run the enterprise-base-windows-aws-backup workflow using the main/default branch.
 
 > To meet the required recovery point objective (RPO), schedule runs of enterprise-base-windows-aws-backup workflow by configuring 'schedule' event in enterprise-base-windows-aws-backup.yaml file. When the backup workflow is triggered manually, the backup-restore mode is specified by the workflow inputs. However, when the workflow is triggered on schedule, the backup-restore mode is retrieved from the backup.tfvars.json config file. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
 
@@ -147,10 +159,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "admin_username" and "admin_password" properties in restore.tfvars.json file to the portal administrator user name and password respectively.
-2. Set "run_as_password" property in restore.tfvars.json file to the password of `arcgis` user account.
-3. Commit the changes to the Git branch and push the branch to GitHub.
-4. Run enterprise-base-windows-aws-restore workflow using the branch.
+1. Run the enterprise-base-windows-aws-restore workflow using the main/default branch.
 
 ### Create Snapshots and Restore from Snapshots
 
@@ -180,7 +189,7 @@ Instructions:
 2. Add Portal for ArcGIS and ArcGIS Server authorization files for the new ArcGIS Enterprise version to `config/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties in application.tfvars.json file to the file paths.
 3. Change "is_upgrade" property in application.tfvars.json file to `true`.
 4. Commit the changes to the Git branch and push the branch to GitHub.
-5. Run enterprise-base-windows-aws-application workflow using the branch.
+5. Run the enterprise-base-windows-aws-application workflow using the branch.
 
 ## Destroying Deployments
 
@@ -195,7 +204,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Run enterprise-base-windows-aws-destroy workflow using the branch.
+1. Run the enterprise-base-windows-aws-destroy workflow using the branch.
 
 > enterprise-base-windows-aws-destroy workflow does not delete the deployment's backups.
 

@@ -24,6 +24,7 @@ env:
   AWS_MAX_ATTEMPTS: 400
   ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
   ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
+  RUN_AS_PASSWORD: ${{ secrets.RUN_AS_PASSWORD }}
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/image.vars.json
 

@@ -18,6 +18,8 @@ on:
   workflow_dispatch:
  
 env:
+  ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
+  ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-linux/application.tfvars.json
 
 jobs:
@@ -40,6 +42,4 @@ jobs:
       run: |
         DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
         SERVER_WEB_CONTEXT=$(jq -r '.server_web_context' $CONFIG_FILE)
-        ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
-        ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
         docker run -e ARCGIS_SERVER_USER=$ADMIN_USERNAME -e ARCGIS_SERVER_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-server-admin --url https://$DEPLOYMENT_FQDN/$SERVER_WEB_CONTEXT

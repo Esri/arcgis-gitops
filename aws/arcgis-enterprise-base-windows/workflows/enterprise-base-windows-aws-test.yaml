@@ -18,6 +18,8 @@ on:
   workflow_dispatch:
  
 env:
+  ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
+  ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/application.tfvars.json
 
 jobs:
@@ -40,6 +42,4 @@ jobs:
       run: |
         DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
         PORTAL_WEB_CONTEXT=$(jq -r '.portal_web_context' $CONFIG_FILE)
-        ADMIN_USERNAME=$(jq -r '.admin_username' $CONFIG_FILE)
-        ADMIN_PASSWORD=$(jq -r '.admin_password' $CONFIG_FILE)
         docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-publish-csv --url https://$DEPLOYMENT_FQDN/$PORTAL_WEB_CONTEXT

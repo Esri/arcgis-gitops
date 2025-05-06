@@ -101,6 +101,7 @@ variable "run_as_password" {
   description = "Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store."
   type        = string
   sensitive   = true
+  default     = env("RUN_AS_PASSWORD")
 }
 
 variable "arcgis_portal_patches" {

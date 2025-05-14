@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,10 +14,10 @@
 
 output "arcgis_server_url" {
   description = "ArcGIS Server URL"
-  value       = "https://${var.deployment_fqdn}/${var.server_web_context}"
+  value       = "https://${local.deployment_fqdn}/${local.server_web_context}"
 }
 
 output "arcgis_portal_url" {
   description = "Portal for ArcGIS URL"
-  value       = "https://${var.deployment_fqdn}/${var.portal_web_context}"
+  value       = "https://${local.deployment_fqdn}/${local.portal_web_context}"
 }

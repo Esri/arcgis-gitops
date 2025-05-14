@@ -60,6 +60,8 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-fqdn | Fully qualified domain name of the ALB deployment (if alb_deployment_id is specified) |
+ * | /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-url | URL of the ALB deployment (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/arn | ALB ARN (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/security-group-id | ALB security group Id (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
@@ -74,6 +76,10 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/deployment-url | ArcGIS Notebook Server URL |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
  * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
  * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer (if alb_deployment_id is not specified) |

@@ -45,7 +45,10 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
+| /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+| /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
+| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if portal_url input variable is not specified) |
 | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
 
 ## Providers
@@ -87,6 +90,9 @@ The module reads the following SSM parameters:
 | [aws_sns_topic_subscription.infrastructure_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+| [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.sns_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
@@ -100,7 +106,6 @@ The module reads the following SSM parameters:
 | arcgis_version | ArcGIS Server version | `string` | `"11.4"` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
-| deployment_fqdn | Fully qualified domain name of the ArcGIS Server deployment | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"server-linux"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
@@ -117,7 +122,6 @@ The module reads the following SSM parameters:
 | server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
 | server_functions | Functions of the federated server | `list(string)` | `[]` | no |
 | server_role | ArcGIS Server role | `string` | `""` | no |
-| server_web_context | ArcGIS Server web context | `string` | `"arcgis"` | no |
 | services_dir_enabled | Enable REST handler services directory | `bool` | `true` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | system_properties | ArcGIS Server system properties | `map(any)` | `{}` | no |

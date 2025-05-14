@@ -75,13 +75,12 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
-2. To add the deployment to the load balancer of a base ArcGIS Enterprise deployment, set alb_deployment_id property to the base deployment Id, otherwise provision or import SSL certificate for the ArcGIS Server domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property to the certificate ARN.
-3. Set "deployment_fqdn" property to the ArcGIS Server deployment fully qualified domain name.
-4. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
-5. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
-6. Commit the changes to the Git branch and push the branch to GitHub.
-7. Run server-linux-aws-infrastructure workflow using the branch.
-8. If alb_deployment_id is not set, retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Server domain name.
+2. To add the deployment to the load balancer of a base ArcGIS Enterprise deployment, set "alb_deployment_id" property to the base deployment Id. Otherwise, set "deployment_fqdn" property to the ArcGIS Server deployment fully qualified domain name, provision or import SSL certificate for the domain name into AWS Certificate Manager service in the selected AWS region, and set "ssl_certificate_arn" property to the certificate ARN.
+3. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+4. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
+5. Commit the changes to the Git branch and push the branch to GitHub.
+6. Run server-linux-aws-infrastructure workflow using the branch.
+7. If "alb_deployment_id" is not set, retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Server domain name.
 
 > Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
 
@@ -109,13 +108,11 @@ Outputs:
 Instructions:
 
 1. Add ArcGIS Server authorization file for the ArcGIS Server version to `config/authorization/<ArcGIS version>` directory of the repository and set "server_authorization_file_path" property to the file paths.
-2. Set "deployment_fqdn" property to the ArcGIS Server deployment fully qualified domain name.
-3. Set "admin_username", "admin_password", and "admin_email" to the ArcGIS Server administrator account properties.
-4. If ArcGIS Web Adaptor is used, set "use_webadaptor" property `true` and "server_web_context" property to the Web Adaptor name.
-5. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "server_role" and "server_functions" properties to the required server role and function and "portal_url", "portal_username", and "portal_password" properties to the Portal for ArcGIS URL and administrator account properties. To federate the server with ArcGIS Enterprise on Kubernetes organization, set "portal_org_id" property to "0123456789ABCDEF", which is the default organization Id.
-6. To install configure ArcGIS Server and Apache Tomcat use specific SSL certificates, set "keystore_file_path" and "keystore_file_password" properties to the certificates file path and password.
-7. Commit the changes to the Git branch and push the branch to GitHub.
-8. Run server-linux-aws-application workflow using the branch.
+2. If ArcGIS Web Adaptor is used, set "use_webadaptor" property `true`.
+3. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "server_role" and "server_functions" properties to the required server role and function. If the server does not share the load balancer with the base ArcGIS Enterprise deployment, set "portal_url" property to the Portal for ArcGIS URL. To federate the server with ArcGIS Enterprise on Kubernetes organization, set "portal_org_id" property to "0123456789ABCDEF", which is the default organization Id.
+4. To install configure ArcGIS Server and Apache Tomcat use specific SSL certificates, set "keystore_file_path" and "keystore_file_password" properties to the certificates file path and password.
+5. Commit the changes to the Git branch and push the branch to GitHub.
+6. Run server-linux-aws-application workflow using the branch.
 
 > '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
@@ -123,7 +120,7 @@ Instructions:
 
 GitHub Actions workflow **server-linux-aws-test** tests ArcGIS Server deployment.
 
-The workflow uses test-server-admin script from ArcGIS Enterprise Admin CLI to test accessibility of the ArcGIS Server admin URL. The server domain name and admin credentials are retrieved from application.tfvars.json properties file.
+The workflow uses test-server-admin script from ArcGIS Enterprise Admin CLI to test accessibility of the ArcGIS Server admin URL. The server domain name and web context are retrieved from infrastructure.tfvars.json properties file and from SSM parameters.
 
 Instructions:
 

@@ -21,3 +21,8 @@ output "alb_dns_name" {
   description = "DNS name of the application load balancer"
   value       = local.alb_dns_name
 }
+
+output "deployment_url" {
+  description = "ArcGIS Notebook Server URL"
+  value       = "https://${local.deployment_fqdn}/${var.notebook_server_web_context}"
+}

@@ -68,3 +68,24 @@ module "portal_https_alb_target" {
     module.alb
   ]
 }
+
+resource "aws_ssm_parameter" "portal_web_context" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/portal-web-context"
+  type        = "String"
+  value       = var.portal_web_context
+  description = "Portal for ArcGIS web context"
+}
+
+resource "aws_ssm_parameter" "server_web_context" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
+  type        = "String"
+  value       = var.server_web_context
+  description = "ArcGIS Server web context"
+}
+
+resource "aws_ssm_parameter" "deployment_url" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-url"
+  type        = "String"
+  value       = "https://${var.deployment_fqdn}/${var.portal_web_context}"
+  description = "Portal for ArcGIS URL of the deployment"
+}

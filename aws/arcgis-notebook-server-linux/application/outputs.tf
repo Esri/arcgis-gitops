@@ -14,11 +14,11 @@
 
 output "arcgis_notebook_server_private_url" {
   description = "ArcGIS Notebook Server URL"
-  value       = "https://${var.deployment_fqdn}:11443/arcgis"
+  value       = "https://${local.deployment_fqdn}:11443/arcgis"
 }
 
 output "arcgis_notebook_server_url" {
   description = "ArcGIS Notebook Server URL"
-  value       = "https://${var.deployment_fqdn}/${var.notebook_server_web_context}"
+  value       = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
 }
 

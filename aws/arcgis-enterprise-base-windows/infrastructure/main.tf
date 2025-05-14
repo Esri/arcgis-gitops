@@ -73,9 +73,13 @@
  * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
  * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | Portal for ArcGIS content store S3 bucket |
  * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | Object store S3 bucket |
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer (if alb_deployment_id is not specified) |
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer (if alb_deployment_id is not specified) |
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer (if alb_deployment_id is not specified) |
+*  | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment | 
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | Portal for ArcGIS URL of the deployment |
  */
 
 # Copyright 2024-2025 Esri
@@ -94,7 +98,7 @@
  
 terraform {
   backend "s3" {
-    key = "terraform/arcgis-enterprise/arcgis-enterprise-base/infrastructure.tfstate"
+    key = "terraform/arcgis/enterprise-base-windows/infrastructure.tfstate"
   }
 
   required_providers {

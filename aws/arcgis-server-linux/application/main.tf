@@ -45,7 +45,10 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified and portal_url is not specified) | 
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
  */
 
@@ -83,7 +86,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      ArcGISAutomation   = "arcgis-gitops"      
+      ArcGISAutomation   = "arcgis-gitops"
       ArcGISSiteId       = var.site_id
       ArcGISDeploymentId = var.deployment_id
     }
@@ -96,6 +99,19 @@ provider "aws" {
 
 data "aws_ssm_parameter" "sns_topic" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
+}
+
+data "aws_ssm_parameter" "deployment_fqdn" {
+  name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+}
+
+data "aws_ssm_parameter" "server_web_context" {
+  name = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
+}
+
+data "aws_ssm_parameter" "portal_url" {
+  count = var.server_role != "" && var.portal_url == null ? 1 : 0
+  name  = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
 }
 
 # Retrieve attributes of the primary EC2 instance
@@ -129,6 +145,9 @@ locals {
   archives_dir            = local.server_manifest.arcgis.repository.local_archives
   patches_dir             = local.server_manifest.arcgis.repository.local_patches
   mount_point             = "/mnt/efs"
+  deployment_fqdn         = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  server_web_context      = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
+  portal_url              = var.server_role != "" && var.portal_url == null ? nonsensitive(data.aws_ssm_parameter.portal_url[0].value) : var.portal_url
   primary_hostname        = data.aws_instance.primary.private_ip
   software_dir            = "/opt/software/*"
   authorization_files_dir = "/opt/software/authorization"
@@ -298,7 +317,7 @@ module "arcgis_server_primary" {
     services_dir_enabled           = var.services_dir_enabled
     keystore_file                  = local.keystore_file
     keystore_password              = var.keystore_file_password
-    cert_alias                     = var.deployment_fqdn
+    cert_alias                     = local.deployment_fqdn
   }
   depends_on = [
     module.authorization_file,
@@ -324,7 +343,7 @@ module "arcgis_server_node" {
     run_as_user           = var.run_as_user
     keystore_file         = local.keystore_file
     keystore_password     = var.keystore_file_password
-    cert_alias            = var.deployment_fqdn
+    cert_alias            = local.deployment_fqdn
   }
   depends_on = [
     module.authorization_file,
@@ -362,11 +381,11 @@ module "arcgis_server_federation" {
   playbook      = "arcgis.portal.federate_server"
   external_vars = {
     portal_org_id    = var.portal_org_id
-    portal_url       = var.portal_url
+    portal_url       = local.portal_url
     username         = var.portal_username
     password         = var.portal_password
-    server_url       = "https://${var.deployment_fqdn}/${var.server_web_context}"
-    server_admin_url = "https://${var.deployment_fqdn}/${var.server_web_context}"
+    server_url       = "https://${local.deployment_fqdn}/${local.server_web_context}"
+    server_admin_url = "https://${local.deployment_fqdn}/${local.server_web_context}"
     server_username  = var.admin_username
     server_password  = var.admin_password
     server_role      = var.server_role

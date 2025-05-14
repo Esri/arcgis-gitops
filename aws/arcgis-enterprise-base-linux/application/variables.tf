@@ -28,28 +28,6 @@ variable "os" {
   }
 }
 
-variable "deployment_fqdn" {
-  description = "Fully qualified domain name of the base ArcGIS Enterprise deployment"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
-  }
-}
-
-variable "portal_web_context" {
-  description = "Portal for ArcGIS web context"
-  type        = string
-  default     = "portal"  
-}
-
-variable "server_web_context" {
-  description = "ArcGIS Server web context"
-  type        = string
-  default     = "server"  
-}
-
 variable "site_id" {
   description = "ArcGIS Enterprise site Id"
   type        = string

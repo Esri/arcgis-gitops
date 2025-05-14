@@ -62,6 +62,8 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
+| /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment (if alb_deployment_id is specified) |
+| /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-url | Portal for ArcGIS URL (if alb_deployment_id is specified) |
 | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/arn | ALB ARN (if alb_deployment_id is specified) |
 | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/security-group-id | ALB security group Id (if alb_deployment_id is specified) |
 | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
@@ -76,6 +78,10 @@ The module writes the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
+| /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+| /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
+| /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
+| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
 | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
 | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
 | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer (if alb_deployment_id is not specified) |
@@ -110,10 +116,16 @@ The module writes the following SSM parameters:
 | [aws_instance.nodes](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_route53_record.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
+| [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.deployment_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_lb.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/lb) | data source |
 | [aws_ssm_parameter.alb_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.alb_deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.alb_deployment_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.alb_security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.node_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.primary_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -146,5 +158,6 @@ The module writes the following SSM parameters:
 | Name | Description |
 |------|-------------|
 | alb_dns_name | DNS name of the application load balancer |
+| deployment_url | ArcGIS Server URL |
 | security_group_id | EC2 security group Id |
 <!-- END_TF_DOCS -->

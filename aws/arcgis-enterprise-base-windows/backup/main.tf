@@ -41,7 +41,7 @@
  
 terraform {
   backend "s3" {
-    key = "terraform/arcgis-enterprise/arcgis-enterprise-base/backup.tfstate"
+    key = "terraform/arcgis/enterprise-base-windows/backup.tfstate"
   }
 
   required_providers {

@@ -72,16 +72,6 @@ variable "config_store_type" {
   }
 }
 
-variable "deployment_fqdn" {
-  description = "Fully qualified domain name of the ArcGIS Server deployment"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
-  }
-}
-
 variable "deployment_id" {
   description = "Deployment Id"
   type        = string
@@ -215,12 +205,6 @@ variable "use_webadaptor" {
   description = "If true, ArcGIS Web Adaptor will be registered with ArcGIS Server."
   type        = bool
   default     = false
-}
-
-variable "server_web_context" {
-  description = "ArcGIS Server web context"
-  type        = string
-  default     = "arcgis"
 }
 
 variable "keystore_file_path" {

@@ -26,7 +26,7 @@ variable "client_cidr_blocks" {
 }
 
 variable "deployment_fqdn" {
-  description = "Fully qualified domain name of the ArcGIS Server deployment"
+  description = "Fully qualified domain name of the deployment"
   type        = string
   
   validation {
@@ -36,7 +36,7 @@ variable "deployment_fqdn" {
 }
 
 variable "deployment_id" {
-  description = "ArcGIS Server deployment Id"
+  description = "Deployment Id"
   type        = string
 
   validation {

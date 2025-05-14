@@ -45,8 +45,10 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
+ * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if portal_url is not specified) | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
- * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
  * | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
  * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
@@ -102,6 +104,19 @@ provider "aws" {
 
 data "aws_ssm_parameter" "sns_topic" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
+}
+
+data "aws_ssm_parameter" "deployment_fqdn" {
+  name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+}
+
+data "aws_ssm_parameter" "notebook_server_web_context" {
+  name = "/arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context"
+}
+
+data "aws_ssm_parameter" "portal_url" {
+  count = var.portal_url == null ? 1 : 0
+  name  = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
 }
 
 # Retrieve attributes of the primary EC2 instance
@@ -166,6 +181,9 @@ locals {
   certificates_s3_prefix        = "software/certificates"
 
   mount_point             = "/mnt/efs"
+  deployment_fqdn         = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  notebook_server_web_context      = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
+  portal_url              = var.portal_url == null ? nonsensitive(data.aws_ssm_parameter.portal_url[0].value) : var.portal_url
   primary_hostname        = data.aws_instance.primary.private_ip
   software_dir            = "/opt/software/*"
   authorization_files_dir = "/opt/software/authorization"
@@ -257,7 +275,7 @@ module "arcgis_notebook_server_upgrade" {
         install_system_requirements = true
         license_level               = var.license_level
         configure_autostart         = true
-        wa_name                     = var.notebook_server_web_context
+        wa_name                     = local.notebook_server_web_context
       }
       web_adaptor = {
         install_dir = "/opt"
@@ -479,7 +497,7 @@ module "arcgis_notebook_server_primary" {
   machine_roles  = ["primary"]
   json_attributes = jsonencode({
     tomcat = {
-      domain_name       = var.deployment_fqdn
+      domain_name       = local.deployment_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
       keystore_password = var.keystore_file_password
@@ -496,7 +514,7 @@ module "arcgis_notebook_server_primary" {
       }
       notebook_server = {
         url                   = "https://${local.primary_hostname}:11443/arcgis"
-        wa_url                = "https://${local.primary_hostname}/${var.notebook_server_web_context}"
+        wa_url                = "https://${local.primary_hostname}/${local.notebook_server_web_context}"
         install_dir           = "/opt"
         admin_username        = var.admin_username
         admin_password        = var.admin_password
@@ -517,7 +535,7 @@ module "arcgis_notebook_server_primary" {
         "${local.mount_point}/gisdata/arcgisserver/config-store")
         config_store_connection_secret = ""
         install_system_requirements    = true
-        wa_name                        = var.notebook_server_web_context
+        wa_name                        = local.notebook_server_web_context
         services_dir_enabled           = true
       }
       web_adaptor = {
@@ -549,7 +567,7 @@ module "arcgis_notebook_server_node" {
   machine_roles  = ["node"]
   json_attributes = jsonencode({
     tomcat = {
-      domain_name       = var.deployment_fqdn
+      domain_name       = local.deployment_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
       keystore_password = var.keystore_file_password
@@ -574,7 +592,7 @@ module "arcgis_notebook_server_node" {
         authorization_file          = "${local.authorization_files_dir}/${basename(var.notebook_server_authorization_file_path)}"
         authorization_options       = var.notebook_server_authorization_options
         install_system_requirements = true
-        wa_name                     = var.notebook_server_web_context
+        wa_name                     = local.notebook_server_web_context
       }
       web_adaptor = {
         install_dir = "/opt"
@@ -602,15 +620,15 @@ module "arcgis_notebook_server_federation" {
   json_attributes = jsonencode({
     arcgis = {
       portal = {
-        private_url     = var.portal_url
+        private_url     = local.portal_url
         admin_username  = var.portal_username
         admin_password  = var.portal_password
         root_cert       = ""
         root_cert_alias = "notebookserver"
       }
       notebook_server = {
-        web_context_url = "https://${var.deployment_fqdn}/${var.notebook_server_web_context}"
-        private_url     = "https://${var.deployment_fqdn}:11443/arcgis"
+        web_context_url = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
+        private_url     = "https://${local.deployment_fqdn}:11443/arcgis"
         admin_username  = var.admin_username
         admin_password  = var.admin_password
       }

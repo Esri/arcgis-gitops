@@ -12,9 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# If alb_deployment_id is not null, then the ALB from that deployment is used.
-# In this case, the ALB security group ID and ARN are retrieved from SSM parameters.
-# Otherwise, the ALB is being created in the same stack and the
+# If alb_deployment_id is specified, then the ALB from that deployment is used.
+# In this case, the deployment FQDN, the portal for ArcGIS URL, 
+# the ALB security group ID and ARN are retrieved from SSM parameters of the ALB deployment.
+# Otherwise, the ALB is created.
+
+data "aws_ssm_parameter" "alb_deployment_fqdn" {
+  count = var.alb_deployment_id == null ? 0 : 1
+  name  = "/arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-fqdn"
+}
+
+data "aws_ssm_parameter" "alb_deployment_url" {
+  count = var.alb_deployment_id == null ? 0 : 1
+  name  = "/arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-url"
+}
 
 data "aws_ssm_parameter" "alb_security_group_id" {
   count = var.alb_deployment_id == null ? 0 : 1
@@ -32,9 +43,10 @@ data "aws_lb" "alb" {
 }
 
 locals {
-  alb_security_group_id = var.alb_deployment_id == null ? module.alb[0].security_group_id : data.aws_ssm_parameter.alb_security_group_id[0].value
-  alb_arn               = var.alb_deployment_id == null ? module.alb[0].alb_arn : data.aws_ssm_parameter.alb_arn[0].value
+  alb_security_group_id = var.alb_deployment_id == null ? module.alb[0].security_group_id : nonsensitive(data.aws_ssm_parameter.alb_security_group_id[0].value)
+  alb_arn               = var.alb_deployment_id == null ? module.alb[0].alb_arn : nonsensitive(data.aws_ssm_parameter.alb_arn[0].value)
   alb_dns_name          = var.alb_deployment_id == null ? module.alb[0].alb_dns_name : data.aws_lb.alb[0].dns_name
+  deployment_fqdn       = var.alb_deployment_id == null ? var.deployment_fqdn : nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn[0].value)
 }
 
 module "alb" {
@@ -50,8 +62,8 @@ module "alb" {
   ssl_certificate_arn    = var.ssl_certificate_arn
   ssl_policy             = var.ssl_policy
   subnets = (var.internal_load_balancer ?
-             module.site_core_info.private_subnets :
-             module.site_core_info.public_subnets)
+    module.site_core_info.private_subnets :
+  module.site_core_info.public_subnets)
   vpc_id = module.site_core_info.vpc_id
 }
 
@@ -96,4 +108,35 @@ module "private_server_https_alb_target" {
   depends_on = [
     module.alb
   ]
+}
+
+# Save the ALB DNS name to SSM parameter store for use by other modules.
+resource "aws_ssm_parameter" "deployment_fqdn" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+  type        = "String"
+  value       = local.deployment_fqdn
+  description = "Fully qualified domain name of the deployment"
+}
+
+resource "aws_ssm_parameter" "server_web_context" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
+  type        = "String"
+  value       = var.server_web_context
+  description = "ArcGIS Server web context"
+}
+
+resource "aws_ssm_parameter" "deployment_url" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-url"
+  type        = "String"
+  value       = "https://${local.deployment_fqdn}/${var.server_web_context}"
+  description = "URL of the deployment"
+}
+
+# Save the Portal for ArcGIS URL to SSM parameter store for use by other modules.
+resource "aws_ssm_parameter" "portal_url" {
+  count       = var.alb_deployment_id == null ? 0 : 1
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
+  type        = "String"
+  value       = nonsensitive(data.aws_ssm_parameter.alb_deployment_url[0].value)
+  description = "Portal for ArcGIS URL"
 }

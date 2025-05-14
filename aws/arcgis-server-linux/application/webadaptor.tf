@@ -158,7 +158,7 @@ module "arcgis_webadaptor" {
     arcgis_version = var.arcgis_version
     install_dir    = "/opt"
     run_as_user    = var.run_as_user
-    wa_name        = var.server_web_context
+    wa_name        = local.server_web_context
     admin_username = var.admin_username
     admin_password = var.admin_password
     admin_access   = true

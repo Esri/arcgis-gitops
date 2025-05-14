@@ -78,16 +78,6 @@ variable "config_store_type" {
   }
 }
 
-variable "deployment_fqdn" {
-  description = "Fully qualified domain name of the ArcGIS Notebook Server deployment"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
-  }
-}
-
 variable "deployment_id" {
   description = "Deployment Id"
   type        = string
@@ -155,12 +145,6 @@ variable "notebook_server_authorization_options" {
   type        = string
   sensitive   = true
   default     = ""
-}
-
-variable "notebook_server_web_context" {
-  description = "ArcGIS Notebook Server web context"
-  type        = string
-  default     = "notebooks"
 }
 
 variable "os" {

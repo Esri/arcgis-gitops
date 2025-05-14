@@ -60,11 +60,10 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property in the config file to the key pair name. Save the private key in a secure location.
-2. Set "alb_deployment_id" property to the base ArcGIS Enterprise deployment ID.
-3. Set "deployment_fqdn" property to the base ArcGIS Enterprise deployment fully qualified domain name.
-4. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
-5. Commit the changes to the Git branch and push the branch to GitHub.
-6. Run the notebook-server-linux-aws-infrastructure workflow using the branch.
+2. To add the deployment to the load balancer of a base ArcGIS Enterprise deployment, set "alb_deployment_id" property to the base deployment Id. Otherwise, set "deployment_fqdn" property to the ArcGIS Notebook Server deployment fully qualified domain name, provision or import SSL certificate for the domain name into AWS Certificate Manager service in the selected AWS region, and set "ssl_certificate_arn" property to the certificate ARN.
+3. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run the notebook-server-linux-aws-infrastructure workflow using the branch.
 
 ### 3. Configure Applications
 
@@ -88,10 +87,9 @@ Outputs:
 Instructions:
 
 1. Add ArcGIS Notebook Server authorization file to `config/authorization/<ArcGIS version>` directory of the repository and set "notebook_server_authorization_file_path" properties to the file path.
-2. Set "deployment_fqdn" property to the ArcGIS Notebook Server deployment fully qualified domain name.
-3. Set "portal_url" property to the base ArcGIS Enterprise portal URL.
-4. Commit the changes to the Git branch and push the branch to GitHub.
-5. Run the notebook-server-linux-aws-application workflow using the branch.
+2. If the server does not share the load balancer with the base ArcGIS Enterprise deployment, set "portal_url" property to the Portal for ArcGIS URL.
+3. Commit the changes to the Git branch and push the branch to GitHub.
+4. Run the notebook-server-linux-aws-application workflow using the branch.
 
 > '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
@@ -99,7 +97,7 @@ Instructions:
 
 GitHub Actions workflow **notebook-server-linux-aws-test** tests ArcGIS Notebook Server deployment.
 
-The workflow uses test-server-admin script from ArcGIS Enterprise Admin CLI to test access of the ArcGIS Notebook Server admin URL. The server domain name and admin credentials are retrieved from application.tfvars.json properties file.
+The workflow uses test-server-admin script from ArcGIS Enterprise Admin CLI to test access of the ArcGIS Notebook Server admin URL. The server domain name and web context are retrieved from infrastructure.tfvars.json properties file and from SSM parameters.
 
 Instructions:
 

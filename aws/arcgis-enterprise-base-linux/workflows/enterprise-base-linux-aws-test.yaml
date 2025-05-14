@@ -20,7 +20,7 @@ on:
 env:
   ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
   ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-linux/application.tfvars.json
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-linux/infrastructure.tfvars.json
 
 jobs:
   test:

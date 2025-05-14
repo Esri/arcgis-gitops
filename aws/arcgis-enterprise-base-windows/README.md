@@ -107,17 +107,16 @@ Outputs:
 Instructions:
 
 1. Add Portal for ArcGIS and ArcGIS Server authorization files for the ArcGIS Enterprise version to `config/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties to the file paths.
-2. Set "deployment_fqdn" property to the base ArcGIS Enterprise deployment fully qualified domain name.
-3. Set "admin_full_name", "admin_description", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
-4. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
-5. Commit the changes to the Git branch and push the branch to GitHub.
-6. Run the enterprise-base-windows-aws-application workflow using the branch.
+2. Set "admin_full_name", "admin_description", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
+3. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run the enterprise-base-windows-aws-application workflow using the branch.
 
 ### 5. Test Base ArcGIS Enterprise Deployment
 
 GitHub Actions workflow **enterprise-base-windows-aws-test** tests base ArcGIS Enterprise deployment.
 
-The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and admin credentials are retrieved from application.tfvars.json properties file.
+The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and web context are retrieved from infrastructure.tfvars.json properties file.
 
 Instructions:
 

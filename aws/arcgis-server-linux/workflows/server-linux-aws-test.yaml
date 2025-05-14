@@ -18,9 +18,12 @@ on:
   workflow_dispatch:
  
 env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
   ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-linux/application.tfvars.json
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-linux/infrastructure.tfvars.json
 
 jobs:
   test:
@@ -40,6 +43,12 @@ jobs:
         docker build -t enterprise-admin-cli .
     - name: Run Tests
       run: |
-        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
+        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn // empty' $CONFIG_FILE)
+        if [ -z "$DEPLOYMENT_FQDN" ]; then
+          DEPLOYMENT_FQDN=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/deployment-fqdn" --query "Parameter.Value" --output text)
+        fi
         SERVER_WEB_CONTEXT=$(jq -r '.server_web_context' $CONFIG_FILE)
-        docker run -e ARCGIS_SERVER_USER=$ADMIN_USERNAME -e ARCGIS_SERVER_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-server-admin --url https://$DEPLOYMENT_FQDN/$SERVER_WEB_CONTEXT
+        DEPLOYMENT_URL=https://$DEPLOYMENT_FQDN/$SERVER_WEB_CONTEXT
+        docker run -e ARCGIS_SERVER_USER=$ADMIN_USERNAME -e ARCGIS_SERVER_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-server-admin --url $DEPLOYMENT_URL

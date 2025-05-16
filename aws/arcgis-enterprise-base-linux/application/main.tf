@@ -23,7 +23,7 @@
  * * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and standby EC2 instances
  * * Creates the required directories in the NFS mount
  * * Configures base ArcGIS Enterprise on primary EC2 instance
- * * Configures base ArcGIS Enterprise on standby EC2 instance
+ * * Configures base ArcGIS Enterprise on standby EC2 instance, if any
  * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby EC2 instances
  * * Subscribes the primary ArcGIS Enterprise administrator e-mail address to the SNS topic of the monitoring subsystem
  *
@@ -128,31 +128,8 @@ data "aws_ssm_parameter" "sns_topic" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
 }
 
-# Retrieve attributes of the primary EC2 instance
-data "aws_instance" "primary" {
-  filter {
-    name   = "tag:ArcGISSiteId"
-    values = [var.site_id]
-  }
-
-  filter {
-    name   = "tag:ArcGISDeploymentId"
-    values = [var.deployment_id]
-  }
-
-  filter {
-    name   = "tag:ArcGISMachineRole"
-    values = ["primary"]
-  }
-
-  filter {
-    name   = "instance-state-name"
-    values = ["pending", "running"]
-  }
-}
-
-# Retrieve attributes of the standby EC2 instance
-data "aws_instance" "standby" {
+# Find the standby EC2 instance of the deployment if it exists
+data "aws_instances" "standby" {
   filter {
     name   = "tag:ArcGISSiteId"
     values = [var.site_id]
@@ -270,7 +247,7 @@ module "arcgis_enterprise_files" {
 
 # If it's an upgrade, unregister ArcGIS Server's Web Adaptor on standby EC2 instance
 module "begin_upgrade_standby" {
-  count          = var.is_upgrade ? 1 : 0
+  count          = var.is_upgrade && length(data.aws_instances.standby.ids) > 0 ? 1 : 0
   source         = "../../modules/run_chef"
   parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/begin-upgrade-standby"
   site_id        = var.site_id
@@ -368,6 +345,7 @@ module "arcgis_enterprise_upgrade" {
   })
   execution_timeout = 7200
   depends_on = [
+    module.arcgis_enterprise_files,
     module.begin_upgrade_standby
   ]
 }
@@ -754,6 +732,7 @@ module "arcgis_enterprise_primary" {
 
 # Configure base ArcGIS Enterprise on standby EC2 instance
 module "arcgis_enterprise_standby" {
+  count          = length(data.aws_instances.standby.ids) > 0 ? 1 : 0
   source         = "../../modules/run_chef"
   parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/standby"
   site_id        = var.site_id
@@ -855,6 +834,7 @@ module "clean_up" {
   directories   = [local.software_dir]
   uninstall_chef_client = false
   depends_on = [
+    module.arcgis_enterprise_primary,
     module.arcgis_enterprise_standby
   ]
 }
@@ -863,7 +843,8 @@ resource "aws_sns_topic_subscription" "infrastructure_alarms" {
   topic_arn = data.aws_ssm_parameter.sns_topic.value
   protocol  = "email"
   endpoint  = var.admin_email
-  depends_on = [ 
+  depends_on = [
+    module.arcgis_enterprise_primary, 
     module.arcgis_enterprise_standby
   ]
 }

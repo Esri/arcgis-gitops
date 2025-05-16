@@ -21,7 +21,7 @@
  * * If specified, copies keystore and root certificate files to the private repository S3 bucket
  * * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository S3 bucket to primary and standby EC2 instances
  * * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and standby EC2 instances
- * * Creates the required network shares and directories in the fileserver EC2 instance
+ * * Creates the required network shares and directories in the primary EC2 instance
  * * Configures base ArcGIS Enterprise on primary EC2 instance
  * * Configures base ArcGIS Enterprise on standby EC2 instance
  * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby EC2 instances
@@ -151,8 +151,8 @@ data "aws_instance" "primary" {
   }
 }
 
-# Retrieve attributes of the standby EC2 instance
-data "aws_instance" "standby" {
+# Find the standby EC2 instance of the deployment if it exists.
+data "aws_instances" "standby" {
   filter {
     name   = "tag:ArcGISSiteId"
     values = [var.site_id]
@@ -174,11 +174,21 @@ data "aws_instance" "standby" {
   }
 }
 
-# Retrieve attributes of the primary EC2 instance AMI
-data "aws_ami" "primary" {
+# Retrieve attributes of all the deployment's EC2 instances
+data "aws_instances" "deployment" {
   filter {
-    name   = "image-id"
-    values = [data.aws_instance.primary.ami]
+    name   = "tag:ArcGISSiteId"
+    values = [var.site_id]
+  }
+
+  filter {
+    name   = "tag:ArcGISDeploymentId"
+    values = [var.deployment_id]
+  }
+
+  filter {
+    name   = "instance-state-name"
+    values = ["pending", "running"]
   }
 }
 
@@ -198,7 +208,6 @@ locals {
   deployment_fqdn     = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
   portal_web_context  = nonsensitive(data.aws_ssm_parameter.portal_web_context.value)
   server_web_context  = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
-  fileserver_hostname = "fileserver.${var.deployment_id}.${var.site_id}.internal"
   primary_hostname    = "primary.${var.deployment_id}.${var.site_id}.internal"
   standby_hostname    = "standby.${var.deployment_id}.${var.site_id}.internal"
 
@@ -229,7 +238,7 @@ module "bootstrap_deployment" {
   source        = "../../modules/bootstrap"
   site_id       = var.site_id
   deployment_id = var.deployment_id
-  machine_roles = ["fileserver", "primary", "standby"]
+  machine_roles = ["primary", "standby"]
   os           = var.os
   output_s3_bucket = module.site_core_info.s3_logs
 }
@@ -257,7 +266,7 @@ module "arcgis_enterprise_files" {
 
 # If it's an upgrade, unregister ArcGIS Server's Web Adaptor on standby EC2 instance
 module "begin_upgrade_standby" {
-  count          = var.is_upgrade ? 1 : 0
+  count          = var.is_upgrade && length(data.aws_instances.standby.ids) > 0 ? 1 : 0
   source         = "../../modules/run_chef"
   parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/begin-upgrade-standby"
   site_id        = var.site_id
@@ -343,6 +352,7 @@ module "arcgis_enterprise_upgrade" {
   })
   execution_timeout = 7200
   depends_on = [
+    module.arcgis_enterprise_files,
     module.begin_upgrade_standby
   ]
 }
@@ -385,10 +395,10 @@ module "arcgis_enterprise_patch" {
   ]
 }
 
-# Set ArcGISVersion tag on standby EC2 instance after software upgrade is complete
-resource "aws_ec2_tag" "standby_arcgis_version" {
-  count       = var.is_upgrade ? 1 : 0
-  resource_id = data.aws_instance.standby.id
+# Update ArcGISVersion tag on the EC2 instances after upgrade is complete.
+resource "aws_ec2_tag" "arcgis_version" {
+  count       = length(data.aws_instances.deployment.ids)
+  resource_id = data.aws_instances.deployment.ids[count.index]
   key         = "ArcGISVersion"
   value       = var.arcgis_version
   depends_on = [
@@ -396,24 +406,15 @@ resource "aws_ec2_tag" "standby_arcgis_version" {
   ]
 }
 
-# Set ArcGISVersion tag on primary EC2 instance after software upgrade is complete
-resource "aws_ec2_tag" "primary_arcgis_version" {
-  count       = var.is_upgrade ? 1 : 0
-  resource_id = data.aws_instance.primary.id
-  key         = "ArcGISVersion"
-  value       = var.arcgis_version
-  depends_on = [
-    module.arcgis_enterprise_upgrade
-  ]
-}
-
-# Configure fileserver EC2 instance
+# Configure fileserver for ArcGIS Server directories and WebGIS DR staging location.
+# Create the required network shares and directories in the primary EC2 instance.
+# Allow loopback to FILESERVER hostname.
 module "arcgis_enterprise_fileserver" {
   source         = "../../modules/run_chef"
   parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/${var.arcgis_version}/fileserver"
   site_id        = var.site_id
   deployment_id  = var.deployment_id
-  machine_roles  = ["fileserver"]
+  machine_roles  = ["primary"]
   json_attributes = jsonencode({
     arcgis = {
       version                  = var.arcgis_version
@@ -423,12 +424,11 @@ module "arcgis_enterprise_fileserver" {
       fileserver = {
         directories = [
           "C:\\data\\arcgisserver",
-          "C:\\data\\arcgisbackup\\webgisdr",
-          "C:\\data\\arcgisbackup\\relational"
+          "C:\\data\\arcgisbackup\\webgisdr"
         ]
         shares = [
-          "C:\\data\\arcgisbackup",
-          "C:\\data\\arcgisserver"
+          "C:\\data\\arcgisserver",
+          "C:\\data\\arcgisbackup"
         ]
       }
     }
@@ -602,7 +602,7 @@ module "arcgis_enterprise_primary" {
       # Apache Ignite using the machine hostname for the node hostname instead of primary_hostname.
       # without activating the deployment (routing deployment_fqdn to the deployment's ALB).
       hosts = {
-        "${local.primary_hostname}" = ""
+        "${local.primary_hostname} FILESERVER" = ""
       }      
       repository = {
         archives = local.archives_dir
@@ -630,13 +630,13 @@ module "arcgis_enterprise_primary" {
         keystore_password              = var.keystore_file_password
         root_cert                      = local.root_cert
         root_cert_alias                = "rootcert"
-        directories_root               = "\\\\${local.fileserver_hostname}\\arcgisserver"
+        directories_root               = "\\\\FILESERVER\\arcgisserver"
         log_dir                        = "C:\\arcgisserver\\logs"
         log_level                      = var.log_level
         config_store_type              = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AMAZON" ?
           "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
-          "\\\\${local.fileserver_hostname}\\arcgisserver\\config-store")
+          "\\\\FILESERVER\\arcgisserver\\config-store")
         config_store_connection_secret = ""
         wa_name                        = local.server_web_context
         services_dir_enabled           = true
@@ -676,10 +676,6 @@ module "arcgis_enterprise_primary" {
           backup_type     = "s3"
           backup_location = "type=s3;location=${module.site_core_info.s3_backup}/relational-${local.timestamp};name=re_default;region=${module.site_core_info.s3_region}"
         }
-        # relational = {
-        #   backup_type     = "fs"
-        #   backup_location = "\\\\${local.fileserver_hostname}\\arcgisbackup\\relational"
-        # }
       }
       portal = {
         url                         = "https://${local.primary_hostname}:7443/arcgis"
@@ -729,7 +725,6 @@ module "arcgis_enterprise_primary" {
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
-      "recipe[arcgis-enterprise::disable_loopback_check]",
       "recipe[esri-iis]",
       "recipe[arcgis-enterprise::install_portal]",
       "recipe[arcgis-enterprise::webstyles]",
@@ -752,6 +747,7 @@ module "arcgis_enterprise_primary" {
 
 # Configure base ArcGIS Enterprise on standby EC2 instance
 module "arcgis_enterprise_standby" {
+  count          = length(data.aws_instances.standby.ids) > 0 ? 1 : 0
   source         = "../../modules/run_chef"
   parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/standby"
   site_id        = var.site_id
@@ -766,6 +762,7 @@ module "arcgis_enterprise_standby" {
       configure_cloud_settings   = false
       hosts = {
         "${local.standby_hostname}" = ""
+        "FILESERVER"                = "${data.aws_instance.primary.private_ip}"
       }      
       repository = {
         archives = local.archives_dir
@@ -860,6 +857,7 @@ module "clean_up" {
   directories   = [local.software_dir]
   uninstall_chef_client = false
   depends_on = [
+    module.arcgis_enterprise_primary,
     module.arcgis_enterprise_standby
   ]
 }
@@ -868,7 +866,8 @@ resource "aws_sns_topic_subscription" "infrastructure_alarms" {
   topic_arn = data.aws_ssm_parameter.sns_topic.value
   protocol  = "email"
   endpoint  = var.admin_email
-  depends_on = [ 
+  depends_on = [
+    module.arcgis_enterprise_primary, 
     module.arcgis_enterprise_standby
   ]
 }

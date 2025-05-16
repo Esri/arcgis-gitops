@@ -75,7 +75,7 @@ options:
   -f FILES        Index JSON file path
 ```
 
-My Esri credentials can alo be specified with environment variables:
+My Esri credentials can also be specified with environment variables:
 
 * ARCGIS_ONLINE_USERNAME - My Esri user name
 * ARCGIS_ONLINE_PASSWORD - My Esri user password

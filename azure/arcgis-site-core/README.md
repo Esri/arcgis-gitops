@@ -1,6 +1,6 @@
 # Core Azure Resources for ArcGIS Enterprise Site
 
-The template provides workflows for provisioning:
+This template provides workflows for provisioning:
 
 * Networking and storage Azure resource shared across multiple deployments of an ArcGIS Enterprise site,
 * Azure Kubernetes Service (AKS) cluster that meets ArcGIS Enterprise on Kubernetes system requirements.

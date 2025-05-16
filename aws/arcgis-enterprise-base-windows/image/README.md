@@ -1,14 +1,12 @@
 # Packer Template for Base ArcGIS Enterprise on Windows AMIs
 
-The Packer templates builds "main" and "fileserver" EC2 AMIs for a specific base ArcGIS Enterprise deployment.
+The Packer templates builds EC2 AMI for a specific base ArcGIS Enterprise deployment.
 
 The AMIs are built from a Windows OS base image specified by SSM parameter "/arcgis/${var.site_id}/images/${var.os}".
 
 The template first copies installation media for the ArcGIS Enterprise version and required third party dependencies from My Esri and public repositories to the private repository S3 bucket. The files to copy are specified in ../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json index file.
 
 Then the template uses python scripts to run SSM commands on the source EC2 instances.
-
-On "main" instance:
 
 1. Install AWS CLI
 2. Install CloudWatch Agent
@@ -18,13 +16,7 @@ On "main" instance:
 6. Install patches for the base ArcGIS Enterprise applications
 7. Delete unused files, uninstall Cinc Client, run sysprep
 
-On "fileserver" instance:
-
-1. Install AWS CLI
-2. Install CloudWatch Agent
-3. Delete unused files, uninstall Cinc Client, run sysprep
-
-IDs of the AMIs are saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/fileserver", "/arcgis/${var.site_id}/images/${var.deployment_id}/primary", and "/arcgis/${var.site_id}/images/${var.deployment_id}/standby" SSM parameters.
+IDs of the AMIs are saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.site_id}/images/${var.deployment_id}/standby" SSM parameters.
 
 ## Requirements
 

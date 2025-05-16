@@ -1,6 +1,6 @@
 # ArcGIS Enterprise on Kubernetes Deployment in AKS
 
-The template provides GitHub Actions workflows for [ArcGIS Enterprise on Kubernetes](https://www.esri.com/en-us/arcgis/products/arcgis-enterprise/kubernetes) deployment and operations in Microsoft Azure Kubernetes Services (AKS) cluster.
+This template provides GitHub Actions workflows for [ArcGIS Enterprise on Kubernetes](https://www.esri.com/en-us/arcgis/products/arcgis-enterprise/kubernetes) deployment and operations in Microsoft Azure Kubernetes Services (AKS) cluster.
 
 Supported ArcGIS Enterprise on Kubernetes versions:
 

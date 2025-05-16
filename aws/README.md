@@ -4,7 +4,7 @@ The templates provide GitHub Actions workflows for ArcGIS Enterprise operations 
 
 The workflows require:
 
-* GitHub.com user account or GitHub Enterprise Server with enabled GitHub Actions
+* GitHub.com user account or GitHub Enterprise Server with GitHub Actions enabled
 * Amazon Web Services (AWS) account
 * (For Windows and Linux platforms) ArcGIS Online user account to download ArcGIS Enterprise installation media from [MyEsri](https://my.esri.com)
 * (For Kubernetes platform) Docker Hub account that has access to private repositories with ArcGIS Enterprise on Kubernetes container images
@@ -50,7 +50,7 @@ By default, the workflows are configured with "workflow_dispatch" event that ena
 
 > Note that the deployments may belong to different *environments* such as "production" and "staging". Each environment may have its own branch in the repository. It's recommended to use protected `main` branch for the production environment and create separate branches for other environments.
 
-The list of workflows in GitHub Actions page shows only the workflows present in /.github/workflows directory of the "main" branch, but the workflow runs use the workflow files from the selected branch. To enable workflows, copy the workflows' .yaml files from the template's `workflows` directory to `/.github/workflows` directory in both the `main` branch and the environment branch, commit the changes, and push the branches to GitHub.
+The list of workflows in the GitHub Actions page shows only the workflows present in /.github/workflows directory of the "main" branch, but the workflow runs use the workflow files from the selected branch. To enable workflows, copy the workflows' .yaml files from the template's `workflows` directory to `/.github/workflows` directory in both the `main` branch and the environment branch, commit the changes, and push the branches to GitHub.
 
 The workflows can be modified to use other triggering events such as push, pull_request, or schedule. Consider using "schedule" event to schedule backups and "pull_request" event to check the infrastructure changes by "terraform plan" command. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
 
@@ -58,7 +58,7 @@ The workflows can be modified to use other triggering events such as push, pull_
 
 The workflows use configuration files to define the parameters of the deployments. The configuration files are in JSON format and are stored in the `/config/aws` directory of the repository. The configuration files must be in the same branch as the workflows that use them.
 
-The configuration files may reference other files such as software authorization files and SSL certificates. The workflows symlink `~/config/` paths to the `config` directory path in the GitHub Actions runner workspace. Keep the referenced files in subdirectories of the `/config` directory and reference them as `~/config/<dir>/<file>`.
+The configuration files may reference other files, such as software authorization files and SSL certificates. The workflows create symlinks from `~/config/` paths to the `config` directory path in the GitHub Actions runner workspace. Keep the referenced files in subdirectories of the `/config` directory and reference them as `~/config/<dir>/<file>`.
 
 ## IAM Policies
 
@@ -76,7 +76,7 @@ The specific guidance for using the templates depends on the use case and may in
 
 [Create a new private GitHub repository](https://github.com/new?template_name=arcgis-gitops&template_owner=Esri&description=ArcGIS%20Enterprise%20on%20AWS&name=arcgis-enterprise) from https://github.com/esri/arcgis-gitops template repository.
 
-Use separate GitHub repositories for each ArcGIS Enterprise site and separate Git branches for different environments.
+Use a separate GitHub repository for each ArcGIS Enterprise site and separate Git branches for different environments.
 
 > When operating multiple similar ArcGIS Enterprise sites, consider first forking and modifying https://github.com/esri/arcgis-gitops template repository and then creating repositories for the sites from the modified template.
 
@@ -84,11 +84,11 @@ Use separate GitHub repositories for each ArcGIS Enterprise site and separate Gi
 
 Create IAM user that will be used by the workflows and add the required policies to the user.
 
-> The templates use the same AWS credentials for all the workflows. To implement the principle of least privilege and enforce separation of duties with appropriate authorization for each interaction with AWS resources, consider modifying the workflows to use different AWS credentials for different workflows. Consider using separate IAM users for core infrastructure, deployments infrastructure, and application workflows.  
+> The templates use the same AWS credentials for all the workflows. To implement the principle of least privilege and enforce separation of duties, consider modifying the workflows to use different AWS credentials for different workflows. Consider using separate IAM users for core infrastructure, deployments infrastructure, and application workflows.  
 
 Create a private S3 bucket for the [Terraform backend](https://developer.hashicorp.com/terraform/language/settings/backends/s3). Make sure that the IAM user has the [S3 bucket permissions](https://developer.hashicorp.com/terraform/language/settings/backends/s3#s3-bucket-permissions) required by Terraform.
 
-> It is recommended that to enable bucket versioning on the S3 bucket to allow for state recovery in the case of accidental deletions and human error.
+> It is recommended to enable bucket versioning on the S3 bucket to allow for state recovery in the case of accidental deletions or human error.
 
 ### 3. GitHub Repository Settings
 
@@ -132,11 +132,11 @@ Provision core AWS resources for the ArcGIS Enterprise site using the [arcgis-si
 
 Create base ArcGIS Enterprise deployment using the [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) or [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) templates.
 
-Optionally, create deployments for each require additional server roles.
+Optionally, create deployments for each additional server role.
 
 > Consult the README files of the templates to create and operate the required ArcGIS Enterprise deployments.
 
-Use **verify-site-config-aws** GitHub Actions workflow to verify the site configuration before running any other workflows. The workflow checks integrity of configuration of the deployments specified by "deployments" array in [site-index.json](../config/aws/site-index.json) file.
+Use **verify-site-config-aws** GitHub Actions workflow to verify the site configuration before running any other workflows. The workflow checks integrity of the configuration of the deployments specified by "deployments" array in [site-index.json](../config/aws/site-index.json) file.
 
 > Consider triggering verify-site-config-aws workflow by pull requests to the main branch to verify the configuration changes before merging them into the main branch.
 
@@ -164,4 +164,4 @@ To activate the standby site:
 
 > The test workflow cannot be used with the standby site deployments until it is activated.
 
-> The standby site deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types could differ from the active deployment.
+> The standby site deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types can differ from the active deployment.

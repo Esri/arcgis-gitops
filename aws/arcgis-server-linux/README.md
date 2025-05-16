@@ -1,6 +1,6 @@
 # ArcGIS Server on Linux Deployment in AWS
 
-The template provides GitHub Actions workflows for [ArcGIS Server deployment](https://enterprise.arcgis.com/en/server/latest/install/linux/welcome-to-the-arcgis-for-server-install-guide.htm) operations on Linux platforms.
+This template provides GitHub Actions workflows for [ArcGIS Server deployment](https://enterprise.arcgis.com/en/server/latest/install/linux/welcome-to-the-arcgis-for-server-install-guide.htm) operations on Linux platforms.
 
 The template supports both standalone and federated ArcGIS Server deployments. Optionally, the deployments may include ArcGIS Web Adaptor and use Application Load Balancer of base ArcGIS Enterprise deployments.
 

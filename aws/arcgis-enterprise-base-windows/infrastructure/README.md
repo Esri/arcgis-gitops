@@ -5,8 +5,8 @@ The Terraform module creates AWS resources for highly available base ArcGIS Ente
 
 ![Base ArcGIS Enterprise on Windows / Infrastructure](arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
 
-The module launches three SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
-The EC2 instances are launched from images retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters.
+The module launches two (or one, if "is_ha" input variable is set to false) SSM managed EC2 instances in the private VPC subnets or subnets specified by "subnet_ids" input variable.
+The EC2 instances are launched from images retrieved from "/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}" SSM parameters.
 The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows.
 
 For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instances addressable using permanent DNS names.
@@ -57,7 +57,6 @@ The module reads the following SSM parameters:
 | SSM parameter name | Description |
 |--------------------|-------------|
 | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/fileserver | Fileserver EC2 instance AMI Id |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI Id |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
@@ -103,13 +102,10 @@ The module writes the following SSM parameters:
 
 | Name | Type |
 |------|------|
-| [aws_instance.fileserver](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_instance.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
-| [aws_network_interface.fileserver](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
 | [aws_network_interface.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
-| [aws_route53_record.fileserver](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_route53_record.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_record) | resource |
 | [aws_s3_bucket.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
@@ -121,7 +117,6 @@ The module writes the following SSM parameters:
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
-| [aws_ssm_parameter.fileserver_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.primary_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.standby_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
@@ -133,12 +128,9 @@ The module writes the following SSM parameters:
 | client_cidr_blocks | Client CIDR blocks | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-base-windows"` | no |
-| fileserver_instance_type | EC2 instance type of fileserver | `string` | `"m6i.xlarge"` | no |
-| fileserver_volume_iops | Root EBS volume IOPS of fileserver EC2 instance | `number` | `3000` | no |
-| fileserver_volume_size | Root EBS volume size in GB of fileserver EC2 instance | `number` | `1024` | no |
-| fileserver_volume_throughput | Root EBS volume throughput in MB/s of fileserver EC2 instance | `number` | `125` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
+| is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |

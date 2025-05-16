@@ -1,6 +1,6 @@
 # Core AWS Resources for ArcGIS Enterprise Site
 
-The template provides workflows for provisioning:
+This template provides workflows for provisioning:
 
 * Networking, storage, and identity AWS resource shared across multiple deployments of an ArcGIS Enterprise site,
 * Chef Automation resources required for ArcGIS Enterprise site configuration management using [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/), and

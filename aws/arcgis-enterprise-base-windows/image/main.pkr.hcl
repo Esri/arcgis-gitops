@@ -1,7 +1,7 @@
 /**
  * # Packer Template for Base ArcGIS Enterprise AMIs
  * 
- * The Packer templates builds "main" and "fileserver" EC2 AMIs for a specific base ArcGIS Enterprise deployment.
+ * The Packer templates builds EC2 AMI for a specific base ArcGIS Enterprise deployment.
  * 
  * The AMIs are built from a Windows OS base image specified by SSM parameter "/arcgis/${var.site_id}/images/${var.os}".
  * 
@@ -12,8 +12,6 @@
  * 
  * Then the template uses python scripts to run SSM commands on the source EC2 instances.
  * 
- * On "main" instance:
- * 
  * 1. Install AWS CLI
  * 2. Install CloudWatch Agent
  * 3. Install Cinc Client and Chef Cookbooks for ArcGIS
@@ -22,14 +20,7 @@
  * 6. Install patches for the base ArcGIS Enterprise applications
  * 7. Delete unused files, uninstall Cinc Client, run sysprep
  * 
- * On "fileserver" instance:
- * 
- * 1. Install AWS CLI
- * 2. Install CloudWatch Agent
- * 3. Delete unused files, uninstall Cinc Client, run sysprep
- * 
- * IDs of the AMIs are saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/fileserver",
- * "/arcgis/${var.site_id}/images/${var.deployment_id}/primary", and 
+ * IDs of the AMIs are saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary" and 
  * "/arcgis/${var.site_id}/images/${var.deployment_id}/standby" SSM parameters.
  * 
  * ## Requirements
@@ -134,10 +125,6 @@ locals {
   main_ami_name  = "arcgis-enterprise-base-${var.arcgis_version}-${var.os}-${local.timestamp}"
   main_ami_description = "Base ArcGIS Enterprise ${var.arcgis_version} AMI for ${var.os}"
   
-  fileserver_machine_role = "packer-fileserver"
-  fileserver_ami_name  = "arcgis-enterprise-base-fileserver-${var.os}-${local.timestamp}"
-  fileserver_ami_description = "Base ArcGIS Enterprise fileserver AMI for ${var.os}"
-
   software_dir = "C:/Software/*"
 
   # Platform-specific attributes
@@ -177,40 +164,8 @@ source "amazon-ebs" "main" {
   skip_create_ami = var.skip_create_ami
 }
 
-source "amazon-ebs" "fileserver" {
-  region        = var.aws_region
-  ami_name      = local.fileserver_ami_name
-  ami_description = local.fileserver_ami_description
-  instance_type = var.instance_type
-  source_ami    = data.amazon-parameterstore.source_ami.value
-  subnet_id     = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
-  iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
-  communicator = "none"
-  
-  launch_block_device_mappings {
-    device_name = "/dev/sda1"
-    volume_type = "gp3"
-    volume_size = var.root_volume_size
-    // encrypted   = true    
-    iops        = 16000
-    throughput  = 1000
-    delete_on_termination = true
-  }
-
-  run_tags = {
-    Name               = local.fileserver_ami_name
-    ArcGISAutomation   = "arcgis-gitops"
-    ArcGISSiteId       = var.site_id    
-    ArcGISDeploymentId = var.deployment_id    
-    ArcGISMachineRole  = local.fileserver_machine_role
-    OperatingSystem    = var.os
-  }
-
-  skip_create_ami = var.skip_create_ami
-}
-
 build {
-  name = "${var.deployment_id}-main"
+  name = var.deployment_id
  
   sources = [
     "source.amazon-ebs.main"
@@ -395,56 +350,3 @@ build {
   }
 }
 
-build {
-  name = "${var.deployment_id}-fileserver"
- 
-  sources = [
-    "source.amazon-ebs.fileserver"
-  ]
-
-  # Install AWS CLI
-  provisioner "shell-local" {
-    env = {
-      AWS_DEFAULT_REGION = var.aws_region
-    }
-
-    command = "python -m ssm_install_awscli -s ${var.site_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -b ${data.amazon-parameterstore.s3_logs.value}"
-  }
-
-  # Install CloudWatch Agent
-  provisioner "shell-local" {
-    env = {
-      AWS_DEFAULT_REGION = var.aws_region
-    }
-
-    command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
-  }
-
-  # sysprep
-  provisioner "shell-local" {
-    env = {
-      AWS_DEFAULT_REGION = var.aws_region
-    }
-
-    command = "python -m ssm_clean_up -s ${var.site_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -p true -f \"\" -b ${data.amazon-parameterstore.s3_logs.value}"
-  }
-
-  # Save the build artifacts metadata in packer-manifest.json file.
-  # Note: New builds add new artifacts to packer-manifest.json file.
-  post-processor "manifest" {
-    output = "fileserver-packer-manifest.json"
-    strip_path = true
-    custom_data = {
-      ami_description = local.fileserver_ami_description
-    }
-  }
-
-  # Retrieve the the AMI Id from fileserver-packer-manifest.json manifest file and save it in SSM parameter.
-  post-processor "shell-local" {
-    env = {
-      AWS_DEFAULT_REGION = var.aws_region
-    }
-
-    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/fileserver -f fileserver-packer-manifest.json -r ${build.PackerRunUUID}"
-  }
-}

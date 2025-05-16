@@ -5,8 +5,8 @@ The Terraform module provisions AWS resources for highly available base ArcGIS E
 
 ![Infrastructure for Base ArcGIS Enterprise on Linux](arcgis-enterprise-base-linux-infrastructure.png "Infrastructure for Base ArcGIS Enterprise on Linux")  
 
-The module launches two SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
-The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters.
+The module launches two (or one, if "is_ha" input variable is set to false) SSM managed EC2 instances in the private VPC subnets or subnets specified by "subnet_ids" input variable.
+The instances are launched from image retrieved from "/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}" SSM parameters.
 The image must be created by the Packer Template for Base ArcGIS Enterprise on Linux.
 
 For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instances addressable using permanent DNS names.
@@ -17,7 +17,7 @@ A highly available EFS file system is created and mounted to the EC2 instances.
 
 S3 buckets for the portal content and object store are created. The S3 buckets names are stored in the SSM parameters.
 
-The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, 6443, and 7443 and target groups for the listeners that target the EC2 instances.
+The module creates an Application Load Balancer (ALB) and target groups for the listeners that target the EC2 instances.
 Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
 The module also creates a private Route53 hosted zone for the deployment FQDN and an alias A record for the load balancer DNS name in the hosted zone.
 This makes the deployment FQDN addressable from the VPC subnets.
@@ -80,7 +80,7 @@ The module writes the following SSM parameters:
 | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer |
 | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer |
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
-| /arcgis/${var.site_id}/${var.deployment_id}/deployment-URL | Portal for ArcGIS URL of the deployment |
+| /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | Portal for ArcGIS URL of the deployment |
 
 ## Providers
 
@@ -137,6 +137,7 @@ The module writes the following SSM parameters:
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-base-linux"` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
+| is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |

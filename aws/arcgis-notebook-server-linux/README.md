@@ -1,6 +1,6 @@
 # ArcGIS Notebook Server on Linux Deployment in AWS
 
-The template provides GitHub Actions workflows for [ArcGIS Notebook Server deployment](https://enterprise.arcgis.com/en/notebook/) operations on Linux platforms.
+This template provides GitHub Actions workflows for [ArcGIS Notebook Server deployment](https://enterprise.arcgis.com/en/notebook/) operations on Linux platforms.
 
 Supported ArcGIS Notebook Server versions:
 

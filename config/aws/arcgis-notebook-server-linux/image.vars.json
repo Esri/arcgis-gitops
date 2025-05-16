@@ -6,7 +6,7 @@
   "arcgis_version": "11.4",
   "arcgis_web_adaptor_patches": [],
   "deployment_id": "notebook-server-linux",
-  "instance_type": "m6i.2xlarge",
+  "instance_type": "m7i.2xlarge",
   "license_level": "standard",
   "notebook_server_web_context": "notebooks",
   "os": "ubuntu22",

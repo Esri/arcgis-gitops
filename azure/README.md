@@ -4,7 +4,7 @@ The templates provide GitHub Actions workflows for ArcGIS Enterprise operations 
 
 The workflows require:
 
-* GitHub.com user account or GitHub Enterprise Server with enabled GitHub Actions
+* GitHub.com user account or GitHub Enterprise Server with GitHub Actions enabled
 * Microsoft Azure account
 * (For Windows and Linux platforms) ArcGIS Online user account to download ArcGIS Enterprise installation media from [MyEsri](https://my.esri.com)
 * (For Kubernetes platform) Docker Hub account that has access to private repositories with ArcGIS Enterprise on Kubernetes container images
@@ -41,7 +41,7 @@ The workflows can be modified to use other triggering events such as push, pull_
 
 The workflows use configuration files to define the parameters of the deployments. The configuration files are in JSON format and are stored in the `/config/azure` directory of the repository. The configuration files must be in the same branch as the workflows that use them.
 
-The configuration files may reference other files such as software authorization files and SSL certificates. The workflows symlink `~/config/` paths to the `config` directory path in the GitHub Actions runner workspace. Keep the referenced files in subdirectories of the `/config` directory and reference them as `~/config/<dir>/<file>`.
+The configuration files may reference other files, such as software authorization files and SSL certificates. The workflows symlink `~/config/` paths to the `config` directory path in the GitHub Actions runner workspace. Keep the referenced files in subdirectories of the `/config` directory and reference them as `~/config/<dir>/<file>`.
 
 ## Instructions
 
@@ -51,7 +51,7 @@ The specific guidance for using the templates depends on the use case and may in
 
 [Create a new private GitHub repository](https://github.com/new?template_name=arcgis-gitops&template_owner=Esri&description=ArcGIS%20Enterprise%20on%20Azure&name=arcgis-enterprise) from https://github.com/esri/arcgis-gitops template repository.
 
-Use separate GitHub repositories for each ArcGIS Enterprise site and separate Git branches for different environments.
+Use a separate GitHub repository for each ArcGIS Enterprise site and separate Git branches for different environments.
 
 > When operating multiple similar ArcGIS Enterprise sites, consider first forking and modifying https://github.com/esri/arcgis-gitops template repository and then creating repositories for the sites from the modified template.
 
@@ -59,7 +59,7 @@ Use separate GitHub repositories for each ArcGIS Enterprise site and separate Gi
 
 Create a service principal in Microsoft Entra ID that will be used by the workflows and assign the required roles to it.
 
-> The templates use the same Azure credentials for all the workflows. To implement the principle of least privilege and enforce separation of duties with appropriate authorization for each interaction with Azure resources, consider modifying the workflows to use different Azure credentials for different workflows. Consider using separate service principals for core infrastructure, deployments infrastructure, and application workflows.  
+> The templates use the same Azure credentials for all the workflows. To implement the principle of least privilege and enforce separation of duties, consider modifying the workflows to use different Azure credentials for different workflows. Consider using separate service principals for core infrastructure, deployments infrastructure, and application workflows.  
 
 Create an Azure storage account and a blob container in the account for the [Terraform backend](https://developer.hashicorp.com/terraform/language/backend/azurerm). Assign the service principal "Storage Blob Data Owner" or "Container Blob Data Owner" role in the storage Account.
 

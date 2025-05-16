@@ -23,7 +23,7 @@ Then the module:
 * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and standby EC2 instances
 * Creates the required directories in the NFS mount
 * Configures base ArcGIS Enterprise on primary EC2 instance
-* Configures base ArcGIS Enterprise on standby EC2 instance
+* Configures base ArcGIS Enterprise on standby EC2 instance, if any
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby EC2 instances
 * Subscribes the primary ArcGIS Enterprise administrator e-mail address to the SNS topic of the monitoring subsystem
 
@@ -93,9 +93,8 @@ The module reads the following SSM parameters:
 | [aws_s3_object.root_cert_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.server_authorization_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_sns_topic_subscription.infrastructure_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
-| [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
-| [aws_instance.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
 | [aws_instances.deployment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
+| [aws_instances.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |

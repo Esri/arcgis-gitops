@@ -1,6 +1,6 @@
 # Base ArcGIS Enterprise on Linux Deployment in AWS
 
-The template provides GitHub Actions workflows for [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/linux/base-arcgis-enterprise-deployment.htm) operations on Linux platforms.
+This template provides GitHub Actions workflows for [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/linux/base-arcgis-enterprise-deployment.htm) operations on Linux platforms.
 
 Supported ArcGIS Enterprise versions:
 

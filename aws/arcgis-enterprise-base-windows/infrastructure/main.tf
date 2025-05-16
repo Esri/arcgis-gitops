@@ -5,8 +5,8 @@
  *
  * ![Base ArcGIS Enterprise on Windows / Infrastructure](arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
  *
- * The module launches three SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable. 
- * The EC2 instances are launched from images retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
+ * The module launches two (or one, if "is_ha" input variable is set to false) SSM managed EC2 instances in the private VPC subnets or subnets specified by "subnet_ids" input variable. 
+ * The EC2 instances are launched from images retrieved from "/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}" SSM parameters. 
  * The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows. 
  *
  * For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instances addressable using permanent DNS names.
@@ -57,7 +57,6 @@
  * | SSM parameter name | Description |
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/fileserver | Fileserver EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
@@ -125,10 +124,6 @@ provider "aws" {
 
 # Retrieve configuration parameters from SSM Parameter Store
 
-data "aws_ssm_parameter" "fileserver_ami" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/fileserver"
-}
-
 data "aws_ssm_parameter" "primary_ami" {
   name = "/arcgis/${var.site_id}/images/${var.deployment_id}/primary"
 }
@@ -172,56 +167,6 @@ resource "aws_ssm_parameter" "security_group_id" {
   type        = "String"
   value       = module.security_group.id
   description = "Deployment security group Id"
-}
-
-resource "aws_network_interface" "fileserver" {
-  subnet_id = local.primary_subnet
-  security_groups = [module.security_group.id]
-
-  tags = {
-    Name = "${var.site_id}/${var.deployment_id}/fileserver"
-  }
-}
-
-# Create fileserver EC2 instance
-resource "aws_instance" "fileserver" {
-  ami                    = data.aws_ssm_parameter.fileserver_ami.value
-  instance_type          = var.fileserver_instance_type
-  key_name               = var.key_name
-  iam_instance_profile   = module.site_core_info.instance_profile_name
-  monitoring             = true
-
-  network_interface {
-    network_interface_id = aws_network_interface.fileserver.id
-    device_index         = 0
-  }
-
-  metadata_options {
-    http_endpoint = "enabled"
-    http_tokens   = "required"
-  }
-
-  root_block_device {
-    volume_type = "gp3"
-    volume_size = var.fileserver_volume_size
-    encrypted   = true
-    iops        = var.fileserver_volume_iops
-    throughput  = var.fileserver_volume_throughput
-  }
-
-  tags = {
-    Name              = "${var.site_id}/${var.deployment_id}/fileserver"
-    ArcGISTemplateId  = local.arcgis_template_id
-    ArcGISVersion     = local.arcgis_version
-    ArcGISMachineRole = "fileserver"
-  }
-
-  volume_tags = {
-    Name               = "${var.site_id}/${var.deployment_id}/fileserver"
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
-    ArcGISMachineRole  = "fileserver"
-  }
 }
 
 resource "aws_network_interface" "primary" {
@@ -275,8 +220,8 @@ resource "aws_instance" "primary" {
 }
 
 resource "aws_network_interface" "standby" {
-  subnet_id = local.standby_subnet
-  # private_ips    = ["10.0.65.XXX"]  
+  count = var.is_ha ? 1 : 0
+  subnet_id       = local.standby_subnet
   security_groups = [module.security_group.id]
 
   tags = {
@@ -286,6 +231,7 @@ resource "aws_network_interface" "standby" {
 
 # Create standby EC2 instance
 resource "aws_instance" "standby" {
+  count                  = var.is_ha ? 1 : 0
   ami                    = nonsensitive(data.aws_ssm_parameter.standby_ami.value)
   instance_type          = var.instance_type
   key_name               = var.key_name
@@ -293,7 +239,7 @@ resource "aws_instance" "standby" {
   monitoring             = true
 
   network_interface {
-    network_interface_id = aws_network_interface.standby.id
+    network_interface_id = aws_network_interface.standby[0].id
     device_index         = 0
   }
   
@@ -325,14 +271,6 @@ resource "aws_instance" "standby" {
   }
 }
 
-resource "aws_route53_record" "fileserver" {
-  zone_id = module.site_core_info.hosted_zone_id
-  name    = "fileserver.${var.deployment_id}"
-  type    = "A"
-  ttl     = 300
-  records = [aws_instance.fileserver.private_ip]
-}
-
 resource "aws_route53_record" "primary" {
   zone_id = module.site_core_info.hosted_zone_id
   name    = "primary.${var.deployment_id}"
@@ -342,11 +280,12 @@ resource "aws_route53_record" "primary" {
 }
 
 resource "aws_route53_record" "standby" {
+  count = var.is_ha ? 1 : 0
   zone_id = module.site_core_info.hosted_zone_id
   name    = "standby.${var.deployment_id}"
   type    = "A"
   ttl     = 300
-  records = [aws_instance.standby.private_ip]
+  records = [aws_instance.standby[0].private_ip]
 }
 
 # Create S3 bucket for the portal content
@@ -381,7 +320,6 @@ module "cw_agent" {
   site_id       = var.site_id
   deployment_id = var.deployment_id
   depends_on = [
-    aws_instance.fileserver,
     aws_instance.primary,
     aws_instance.standby
   ]

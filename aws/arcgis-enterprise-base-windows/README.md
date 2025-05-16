@@ -1,6 +1,6 @@
 # Base ArcGIS Enterprise on Windows Deployment in AWS
 
-The template provides GitHub Actions workflows for [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) operations on Windows platform.
+This template provides GitHub Actions workflows for [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) operations on Windows platform.
 
 Supported ArcGIS Enterprise versions:
 

@@ -17,14 +17,26 @@ variable "aws_region" {
   type        = string
 }
 
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
-  type        = string
-  default     = "arcgis"
+variable "client_cidr_blocks" {
+  description = "Client CIDR blocks"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+    condition = alltrue([
+      for b in var.client_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+    ])
+    error_message = "All elements in vpc_cidr_block list must be in IPv4 CIDR block format."
+  }
+}
+
+variable "deployment_fqdn" {
+  description = "Fully qualified domain name of the base ArcGIS Enterprise deployment"
+  type        = string
+
+  validation {
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
+    error_message = "The deployment_fqdn value must be a valid domain name."
   }
 }
 
@@ -39,29 +51,83 @@ variable "deployment_id" {
   }
 }
 
-variable "client_cidr_blocks" {
-  description = "Client CIDR blocks"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
-
-  validation {
-    condition = alltrue([
-      for b in var.client_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
-    ])
-    error_message = "All elements in vpc_cidr_block list must be in IPv4 CIDR block format."
-  }
-}
-
-variable "subnet_ids" {
-  description = "EC2 instances subnet IDs (by default, the first two private VPC subnets are used)"
-  type        = list(string)
-  default     = []
+variable "instance_type" {
+  description = "EC2 instance type"
+  type        = string
+  default     = "m6i.2xlarge"
 }
 
 variable "internal_load_balancer" {
   description = "If true, the load balancer scheme is set to 'internal'"
   type        = bool
   default     = false
+}
+
+variable "is_ha" {
+  description = "If true, the deployment is in high availability mode"
+  type        = bool
+  default     = true
+}
+
+variable "key_name" {
+  description = "EC2 key pair name"
+  type        = string
+}
+
+variable "portal_web_context" {
+  description = "Portal for ArcGIS web context"
+  type        = string
+  default     = "portal"  
+}
+
+variable "root_volume_iops" {
+  description = "Root EBS volume IOPS of primary and standby EC2 instances"
+  type        = number
+  default     = 3000
+
+  validation {
+    condition     = var.root_volume_iops >= 3000 && var.root_volume_iops <= 16000
+    error_message = "The root_volume_iops value must be between 3000 and 16000."
+  }    
+}
+
+variable "root_volume_size" {
+  description = "Root EBS volume size in GB"
+  type        = number
+  default     = 1024
+
+  validation {
+    condition     = var.root_volume_size >= 100 && var.root_volume_size <= 16384
+    error_message = "The root_volume_size value must be between 100 and 16384."
+  }
+}
+
+variable "root_volume_throughput" {
+  description = "Root EBS volume throughput in MB/s of primary and standby EC2 instances"
+  type        = number
+  default     = 125
+
+  validation {
+    condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
+    error_message = "The root_volume_throughput value must be between 125 and 1000."
+  }
+}
+
+variable "server_web_context" {
+  description = "ArcGIS Server web context"
+  type        = string
+  default     = "server"  
+}
+
+variable "site_id" {
+  description = "ArcGIS Enterprise site Id"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
+    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
 }
 
 variable "ssl_certificate_arn" {
@@ -80,68 +146,8 @@ variable "ssl_policy" {
   default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
 }
 
-variable "deployment_fqdn" {
-  description = "Fully qualified domain name of the base ArcGIS Enterprise deployment"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
-  }
-}
-
-variable "portal_web_context" {
-  description = "Portal for ArcGIS web context"
-  type        = string
-  default     = "portal"  
-}
-
-variable "server_web_context" {
-  description = "ArcGIS Server web context"
-  type        = string
-  default     = "server"  
-}
-
-variable "instance_type" {
-  description = "EC2 instance type"
-  type        = string
-  default     = "m6i.2xlarge"
-}
-
-variable "root_volume_size" {
-  description = "Root EBS volume size in GB"
-  type        = number
-  default     = 1024
-
-  validation {
-    condition     = var.root_volume_size >= 100 && var.root_volume_size <= 16384
-    error_message = "The root_volume_size value must be between 100 and 16384."
-  }
-}
-
-variable "root_volume_iops" {
-  description = "Root EBS volume IOPS of primary and standby EC2 instances"
-  type        = number
-  default     = 3000
-
-  validation {
-    condition     = var.root_volume_iops >= 3000 && var.root_volume_iops <= 16000
-    error_message = "The root_volume_iops value must be between 3000 and 16000."
-  }    
-}
-
-variable "root_volume_throughput" {
-  description = "Root EBS volume throughput in MB/s of primary and standby EC2 instances"
-  type        = number
-  default     = 125
-
-  validation {
-    condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
-    error_message = "The root_volume_throughput value must be between 125 and 1000."
-  }
-}
-
-variable "key_name" {
-  description = "EC2 key pair name"
-  type        = string
+variable "subnet_ids" {
+  description = "EC2 instances subnet IDs (by default, the first two private VPC subnets are used)"
+  type        = list(string)
+  default     = []
 }

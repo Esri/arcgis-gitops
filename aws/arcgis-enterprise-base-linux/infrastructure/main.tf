@@ -5,8 +5,8 @@
  *
  * ![Infrastructure for Base ArcGIS Enterprise on Linux](arcgis-enterprise-base-linux-infrastructure.png "Infrastructure for Base ArcGIS Enterprise on Linux")  
  *
- * The module launches two SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
- * The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
+ * The module launches two (or one, if "is_ha" input variable is set to false) SSM managed EC2 instances in the private VPC subnets or subnets specified by "subnet_ids" input variable.
+ * The instances are launched from image retrieved from "/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}" SSM parameters. 
  * The image must be created by the Packer Template for Base ArcGIS Enterprise on Linux. 
  *
  * For the EC2 instances the module creates "A" records in the VPC Route53 private hosted zone to make the instances addressable using permanent DNS names.
@@ -17,7 +17,7 @@
  *
  * S3 buckets for the portal content and object store are created. The S3 buckets names are stored in the SSM parameters.
  *
- * The module creates an Application Load Balancer (ALB) with listeners for ports 80, 443, 6443, and 7443 and target groups for the listeners that target the EC2 instances.
+ * The module creates an Application Load Balancer (ALB) and target groups for the listeners that target the EC2 instances.
  * Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
  * The module also creates a private Route53 hosted zone for the deployment FQDN and an alias A record for the load balancer DNS name in the hosted zone.
  * This makes the deployment FQDN addressable from the VPC subnets. 
@@ -80,7 +80,7 @@
  * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer |
  * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-URL | Portal for ArcGIS URL of the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | Portal for ArcGIS URL of the deployment |
  */
 
 # Copyright 2024-2025 Esri
@@ -188,6 +188,7 @@ resource "aws_efs_mount_target" "primary" {
 }
 
 resource "aws_efs_mount_target" "standby" {
+  count = var.is_ha ? 1 : 0
   file_system_id  = aws_efs_file_system.fileserver.id
   subnet_id       = local.standby_subnet
   security_groups = [module.security_group.id]
@@ -261,6 +262,7 @@ resource "aws_instance" "primary" {
 }
 
 resource "aws_network_interface" "standby" {
+  count = var.is_ha ? 1 : 0
   subnet_id = local.standby_subnet
   # private_ips    = ["10.0.65.XXX"]  
   security_groups = [module.security_group.id]
@@ -272,6 +274,7 @@ resource "aws_network_interface" "standby" {
 
 # Create standby EC2 instance
 resource "aws_instance" "standby" {
+  count = var.is_ha ? 1 : 0
   ami                  = nonsensitive(data.aws_ssm_parameter.standby_ami.value)
   instance_type        = var.instance_type
   key_name             = var.key_name
@@ -279,7 +282,7 @@ resource "aws_instance" "standby" {
   monitoring           = true
 
   network_interface {
-    network_interface_id = aws_network_interface.standby.id
+    network_interface_id = aws_network_interface.standby[0].id
     device_index         = 0
   }
 
@@ -320,11 +323,12 @@ resource "aws_route53_record" "primary" {
 }
 
 resource "aws_route53_record" "standby" {
+  count   = var.is_ha ? 1 : 0
   zone_id = module.site_core_info.hosted_zone_id
   name    = "standby.${var.deployment_id}"
   type    = "A"
   ttl     = 300
-  records = [aws_instance.standby.private_ip]
+  records = [aws_instance.standby[0].private_ip]
 }
 
 # Create S3 bucket for the portal content

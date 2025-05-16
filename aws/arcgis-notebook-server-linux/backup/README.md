@@ -27,4 +27,4 @@ The script reads the following SSM parameters:
 
 * `<json_attributes_parameter>`: SSM parameter containing a JSON object with the script input parameters
 * `/arcgis/${site_id}/s3/backup`: S3 bucket for the backup
-* `/arcgis/${site_id}/s3/region`: The bucket S3 bucket region
+* `/arcgis/${site_id}/s3/region`: The S3 bucket region

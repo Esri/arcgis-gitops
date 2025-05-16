@@ -25,7 +25,7 @@ module "alb" {
   ssl_policy             = var.ssl_policy
   subnets = (var.internal_load_balancer ?
     module.site_core_info.private_subnets :
-  module.site_core_info.public_subnets)
+    module.site_core_info.public_subnets)
   vpc_id = module.site_core_info.vpc_id
 }
 
@@ -43,7 +43,7 @@ module "server_https_alb_target" {
   health_check_path = "/${var.server_web_context}/rest/info/healthcheck"
   path_patterns     = ["/${var.server_web_context}", "/${var.server_web_context}/*"]
   priority          = 100
-  target_instances  = [aws_instance.primary.id, aws_instance.standby.id]
+  target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.standby : n.id])
   depends_on = [
     module.alb
   ]
@@ -63,7 +63,7 @@ module "portal_https_alb_target" {
   health_check_path = "/${var.portal_web_context}/portaladmin/healthCheck"
   path_patterns     = ["/${var.portal_web_context}", "/${var.portal_web_context}/*"]
   priority          = 101
-  target_instances  = [aws_instance.primary.id, aws_instance.standby.id]
+  target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.standby : n.id])
   depends_on = [
     module.alb
   ]

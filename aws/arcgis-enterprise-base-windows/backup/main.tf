@@ -68,7 +68,7 @@ provider "aws" {
 
 
 locals {
-  shared_location = "\\\\\\\\fileserver.${var.deployment_id}.${var.site_id}.internal\\\\arcgisbackup\\\\webgisdr"
+  shared_location = "\\\\\\\\FILESERVER\\\\arcgisbackup\\\\webgisdr"
 }
 
 module "site_core_info" {

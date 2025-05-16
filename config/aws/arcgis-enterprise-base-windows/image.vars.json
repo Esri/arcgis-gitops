@@ -11,7 +11,7 @@
   "arcgis_version": "11.4",
   "arcgis_web_adaptor_patches": [],
   "deployment_id": "enterprise-base-windows",
-  "instance_type": "m6i.2xlarge",
+  "instance_type": "m7i.2xlarge",
   "os": "windows2022",
   "portal_web_context": "portal",
   "root_volume_size": 100,

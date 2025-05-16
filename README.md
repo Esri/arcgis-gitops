@@ -1,8 +1,14 @@
+[![GitHub Release](https://img.shields.io/github/v/release/Esri/arcgis-gitops)](https://github.com/Esri/arcgis-gitops/releases)
+[![GitHub License](https://img.shields.io/github/license/Esri/arcgis-gitops)](https://github.com/Esri/arcgis-gitops/blob/main/License.txt)
+[![CodeQL](https://github.com/Esri/arcgis-gitops/actions/workflows/github-code-scanning/codeql/badge.svg)](https://github.com/Esri/arcgis-gitops/actions/workflows/github-code-scanning/codeql)
+
 # ArcGIS Automation using GitHub Actions
+
+> For cloud administrators, DevOps engineers, and IT professionals deploying ArcGIS Enterprise.
 
 The template repository provides [GitHub Actions](https://docs.github.com/en/actions) workflows that automate deployment and operation of [ArcGIS Enterprise](https://enterprise.arcgis.com) following Infrastructure as Code methodologies, foundational system patterns, and best practices recommended for enterprise IT systems.
 
-&nbsp;![ArcGIS Automation using GitHub Actions](arcgis-gitops.png "ArcGIS Automation using GitHub Actions")
+&nbsp;[![ArcGIS Automation using GitHub Actions](arcgis-gitops.png "ArcGIS Automation using GitHub Actions")](https://github.com/Esri/arcgis-gitops/wiki)
 
 ## Features
 
@@ -30,9 +36,9 @@ Refer to the READMEs of the cloud platform templates for specific usage instruct
 * [Templates for ArcGIS Enterprise on AWS](aws/README.md)
 * [Templates for ArcGIS Enterprise on Microsoft Azure](azure/README.md)
 
-## Issues
+## Issues & Feedback
 
-Find a bug or want to request a new feature? Please let us know by submitting an issue.
+Found a bug or have a feature request? [Open an issue](https://github.com/Esri/arcgis-gitops/issues) or [join a discussion](https://github.com/Esri/arcgis-gitops/discussions).
 
 ## Contributing
 
@@ -54,4 +60,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 
 A copy of the license is available in the repository's [LICENSE](https://github.com/arcgis/arcgis-gitops/blob/main/License.txt?raw=true) file.
-  
+

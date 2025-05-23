@@ -271,7 +271,6 @@ module "arcgis_notebook_server_upgrade" {
       }
       notebook_server = {
         install_dir                 = "/opt"
-        install_docker              = var.install_docker
         install_system_requirements = true
         license_level               = var.license_level
         configure_autostart         = true
@@ -283,11 +282,8 @@ module "arcgis_notebook_server_upgrade" {
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
-      "recipe[arcgis-notebooks::docker]",
       "recipe[esri-tomcat::openjdk]",
       "recipe[esri-tomcat::install]",
-      "recipe[arcgis-notebooks::iptables]",
-      "recipe[arcgis-notebooks::restart_docker]",
       "recipe[arcgis-notebooks::install_server]",
       "recipe[arcgis-notebooks::install_server_wa]"
     ]

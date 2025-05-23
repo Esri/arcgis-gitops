@@ -5,6 +5,7 @@ This template provides GitHub Actions workflows for [base ArcGIS Enterprise depl
 Supported ArcGIS Enterprise versions:
 
 * 11.4
+* 11.5
 
 Before running the template workflows:
 

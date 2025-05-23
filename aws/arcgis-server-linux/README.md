@@ -4,6 +4,11 @@ This template provides GitHub Actions workflows for [ArcGIS Server deployment](h
 
 The template supports both standalone and federated ArcGIS Server deployments. Optionally, the deployments may include ArcGIS Web Adaptor and use Application Load Balancer of base ArcGIS Enterprise deployments.
 
+Supported ArcGIS Server versions:
+
+* 11.4
+* 11.5
+
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.

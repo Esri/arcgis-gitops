@@ -90,7 +90,7 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
       ArcGISAutomation   = "arcgis-gitops"
@@ -197,29 +197,29 @@ locals {
   keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}/${basename(var.keystore_file_path)}" : ""
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
 
-  timestamp     = formatdate("YYYYMMDDhhmm", timestamp())
+  timestamp = formatdate("YYYYMMDDhhmm", timestamp())
 }
 
 module "site_core_info" {
-  source         = "../../modules/site_core_info"
-  site_id        = var.site_id
+  source  = "../../modules/site_core_info"
+  site_id = var.site_id
 }
 
 # Copy ArcGIS Enterprise setup archives of the ArcGIS Enterprise version to the private repository S3 bucket
 module "s3_copy_files" {
-  count                  = var.is_upgrade ? 1 : 0
-  source                 = "../../modules/s3_copy_files"
-  bucket_name            = module.site_core_info.s3_repository
-  index_file             = local.manifest_file_path
+  count       = var.is_upgrade ? 1 : 0
+  source      = "../../modules/s3_copy_files"
+  bucket_name = module.site_core_info.s3_repository
+  index_file  = local.manifest_file_path
 }
 
 # Install Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment
 module "bootstrap_deployment" {
-  source        = "../../modules/bootstrap"
-  os            = var.os
-  site_id       = var.site_id
-  deployment_id = var.deployment_id
-  machine_roles = ["primary", "standby"]
+  source           = "../../modules/bootstrap"
+  os               = var.os
+  site_id          = var.site_id
+  deployment_id    = var.deployment_id
+  machine_roles    = ["primary", "standby"]
   output_s3_bucket = module.site_core_info.s3_logs
 }
 
@@ -255,8 +255,8 @@ module "begin_upgrade_standby" {
   machine_roles  = ["standby"]
   json_attributes = jsonencode({
     arcgis = {
-      version = var.arcgis_version
-      configure_cloud_settings   = false
+      version                  = var.arcgis_version
+      configure_cloud_settings = false
       server = {
         admin_username = var.admin_username
         admin_password = var.admin_password
@@ -329,7 +329,7 @@ module "arcgis_enterprise_upgrade" {
       "recipe[arcgis-enterprise::system]",
       "recipe[esri-tomcat::openjdk]",
       "recipe[esri-tomcat]",
-      "recipe[arcgis-enterprise::stop_portal]",      
+      "recipe[arcgis-enterprise::stop_portal]",
       "recipe[arcgis-enterprise::install_portal]",
       "recipe[arcgis-enterprise::webstyles]",
       "recipe[arcgis-enterprise::start_portal]",
@@ -601,27 +601,27 @@ module "arcgis_enterprise_primary" {
         webapp_dir = "/opt/tomcat_arcgis/webapps"
       }
       server = {
-        url                            = "https://${local.primary_hostname}:6443/arcgis"
-        wa_url                         = "https://${local.primary_hostname}/${local.server_web_context}"
-        install_dir                    = "/opt"
-        private_url                    = "https://${local.deployment_fqdn}/${local.server_web_context}"
-        web_context_url                = "https://${local.deployment_fqdn}/${local.server_web_context}"
-        hostname                       = local.primary_hostname
-        admin_username                 = var.admin_username
-        admin_password                 = var.admin_password
-        authorization_file             = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
-        authorization_options          = var.server_authorization_options
-        keystore_file                  = local.keystore_file
-        keystore_password              = var.keystore_file_password
-        root_cert                      = local.root_cert
-        root_cert_alias                = "rootcert"
-        directories_root               = "${local.mount_point}/gisdata/arcgisserver"
-        log_dir                        = "/opt/arcgis/server/usr/logs"
-        log_level                      = var.log_level
-        config_store_type              = var.config_store_type
+        url                   = "https://${local.primary_hostname}:6443/arcgis"
+        wa_url                = "https://${local.primary_hostname}/${local.server_web_context}"
+        install_dir           = "/opt"
+        private_url           = "https://${local.deployment_fqdn}/${local.server_web_context}"
+        web_context_url       = "https://${local.deployment_fqdn}/${local.server_web_context}"
+        hostname              = local.primary_hostname
+        admin_username        = var.admin_username
+        admin_password        = var.admin_password
+        authorization_file    = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
+        authorization_options = var.server_authorization_options
+        keystore_file         = local.keystore_file
+        keystore_password     = var.keystore_file_password
+        root_cert             = local.root_cert
+        root_cert_alias       = "rootcert"
+        directories_root      = "${local.mount_point}/gisdata/arcgisserver"
+        log_dir               = "/opt/arcgis/server/usr/logs"
+        log_level             = var.log_level
+        config_store_type     = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AMAZON" ?
           "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
-          "${local.mount_point}/gisdata/arcgisserver/config-store")
+        "${local.mount_point}/gisdata/arcgisserver/config-store")
         config_store_connection_secret = ""
         install_system_requirements    = true
         wa_name                        = local.server_web_context
@@ -631,22 +631,22 @@ module "arcgis_enterprise_primary" {
         }
         # Configure the object store in S3 bucket
         data_items = [{
-          path = "/cloudStores/cloudObjectStore"
-          type = "objectStore"
+          path     = "/cloudStores/cloudObjectStore"
+          type     = "objectStore"
           provider = "amazon"
           info = {
-            isManaged = true
+            isManaged     = true
             systemManaged = false
             isManagedData = true
-            purposes = [ "feature-tile", "scene" ]
+            purposes      = ["feature-tile", "scene"]
             connectionString = jsonencode({
-              regionEndpointUrl = "https://s3.${data.aws_region.current.name}.amazonaws.com"
+              regionEndpointUrl        = "https://s3.${data.aws_region.current.name}.amazonaws.com"
               defaultEndpointsProtocol = "https"
-              credentialType = "IAMRole"
-              region = data.aws_region.current.name
+              credentialType           = "IAMRole"
+              region                   = data.aws_region.current.name
             })
-            objectStore = "${nonsensitive(data.aws_ssm_parameter.object_store.value)}/store"
-            encryptAttributes = [ "info.connectionString" ]
+            objectStore       = "${nonsensitive(data.aws_ssm_parameter.object_store.value)}/store"
+            encryptAttributes = ["info.connectionString"]
           }
         }]
       }
@@ -659,6 +659,11 @@ module "arcgis_enterprise_primary" {
         install_system_requirements = true
         types                       = "relational"
         relational = {
+          enablessl               = true
+          disk_threshold_readonly = 5120
+          max_connections         = 150
+          # Point-in-time recovery (PITR) must be enabled in relational ArcGIS Data Store for WebGISDR tool to work in "incremental" backup-restore mode.
+          pitr            = "enable"
           backup_type     = "s3"
           backup_location = "type=s3;location=${nonsensitive(module.site_core_info.s3_backup)}/relational-${local.timestamp};name=re_default;region=${module.site_core_info.s3_region}"
         }
@@ -676,7 +681,7 @@ module "arcgis_enterprise_primary" {
         admin_email              = var.admin_email
         admin_full_name          = var.admin_full_name
         admin_description        = var.admin_description
-        security_question        = var.security_question
+        security_question_index  = var.security_question_index
         security_question_answer = var.security_question_answer
         log_dir                  = "/opt/arcgis/portal/usr/arcgisportal/logs"
         log_level                = var.log_level
@@ -759,7 +764,7 @@ module "arcgis_enterprise_standby" {
       server = {
         url                         = "https://${local.standby_hostname}:6443/arcgis"
         wa_url                      = "https://${local.standby_hostname}/${local.server_web_context}"
-        hostname                    = local.standby_hostname   
+        hostname                    = local.standby_hostname
         install_dir                 = "/opt"
         primary_server_url          = "https://${local.primary_hostname}/${local.server_web_context}"
         admin_username              = var.admin_username
@@ -786,7 +791,7 @@ module "arcgis_enterprise_standby" {
       portal = {
         url                         = "https://${local.standby_hostname}:7443/arcgis"
         wa_url                      = "https://${local.standby_hostname}/${local.portal_web_context}"
-        hostname                    = local.standby_hostname   
+        hostname                    = local.standby_hostname
         hostidentifier              = local.standby_hostname
         install_dir                 = "/opt"
         primary_machine_url         = "https://${local.primary_hostname}:7443"
@@ -827,11 +832,11 @@ module "arcgis_enterprise_standby" {
 # Delete the downloaded setup archives, the extracted setups, and other 
 # temporary files from primary and standby EC2 instances.
 module "clean_up" {
-  source        = "../../modules/clean_up"
-  site_id       = var.site_id
-  deployment_id = var.deployment_id
-  machine_roles = ["primary", "standby"]
-  directories   = [local.software_dir]
+  source                = "../../modules/clean_up"
+  site_id               = var.site_id
+  deployment_id         = var.deployment_id
+  machine_roles         = ["primary", "standby"]
+  directories           = [local.software_dir]
   uninstall_chef_client = false
   depends_on = [
     module.arcgis_enterprise_primary,
@@ -844,7 +849,7 @@ resource "aws_sns_topic_subscription" "infrastructure_alarms" {
   protocol  = "email"
   endpoint  = var.admin_email
   depends_on = [
-    module.arcgis_enterprise_primary, 
+    module.arcgis_enterprise_primary,
     module.arcgis_enterprise_standby
   ]
 }

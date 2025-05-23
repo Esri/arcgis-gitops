@@ -48,11 +48,11 @@ variable "deployment_id" {
 variable "arcgis_version" {
   description = "ArcGIS Enterprise version"
   type        = string
-  default     = "11.4"
+  default     = "11.5"
 
   validation {
-    condition     = contains(["11.3", "11.4"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.3 and 11.4."
+    condition     = contains(["11.4", "11.5"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.4 and 11.5."
   }
 }
 
@@ -155,29 +155,14 @@ variable "admin_description" {
   default     = "Initial account administrator"
 }
 
-variable "security_question" {
-  description = "Primary ArcGIS Enterprise administrator security question"
-  type        = string
-  default     = "What city were you born in?"
+variable "security_question_index" {
+  description = "Primary ArcGIS Enterprise administrator security question index"
+  type        = number
+  default     = 1
 
   validation {
-    condition = can(contains([
-      "What city were you born in?",
-      "What was your high school mascot?",
-      "What is your mother's maiden name?",
-      "What was the make of your first car?",
-      "What high school did you go to?",
-      "What is the last name of your best friend?",
-      "What is the middle name of your youngest sibling?",
-      "What is the name of the street on which you grew up?",
-      "What is the name of your favorite fictional character?",
-      "What is the name of your favorite pet?",
-      "What is the name of your favorite restaurant?",
-      "What is the title of your favorite book?",
-      "What is your dream job?",
-      "Where did you go on your first date?"
-    ], var.security_question))
-    error_message = "The security_question value must be one of the allowed security questions."
+    condition = var.security_question_index > 0 &&  var.security_question_index < 15
+    error_message = "The security_question_index value must be an number between 1 and 14."
   }
 }
 

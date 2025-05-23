@@ -1,0 +1,70 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "/opt/software/archives",
+      "local_patches": "/opt/software/archives/patches",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "${s3bucket}",
+        "region": "${region}"
+      },
+      "patch_notification": {
+        "products": [
+          "Portal for ArcGIS",
+          "ArcGIS Server",
+          "ArcGIS Data Store",
+          "ArcGIS Web Adaptor (Java)"
+        ],
+        "versions": [
+          "11.5"
+        ],
+        "patches": [
+          "ArcGIS-115-*-linux.tar"
+        ],
+        "subfolder": "software/arcgis/11.5/patches"        
+      },
+      "metadata": {
+        "java_tarball": "jdk-11.0.27.tar.gz",
+        "java_version": "11.0.27+6",
+        "tomcat_tarball": "apache-tomcat-9.0.105.tar.gz",
+        "tomcat_version": "9.0.105"
+      },
+      "files": {
+        "ArcGIS_Server_Linux_115_195440.tar.gz": {
+          "subfolder": "software/arcgis/11.5",
+          "sha256": "CEAF2FEE93F43B43BA625848FC17F2DFC8C933F3B535A5CC1EE4D479656BFBB7"
+        },
+        "Portal_for_ArcGIS_Linux_115_195451.tar.gz": {
+          "subfolder": "software/arcgis/11.5",
+          "sha256": "320E57F2417DA30CB46901525CC512310F06EEBBD546E66DAA7165607B6E2F00"
+        },
+        "Portal_for_ArcGIS_Web_Styles_Linux_115_195200.tar.gz": {
+          "subfolder": "software/arcgis/11.5",
+          "sha256": "7BB1B66813B6F0B8457E59677417E16E6055A284DB0BD637157402D501BC57A4" 
+        },
+        "ArcGIS_DataStore_Linux_115_195461.tar.gz": {
+          "subfolder": "software/arcgis/11.5",
+          "sha256": "368548EE6A2E1F71B183A56DB501A3466ABE51185ED118D13A3CD73EA1947D38"
+        },
+        "ArcGIS_Web_Adaptor_Java_Linux_115_195462.tar.gz": {
+          "subfolder": "software/arcgis/11.5",
+          "sha256": "160AB5968F01CCCF54F0414DD906C457A503D4FFC9FE0C899064EB67E99575B5"
+        },
+        "apache-tomcat-9.0.105.tar.gz": {
+          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.105/bin/apache-tomcat-9.0.105.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "EE86EE179493E610358B23A0F79BA70B9E76ADE71157AADA9AC7CDCDCDBE35F5"
+        },
+        "jdk-11.0.27.tar.gz": {
+          "url": "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.27%2B6/OpenJDK11U-jdk_x64_linux_hotspot_11.0.27_6.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "DC6136EAA8C1898CBF8973BB1E203E1F653F4C9166BE0F5BEBE0B02C5F3B5AE3"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
+}

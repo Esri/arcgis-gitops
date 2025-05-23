@@ -2,34 +2,35 @@
   "arcgis": {
     "repository": {
       "files": {
-        "cinc-18.4.2-1-x64.msi": {
-          "url": "http://downloads.cinc.sh/files/stable/cinc/18.4.2/windows/2012r2/cinc-18.4.2-1-x64.msi",
+        "cinc-18.7.6-1-x64.msi": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/windows/2022/cinc-18.7.6-1-x64.msi",
           "subfolder": "cinc",
-          "sha256": "87bcd096bf01d05e41f94f2a82d937184a5d02f46a5401a145b45754a9eb0017"
+          "sha256": "E53106F7EDCD98A5B42D38B60A80851FAF80E9FE919E3971D2DAECFC69BB1B78"
         },
-        "cinc_18.4.2-1_amd64.deb": {
-          "url": "http://downloads.cinc.sh/files/stable/cinc/18.4.2/ubuntu/22.04/cinc_18.4.2-1_amd64.deb",
+        "cinc_18.7.6-1_amd64.deb": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/ubuntu/22.04/cinc_18.7.6-1_amd64.deb",
           "subfolder": "cinc",
-          "sha256": "ce16e634d9f5ca41765a233e56f327ed0b1a3a2ac81844956261f6121c896f8e"
+          "sha256": "88783D2FD6907AE29E776A421A07674FEFAC1EF3A135EFCE2C6590FE07EDB976"
         },
-        "cinc-18.4.2-1.el8.x86_64.rpm": {
-          "url": "http://downloads.cinc.sh/files/stable/cinc/18.4.2/el/8/cinc-18.4.2-1.el8.x86_64.rpm",
+        "cinc-18.7.6-1.el8.x86_64.rpm": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/el/8/cinc-18.7.6-1.el8.x86_64.rpm",
           "subfolder": "cinc",
-          "sha256": "5dbef9a50a0370d6d9e7777c6f074e8b1a622ba3579f81ed5f7903c8ab8763ef"
+          "sha256": "06DDC98B99F9D41DA066EE472CECCBF9815682856DA302E0C32781EE2EDD77B3"
         },
-        "cinc-18.4.2-1.el9.x86_64.rpm": {
-          "url": "http://downloads.cinc.sh/files/stable/cinc/18.4.2/el/9/cinc-18.4.2-1.el9.x86_64.rpm",
+        "cinc-18.7.6-1.el9.x86_64.rpm": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/el/9/cinc-18.7.6-1.el9.x86_64.rpm",
           "subfolder": "cinc",
-          "sha256": "6b6c5f29231207d59b8491e1e3cfab0e6ccdd0a3dc717cb0f599cfc6d66ad0fb"
+          "sha256": "28676545126946BDD5F7F079D387F22B98BFFADBA37F646F6654EF336E6A241D"
         },
-        "cinc-18.4.2-1.sles15.x86_64.rpm": {
-          "url": "http://downloads.cinc.sh/files/stable/cinc/18.4.2/sles/15/cinc-18.4.2-1.sles15.x86_64.rpm",
+        "cinc-18.7.6-1.sles15.x86_64.rpm": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/sles/15/cinc-18.7.6-1.sles15.x86_64.rpm",
           "subfolder": "cinc",
-          "sha256": "67e1e9610d6fce1ac1eb1ab7bff427917a572608cfcaa84b3363320d8eaa66b1"
+          "sha256": "B0D0E763AF0804558C08D939C92EB8C1E7B417DE6206EA31DA99E57F51DC548A"
         },
-        "arcgis-5.1.0-cookbooks.tar.gz": {
-          "path": "cookbooks/arcgis-5.1.0-cookbooks.tar.gz",
-          "subfolder": "cookbooks"
+        "arcgis-5.2.0-cookbooks.tar.gz": {
+          "path": "cookbooks/arcgis-5.2.0-cookbooks.tar.gz",
+          "subfolder": "cookbooks",
+          "sha256": "40CCD719E456C234A195C0289E41C6DE301EDCF4501352BB732792A482016BB4"
         }
       }
     }

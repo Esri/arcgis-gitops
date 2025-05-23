@@ -27,6 +27,7 @@
       "11.2" : ArcGIS_Server_Linux_112_188327.tar.gz
       "11.3" : ArcGIS_Server_Linux_113_190305.tar.gz
       "11.4" : ArcGIS_Server_Linux_114_192977.tar.gz
+      "11.5" : ArcGIS_Server_Linux_115_195440.tar.gz
     setups_directory: '/opt/software/setups'
     install_dir: '/opt'
     run_as_user: 'arcgis'

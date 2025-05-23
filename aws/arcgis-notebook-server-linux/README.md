@@ -5,6 +5,7 @@ This template provides GitHub Actions workflows for [ArcGIS Notebook Server depl
 Supported ArcGIS Notebook Server versions:
 
 * 11.4
+* 11.5
 
 Before running the template workflows:
 

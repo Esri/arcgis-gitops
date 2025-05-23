@@ -137,7 +137,15 @@ locals {
   # Platform-specific attributes
 
   chef_client_url = "{{ssm:/arcgis/${var.site_id}/chef-client-url/${var.os}}}"
-  user_data = null
+
+  # Configure GPG key for docker repository
+  ubuntu_user_data = <<-EOF
+  #!/bin/bash
+  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
+  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  EOF
+
+  user_data = var.install_docker ? (contains(["ubuntu20", "ubuntu22"], var.os) ? local.ubuntu_user_data : null) : null
 }
 
 source "amazon-ebs" "main" {
@@ -148,8 +156,8 @@ source "amazon-ebs" "main" {
   source_ami    = data.amazon-parameterstore.source_ami.value
   subnet_id     = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
   iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
-  communicator = "none"
-  user_data = local.user_data
+  communicator  = "none"
+  user_data     = local.user_data
   
   launch_block_device_mappings {
     device_name = "/dev/sda1"
@@ -187,7 +195,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-        command = "python -m s3_copy_files -f ${local.manifest_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
+    command = "python -m s3_copy_files -f ${local.manifest_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
   }
 
   # Install AWS CLI
@@ -259,7 +267,7 @@ build {
           version = var.arcgis_version
           run_as_user = var.run_as_user
           configure_autofs = false
-          packages = [ "jq" ]
+          packages = [ "jq", "docker-ce" ]
           repository = {
             archives = local.archives_dir
             setups = "/opt/software/setups"
@@ -270,7 +278,7 @@ build {
           notebook_server = {
             install_dir = "/opt"
             install_system_requirements = true
-            install_docker = var.install_docker
+            # install_docker = var.install_docker
             license_level = var.license_level
             configure_autostart = true
             wa_name = var.notebook_server_web_context
@@ -281,7 +289,7 @@ build {
         }
         run_list = [
           "recipe[arcgis-enterprise::system]",
-          "recipe[arcgis-notebooks::docker]",
+          # "recipe[arcgis-notebooks::docker]",
           "recipe[esri-tomcat::openjdk]",
           "recipe[esri-tomcat::install]",
           "recipe[arcgis-notebooks::iptables]",

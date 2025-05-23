@@ -48,11 +48,11 @@ variable "arcgis_notebook_server_patches" {
 variable "arcgis_version" {
   description = "ArcGIS Notebook Server version"
   type        = string
-  default     = "11.4"
+  default     = "11.5"
 
   validation {
-    condition     = contains(["11.3", "11.4"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.3 and 11.4."
+    condition     = contains(["11.4", "11.5"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.4 and 11.5."
   }
 }
 
@@ -87,12 +87,6 @@ variable "deployment_id" {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
-}
-
-variable "install_docker" {
-  description = "If true, Docker will be installed on the image."
-  type        = bool
-  default     = true
 }
 
 variable "is_upgrade" {

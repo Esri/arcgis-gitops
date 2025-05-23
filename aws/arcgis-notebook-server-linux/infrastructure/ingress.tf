@@ -108,6 +108,7 @@ module "private_server_https_alb_target" {
 }
 
 resource "aws_ssm_parameter" "deployment_fqdn" {
+  count       = var.alb_deployment_id == null ? 0 : 1
   name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
   type        = "String"
   value       = local.deployment_fqdn

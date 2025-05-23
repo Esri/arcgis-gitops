@@ -1,5 +1,5 @@
 ---
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@
 - name: Install ArcGIS Server
   hosts: all
   vars:
-    arcgis_version: '11.4'
+    arcgis_version: '11.5'
     local_repository: '/opt/software/archives'
     arcgis_server_setup_archive:
       "11.2" : ArcGIS_Server_Linux_112_188327.tar.gz

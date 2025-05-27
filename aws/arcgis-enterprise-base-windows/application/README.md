@@ -116,7 +116,7 @@ The module reads the following SSM parameters:
 | arcgis_data_store_patches | File names of ArcGIS Data Store patches to install. | `list(string)` | `[]` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install. | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"11.4"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"11.5"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
@@ -131,8 +131,8 @@ The module reads the following SSM parameters:
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
 | run_as_password | Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | n/a | yes |
 | run_as_user | User name for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
-| security_question | Primary ArcGIS Enterprise administrator security question | `string` | `"What city were you born in?"` | no |
 | security_question_answer | Primary ArcGIS Enterprise administrator security question answer | `string` | n/a | yes |
+| security_question_index | Primary ArcGIS Enterprise administrator security question index | `number` | `1` | no |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
 | server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |

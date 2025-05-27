@@ -2,7 +2,7 @@
   "arcgis_server_patches": [
     "ArcGIS-114-S-*-linux.tar"
   ],
-  "arcgis_version": "11.4",
+  "arcgis_version": "11.5",
   "deployment_id": "server-linux",
   "instance_type": "m7i.2xlarge",
   "os": "rhel8",

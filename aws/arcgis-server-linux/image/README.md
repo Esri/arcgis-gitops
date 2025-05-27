@@ -55,7 +55,7 @@ The template uses the following SSM parameters:
 |------|-------------|------|---------|:--------:|
 | aws_region | AWS region Id | `string` | `env("AWS_DEFAULT_REGION")` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |
-| arcgis_version | ArcGIS Server version | `string` | `"11.4"` | no |
+| arcgis_version | ArcGIS Server version | `string` | `"11.5"` | no |
 | deployment_id | Deployment Id | `string` | `"server-linux"` | no |
 | instance_type | EC2 instance type | `string` | `"6i.xlarge"` | no |
 | os | Operating system | `string` | `"rhel8"` | no |

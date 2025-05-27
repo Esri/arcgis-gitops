@@ -673,6 +673,11 @@ module "arcgis_enterprise_primary" {
         hostidentifier              = local.primary_hostname
         types                       = "relational"
         relational = {
+          enablessl               = true
+          disk_threshold_readonly = 5120
+          max_connections         = 150
+          # Point-in-time recovery (PITR) must be enabled in relational ArcGIS Data Store for WebGISDR tool to work in "incremental" backup-restore mode.
+          pitr            = "enable"
           backup_type     = "s3"
           backup_location = "type=s3;location=${module.site_core_info.s3_backup}/relational-${local.timestamp};name=re_default;region=${module.site_core_info.s3_region}"
         }
@@ -691,7 +696,7 @@ module "arcgis_enterprise_primary" {
         admin_email                 = var.admin_email
         admin_full_name             = var.admin_full_name
         admin_description           = var.admin_description
-        security_question           = var.security_question
+        security_question_index     = var.security_question_index
         security_question_answer    = var.security_question_answer
         data_dir                    = "C:\\arcgisportal"
         log_dir                     = "C:\\arcgisportal\\logs"

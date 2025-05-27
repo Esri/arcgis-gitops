@@ -1,36 +1,36 @@
 {
-    "arcgis": {
-        "version": "11.3",
-        "repository": {
-            "local_archives": "/opt/software/archives",
-            "local_patches": "/opt/software/archives/patches",
-            "server": {
-                "url": "https://downloads.arcgis.com",
-                "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
-                "s3bucket": "{{ bucket_name }}",
-                "region": "{{ region }}"
-            },
-            "patch_notification": {
-                "products": [
-                    "ArcGIS Server"
-                ],
-                "versions": [
-                    "11.3"
-                ],
-                "patches": [
-                    "ArcGIS-113-S-*-linux.tar"
-                ],
-                "subfolder": "software/arcgis/11.3/patches"
-            },
-            "files": {
-                "ArcGIS_Server_Linux_113_190305.tar.gz": {
-                    "subfolder": "software/arcgis/11.3",
-                    "sha256": "7FF5E19A7311A4649CDEAC85CA69DCBA9DD798AD6F7056ECA932D2D453D6498F"
-                }
-            }
+  "arcgis": {
+    "version": "11.3",
+    "repository": {
+      "local_archives": "/opt/software/archives",
+      "local_patches": "/opt/software/archives/patches",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "{{ bucket_name }}",
+        "region": "{{ region }}"
+      },
+      "patch_notification": {
+        "products": [
+          "ArcGIS Server"
+        ],
+        "versions": [
+          "11.3"
+        ],
+        "patches": [
+          "ArcGIS-113-S-*-linux.tar"
+        ],
+        "subfolder": "software/arcgis/11.3/patches"
+      },
+      "files": {
+        "ArcGIS_Server_Linux_113_190305.tar.gz": {
+          "subfolder": "software/arcgis/11.3",
+          "sha256": "7FF5E19A7311A4649CDEAC85CA69DCBA9DD798AD6F7056ECA932D2D453D6498F"
         }
-    },
-    "run_list": [
-        "recipe[arcgis-repository::s3files2]"
-    ]
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
 }

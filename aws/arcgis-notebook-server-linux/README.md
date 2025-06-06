@@ -7,6 +7,11 @@ Supported ArcGIS Notebook Server versions:
 * 11.4
 * 11.5
 
+Supported Operating Systems:
+
+* Red Hat Enterprise Linux 9
+* Ubuntu 24.04 LTS
+
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
@@ -33,9 +38,10 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "arcgis_notebook_server_patches" and "arcgis_web_adaptor_patches" properties to the lists of patch file names that must be installed on the images.
-2. Commit the changes to a Git branch and push the branch to GitHub.
-3. Run the notebook-server-linux-aws-image workflow using the branch.
+1. (Optional) Set "arcgis_notebook_server_patches" and "arcgis_web_adaptor_patches" properties to the lists of patch file names that must be installed on the images.
+2. (Optional) Set "gpu_ready" property to `true` to configure the AMI to [use GPUs](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/configure-arcgis-notebook-server-to-use-gpus.htm). This also requires requires "instance_type" to be set to an EC2 instance type with GPU support in image.vars.json and infrastructure.tfvars.json config files.
+3. Commit the changes to a Git branch and push the branch to GitHub.
+4. Run the notebook-server-linux-aws-image workflow using the branch.
 
 > In the configuration files, "os" and "arcgis_version" properties values for the same deployment must match across all the configuration files of the deployment.
 

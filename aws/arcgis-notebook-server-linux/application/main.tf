@@ -185,7 +185,7 @@ locals {
   notebook_server_web_context      = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
   portal_url              = var.portal_url == null ? nonsensitive(data.aws_ssm_parameter.portal_url[0].value) : var.portal_url
   primary_hostname        = data.aws_instance.primary.private_ip
-  software_dir            = "/opt/software/*"
+  software_dir            = "/opt/software/setups/*"
   authorization_files_dir = "/opt/software/authorization"
   certificates_dir        = "/opt/software/certificates"
 
@@ -523,12 +523,12 @@ module "arcgis_notebook_server_primary" {
         root_cert_alias       = "rootcert"
         directories_root      = "${local.mount_point}/gisdata/notebookserver"
         workspace             = "${local.mount_point}/gisdata/notebookserver/directories/arcgisworkspace"
-        log_dir               = "/opt/arcgis/notebookserver/usr/logs"
+        log_dir               = "${local.mount_point}/gisdata/notebookserver/logs"
         log_level             = var.log_level
         config_store_type     = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AMAZON" ?
           "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
-        "${local.mount_point}/gisdata/arcgisserver/config-store")
+        "${local.mount_point}/gisdata/notebookserver/config-store")
         config_store_connection_secret = ""
         install_system_requirements    = true
         wa_name                        = local.notebook_server_web_context
@@ -541,6 +541,7 @@ module "arcgis_notebook_server_primary" {
     run_list = [
       "recipe[esri-tomcat]",
       "recipe[arcgis-notebooks::server]",
+      "recipe[arcgis-notebooks::restart_docker]",
       "recipe[arcgis-notebooks::server_wa]"
     ]
   })
@@ -584,7 +585,7 @@ module "arcgis_notebook_server_node" {
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         license_level               = var.license_level
-        log_dir                     = "/opt/arcgis/server/usr/logs"
+        log_dir                     = "${local.mount_point}/gisdata/notebookserver/logs"
         authorization_file          = "${local.authorization_files_dir}/${basename(var.notebook_server_authorization_file_path)}"
         authorization_options       = var.notebook_server_authorization_options
         install_system_requirements = true
@@ -597,6 +598,7 @@ module "arcgis_notebook_server_node" {
     run_list = [
       "recipe[esri-tomcat]",
       "recipe[arcgis-notebooks::server_node]",
+      "recipe[arcgis-notebooks::restart_docker]",
       "recipe[arcgis-notebooks::server_wa]"
     ]
   })

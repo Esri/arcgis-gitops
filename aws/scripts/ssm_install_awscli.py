@@ -21,7 +21,7 @@ import boto3
 import ssm_utils
 
 # Timeouts in seconds
-WAIT_TIMEOUT = 600
+WAIT_TIMEOUT = 1800
 SEND_TIMEOUT = 600 
 EXECUTION_TIMEOUT = 1800
 

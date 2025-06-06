@@ -142,13 +142,13 @@ variable "notebook_server_authorization_options" {
 }
 
 variable "os" {
-  description = "Operating system id (ubuntu20|ubuntu22)"
+  description = "Operating system id (rhel9|ubuntu22)"
   type        = string
-  default     = "ubuntu22"
+  default     = "rhel9"
 
   validation {
-    condition     = contains(["ubuntu20", "ubuntu22"], var.os)
-    error_message = "Valid values for os variable are ubuntu20 and ubuntu22."
+    condition     = contains(["rhel9", "ubuntu22"], var.os)
+    error_message = "Valid values for os variable are rhel9 and ubuntu22."
   }
 }
 

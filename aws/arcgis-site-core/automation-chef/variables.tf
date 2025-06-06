@@ -38,11 +38,15 @@ variable "chef_client_paths" {
       description = "Chef Client setup S3 key for Microsoft Windows Server 2022"
     }
     ubuntu20 = {
-      path        = "cinc/cinc_18.7.6-1_amd64.deb"
+      path        = "cinc/cinc_18.7.6-1.ubuntu20.amd64.deb"
       description = "Chef Client setup S3 key for Ubuntu 20.04 LTS"
     }
     ubuntu22 = {
-      path        = "cinc/cinc_18.7.6-1_amd64.deb"
+      path        = "cinc/cinc_18.7.6-1.ubuntu22.amd64.deb"
+      description = "Chef Client setup S3 key for Ubuntu 22.04 LTS"
+    }
+    ubuntu22nvidia = {
+      path        = "cinc/cinc_18.7.6-1.ubuntu22.amd64.deb"
       description = "Chef Client setup S3 key for Ubuntu 22.04 LTS"
     }
     rhel8 = {

@@ -7,7 +7,12 @@
           "subfolder": "cinc",
           "sha256": "E53106F7EDCD98A5B42D38B60A80851FAF80E9FE919E3971D2DAECFC69BB1B78"
         },
-        "cinc_18.7.6-1_amd64.deb": {
+        "cinc_18.7.6-1.ubuntu20.amd64.deb": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/ubuntu/20.04/cinc_18.7.6-1_amd64.deb",
+          "subfolder": "cinc",
+          "sha256": "1663C19038CB64C6A602116B916596D4250BB9C5E6B595456460B392D46DDBF6"
+        },
+        "cinc_18.7.6-1.ubuntu22.amd64.deb": {
           "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/ubuntu/22.04/cinc_18.7.6-1_amd64.deb",
           "subfolder": "cinc",
           "sha256": "88783D2FD6907AE29E776A421A07674FEFAC1EF3A135EFCE2C6590FE07EDB976"

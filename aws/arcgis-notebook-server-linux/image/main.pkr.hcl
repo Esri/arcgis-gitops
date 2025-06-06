@@ -138,14 +138,26 @@ locals {
 
   chef_client_url = "{{ssm:/arcgis/${var.site_id}/chef-client-url/${var.os}}}"
 
-  # Configure GPG key for docker repository
-  ubuntu_user_data = <<-EOF
+  # Install SSM Agent
+  rhel_user_data = <<-EOF
   #!/bin/bash
-  curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo gpg --dearmor -o /etc/apt/keyrings/docker.gpg
-  echo "deb [arch=$(dpkg --print-architecture) signed-by=/etc/apt/keyrings/docker.gpg] https://download.docker.com/linux/ubuntu $(lsb_release -cs) stable" | sudo tee /etc/apt/sources.list.d/docker.list > /dev/null
+  sudo dnf install -y https://s3.amazonaws.com/ec2-downloads-windows/SSMAgent/latest/linux_amd64/amazon-ssm-agent.rpm
+  sudo systemctl enable amazon-ssm-agent
+  sudo systemctl start amazon-ssm-agent
+  EOF
+ 
+  # Install SSM Agent
+  # Wait 120 seconds for background packages installation to complete
+  nvidia_user_data = <<-EOF
+  #!/bin/bash
+  sudo snap install amazon-ssm-agent --classic
+  sudo snap list amazon-ssm-agent
+  sudo snap start amazon-ssm-agent
+  sudo snap services amazon-ssm-agent
+  sleep 120
   EOF
 
-  user_data = var.install_docker ? (contains(["ubuntu20", "ubuntu22"], var.os) ? local.ubuntu_user_data : null) : null
+  user_data = contains(["ubuntu22nvidia"], var.os) ? local.nvidia_user_data : (contains(["rhel8", "rhel9"], var.os) ? local.rhel_user_data : null)
 }
 
 source "amazon-ebs" "main" {
@@ -207,6 +219,18 @@ build {
     command = "python -m ssm_install_awscli -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
+  # Run platform-specific init script
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+      JSON_ATTRIBUTES = base64encode(jsonencode({
+        gpu_ready = var.gpu_ready
+      }))
+    }
+
+    command = "python -m ssm_run_shell_script -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.site_id}/attributes/${var.deployment_id}/image/script -f scripts/${var.os}.sh -b ${data.amazon-parameterstore.s3_logs.value}"
+  }
+
   # Install CloudWatch Agent
   provisioner "shell-local" {
     env = {
@@ -246,7 +270,7 @@ build {
         }))
     }
 
-    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.site_id}/attributes/arcgis-notebook-server/image/${var.arcgis_version}/${var.os}/s3files -b ${data.amazon-parameterstore.s3_logs.value} -e 1200"
+    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.site_id}/attributes/${var.deployment_id}/image/s3files -b ${data.amazon-parameterstore.s3_logs.value} -e 1200"
   }
 
   # Install
@@ -267,7 +291,6 @@ build {
           version = var.arcgis_version
           run_as_user = var.run_as_user
           configure_autofs = false
-          packages = [ "jq", "docker-ce" ]
           repository = {
             archives = local.archives_dir
             setups = "/opt/software/setups"
@@ -278,7 +301,6 @@ build {
           notebook_server = {
             install_dir = "/opt"
             install_system_requirements = true
-            # install_docker = var.install_docker
             license_level = var.license_level
             configure_autostart = true
             wa_name = var.notebook_server_web_context
@@ -289,7 +311,6 @@ build {
         }
         run_list = [
           "recipe[arcgis-enterprise::system]",
-          # "recipe[arcgis-notebooks::docker]",
           "recipe[esri-tomcat::openjdk]",
           "recipe[esri-tomcat::install]",
           "recipe[arcgis-notebooks::iptables]",
@@ -300,7 +321,7 @@ build {
       }))
     }
 
-    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.site_id}/attributes/arcgis-notebook-server/image/${var.arcgis_version}/${var.os}/install -b ${data.amazon-parameterstore.s3_logs.value} -e 3600"
+    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.site_id}/attributes/${var.deployment_id}/image/install -b ${data.amazon-parameterstore.s3_logs.value} -e 3600"
   }
 
   # Install patches
@@ -330,7 +351,7 @@ build {
       }))
     }
 
-    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.site_id}/attributes/arcgis-notebook-server/image/${var.arcgis_version}/${var.os}/patches -b ${data.amazon-parameterstore.s3_logs.value} -e 3600"
+    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.site_id}/attributes/${var.deployment_id}/image/patches -b ${data.amazon-parameterstore.s3_logs.value} -e 3600"
   }
 
   # Clean up

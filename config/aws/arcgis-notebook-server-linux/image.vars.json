@@ -7,10 +7,11 @@
   "arcgis_web_adaptor_patches": [],
   "deployment_id": "notebook-server-linux",
   "instance_type": "m7i.2xlarge",
+  "gpu_ready": false,
   "license_level": "standard",
   "notebook_server_web_context": "notebooks",
-  "os": "ubuntu22",
-  "root_volume_size": 100,
+  "os": "rhel9",
+  "root_volume_size": 128,
   "run_as_user": "arcgis",
   "site_id": "arcgis",
   "skip_create_ami": false

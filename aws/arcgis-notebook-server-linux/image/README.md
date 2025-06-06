@@ -11,12 +11,14 @@ The template first copies installation media for the ArcGIS Notebook Server vers
 Then the template uses python scripts to run SSM commands on the source EC2 instance to:
 
 1. Install AWS CLI
-2. Install CloudWatch Agent
-3. Install Cinc Client and Chef Cookbooks for ArcGIS
-4. Download setups from the private repository S3 bucket.
-5. Install ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
-6. Install patches for the ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
-7. Delete unused files and uninstall Cinc Client
+2. Install Docker CE
+3. If "gpu_ready" input variable is set to `true`, install NVIDIA driver, CUDA toolkit, and NVIDIA Container Toolkit
+4. Install CloudWatch Agent
+5. Install Cinc Client and Chef Cookbooks for ArcGIS
+6. Download setups from the private repository S3 bucket
+7. Install ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
+8. Install patches for the ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
+9. Delete unused files and uninstall Cinc Client
 
 Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.site_id}/images/${var.deployment_id}/node" SSM parameters.
 
@@ -61,12 +63,12 @@ The template writes the following SSM parameters:
 | arcgis_version | ArcGIS Notebook Server version | `string` | `"11.5"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
 | deployment_id | Deployment Id | `string` | `"notebook-server-linux"` | no |
-| install_docker | If true, Docker will be installed | `bool` | `true` | no |
 | instance_type | EC2 instance type | `string` | `"6i.xlarge"` | no |
 | license_level | ArcGIS Notebook Server license level | `string` | `"standard"` | no |
-| os | Operating system | `string` | `"ubuntu22"` | no |
-| root_volume_size | Root EBS volume size in GB | `number` | `100` | no |
+| os | Operating system | `string` | `"rhel9"` | no |
+| root_volume_size | Root EBS volume size in GB | `number` | `128` | no |
 | run_as_user | User account used to run ArcGIS Notebook Server | `string` | `"arcgis"` | no |
 | notebook_server_web_context | ArcGIS Notebook Server web context | `string` | `"notebooks"` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 | skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |
+| gpu_ready | If true, the AMI is built with GPU support | `bool` | `false` | no |

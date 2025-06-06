@@ -52,12 +52,6 @@ variable "deployment_id" {
   }
 }
 
-variable "install_docker" {
-  description = "If true, Docker will be installed on the image."
-  type        = bool
-  default     = true
-}
-
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
@@ -76,24 +70,24 @@ variable "license_level" {
 }
 
 variable "os" {
-  description = "Operating system Id (ubuntu20|ubuntu22)"
+  description = "Operating system Id (rhel9|ubuntu22)"
   type        = string
-  default     = "ubuntu22"
+  default     = "rhel9"
 
   validation {
-    condition     = contains(["ubuntu20", "ubuntu22"], var.os)
-    error_message = "Valid values for os variable are ubuntu20 and ubuntu22."
+    condition     = contains(["rhel9", "ubuntu22"], var.os)
+    error_message = "Valid values for os variable are rhel9 and ubuntu22."
   }
 }
 
 variable "root_volume_size" {
   description = "Root EBS volume size in GB"
   type        = number
-  default     = 100
+  default     = 128
 
   validation {
-    condition     = var.root_volume_size >= 100   && var.root_volume_size <= 16384
-    error_message = "The root_volume_size value must be between 100 and 16384."
+    condition     = var.root_volume_size >= 128   && var.root_volume_size <= 16384
+    error_message = "The root_volume_size value must be between 128 and 16384."
   }
 }
 
@@ -125,3 +119,9 @@ variable "skip_create_ami" {
   type        = bool
   default     = false
 }
+
+variable "gpu_ready" {
+  description = "If true, the AMI is built with GPU support."
+  type        = bool
+  default     = false
+} 

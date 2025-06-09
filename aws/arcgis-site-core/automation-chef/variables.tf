@@ -33,25 +33,17 @@ variable "chef_client_paths" {
   description = "Chef/CINC Client setup S3 keys by operating system"
   type        = map(any)
   default = {
+    windows2025 = {
+      path        = "cinc/cinc-18.7.6-1-x64.msi"
+      description = "Chef Client setup S3 key for Microsoft Windows Server 2022"
+    }
     windows2022 = {
       path        = "cinc/cinc-18.7.6-1-x64.msi"
       description = "Chef Client setup S3 key for Microsoft Windows Server 2022"
     }
-    ubuntu20 = {
-      path        = "cinc/cinc_18.7.6-1.ubuntu20.amd64.deb"
-      description = "Chef Client setup S3 key for Ubuntu 20.04 LTS"
-    }
     ubuntu22 = {
       path        = "cinc/cinc_18.7.6-1.ubuntu22.amd64.deb"
       description = "Chef Client setup S3 key for Ubuntu 22.04 LTS"
-    }
-    ubuntu22nvidia = {
-      path        = "cinc/cinc_18.7.6-1.ubuntu22.amd64.deb"
-      description = "Chef Client setup S3 key for Ubuntu 22.04 LTS"
-    }
-    rhel8 = {
-      path        = "cinc/cinc-18.7.6-1.el8.x86_64.rpm"
-      description = "Chef Client setup S3 key for Red Hat Enterprise Linux version 8"
     }
     rhel9 = {
       path        = "cinc/cinc-18.7.6-1.el9.x86_64.rpm"

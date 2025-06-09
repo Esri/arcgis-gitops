@@ -7,6 +7,11 @@ Supported ArcGIS Enterprise versions:
 * 11.4
 * 11.5
   
+Supported Operating Systems:
+
+* Windows Server 2022
+* Windows Server 2025
+
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.

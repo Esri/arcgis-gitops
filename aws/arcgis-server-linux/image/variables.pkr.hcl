@@ -53,13 +53,13 @@ variable "instance_type" {
 }
 
 variable "os" {
-  description = "Operating system Id (rhel8|rhel9)"
+  description = "Operating system Id (rhel9)"
   type        = string
-  default     = "rhel8"
+  default     = "rhel9"
 
   validation {
-    condition     = contains(["rhel8", "rhel9"], var.os)
-    error_message = "Valid values for os variable are rhel8 and rhel9."
+    condition     = contains(["rhel9"], var.os)
+    error_message = "Valid values for os variable are rhel9."
   }
 }
 

@@ -49,10 +49,6 @@ variable "chef_client_paths" {
       path        = "cinc/cinc-18.7.6-1.el9.x86_64.rpm"
       description = "Chef Client setup S3 key for Red Hat Enterprise Linux version 9"
     }
-    sles15 = {
-      path        = "cinc/cinc-18.7.6-1.sles15.x86_64.rpm"
-      description = "Chef Client setup S3 key for SUSE Linux Enterprise Server 15"
-    }
   }
 }
 

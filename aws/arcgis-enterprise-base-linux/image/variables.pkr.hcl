@@ -19,13 +19,13 @@ variable "aws_region" {
 }
  
 variable "os" {
-  description = "Operating system Id (rhel9|ubuntu22|sles15)"
+  description = "Operating system Id (rhel9|ubuntu22)"
   type        = string
   default     = "rhel9"
 
   validation {
-    condition     = contains(["rhel9", "ubuntu22", "sles15"], var.os)
-    error_message = "Valid values for os variable are rhel9, ubuntu22, and sles15."
+    condition     = contains(["rhel9", "ubuntu22"], var.os)
+    error_message = "Valid values for os variable are rhel9 and ubuntu22."
   }
 }
 

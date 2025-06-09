@@ -146,10 +146,5 @@ variable "images" {
       owner           = "309956199498" # Red Hat
       description     = "Red Hat Enterprise Linux version 9 (HVM), EBS General Purpose (SSD) Volume Type"
     }
-    sles15 = {
-      ami_name_filter = "suse-sles-15-*-v*-hvm-ssd-x86_64"
-      owner           = "013907871322" # Amazon
-      description     = "SUSE Linux Enterprise Server 15 (HVM, 64-bit, SSD-Backed)"
-    }
   }
 }

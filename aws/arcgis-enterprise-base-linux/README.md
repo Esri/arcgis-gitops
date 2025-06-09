@@ -11,7 +11,6 @@ Supported Operating Systems:
 
 * Red Hat Enterprise Linux 9
 * Ubuntu 22.04 LTS
-* SUSE Linux Enterprise Server 15
 
 Before running the template workflows:
 

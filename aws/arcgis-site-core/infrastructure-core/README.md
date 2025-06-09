@@ -43,6 +43,7 @@ Ids of the created AWS resources are stored in SSM parameters:
 | [aws_eip.nat](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
 | [aws_iam_instance_profile.arcgis_enterprise_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_role.arcgis_enterprise_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy_attachment.policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_internet_gateway.igw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
 | [aws_nat_gateway.nat](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
 | [aws_route53_zone.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
@@ -83,6 +84,7 @@ Ids of the created AWS resources are stored in SSM parameters:
 | availability_zones | AWS availability zones (if the list contains less that two elements, the first two available availability zones in the AWS region will be used.) | `list(string)` | `[]` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | gateway_vpc_endpoints | List of gateway VPC endpoints to create | `list(string)` | ```[ "dynamodb", "s3" ]``` | no |
+| iam_role_policies | IAM role policies to attach to the ArcGIS Enterprise IAM role | `list(string)` | ```[ "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess", "arn:aws:iam::aws:policy/AmazonS3FullAccess", "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore", "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy", "arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess", "arn:aws:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy" ]``` | no |
 | images | AMI search filters by operating  system | `map(any)` | ```{ "rhel9": { "ami_name_filter": "RHEL-9.5.0_HVM-*-x86_64-*-Hourly2-GP3", "description": "Red Hat Enterprise Linux version 9 (HVM), EBS General Purpose (SSD) Volume Type", "owner": "309956199498" }, "ubuntu22": { "ami_name_filter": "ubuntu/images/hvm-ssd/ubuntu-*22*-amd64-server-*", "description": "Canonical, Ubuntu, 22.04 LTS, amd64 focal image", "owner": "099720109477" }, "windows2022": { "ami_name_filter": "Windows_Server-2022-English-Full-Base-*", "description": "Microsoft Windows Server 2022 Full Locale English AMI", "owner": "amazon" }, "windows2025": { "ami_name_filter": "Windows_Server-2025-English-Full-Base-*", "description": "Microsoft Windows Server 2025 Full Locale English AMI", "owner": "amazon" } }``` | no |
 | interface_vpc_endpoints | List of interface VPC endpoints to create | `list(string)` | ```[ "ec2", "ec2messages", "ecr.api", "ecr.dkr", "elasticloadbalancing", "logs", "monitoring", "ssm", "ssmmessages", "sts" ]``` | no |
 | internal_subnets_cidr_blocks | CIDR blocks of internal subnets | `list(string)` | ```[ "10.0.128.0/24", "10.0.129.0/24", "10.0.130.0/24" ]``` | no |

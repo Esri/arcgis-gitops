@@ -94,8 +94,3 @@ data "aws_ami" "os_image" {
 
   owners = [var.images[each.key].owner]
 }
-
-locals {
-  is_gov_cloud = contains(["us-gov-east-1", "us-gov-west-1"], data.aws_region.current.name)
-  arn_identifier = local.is_gov_cloud ? "aws-us-gov" : "aws"
-}

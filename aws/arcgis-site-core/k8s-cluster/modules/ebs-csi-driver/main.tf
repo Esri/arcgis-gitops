@@ -56,13 +56,14 @@ resource "aws_iam_role" "aws_ebs_csi_driver" {
     ]
   })
 
-  managed_policy_arns = [
-    "arn:${local.arn_identifier}:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
-  ]
-
   tags = {
     Name = "${var.cluster_name}/AmazonEKS_EBS_CSI_DriverRole"
   }
+}
+
+resource "aws_iam_role_policy_attachment" "aws_ebs_csi_driver_policy" {
+  role       = aws_iam_role.aws_ebs_csi_driver.name
+  policy_arn = "arn:${local.arn_identifier}:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy"
 }
 
 # Install the Amazon EBS CSI Driver add-on.

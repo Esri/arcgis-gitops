@@ -31,18 +31,16 @@ resource "aws_iam_role" "arcgis_enterprise_role" {
     ]
   })
 
-  managed_policy_arns = [
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonDynamoDBFullAccess",
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonS3FullAccess",
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    "arn:${local.arn_identifier}:iam::aws:policy/CloudWatchAgentServerPolicy",
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonElasticFileSystemClientFullAccess",
-    "arn:${local.arn_identifier}:iam::aws:policy/service-role/AmazonEFSCSIDriverPolicy"
-  ]
-
   tags = {
     Name = "${var.site_id}/role"
   }
+}
+
+# IAM role policy attachments
+resource "aws_iam_role_policy_attachment" "policies" {
+  count      = length(var.iam_role_policies)
+  role       = aws_iam_role.arcgis_enterprise_role.name
+  policy_arn = var.iam_role_policies[count.index]
 }
 
 # IAM instance profile of the site's SSM managed EC2 instances

@@ -9,6 +9,10 @@ Supported ArcGIS Server versions:
 * 11.4
 * 11.5
 
+Supported Linux distributions:
+
+* Red Hat Enterprise Linux 9
+
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.

@@ -7,30 +7,15 @@
           "subfolder": "cinc",
           "sha256": "E53106F7EDCD98A5B42D38B60A80851FAF80E9FE919E3971D2DAECFC69BB1B78"
         },
-        "cinc_18.7.6-1.ubuntu20.amd64.deb": {
-          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/ubuntu/20.04/cinc_18.7.6-1_amd64.deb",
-          "subfolder": "cinc",
-          "sha256": "1663C19038CB64C6A602116B916596D4250BB9C5E6B595456460B392D46DDBF6"
-        },
         "cinc_18.7.6-1.ubuntu22.amd64.deb": {
           "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/ubuntu/22.04/cinc_18.7.6-1_amd64.deb",
           "subfolder": "cinc",
           "sha256": "88783D2FD6907AE29E776A421A07674FEFAC1EF3A135EFCE2C6590FE07EDB976"
         },
-        "cinc-18.7.6-1.el8.x86_64.rpm": {
-          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/el/8/cinc-18.7.6-1.el8.x86_64.rpm",
-          "subfolder": "cinc",
-          "sha256": "06DDC98B99F9D41DA066EE472CECCBF9815682856DA302E0C32781EE2EDD77B3"
-        },
         "cinc-18.7.6-1.el9.x86_64.rpm": {
           "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/el/9/cinc-18.7.6-1.el9.x86_64.rpm",
           "subfolder": "cinc",
           "sha256": "28676545126946BDD5F7F079D387F22B98BFFADBA37F646F6654EF336E6A241D"
-        },
-        "cinc-18.7.6-1.sles15.x86_64.rpm": {
-          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/sles/15/cinc-18.7.6-1.sles15.x86_64.rpm",
-          "subfolder": "cinc",
-          "sha256": "B0D0E763AF0804558C08D939C92EB8C1E7B417DE6206EA31DA99E57F51DC548A"
         },
         "arcgis-5.2.0-cookbooks.tar.gz": {
           "path": "cookbooks/arcgis-5.2.0-cookbooks.tar.gz",

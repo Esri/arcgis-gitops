@@ -103,11 +103,11 @@ variable "log_level" {
 variable "os" {
   description = "Operating system id (rhel8|rhel9)"
   type        = string
-  default     = "rhel8"
+  default     = "rhel9"
 
   validation {
-    condition     = contains(["rhel8", "rhel9"], var.os)
-    error_message = "Valid values for os variable are rhel8, rhel9."
+    condition     = contains(["rhel9"], var.os)
+    error_message = "Valid values for os variable are rhel9."
   }
 }
 

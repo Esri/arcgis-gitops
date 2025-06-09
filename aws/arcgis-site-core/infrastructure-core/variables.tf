@@ -131,40 +131,20 @@ variable "images" {
       owner           = "amazon"
       description     = "Microsoft Windows Server 2022 Full Locale English AMI"
     }
-    ubuntu20 = {
-      ami_name_filter = "ubuntu/images/hvm-ssd/ubuntu-*20*-amd64-server-*"
-      owner           = "099720109477" # Canonical
-      description     = "Canonical, Ubuntu, 20.04 LTS, amd64 focal image"
+    windows2025 = {
+      ami_name_filter = "Windows_Server-2025-English-Full-Base-*"
+      owner           = "amazon"
+      description     = "Microsoft Windows Server 2025 Full Locale English AMI"
     }
     ubuntu22 = {
       ami_name_filter = "ubuntu/images/hvm-ssd/ubuntu-*22*-amd64-server-*"
       owner           = "099720109477" # Canonical
       description     = "Canonical, Ubuntu, 22.04 LTS, amd64 focal image"
     }
-    ubuntu22nvidia = {
-      ami_name_filter = "NVIDIA GPU Cloud VMI Base 2024.10.1 x86_64-*"
-      owner           = "679593333241" # NVIDIA 
-      description     = "NVIDIA GPU Cloud VMI Base 2024.10.1 x86_64"
-    }
-    ubuntu24 = {
-      ami_name_filter = "ubuntu/images/hvm-ssd-gp3/ubuntu-*24*-amd64-server-*"
-      owner           = "099720109477" # Canonical
-      description     = "Canonical, Ubuntu, 24.04 LTS, amd64 focal image"
-    }
-    rhel8 = {
-      ami_name_filter = "RHEL-8.9.0_HVM-*-x86_64-*-Hourly2-GP3"
-      owner           = "309956199498" # Red Hat
-      description     = "Red Hat Enterprise Linux version 8 (HVM), EBS General Purpose (SSD) Volume Type"
-    }
     rhel9 = {
-      ami_name_filter = "RHEL-9.3.0_HVM-*-x86_64-*-Hourly2-GP3"
+      ami_name_filter = "RHEL-9.5.0_HVM-*-x86_64-*-Hourly2-GP3"
       owner           = "309956199498" # Red Hat
       description     = "Red Hat Enterprise Linux version 9 (HVM), EBS General Purpose (SSD) Volume Type"
-    }
-    sles15 = {
-      ami_name_filter = "suse-sles-15-*-v*-hvm-ssd-x86_64"
-      owner           = "013907871322" # Amazon
-      description     = "SUSE Linux Enterprise Server 15 (HVM, 64-bit, SSD-Backed)"
     }
   }
 }

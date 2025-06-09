@@ -30,6 +30,10 @@
     tomcat_user: 'tomcat'
   become: true
   tasks:
+    - name: Install cryptography python library
+      become_user: root
+      ansible.builtin.pip:
+        name: cryptography
     - name: Create setups directory
       ansible.builtin.file:
         path: '{{ setups_directory }}/{{ arcgis_version }}'

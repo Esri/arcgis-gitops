@@ -12,7 +12,7 @@
   "arcgis_web_adaptor_patches": [],
   "deployment_id": "enterprise-base-linux",
   "instance_type": "m7i.2xlarge",
-  "os": "rhel8",
+  "os": "rhel9",
   "portal_web_context": "portal",
   "root_volume_size": 100,
   "run_as_user": "arcgis",

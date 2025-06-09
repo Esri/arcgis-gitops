@@ -18,9 +18,14 @@ variable "aws_region" {
 }
 
 variable "os" {
-  description = "Operating system id (windows2022)"
+  description = "Operating system id (windows2022|windows2025)"
   type        = string
-  default     = "windows2022"
+  default     = "windows2025"
+
+  validation {
+    condition     = contains(["windows2022", "windows2025"], var.os)
+    error_message = "Valid values for os variable are windows2022 and windows2025."
+  }
 }
 
 variable "site_id" {

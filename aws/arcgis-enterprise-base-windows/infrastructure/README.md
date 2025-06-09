@@ -128,7 +128,7 @@ The module writes the following SSM parameters:
 | client_cidr_blocks | Client CIDR blocks | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | deployment_fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-base-windows"` | no |
-| instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
+| instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | internal_load_balancer | If true, the load balancer scheme is set to 'internal' | `bool` | `false` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |

@@ -49,13 +49,15 @@ resource "aws_iam_role" "eks_cluster_role" {
     ]
   })
 
-  managed_policy_arns = [
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonEKSClusterPolicy"
-  ]
-
   tags = {
     Name = "${var.site_id}/eks-cluster-role"
   }
+}
+
+# IAM role policy attachment for the EKS cluster role
+resource "aws_iam_role_policy_attachment" "eks_cluster_policy" {
+  role       = aws_iam_role.eks_cluster_role.name
+  policy_arn = "arn:${local.arn_identifier}:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 
 # IAM role that provides permissions for the EKS Node Groups.
@@ -80,16 +82,14 @@ resource "aws_iam_role" "eks_worker_node_role" {
     ]
   })
 
-  managed_policy_arns = [
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonEKSWorkerNodePolicy",
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess",
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonEKS_CNI_Policy",
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonSSMManagedInstanceCore",
-    "arn:${local.arn_identifier}:iam::aws:policy/CloudWatchAgentServerPolicy",
-    "arn:${local.arn_identifier}:iam::aws:policy/AmazonS3FullAccess"
-  ]
-
   tags = {
     Name = "${var.site_id}/eks-worker-role"
   }
+}
+
+# IAM role policy attachments
+resource "aws_iam_role_policy_attachment" "policies" {
+  count      = length(var.eks_worker_node_role_policies)
+  role       = aws_iam_role.eks_worker_node_role.name
+  policy_arn = var.eks_worker_node_role_policies[count.index]
 }

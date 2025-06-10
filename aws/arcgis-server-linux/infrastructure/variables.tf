@@ -66,7 +66,7 @@ variable "deployment_id" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "m6i.2xlarge"
+  default     = "m7i.2xlarge"
 }
 
 variable "internal_load_balancer" {

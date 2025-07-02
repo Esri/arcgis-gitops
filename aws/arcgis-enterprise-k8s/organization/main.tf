@@ -108,10 +108,6 @@ locals {
   container_registry         = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com"
   enterprise_admin_cli_image = "${local.container_registry}/enterprise-admin-cli:${var.enterprise_admin_cli_version}"
 
-  # The EKS cluster uses IAM authentication for ECR access, while the Helm charts require setting container reqistry credentials.
-  container_registry_username = "AWS"
-  container_registry_password = "AWS"
-
   configure_cloud_stores = true
 
   app_version = yamldecode(file("./helm-charts/arcgis-enterprise/${var.helm_charts_version}/Chart.yaml")).appVersion
@@ -260,8 +256,11 @@ resource "helm_release" "arcgis_enterprise" {
       image = {
         registry   = local.container_registry
         repository = var.image_repository_prefix
-        username   = local.container_registry_username
-        password   = local.container_registry_password
+        # The EKS cluster uses IAM authentication for ECR access, 
+        # However the Helm charts before 1.5.0 required setting container registry credentials.
+        username   = "AWS"
+        password   = "AWS"
+        authenticationType = "integrated"
       }
       install = {
         enterpriseFQDN              = var.deployment_fqdn

@@ -87,7 +87,7 @@ On the machine where Terraform is executed:
 | deployment_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.4.0"` | no |
-| helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.4.0"` | no |
+| helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.5.0"` | no |
 | image_repository_prefix | Prefix of images in ECR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |
 | license_type_id | User type ID for the primary administrator account | `string` | `"creatorUT"` | no |

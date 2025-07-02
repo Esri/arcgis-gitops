@@ -12,7 +12,7 @@
  * See: https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/quickstart-deploy-application-gateway-for-containers-alb-controller
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -132,7 +132,7 @@ resource "azurerm_dashboard_grafana" "grafana" {
   name                              = var.site_id
   resource_group_name               = var.resource_group_name
   location                          = var.azure_region
-  grafana_major_version             = 10
+  grafana_major_version             = var.grafana_major_version
   api_key_enabled                   = true
   deterministic_outbound_ip_enabled = true
   public_network_access_enabled     = true

@@ -112,10 +112,6 @@ locals {
   container_registry         = data.azurerm_key_vault_secret.acr_login_server.value
   enterprise_admin_cli_image = "${local.container_registry}/enterprise-admin-cli:${var.enterprise_admin_cli_version}"
 
-  # The AKS cluster uses managed identity authentication for ACR access, while the Helm charts require setting container reqistry credentials.
-  container_registry_username = "Azure"
-  container_registry_password = "Azure"
-
   configure_cloud_stores = true
 
   app_version         = yamldecode(file("./helm-charts/arcgis-enterprise/${var.helm_charts_version}/Chart.yaml")).appVersion
@@ -260,8 +256,11 @@ resource "helm_release" "arcgis_enterprise" {
       image = {
         registry   = local.container_registry
         repository = var.image_repository_prefix
-        username   = local.container_registry_username
-        password   = local.container_registry_password
+        # The AKS cluster uses managed identity authentication for ACR access, 
+        # while the Helm charts before 1.5.0 required setting container registry credentials.
+        username   = "Azure"
+        password   = "Azure"
+        authenticationType = "integrated"
       }
       install = {
         enterpriseFQDN              = var.deployment_fqdn

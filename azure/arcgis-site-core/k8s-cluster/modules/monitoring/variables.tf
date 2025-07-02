@@ -36,3 +36,9 @@ variable "site_id" {
     error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
+
+variable "grafana_major_version" {
+  description = "Major version of Grafana to deploy"
+  type        = number
+  default     = 11
+}

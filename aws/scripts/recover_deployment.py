@@ -32,7 +32,6 @@
 # * Supports a test mode to validate recovery points without making changes.
 
 import argparse
-from http import client
 import boto3
 from datetime import datetime, timezone
 from dateutil import parser
@@ -174,7 +173,7 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
     except dynamodb_client.exceptions.ResourceNotFoundException:
         logger.info(f"Table '{CONFIG_STORES_TABLE_NAME}' does not exist. Creating...")
 
-        table = dynamodb_client.create_table(
+        dynamodb_client.create_table(
             TableName=CONFIG_STORES_TABLE_NAME,
             KeySchema=[
                 {
@@ -194,7 +193,7 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
             }
         )
 
-        table.wait_until_exists()
+        dynamodb_client.get_waiter('table_exists').wait(TableName=CONFIG_STORES_TABLE_NAME)
 
     dynamodb_client.update_item(
         TableName=CONFIG_STORES_TABLE_NAME,

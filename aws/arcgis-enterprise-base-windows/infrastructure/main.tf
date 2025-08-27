@@ -82,7 +82,7 @@
  * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
  * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
  * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
-*  | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
  */
 
 # Copyright 2024-2025 Esri

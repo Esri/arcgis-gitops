@@ -28,6 +28,18 @@ variable "aws_region" {
   type        = string
 }
 
+variable "backup_schedule" {
+  description = "Backup schedule in cron format"
+  type        = string
+  default     = "cron(0 0 * * ? *)"
+}
+
+variable "backup_retention" {
+  description = "Number of days to retain backups"
+  type        = number
+  default     = 14
+}
+
 variable "client_cidr_blocks" {
   description = "Client CIDR blocks"
   type        = list(string)

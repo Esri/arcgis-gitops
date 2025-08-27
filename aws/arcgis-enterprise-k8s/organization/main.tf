@@ -58,7 +58,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
     helm = {
       source  = "hashicorp/helm"
@@ -105,8 +105,12 @@ data "aws_ssm_parameter" "s3_backup" {
 
 locals {
   # Currently only ECR with IAM authentication is supported by the modified Helm chart
-  container_registry         = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com"
+  container_registry         = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.region}.amazonaws.com"
   enterprise_admin_cli_image = "${local.container_registry}/enterprise-admin-cli:${var.enterprise_admin_cli_version}"
+
+  # The EKS cluster uses IAM authentication for ECR access, while the Helm charts require setting container reqistry credentials.
+  container_registry_username = "AWS"
+  container_registry_password = "AWS"
 
   configure_cloud_stores = true
 
@@ -220,7 +224,7 @@ resource "local_sensitive_file" "cloud_config_json_file" {
         usage = "DEFAULT"
         connection = {
           bucketName = aws_s3_bucket.object_store[0].bucket
-          region     = data.aws_region.current.name
+          region     = data.aws_region.current.region
           rootDir    = var.deployment_id
         }
         category = "storage"
@@ -256,11 +260,8 @@ resource "helm_release" "arcgis_enterprise" {
       image = {
         registry   = local.container_registry
         repository = var.image_repository_prefix
-        # The EKS cluster uses IAM authentication for ECR access, 
-        # However the Helm charts before 1.5.0 required setting container registry credentials.
-        username   = "AWS"
-        password   = "AWS"
-        authenticationType = "integrated"
+        username   = local.container_registry_username
+        password   = local.container_registry_password
       }
       install = {
         enterpriseFQDN              = var.deployment_fqdn
@@ -334,7 +335,7 @@ module "register_s3_backup_store" {
     "gis", "register-s3-backup-store",
     "--store", local.backup_store,
     "--bucket", nonsensitive(data.aws_ssm_parameter.s3_backup.value),
-    "--region", data.aws_region.current.name,
+    "--region", data.aws_region.current.region,
     "--root", local.backup_root_dir,
     "--is-default"
   ]

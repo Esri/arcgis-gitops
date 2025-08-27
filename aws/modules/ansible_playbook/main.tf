@@ -35,7 +35,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 }
@@ -55,7 +55,7 @@ resource "local_sensitive_file" "external_vars" {
     {
       ansible_connection = "aws_ssm"
       ansible_aws_ssm_bucket_name = data.aws_ssm_parameter.ansible_aws_ssm_bucket.value
-      ansible_aws_ssm_region = data.aws_region.current.name
+      ansible_aws_ssm_region = data.aws_region.current.region
       # ansible_python_interpreter = "/usr/bin/python3"
     })
   )
@@ -66,7 +66,7 @@ resource "local_file" "inventory" {
   content  = yamlencode({
     plugin = "amazon.aws.aws_ec2"
     regions = [ 
-      data.aws_region.current.name
+      data.aws_region.current.region
     ]
     compose = {
       ansible_host = "instance_id"
@@ -89,7 +89,7 @@ resource "null_resource" "ansible_playbook" {
   # Wait for target SSM managed EC2 instances to become available. 
   provisioner "local-exec" {
     environment = {
-      AWS_DEFAULT_REGION = data.aws_region.current.name
+      AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
     command = "python -m ssm_wait_for_target_instances -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)}"
@@ -98,7 +98,7 @@ resource "null_resource" "ansible_playbook" {
   # Run Ansible playbook on target SSM managed EC2 instances.
   provisioner "local-exec" {
     environment = {
-      AWS_DEFAULT_REGION = data.aws_region.current.name
+      AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
     command = "ansible-playbook ${var.playbook} -i ${local_file.inventory.filename} -e @${local_sensitive_file.external_vars.filename}"

@@ -36,7 +36,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 }
@@ -54,7 +54,7 @@ resource "null_resource" "clean_up" {
     
   provisioner "local-exec" {
     environment = {
-      AWS_DEFAULT_REGION = data.aws_region.current.name
+      AWS_DEFAULT_REGION = data.aws_region.current.region
     }
     
     command = "python -m ssm_clean_up -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${join(",", var.directories)} -u ${var.uninstall_chef_client ? "true" : "false"} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"

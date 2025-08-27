@@ -63,9 +63,9 @@
           "sha256": "2AC38C2AAB8A55E50A2D761FEAD1320047D2AD5FD22C2F44316ACEB094505EC2"
         },
         "WebDeploy_amd64_en-US.msi": {
-          "url": "https://download.microsoft.com/download/b/d/8/bd882ec4-12e0-481a-9b32-0fae8e3c0b78/webdeploy_amd64_en-US.msi",
+          "url": "https://download.microsoft.com/download/webdeploy_amd64_en-US.msi",
           "subfolder": "thirdparty",
-          "sha256": "2BEFD8DA31817D96875815EF1D0C30E11BD26838F7B65DA6FD7EA80B041B3489"
+          "sha256": "CD6228E4C947CCBDAEA0331A7F2A66B8C523664E55471478C2C0664F6BCEFE92"
         }
       }
     }

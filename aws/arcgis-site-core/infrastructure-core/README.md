@@ -13,15 +13,17 @@ Ids of the created AWS resources are stored in SSM parameters:
 
 | SSM parameter name | Description |
 | --- | --- |
-| /arcgis/${var.site_id}/vpc/id | VPC Id of ArcGIS Enterprise site |
-| /arcgis/${var.site_id}/vpc/hosted-zone-id | Private hosted zone Id of ArcGIS Enterprise site |
-| /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
+| /arcgis/${var.site_id}/backup/vault-name | Name of the AWS backup vault |
+| /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
 | /arcgis/${var.site_id}/iam/instance-profile-name | Name of IAM instance profile |
-| /arcgis/${var.site_id}/s3/region | S3 buckets region code |
-| /arcgis/${var.site_id}/s3/repository | S3 bucket of private repository |
+| /arcgis/${var.site_id}/images/${os} | Ids of the latest AMI for the operating systems |
 | /arcgis/${var.site_id}/s3/backup | S3 bucket used by deployments to store backup data |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket used by deployments to store logs |
-| /arcgis/${var.site_id}/images/${os} | Ids of the latest AMI for the operating systems |
+| /arcgis/${var.site_id}/s3/region | S3 buckets region code |
+| /arcgis/${var.site_id}/s3/repository | S3 bucket of private repository |
+| /arcgis/${var.site_id}/vpc/hosted-zone-id | Private hosted zone Id of ArcGIS Enterprise site |
+| /arcgis/${var.site_id}/vpc/id | VPC Id of ArcGIS Enterprise site |
+| /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
 
 ## Requirements
 
@@ -34,16 +36,22 @@ Ids of the created AWS resources are stored in SSM parameters:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 5.22 |
+| aws | ~> 6.0 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [aws_backup_vault.site](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_vault) | resource |
 | [aws_eip.nat](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/eip) | resource |
 | [aws_iam_instance_profile.arcgis_enterprise_profile](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_instance_profile) | resource |
 | [aws_iam_role.arcgis_enterprise_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role.backup_role](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role) | resource |
+| [aws_iam_role_policy_attachment.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_iam_role_policy_attachment.policies](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.restore](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.s3_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
+| [aws_iam_role_policy_attachment.s3_restore](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_role_policy_attachment) | resource |
 | [aws_internet_gateway.igw](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/internet_gateway) | resource |
 | [aws_nat_gateway.nat](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/nat_gateway) | resource |
 | [aws_route53_zone.private](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/route53_zone) | resource |
@@ -57,6 +65,8 @@ Ids of the created AWS resources are stored in SSM parameters:
 | [aws_s3_bucket.logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket.repository](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_security_group.vpc_endpoints_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_ssm_parameter.backup_role_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.backup_vault_name](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.hosted_zone_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.images_parameters](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.instance_profile_name](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |

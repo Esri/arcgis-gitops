@@ -2,6 +2,16 @@
     "Version": "2012-10-17",
     "Statement": [
         {
+            "Sid": "iam",
+            "Effect": "Allow",
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+                "arn:aws:iam::*:role/ArcGISEnterpriseBackupRole*"
+            ]
+        },
+        {
             "Sid": "ec2",
             "Effect": "Allow",
             "Action": [
@@ -69,7 +79,9 @@
                 "s3:ListBucket",
                 "s3:ListBucketVersions",
                 "s3:ListTagsForResource",
-                "s3:PutObject*"
+                "s3:PutObject*",
+                "s3:PutBucketTagging",
+                "s3:PutBucketVersioning"
             ],
             "Resource": "*"
         },
@@ -79,6 +91,31 @@
                 "sns:GetSubscriptionAttributes",
                 "sns:Subscribe",
                 "sns:Unsubscribe"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:DescribeContinuousBackups",
+                "dynamodb:DescribeTable",
+                "dynamodb:DescribeTimeToLive",
+                "dynamodb:GetItem",
+                "dynamodb:ListTagsOfResource",
+                "dynamodb:TagResource",
+                "dynamodb:UntagResource"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "backup:CreateBackupSelection",
+                "backup:DeleteBackupSelection",
+                "backup:GetBackupPlan",
+                "backup:GetBackupSelection",
+                "backup:List*",
+                "backup:TagResource"
             ],
             "Resource": "*"
         }

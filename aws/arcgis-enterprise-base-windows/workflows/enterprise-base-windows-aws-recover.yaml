@@ -1,0 +1,79 @@
+# Copyright 2025 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: enterprise-base-windows-aws-recover
+
+on: 
+  workflow_dispatch:
+    inputs:
+      test_mode:
+        description: 'Test only mode'
+        type: boolean
+        required: true
+        default: false
+
+env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
+  TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}  
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/recover.vars.json
+  INFRASTRUCTURE_CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/infrastructure.tfvars.json
+
+concurrency:
+  group: ${{ github.ref_name }}
+  
+jobs:
+  recover:
+    name: Restore the deployment's resources from AWS Backup recovery points
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: aws/arcgis-enterprise-base-windows/infrastructure    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Install Boto3
+      run: pip install boto3
+    - uses: hashicorp/setup-terraform@v3
+      with:
+        terraform_version: "1.10.0"
+    - name: Print mode
+      run: |
+        echo Test mode: ${{ inputs.test_mode }}
+    - name: Restore Deployment
+      run: |
+        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+        BACKUP_TIME=$(jq -r '.backup_time' $CONFIG_FILE)
+        [[ "$BACKUP_TIME" == "null" || "$BACKUP_TIME" == "" ]] && BACKUP_TIME_ARG="" || BACKUP_TIME_ARG="-c $BACKUP_TIME"
+        [[ "${{ inputs.test_mode }}" == "true" ]] && TEST_MODE_ARG="-t" || TEST_MODE_ARG=""
+        python -m recover_deployment -s $SITE_ID -d $DEPLOYMENT_ID $BACKUP_TIME_ARG $TEST_MODE_ARG
+    - name: Terraform Init
+      id: init
+      run: |
+        SITE_ID=$(jq -r '.site_id' $INFRASTRUCTURE_CONFIG_FILE)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $INFRASTRUCTURE_CONFIG_FILE)
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$TF_VAR_aws_region" 
+    - name: Terraform Apply
+      id: apply
+      if: ${{ inputs.test_mode == false }}
+      run: terraform apply -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve
+    - name: Terraform Plan
+      id: plan
+      if: ${{ inputs.test_mode == true }}
+      run: terraform plan -var-file $INFRASTRUCTURE_CONFIG_FILE
+

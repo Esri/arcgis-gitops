@@ -18,7 +18,7 @@ output "cluster_name" {
 }
 
 output "aws_region" {
-  value       = data.aws_region.current.name
+  value       = data.aws_region.current.region
   description = "AWS region"
 }
 

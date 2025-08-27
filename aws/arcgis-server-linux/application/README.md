@@ -45,17 +45,19 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
+| /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified and portal_url is not specified) |
 | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
-| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified and portal_url is not specified) |
+| /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
 | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| aws | ~> 5.22 |
+| aws | ~> 6.0 |
 
 ## Modules
 
@@ -71,6 +73,7 @@ The module reads the following SSM parameters:
 | arcgis_webadaptor | ../../modules/ansible_playbook | n/a |
 | arcgis_webadaptor_upgrade | ../../modules/ansible_playbook | n/a |
 | authorization_file | ../../modules/ansible_playbook | n/a |
+| backup | ../../modules/backup | n/a |
 | clean | ../../modules/ansible_playbook | n/a |
 | copy_server_files | ../../modules/s3_copy_files | n/a |
 | copy_webadaptor_files | ../../modules/s3_copy_files | n/a |

@@ -7,7 +7,8 @@
                 "iam:PassRole"
             ],
             "Resource": [
-                "arn:aws:iam::*:role/ArcGISEnterpriseRole*"   
+                "arn:aws:iam::*:role/ArcGISEnterpriseRole*",
+                "arn:aws:iam::*:role/ArcGISEnterpriseBackupRole*"
             ]
         },
         {
@@ -29,6 +30,7 @@
                 "ec2:DescribeSubnets",
                 "ec2:DescribeTags",
                 "ec2:DescribeVolumes",
+                "ec2:DescribeVpcs",
                 "ec2:RunInstances"
             ],
             "Resource": "*"
@@ -56,7 +58,7 @@
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                  "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
+                    "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
                 }
             }
         },
@@ -73,33 +75,34 @@
                 "ssm:GetParametersByPath",
                 "ssm:ListCommandInvocations",
                 "ssm:ListTagsForResource",
-                "ssm:PutParameter"
+                "ssm:PutParameter",
+                "ssm:StartSession"
             ],
             "Resource": "*"
         },
         {
-            "Effect":"Allow",
-            "Action":[
-               "ssm:SendCommand"
+            "Effect": "Allow",
+            "Action": [
+                "ssm:SendCommand"
             ],
-            "Resource":[
-               "arn:aws:ssm:*:*:document/*"
+            "Resource": [
+                "arn:aws:ssm:*:*:document/*"
             ]
-        },        
+        },
         {
-           "Effect":"Allow",
-           "Action":[
-              "ssm:SendCommand"
-           ],
-           "Resource":[
-              "arn:aws:ec2:*:*:instance/*"
-           ],
-           "Condition": {
-              "StringEquals": {
-                 "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
-              }
-           }
-        },        
+            "Effect": "Allow",
+            "Action": [
+                "ssm:SendCommand"
+            ],
+            "Resource": [
+                "arn:aws:ec2:*:*:instance/*"
+            ],
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
+                }
+            }
+        },
         {
             "Effect": "Allow",
             "Action": [
@@ -127,7 +130,7 @@
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                  "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
+                    "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
                 }
             }
         },
@@ -158,26 +161,15 @@
             "Effect": "Allow",
             "Action": [
                 "elasticloadbalancing:DeregisterTargets",
-                "elasticloadbalancing:ModifyListener",
-                "elasticloadbalancing:ModifyListenerAttributes",
-                "elasticloadbalancing:ModifyLoadBalancerAttributes",
-                "elasticloadbalancing:ModifyRule",
-                "elasticloadbalancing:ModifyTargetGroup",
-                "elasticloadbalancing:ModifyTargetGroupAttributes",
-                "elasticloadbalancing:ModifyTrustStore",
+                "elasticloadbalancing:Modify*",
                 "elasticloadbalancing:RegisterTargets",
-                "elasticloadbalancing:RemoveListenerCertificates",
-                "elasticloadbalancing:RemoveTrustStoreRevocations",
-                "elasticloadbalancing:SetIpAddressType",
-                "elasticloadbalancing:SetRulePriorities",
-                "elasticloadbalancing:SetSecurityGroups",
-                "elasticloadbalancing:SetSubnets",
-                "elasticloadbalancing:SetWebAcl"
+                "elasticloadbalancing:Remove*",
+                "elasticloadbalancing:Set*"
             ],
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                  "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
+                    "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
                 }
             }
         },
@@ -201,7 +193,7 @@
             "Resource": "*",
             "Condition": {
                 "StringEquals": {
-                  "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
+                    "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
                 }
             }
         },
@@ -224,16 +216,7 @@
             "Action": [
                 "s3:CreateBucket",
                 "s3:GetAccelerateConfiguration",
-                "s3:GetBucketAcl",
-                "s3:GetBucketCORS",
-                "s3:GetBucketLocation",
-                "s3:GetBucketLogging",
-                "s3:GetBucketObjectLockConfiguration",
-                "s3:GetBucketPolicy",
-                "s3:GetBucketRequestPayment",
-                "S3:GetBucketTagging",
-                "s3:GetBucketVersioning",
-                "s3:GetBucketWebsite",
+                "s3:GetBucket*",
                 "s3:GetEncryptionConfiguration",
                 "s3:GetLifecycleConfiguration",
                 "s3:GetObject",
@@ -242,12 +225,11 @@
                 "s3:GetObjectVersion",
                 "s3:GetObjectVersionAttributes",
                 "s3:GetReplicationConfiguration",
-                "s3:ListBucket",
-                "s3:ListBucketVersions",
-                "s3:ListTagsForResource",
+                "s3:List*",
                 "s3:PutBucketAcl",
                 "s3:PutBucketCORS",
                 "s3:PutBucketLogging",
+                "s3:PutBucketOwnershipControls",
                 "s3:PutBucketPolicy",
                 "s3:PutBucketPublicAccessBlock",
                 "s3:PutBucketTagging",
@@ -263,7 +245,11 @@
                 "route53:GetChange",
                 "route53:GetHostedZone",
                 "route53:ChangeResourceRecordSets",
-                "route53:ListResourceRecordSets"
+                "route53:CreateHostedZone",
+                "route53:ChangeTagsForResource",
+                "route53:DeleteHostedZone",
+                "route53:ListResourceRecordSets",
+                "route53:ListTagsForResource"
             ],
             "Resource": "*"
         },
@@ -276,6 +262,33 @@
                 "sns:ListTagsForResource",
                 "sns:SetTopicAttributes",
                 "sns:TagResource"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "backup:CreateBackupPlan",
+                "backup:CreateBackupSelection",
+                "backup:DeleteBackupPlan",
+                "backup:DeleteBackupSelection",
+                "backup:DescribeRestoreJob",
+                "backup:GetBackupPlan",
+                "backup:GetBackupSelection",
+                "backup:List*",
+                "backup:StartRestoreJob",
+                "backup:TagResource"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:CreateTable",
+                "dynamodb:Describe*",
+                "dynamodb:List*",
+                "dynamodb:TagResource",
+                "dynamodb:UpdateItem"
             ],
             "Resource": "*"
         }

@@ -13,9 +13,9 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-# This script builds container image for Enterprise Admin CLI and pushes it to
-# private ECR repository in the AWS region.
+#
+# This script restores the ArcGIS Notebook Server deployment's config store
+# and arcgisworkspace directory from the site's backup S3 bucket.
 #
 # On the machine where the script is executed:
 #

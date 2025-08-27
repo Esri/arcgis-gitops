@@ -42,7 +42,7 @@ variable "deployment_id" {
 variable "helm_charts_version" {
   description = "Helm Charts for ArcGIS Enterprise on Kubernetes version"
   type        = string
-  default     = "1.5.0"
+  default     = "1.4.0"
 }
 
 variable "upgrade_token" {

@@ -77,7 +77,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -103,7 +103,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -127,7 +127,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -151,7 +151,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     }
   ]
@@ -186,7 +186,7 @@ locals {
           ]
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -212,7 +212,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -236,7 +236,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -267,7 +267,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -293,7 +293,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -319,7 +319,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -335,7 +335,7 @@ locals {
           [{
             id         = "expr1"
             expression = "SELECT SUM(net_bytes_recv_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
-            region     = data.aws_region.current.name            
+            region     = data.aws_region.current.region            
           }]
         ]
         yAxis = {
@@ -346,7 +346,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -372,7 +372,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     }
   ]
@@ -407,7 +407,7 @@ locals {
           ]
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -433,7 +433,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -457,7 +457,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -483,7 +483,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -512,7 +512,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -542,7 +542,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -572,7 +572,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -602,7 +602,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     }
   ]
@@ -617,7 +617,7 @@ locals {
       properties = {
         title   = "System Event Log"
         query   = "SOURCE '${var.log_group_name}' | fields @timestamp, @logStream, @message | sort @timestamp desc | limit 1000"
-        region  = data.aws_region.current.name
+        region  = data.aws_region.current.region
         stacked = false
         view    = "table"
       }

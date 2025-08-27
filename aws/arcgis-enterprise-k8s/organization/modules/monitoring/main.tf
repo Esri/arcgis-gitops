@@ -80,7 +80,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -106,7 +106,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -130,7 +130,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -154,7 +154,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     }
   ]
@@ -188,7 +188,7 @@ locals {
           ]
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -219,7 +219,7 @@ locals {
           ]
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -244,7 +244,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     },
     {
@@ -269,7 +269,7 @@ locals {
           }
         }
         period = 60
-        region = data.aws_region.current.name
+        region = data.aws_region.current.region
       }
     }
   ]
@@ -284,7 +284,7 @@ locals {
       properties = {
         title   = "Container Logs"
         query   = "SOURCE '/aws/containerinsights/${var.cluster_name}/application' | fields @timestamp, kubernetes.pod_name, log | filter kubernetes.namespace_name = '${var.namespace}' and kubernetes.container_name != 'filebeat' | sort @timestamp desc | limit 1000"
-        region  = data.aws_region.current.name
+        region  = data.aws_region.current.region
         stacked = false
         view    = "table"
       }

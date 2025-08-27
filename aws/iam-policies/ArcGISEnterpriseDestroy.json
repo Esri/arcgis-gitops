@@ -86,6 +86,7 @@
             "Effect": "Allow",
             "Action": [
                 "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:DescribeListenerAttributes",
                 "elasticloadbalancing:DescribeLoadBalancerAttributes",
                 "elasticloadbalancing:DescribeLoadBalancers",
                 "elasticloadbalancing:DescribeRules",
@@ -171,7 +172,9 @@
                 "s3:GetReplicationConfiguration",
                 "s3:ListBucket",
                 "s3:ListBucketVersions",
-                "s3:ListTagsForResource"
+                "s3:ListTagsForResource",
+                "s3:PutBucketOwnershipControls",
+                "s3:PutBucketVersioning"
             ],
             "Resource": "*"
         },
@@ -182,7 +185,8 @@
                 "route53:GetChange",
                 "route53:GetHostedZone",
                 "route53:ChangeResourceRecordSets",
-                "route53:ListResourceRecordSets"
+                "route53:ListResourceRecordSets",
+                "route53:ListTagsForResource"
             ],
             "Resource": "*"
         },
@@ -194,6 +198,26 @@
                 "sns:GetTopicAttributes",
                 "sns:ListTagsForResource",
                 "sns:Unsubscribe"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "backup:DeleteBackupPlan",
+                "backup:DeleteBackupSelection",
+                "backup:GetBackupPlan",
+                "backup:GetBackupSelection",
+                "backup:ListBackupSelections",
+                "backup:ListTags"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "dynamodb:List*",
+                "dynamodb:UntagResource"
             ],
             "Resource": "*"
         }

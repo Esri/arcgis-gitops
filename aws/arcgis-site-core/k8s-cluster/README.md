@@ -33,7 +33,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 5.22 |
+| aws | ~> 6.0 |
 | tls | ~> 3.0 |
 
 ## Modules

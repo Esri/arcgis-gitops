@@ -35,7 +35,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 }
@@ -53,7 +53,7 @@ resource "null_resource" "nfs_mount" {
     
   provisioner "local-exec" {
     environment = {
-      AWS_DEFAULT_REGION = data.aws_region.current.name
+      AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
     command = "python -m ssm_efs_mount -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -i ${var.file_system_id} -p ${var.mount_point} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"

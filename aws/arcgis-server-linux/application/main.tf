@@ -45,10 +45,12 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified and portal_url is not specified) | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
- * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified and portal_url is not specified) | 
+ * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
  */
 
@@ -74,7 +76,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 
@@ -181,7 +183,7 @@ module "arcgis_server_files" {
     local_repository = local.archives_dir
     manifest         = local.server_manifest_path
     bucket_name      = module.site_core_info.s3_repository
-    region           = data.aws_region.current.name
+    region           = data.aws_region.current.region
   }
   depends_on = [
     module.copy_server_files
@@ -306,7 +308,7 @@ module "arcgis_server_primary" {
     directories_root      = "${local.mount_point}/gisdata/arcgisserver"
     config_store_type     = var.config_store_type
     config_store_connection_string = (var.config_store_type == "AMAZON" ?
-      "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
+      "NAMESPACE=${var.site_id}-${var.deployment_id};REGION=${data.aws_region.current.region}" :
     "${local.mount_point}/gisdata/arcgisserver/config-store")
     config_store_connection_secret = ""
     log_level                      = var.log_level
@@ -347,6 +349,21 @@ module "arcgis_server_node" {
   }
   depends_on = [
     module.authorization_file,
+    module.arcgis_server_primary
+  ]
+}
+
+# System-level backups of the resources created by the application module
+# using AWS Backup service.
+module "backup" {
+  count              = var.config_store_type == "AMAZON" ? 1 : 0
+  source             = "../../modules/backup"
+  arcgis_application = "server"
+  arcgis_version     = var.arcgis_version
+  deployment_id      = var.deployment_id
+  site_id            = var.site_id
+
+  depends_on = [
     module.arcgis_server_primary
   ]
 }

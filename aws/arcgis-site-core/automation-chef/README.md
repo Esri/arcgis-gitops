@@ -41,7 +41,7 @@ Before using the module, the repository S3 bucket must be created by infrastruct
 
 | Name | Version |
 |------|---------|
-| aws | ~> 5.22 |
+| aws | ~> 6.0 |
 
 ## Modules
 

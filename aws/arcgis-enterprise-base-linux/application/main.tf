@@ -46,14 +46,16 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
- * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
  * | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
+ * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
  * | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
  * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
+ * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -81,7 +83,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 
@@ -620,7 +622,7 @@ module "arcgis_enterprise_primary" {
         log_level             = var.log_level
         config_store_type     = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AMAZON" ?
-          "NAMESPACE=${var.deployment_id}-${local.timestamp};REGION=${data.aws_region.current.name}" :
+          "NAMESPACE=${var.site_id}-${var.deployment_id};REGION=${data.aws_region.current.region}" :
         "${local.mount_point}/gisdata/arcgisserver/config-store")
         config_store_connection_secret = ""
         install_system_requirements    = true
@@ -640,10 +642,10 @@ module "arcgis_enterprise_primary" {
             isManagedData = true
             purposes      = ["feature-tile", "scene"]
             connectionString = jsonencode({
-              regionEndpointUrl        = "https://s3.${data.aws_region.current.name}.amazonaws.com"
+              regionEndpointUrl        = "https://s3.${data.aws_region.current.region}.amazonaws.com"
               defaultEndpointsProtocol = "https"
               credentialType           = "IAMRole"
-              region                   = data.aws_region.current.name
+              region                   = data.aws_region.current.region
             })
             objectStore       = "${nonsensitive(data.aws_ssm_parameter.object_store.value)}/store"
             encryptAttributes = ["info.connectionString"]
@@ -689,7 +691,7 @@ module "arcgis_enterprise_primary" {
         content_store_type       = "CloudStore"
         content_store_provider   = "Amazon"
         content_store_connection_string = {
-          region         = data.aws_region.current.name
+          region         = data.aws_region.current.region
           credentialType = "IAMRole"
         }
         object_store                = nonsensitive(data.aws_ssm_parameter.s3_content.value)
@@ -824,6 +826,21 @@ module "arcgis_enterprise_standby" {
     ]
   })
   execution_timeout = 14400
+  depends_on = [
+    module.arcgis_enterprise_primary
+  ]
+}
+
+# System-level backups of the resources created by the application module
+# using AWS Backup service.
+module "backup" {
+  count              = var.config_store_type == "AMAZON" ? 1 : 0
+  source             = "../../modules/backup"
+  arcgis_application = "server"
+  arcgis_version     = var.arcgis_version
+  deployment_id      = var.deployment_id
+  site_id            = var.site_id
+
   depends_on = [
     module.arcgis_enterprise_primary
   ]

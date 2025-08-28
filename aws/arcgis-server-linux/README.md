@@ -137,9 +137,13 @@ Instructions:
 
 ## Backups and Disaster Recovery
 
-The templates support application-level ArcGIS Server disaster recovery operations using backup and restore utilities.
+The templates support application-level and system-level ArcGIS Server disaster recovery operations.
 
-### Create Backups
+### Application-level Backups
+
+The application-level backups back up and restore the ArcGIS Server configuration using [backup](https://enterprise.arcgis.com/en/server/latest/develop/linux/backup-utility.htm) and [restore](https://enterprise.arcgis.com/en/server/latest/develop/linux/restore-utility.htm) utilities. The backups are stored in the site's backup S3 bucket.
+
+#### Creating Application-level Backups
 
 GitHub Actions workflow **server-linux-aws-backup** creates ArcGIS Server backups using [backup utility](https://enterprise.arcgis.com/en/server/latest/develop/linux/backup-utility.htm).
 
@@ -175,19 +179,41 @@ Instructions:
 2. Commit the changes to the Git branch and push the branch to GitHub.
 3. Run server-linux-aws-restore workflow using the branch.
 
-### Create Snapshots and Restore from Snapshots
+### System-level backups
 
-GitHub Actions workflow **server-linux-aws-snapshot** creates a system-level backup by creating AMIs from EC2 instances of ArcGIS Server deployment. The workflow the workflow retrieves site and deployment IDs from [image.vars.json](../../config/aws/arcgis-server-linux/image.vars.json) config file and runs snapshot_deployment Python script. The workflow requires ArcGISEnterpriseImage IAM policy.
+The system-level ArcGIS Server deployment backups back up S3 buckets, DynamoDB tables, EFS file systems, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the site's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
 
-The workflows overwrites the AMI IDs in SSM Parameter Store written there by server-linux-aws-image workflow. When necessary, the deployment can be rolled back to state captured in the snapshot by running server-linux-aws-infrastructure workflow.
+> System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or a edit to a feature service that is made during the backup process.
 
-> Running server-linux-aws-snapshot workflow causes a short downtime because it reboots the EC2 instances.
+#### Creating System-level Backups
 
-> The snapshot captures only the data on the EC2 instances that does not include the content of other storage services, such as EFS filesystems used by ArcGIS Server config store.
+GitHub Actions workflow **server-linux-aws-infrastructure** creates an AWS backup plan for the deployment that backs up the EC2 instances, S3 buckets, and the EFS file system created by the workflow in the site's AWS Backup vault. The backup schedule is controlled by the CRON expression set in the "backup_schedule" property in the [infrastructure.tfvars.json](../../config/aws/arcgis-server-linux/infrastructure.tfvars.json) file.
 
-Since creating snapshots involves downtime and integrity of the data cannot be guaranteed if data in the storage services was updated after the snapshot creation, snapshots are not recommended for use as backups for active deployments. Snapshots should be created during planned downtime, after deactivating the deployment, and before applying system and application patches or other system-level updates.
+If the deployment uses S3 and DynamoDB AWS storage services for ArcGIS Server configuration store, then the GitHub Actions workflow **server-linux-aws-application** enables versioning for the configuration store S3 bucket, tags the S3 bucket and DynamoDB table, and adds them to the deployment's backup plan.
 
-> The snapshot creation time depends on the size and throughput of the root EBS volumes of the EC2 instances.
+The backup schedule is configured by a [CRON expression](https://docs.aws.amazon.com/scheduler/latest/UserGuide/schedule-types.html#cron-based) specified by the "backup_schedule" property and the number of days to retain backups is specified by the "backup_retention" property in [infrastructure.tfvars.json](../../config/aws/arcgis-server-linux/infrastructure.tfvars.json) config file.
+
+#### Restoring from System-level Backups
+
+GitHub Actions workflow **server-linux-aws-recover** restores the entire deployment from the system-level backup.
+
+The workflow:
+
+1. Runs [recover_deployment](../scripts/README.md#recover_deployment) python script with [recover.vars.json](../../config/aws/arcgis-server-linux/recover.vars.json) config file.
+2. Runs [infrastructure](infrastructure/README.md) Terraform template with [infrastructure.tfvars.json](../../config/aws/arcgis-server-linux/infrastructure.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISEnterpriseInfrastructure
+
+Instructions:
+
+1. Run server-linux-aws-recover workflow using the main/default branch.
+
+> If "backup_time" property in recover.vars.json config file is set to `null`, the workflow will restore from the most recent backup. The "backup_time" property can be set to a backup timestamp in ISO 8601 format to restore from recovery points that were created before the specified timestamp.
+
+> If the "test_mode" workflow input parameter is checked, the workflow will run in test mode and will not modify any resources.
 
 ## In-Place Updates and Upgrades
 

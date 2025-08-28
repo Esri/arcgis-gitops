@@ -46,6 +46,13 @@ resource "aws_ssm_parameter" "instance_profile_name" {
   description = "Name of IAM instance profile"
 }
 
+resource "aws_ssm_parameter" "backup_role_arn" {
+  name        = "/arcgis/${var.site_id}/iam/backup-role-arn"
+  type        = "String"
+  value       = aws_iam_role.backup_role.arn
+  description = "ARN of IAM role used by AWS Backup service"
+}
+
 resource "aws_ssm_parameter" "s3_repository" {
   name        = "/arcgis/${var.site_id}/s3/repository"
   type        = "String"
@@ -72,6 +79,13 @@ resource "aws_ssm_parameter" "s3_region" {
   type        = "String"
   value       = data.aws_region.current.id
   description = "S3 buckets region code"
+}
+
+resource "aws_ssm_parameter" "backup_vault_name" {
+  name        = "/arcgis/${var.site_id}/backup/vault-name"
+  type        = "String"
+  value       = aws_backup_vault.site.name
+  description = "AWS Backup vault name"
 }
 
 # AMIs

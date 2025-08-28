@@ -37,7 +37,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 }
@@ -301,7 +301,7 @@ resource "null_resource" "ssm_cloudwatch_config" {
 
   provisioner "local-exec" {
     environment = {
-      AWS_DEFAULT_REGION = data.aws_region.current.name
+      AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
     command = "python -m ssm_cloudwatch_config -s ${var.site_id} -d ${var.deployment_id} -p ${aws_ssm_parameter.cloudwatch_agent_config.name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"

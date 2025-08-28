@@ -55,6 +55,36 @@ options:
   -r PACKER_RUN_UUID  Packer run UUID
 ```
 
+## recover_deployment
+
+Recovers deployment from AWS Backup.
+
+The script:
+
+1. Finds the latest recovery points for S3 buckets, DynamoDB tables, EFS file systems, and EC2 instances of the specified deployment using the deployment tags.
+2. If the deployment uses a cloud-based config store, the script restores the config store DynamoDB table and S3 bucket into new resources and replaces the references in ArcGISConfigStores DynamoDB table.
+3. Restores S3 buckets and, if any, EFS file systems from the AWS backup recovery points to the deployment's infrastructure resources.
+4. Replaces AMI IDs in "/arcgis/{site_id}/images/{deployment_id}/{role}" SSM parameters with the snapshot AMI IDs retrieved from the EC2 recovery points.
+
+usage:
+
+```shell
+recover_deployment.py [-h] -s SITE_ID -d DEPLOYMENT_ID [-c BACKUP_TIME] [-t]
+```
+
+options:
+
+```shell
+  -h, --help            show this help message and exit
+  -s SITE_ID, --site-id SITE_ID
+                        ArcGIS Enterprise site Id
+  -d DEPLOYMENT_ID, --deployment-id DEPLOYMENT_ID
+                        ArcGIS Enterprise deployment Id
+  -c BACKUP_TIME, --backup-time BACKUP_TIME
+                        Use recovery points that were created before the specified timestamp in ISO 8601 format (e.g., 2024-01-01T00:00:00Z)
+  -t, --test-mode       Run in test mode without making changes.
+```
+
 ## s3_copy_files
 
 Copies files from local file system, public URLs, and, My Esri, and ArcGIS patch repositories to S3 bucket.
@@ -312,6 +342,26 @@ options:
   -d DEPLOYMENT_ID  ArcGIS Enterprise deployment Id
   -m MACHINE_ROLES  Machine roles
 ```
+
+## tag_s3_bucket
+
+Adds tags and configures versioning for an S3 bucket.
+
+usage:
+
+```shell
+tag_s3_bucket.py [-h] [-b BUCKET_NAME] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m ROLE]
+```
+
+options:
+
+```shell
+  -h, --help        show this help message and exit
+  -b BUCKET_NAME    S3 bucket name
+  -s SITE_ID        Site Id
+  -d DEPLOYMENT_ID  Deployment Id
+  -m ROLE           S3 bucket role
+```  
 
 ## test_aws_credentials
 

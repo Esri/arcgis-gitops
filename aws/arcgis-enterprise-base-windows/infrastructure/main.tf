@@ -27,6 +27,7 @@
  * * CloudWatch agent on the EC2 instances that sends the system and Chef run logs to the log group as well as memory and disk utilization on the EC2 instances. 
  * * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and logs of the deployment.
  *
+ * The module also creates an AWS backup plan for the deployment that backs up all the EC2 instances and S3 buckets in the site's backup vault.
  * All the created AWS resources are tagged with ArcGISSiteId and ArcGISDeploymentId tags.
  *
  * ## Requirements
@@ -56,29 +57,32 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/backup/vault-name | Name of the AWS Backup vault |
+ * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
- * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id |
+ * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  *
  * The module writes the following SSM parameters:
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
- * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
- * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | Portal for ArcGIS content store S3 bucket |
- * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | Object store S3 bucket |
-*  | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
- * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
  * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer |
  * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer |
  * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/backup-plan-id | Backup plan ID for the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | Portal for ArcGIS content store S3 bucket |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | Portal for ArcGIS URL of the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | Object store S3 bucket |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
  */
 
 # Copyright 2024-2025 Esri
@@ -103,7 +107,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 
@@ -186,9 +190,8 @@ resource "aws_instance" "primary" {
   iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
 
-  network_interface {
+  primary_network_interface {
     network_interface_id = aws_network_interface.primary.id
-    device_index         = 0
   }
 
   metadata_options {
@@ -238,9 +241,8 @@ resource "aws_instance" "standby" {
   iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
 
-  network_interface {
+  primary_network_interface {
     network_interface_id = aws_network_interface.standby[0].id
-    device_index         = 0
   }
   
   metadata_options {
@@ -292,6 +294,26 @@ resource "aws_route53_record" "standby" {
 resource "aws_s3_bucket" "portal_content" {
   bucket_prefix = "${var.site_id}-portal-content"
   force_destroy = true
+
+  tags = {
+    ArcGISRole = "portal-content"
+  }
+}
+
+# Enable S3 bucket versioning required by AWS Backup
+resource "aws_s3_bucket_versioning" "portal_content" {
+  bucket = aws_s3_bucket.portal_content.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# AWS Backup S3 restores require the ability to set object ACLs.
+resource "aws_s3_bucket_ownership_controls" "portal_content" {
+  bucket = aws_s3_bucket.portal_content.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
 }
 
 resource "aws_ssm_parameter" "portal_content_s3_bucket" {
@@ -305,6 +327,26 @@ resource "aws_ssm_parameter" "portal_content_s3_bucket" {
 resource "aws_s3_bucket" "object_store" {
   bucket_prefix = "${var.site_id}-object-store"
   force_destroy = true
+
+  tags = {
+    ArcGISRole = "object-store"
+  }
+}
+
+# Enable S3 bucket versioning required by AWS Backup
+resource "aws_s3_bucket_versioning" "object_store" {
+  bucket = aws_s3_bucket.object_store.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# AWS Backup S3 restores require the ability to set object ACLs.
+resource "aws_s3_bucket_ownership_controls" "object_store" {
+  bucket = aws_s3_bucket.object_store.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
 }
 
 resource "aws_ssm_parameter" "object_store_s3_bucket" {

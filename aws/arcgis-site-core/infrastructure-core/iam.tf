@@ -48,3 +48,41 @@ resource "aws_iam_instance_profile" "arcgis_enterprise_profile" {
   name_prefix = var.site_id
   role        = aws_iam_role.arcgis_enterprise_role.name
 }
+
+resource "aws_iam_role" "backup_role" {
+  name_prefix = "ArcGISEnterpriseBackupRole"
+
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = {
+          Service = "backup.amazonaws.com"
+        }
+        Action = "sts:AssumeRole"
+      }
+    ]
+  })
+}
+
+# Attach IAM policies to the backup role
+resource "aws_iam_role_policy_attachment" "backup" {
+  role       = aws_iam_role.backup_role.name
+  policy_arn = "arn:${local.arn_identifier}:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForBackup"
+}
+
+resource "aws_iam_role_policy_attachment" "s3_backup" {
+  role       = aws_iam_role.backup_role.name
+  policy_arn = "arn:${local.arn_identifier}:iam::aws:policy/AWSBackupServiceRolePolicyForS3Backup"
+}
+
+resource "aws_iam_role_policy_attachment" "restore" {
+  role       = aws_iam_role.backup_role.name
+  policy_arn = "arn:${local.arn_identifier}:iam::aws:policy/service-role/AWSBackupServiceRolePolicyForRestores"
+}
+
+resource "aws_iam_role_policy_attachment" "s3_restore" {
+  role       = aws_iam_role.backup_role.name
+  policy_arn = "arn:${local.arn_identifier}:iam::aws:policy/AWSBackupServiceRolePolicyForS3Restore"
+}

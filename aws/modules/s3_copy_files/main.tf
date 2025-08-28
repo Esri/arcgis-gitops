@@ -34,7 +34,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 }
@@ -48,7 +48,7 @@ resource "null_resource" "s3_copy_files" {
     
   provisioner "local-exec" {
     environment = {
-      AWS_DEFAULT_REGION = data.aws_region.current.name
+      AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
     command = "python -m s3_copy_files -f ${var.index_file} -b ${var.bucket_name}"

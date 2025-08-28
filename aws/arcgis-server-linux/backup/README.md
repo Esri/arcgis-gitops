@@ -22,7 +22,7 @@ The module retrieves the backup S3 bucket name from '/arcgis/${var.site_id}/s3/b
 
 | Name | Version |
 |------|---------|
-| aws | ~> 5.22 |
+| aws | ~> 6.0 |
 
 ## Modules
 

@@ -17,8 +17,8 @@
 data "aws_region" "current" {}
 
 locals {
-  oidc_provider = "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${split("/", aws_iam_openid_connect_provider.eks_oidc.arn)[3]}"
-  is_gov_cloud = contains(["us-gov-east-1", "us-gov-west-1"], data.aws_region.current.name)
+  oidc_provider = "oidc.eks.${data.aws_region.current.region}.amazonaws.com/id/${split("/", aws_iam_openid_connect_provider.eks_oidc.arn)[3]}"
+  is_gov_cloud = contains(["us-gov-east-1", "us-gov-west-1"], data.aws_region.current.region)
   arn_identifier = local.is_gov_cloud ? "aws-us-gov" : "aws"  
 }
 

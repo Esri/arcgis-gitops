@@ -5,6 +5,7 @@ A Terraform module can call other modules to include their resources into the co
 * [alb](alb/README.md) - creates and configures Application Load Balancer for a deployment
 * [alb_target_group](alb_target_group/README.md) - creates and configures an Application Load Balancer target group
 * [ansible_playbook](ansible_playbook/README.md) - runs Ansible playbook on EC2 instances
+* [backup](backup/README.md) - configures system-level backups of the cloud config stores of different server roles
 * [bootstrap](bootstrap/README.md) - installs or upgrades Cinc Client and Chef Cookbooks for ArcGIS on EC2 instances
 * [clean_up](clean_up/README.md) - deletes files in specific directories on EC2 instances
 * [cw_agent](cw_agent/README.md) - configures CloudWatch agent on the deployment EC2 instances

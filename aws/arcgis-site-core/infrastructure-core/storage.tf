@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,18 +14,24 @@
 
 # Create S3 bucket for the site's deployment repository
 resource "aws_s3_bucket" "repository" {
-  bucket = "${var.site_id}-repository-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}"
+  bucket = "${var.site_id}-repository-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.region}"
   force_destroy = true
 }
 
 # Create S3 bucket for the site's backup data
 resource "aws_s3_bucket" "backup" {
-  bucket = "${var.site_id}-backup-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}"
+  bucket = "${var.site_id}-backup-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.region}"
   force_destroy = true
 }
 
 # Create S3 bucket for the site's backup data
 resource "aws_s3_bucket" "logs" {
-  bucket = "${var.site_id}-logs-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.name}"
+  bucket = "${var.site_id}-logs-${data.aws_caller_identity.current.account_id}-${data.aws_region.current.region}"
+  force_destroy = true
+}
+
+# Create a backup vault for the site's infrastructure
+resource "aws_backup_vault" "site" {
+  name = var.site_id
   force_destroy = true
 }

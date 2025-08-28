@@ -13,15 +13,17 @@
  *
  * | SSM parameter name | Description |
  * | --- | --- |
- * | /arcgis/${var.site_id}/vpc/id | VPC Id of ArcGIS Enterprise site |
- * | /arcgis/${var.site_id}/vpc/hosted-zone-id | Private hosted zone Id of ArcGIS Enterprise site |
- * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
+ * | /arcgis/${var.site_id}/backup/vault-name | Name of the AWS backup vault |
+ * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | Name of IAM instance profile |
- * | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
- * | /arcgis/${var.site_id}/s3/repository | S3 bucket of private repository |
+ * | /arcgis/${var.site_id}/images/${os} | Ids of the latest AMI for the operating systems |
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket used by deployments to store backup data |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket used by deployments to store logs |
- * | /arcgis/${var.site_id}/images/${os} | Ids of the latest AMI for the operating systems |
+ * | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
+ * | /arcgis/${var.site_id}/s3/repository | S3 bucket of private repository |
+ * | /arcgis/${var.site_id}/vpc/hosted-zone-id | Private hosted zone Id of ArcGIS Enterprise site |
+ * | /arcgis/${var.site_id}/vpc/id | VPC Id of ArcGIS Enterprise site |
+ * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  *
  * ## Requirements
  * 
@@ -53,7 +55,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.22"
+      version = "~> 6.10"
     }
   }
 
@@ -93,4 +95,9 @@ data "aws_ami" "os_image" {
   }
 
   owners = [var.images[each.key].owner]
+}
+
+locals {
+  is_gov_cloud = contains(["us-gov-east-1", "us-gov-west-1"], data.aws_region.current.region)
+  arn_identifier = local.is_gov_cloud ? "aws-us-gov" : "aws"
 }

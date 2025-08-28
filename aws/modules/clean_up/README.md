@@ -21,7 +21,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 5.22 |
+| aws | ~> 6.0 |
 | null | n/a |
 
 ## Resources

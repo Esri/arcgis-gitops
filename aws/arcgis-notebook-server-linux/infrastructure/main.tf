@@ -30,6 +30,8 @@
  * * CloudWatch agent on the EC2 instances that sends the system logs to the log group as well as metrics fo resource utilization on the EC2 instances.
  * * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and logs of the deployment.
  *
+ * The module also creates an AWS backup plan for the deployment that backs up all the EC2 instances and EFS file system in the site's backup vault.
+ *
  * All the created AWS resources are tagged with ArcGISSiteId and ArcGISDeploymentId tags.
  *
  * ## Requirements
@@ -60,31 +62,33 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-fqdn | Fully qualified domain name of the ALB deployment (if alb_deployment_id is specified) |
- * | /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-url | URL of the ALB deployment (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/arn | ALB ARN (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/security-group-id | ALB security group Id (if alb_deployment_id is specified) |
+ * | /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-fqdn | Fully qualified domain name of the ALB deployment (if alb_deployment_id is specified) |
+ * | /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-url | URL of the ALB deployment (if alb_deployment_id is specified) |
+ * | /arcgis/${var.site_id}/backup/vault-name | Name of the AWS Backup vault |
+ * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI Id |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
- * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id |
+ * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
  *
  * The module writes the following SSM parameters:
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer (if alb_deployment_id is not specified) |
  * | /arcgis/${var.site_id}/${var.deployment_id}/alb/deployment-url | ArcGIS Notebook Server URL |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer (if alb_deployment_id is not specified) |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer (if alb_deployment_id is not specified) |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
  * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if alb_deployment_id is specified) |
  * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
  * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer (if alb_deployment_id is not specified) |
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer (if alb_deployment_id is not specified) |
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer (if alb_deployment_id is not specified) |
  */
 
 # Copyright 2025 Esri
@@ -109,7 +113,7 @@ terraform {
   required_providers {
     aws = {
       source  = "hashicorp/aws"
-      version = "~> 5.48"
+      version = "~> 6.10"
     }
   }
 
@@ -179,6 +183,7 @@ resource "aws_efs_file_system" "fileserver" {
 
   tags = {
     Name = "${var.site_id}/${var.deployment_id}/fileserver"
+    ArcGISRole = "fileserver"
   }
 }
 
@@ -209,9 +214,8 @@ resource "aws_instance" "primary" {
   iam_instance_profile = module.site_core_info.instance_profile_name
   monitoring           = true
 
-  network_interface {
+  primary_network_interface {
     network_interface_id = aws_network_interface.primary.id
-    device_index         = 0
   }
 
   metadata_options {
@@ -261,9 +265,8 @@ resource "aws_instance" "nodes" {
   iam_instance_profile   = module.site_core_info.instance_profile_name
   monitoring             = true
 
-  network_interface {
+  primary_network_interface {
     network_interface_id = aws_network_interface.nodes[count.index].id
-    device_index         = 0
   }
 
   metadata_options {

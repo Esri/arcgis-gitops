@@ -103,7 +103,7 @@ resource "aws_security_group" "vpc_endpoints_sg" {
 resource "aws_vpc_endpoint" "gateway" {
   count             = length(var.gateway_vpc_endpoints)
   vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.${var.gateway_vpc_endpoints[count.index]}"
+  service_name      = "com.amazonaws.${data.aws_region.current.region}.${var.gateway_vpc_endpoints[count.index]}"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = [aws_route_table.rtb_internal.id]
 
@@ -115,7 +115,7 @@ resource "aws_vpc_endpoint" "gateway" {
 resource "aws_vpc_endpoint" "interface" {
   count             = length(var.interface_vpc_endpoints)
   vpc_id            = aws_vpc.vpc.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.${var.interface_vpc_endpoints[count.index]}"
+  service_name      = "com.amazonaws.${data.aws_region.current.region}.${var.interface_vpc_endpoints[count.index]}"
   vpc_endpoint_type = "Interface"
 
   subnet_ids = aws_subnet.internal_subnets[*].id

@@ -28,14 +28,14 @@ data "aws_caller_identity" "current" {}
 data "aws_region" "current" {}
 
 locals {
-  oidc_provider = "oidc.eks.${data.aws_region.current.name}.amazonaws.com/id/${split("/", var.oidc_arn)[3]}"
+  oidc_provider = "oidc.eks.${data.aws_region.current.region}.amazonaws.com/id/${split("/", var.oidc_arn)[3]}"
   image_repo = "eks/aws-load-balancer-controller"
   image_tag = "v${var.controller_version}"
   helm_values = {
     "clusterName" = var.cluster_name
     "serviceAccount.create" = false
     "serviceAccount.name" = "aws-load-balancer-controller"
-    "image.repository" = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.name}.amazonaws.com/ecr-public/${local.image_repo}"
+    "image.repository" = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.region}.amazonaws.com/ecr-public/${local.image_repo}"
     "image.tag" = local.image_tag
     "enableShield" = var.enable_waf
     "enableWaf" = var.enable_waf
@@ -119,7 +119,7 @@ resource "null_resource" "update_kubeconfig" {
   }
 
   provisioner "local-exec" {
-    command = "aws eks update-kubeconfig --region ${data.aws_region.current.name} --name ${var.cluster_name}"
+    command = "aws eks update-kubeconfig --region ${data.aws_region.current.region} --name ${var.cluster_name}"
   }
 
   depends_on = [

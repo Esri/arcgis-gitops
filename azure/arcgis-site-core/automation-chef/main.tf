@@ -1,41 +1,27 @@
 /**
  * # Terraform module automation-chef
  *
- * The module provisions AWS resources required for ArcGIS Enterprise site configuration management 
- * using IT automation tool Chef/Cinc:
- *
- * * Copies Chef/Cinc client setups and Chef cookbooks for ArcGIS distribution archive from the URLs specified
- * in [automation-chef-files.json](manifests/automation-chef-files.json) file to the private repository S3 bucket
- * * Creates SSM documents for the ArcGIS Enterprise site
+ * The module copies the distribution archive Chef/Cinc client setups and Chef cookbooks for ArcGIS  from the URLs specified
+ * in [automation-chef-files.json](manifests/automation-chef-files.json) file to the private repository blob container.
  * 
- * The S3 URLs are stored in SSM parameters:
+ * The blob URLs are stored in the site's Key Vault secrets:
  *
- * | SSM parameter name | Description |
+ * | Key Vault secret name | Description |
  * | --- | --- |
- * | /arcgis/${var.site_id}/chef-client-url/${os} | S3 URLs of Cinc Client setup for the operating systems |
- * | /arcgis/${var.site_id}/cookbooks-url | S3 URL of Chef cookbooks for ArcGIS distribution archive |
- *
- * SSM documents created by the module:
- * 
- * | SSM document name | Description |
- * | --- | --- |
- * | ${var.site_id}-bootstrap | Installs Chef/Cinc Client and Chef Cookbooks for ArcGIS on EC2 instances |
- * | ${var.site_id}-clean-up | Deletes temporary files created by Chef runs |
- * | ${var.site_id}-install-awscli | Installs AWS CLI on EC2 instances |
- * | ${var.site_id}-efs-mount | Mounts EFS targets on EC2 instances |
- * | ${var.site_id}-run-chef | Runs Chef in solo ode with specified JSON attributes |
+ * | chef-client-url-${os} | Blob URLs of Cinc Client setup for the operating systems |
+ * | cookbooks-url | Blob URL of Chef cookbooks for ArcGIS distribution archive |
  *
  * ## Requirements
  * 
  * On the machine where Terraform is executed:
  *
- * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
- * * Path to aws/scripts directory must be added to PYTHONPATH
+ * * Python 3.9 or later must be installed
+ * * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
+ * * Path to azure/scripts directory must be added to PYTHONPATH
  * * The working directory must be set to the automation-chef module path (because [automation-chef-files.json](manifests/automation-chef-files.json) uses relative path to the Chef cookbooks archive)
- * * AWS credentials must be configured.
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable.
+ * * Azure credentials must be configured by "az login" Azure CLI command or environment variables.
  *
- * Before using the module, the repository S3 bucket must be created by infrastructure-core terraform module.
+ * Before using the module, the repository blob container must be created by infrastructure-core terraform module.
  */
 
 # Copyright 2025 Esri

@@ -1,0 +1,45 @@
+# Copyright 2025 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: enterprise-base-windows-azure-test
+
+on: 
+  workflow_dispatch:
+ 
+env:
+  ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
+  ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
+  CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-windows/application.tfvars.json
+
+jobs:
+  test:
+    name: Test Deployment
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: ${{ github.workspace }}/enterprise-admin-cli
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+    - name: Build Container Image
+      run: |
+        docker build -t enterprise-admin-cli .
+    - name: Run Tests
+      run: |
+        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
+        PORTAL_WEB_CONTEXT=$(jq -r '.portal_web_context' $CONFIG_FILE)
+        docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-publish-csv --url https://$DEPLOYMENT_FQDN/$PORTAL_WEB_CONTEXT

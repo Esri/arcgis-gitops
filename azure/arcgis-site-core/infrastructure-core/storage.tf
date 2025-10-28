@@ -19,18 +19,28 @@
 # Public network access is enabled for the storage account because it is required
 # to create the blob containers.
 resource "azurerm_storage_account" "site_storage" {
-  name                            = "site${random_id.unique_name_suffix.hex}"
-  resource_group_name             = azurerm_resource_group.site_rg.name
-  location                        = azurerm_resource_group.site_rg.location
-  account_tier                    = "Standard"
-  account_replication_type        = "GRS"
-  public_network_access_enabled   = true
-  shared_access_key_enabled       = false
-  allow_nested_items_to_be_public = false
+  name                          = "site${random_id.unique_name_suffix.hex}"
+  resource_group_name           = azurerm_resource_group.site_rg.name
+  location                      = azurerm_resource_group.site_rg.location
+  account_tier                  = "Standard"
+  account_replication_type      = "GRS"
+  public_network_access_enabled = true
+  # Shared access key is required for ArcGIS Data Store backup
+  # shared_access_key_enabled     = false
+  allow_nested_items_to_be_public   = false
+  infrastructure_encryption_enabled = true
 
   tags = {
     ArcGISSiteId = var.site_id
   }
+}
+
+# Assign Storage Blob Data Contributor role to the current user identity
+resource "azurerm_role_assignment" "storage_account_owner" {
+  principal_id                     = data.azurerm_client_config.current.object_id
+  role_definition_name             = "Storage Blob Data Owner"
+  scope                            = azurerm_storage_account.site_storage.id
+  skip_service_principal_aad_check = true
 }
 
 resource "azurerm_storage_container" "repository" {
@@ -45,8 +55,26 @@ resource "azurerm_storage_container" "logs" {
   container_access_type = "private"
 }
 
-resource "azurerm_storage_container" "backups" {
-  name                  = "backups"
+resource "azurerm_storage_container" "content_backups" {
+  name                  = "content-backups"
+  storage_account_id    = azurerm_storage_account.site_storage.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "webgisdr_backups" {
+  name                  = "webgisdr-backups"
+  storage_account_id    = azurerm_storage_account.site_storage.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "datastore_backups" {
+  name                  = "datastore-backups"
+  storage_account_id    = azurerm_storage_account.site_storage.id
+  container_access_type = "private"
+}
+
+resource "azurerm_storage_container" "k8s_backups" {
+  name                  = "k8s-backups"
   storage_account_id    = azurerm_storage_account.site_storage.id
   container_access_type = "private"
 }
@@ -57,9 +85,34 @@ resource "azurerm_key_vault_secret" "storage_account_name" {
   key_vault_id = azurerm_key_vault.site_vault.id
 
   depends_on = [
-    azurerm_key_vault_access_policy.current_user
+    time_sleep.key_vault_ready
   ]
 }
+
+resource "azurerm_key_vault_secret" "storage_account_key" {
+  name         = "storage-account-key"
+  value        = azurerm_storage_account.site_storage.primary_access_key
+  key_vault_id = azurerm_key_vault.site_vault.id
+
+  depends_on = [
+    time_sleep.key_vault_ready
+  ]
+}
+
+# Create image gallery for the site's VM images
+
+# resource "azurerm_shared_image_gallery" "site_ig" {
+#   name                = "site${random_id.unique_name_suffix.hex}"
+#   resource_group_name = azurerm_resource_group.site_rg.name
+#   location            = azurerm_resource_group.site_rg.location
+#   description         = "ArcGIS Enterprise site image gallery"
+# }
+
+# resource "azurerm_key_vault_secret" "site_ig" {
+#   name         = "image-gallery-name"
+#   value        = azurerm_shared_image_gallery.site_ig.name
+#   key_vault_id = azurerm_key_vault.site_vault.id
+# }
 
 # Create azure private endpoint for the blob store
 

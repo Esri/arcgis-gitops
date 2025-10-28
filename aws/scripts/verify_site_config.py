@@ -28,7 +28,9 @@ import argparse
 # These properties are not expected to be the same across all config files.
 SKIP_PROPERTIES = [
     "root_volume_size",
-    "instance_type"
+    "instance_type",
+    "os_disk_size",
+    "vm_size"
 ]
 
 # The properties that are checked for file existence.

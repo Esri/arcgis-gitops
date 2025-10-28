@@ -52,7 +52,7 @@ if __name__ == '__main__':
                     'type': 'objectStore',
                     'usage': 'BACKUP',
                     'connection': {
-                        'containerName': 'backups',
+                        'containerName': 'k8s-backups',
                         'rootDir': args.root,
                         'accountEndpointUrl': account_endpoint_url,
                         'credential': {

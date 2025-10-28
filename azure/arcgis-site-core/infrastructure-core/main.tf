@@ -93,36 +93,18 @@ resource "azurerm_resource_group" "site_rg" {
 
 # Key Vault of ArcGIS Enterprise site
 resource "azurerm_key_vault" "site_vault" {
-  name                     = "site${random_id.unique_name_suffix.hex}" # must be globally unique
-  location                 = azurerm_resource_group.site_rg.location
-  resource_group_name      = azurerm_resource_group.site_rg.name
-  tenant_id                = data.azurerm_client_config.current.tenant_id
-  sku_name                 = "standard"
-  purge_protection_enabled = false
+  name                       = "site${random_id.unique_name_suffix.hex}" # must be globally unique
+  location                   = azurerm_resource_group.site_rg.location
+  resource_group_name        = azurerm_resource_group.site_rg.name
+  tenant_id                  = data.azurerm_client_config.current.tenant_id
+  sku_name                   = "standard"
+  purge_protection_enabled   = false
+  rbac_authorization_enabled = true
 
   tags = {
     ArcGISSiteId = var.site_id
     ArcGISRole   = "site-vault"
   }
-}
-
-resource "azurerm_key_vault_access_policy" "current_user" {
-  key_vault_id = azurerm_key_vault.site_vault.id
-  tenant_id    = data.azurerm_client_config.current.tenant_id
-  object_id    = data.azurerm_client_config.current.object_id
-
-  key_permissions = []
-
-  secret_permissions = [
-    "Set",
-    "Get",
-    "Delete",
-    "List",
-    "Purge",
-    "Recover"
-  ]
-
-  storage_permissions = []
 }
 
 # VNet of ArcGIS Enterprise site
@@ -144,11 +126,36 @@ resource "azurerm_key_vault_secret" "vnet" {
   key_vault_id = azurerm_key_vault.site_vault.id
 
   depends_on = [
-    azurerm_key_vault_access_policy.current_user
+    time_sleep.key_vault_ready
   ]
 }
 
 # Create Private DNS Zones and link the to the Virtual network.
+
+resource "azurerm_private_dns_zone" "internal" {
+  name                = "${var.site_id}.internal"
+  resource_group_name = azurerm_resource_group.site_rg.name
+
+  tags = {
+    ArcGISSiteId = var.site_id
+  }
+}
+
+# Random String for unique naming
+resource "random_string" "name" {
+  length  = 8
+  special = false
+  upper   = false
+  lower   = true
+  numeric = false
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "internal" {
+  name                  = "dns-vnet-link-${random_string.name.result}"
+  resource_group_name   = azurerm_resource_group.site_rg.name
+  private_dns_zone_name = azurerm_private_dns_zone.internal.name
+  virtual_network_id    = azurerm_virtual_network.site_vnet.id
+}
 
 # resource "azurerm_private_dns_zone" "dns" {
 #   count               = length(var.private_dns_zones)
@@ -207,22 +214,26 @@ resource "azurerm_nat_gateway_public_ip_association" "nat" {
 # You can't mix v1 and v2 Application Gateway SKUs on the same subnet.
 
 resource "azurerm_subnet" "app_gateway_subnets" {
-  count                           = length(var.app_gateway_subnets_cidr_blocks)
+  count                           = length(var.app_gateway_subnets)
   name                            = "app-gateway-subnet-${count.index + 1}"
   resource_group_name             = azurerm_resource_group.site_rg.name
   virtual_network_name            = azurerm_virtual_network.site_vnet.name
   default_outbound_access_enabled = false
 
-  delegation {
-    name = "Microsoft.ServiceNetworking/trafficControllers"
+  # Repeat the delegation block for each delegation in the delegations list
+  dynamic "delegation" {
+    for_each = var.app_gateway_subnets[count.index].delegations
+    content {
+      name = delegation.value
 
-    service_delegation {
-      name = "Microsoft.ServiceNetworking/trafficControllers"
+      service_delegation {
+        name = delegation.value
+      }
     }
   }
 
   address_prefixes = [
-    var.app_gateway_subnets_cidr_blocks[count.index]
+    var.app_gateway_subnets[count.index].cidr_block
   ]
 }
 
@@ -302,19 +313,97 @@ resource "azurerm_subnet_network_security_group_association" "internal_subnets" 
 }
 
 resource "azurerm_key_vault_secret" "subnets" {
-  name         = "subnets"
-  value        = jsonencode({
+  name = "subnets"
+  value = jsonencode({
     app_gateway = azurerm_subnet.app_gateway_subnets.*.id
     private     = azurerm_subnet.private_subnets.*.id
     internal    = azurerm_subnet.internal_subnets.*.id
   })
   key_vault_id = azurerm_key_vault.site_vault.id
 
-  tags = {
-    ArcGISSiteId  = var.site_id
-  }
+  depends_on = [
+    time_sleep.key_vault_ready
+  ]
+}
+
+data "azurerm_platform_image" "images" {
+  for_each  = var.images
+  location  = azurerm_resource_group.site_rg.location
+  publisher = each.value.publisher
+  offer     = each.value.offer
+  sku       = each.value.sku
+  version   = each.value.version
+}
+
+resource "azurerm_key_vault_secret" "images" {
+  for_each     = data.azurerm_platform_image.images
+  name         = "vm-image-${each.key}"
+  value        = each.value.id
+  key_vault_id = azurerm_key_vault.site_vault.id
 
   depends_on = [
-    azurerm_key_vault_access_policy.current_user
+    time_sleep.key_vault_ready
   ]
+}
+
+resource "azurerm_user_assigned_identity" "vm_identity" {
+  location            = var.azure_region
+  name                = "vm-identity"
+  resource_group_name = azurerm_resource_group.site_rg.name
+}
+
+resource "azurerm_key_vault_secret" "vm_identity_principal_id" {
+  name         = "vm-identity-principal-id"
+  value        = azurerm_user_assigned_identity.vm_identity.principal_id
+  key_vault_id = azurerm_key_vault.site_vault.id
+
+  depends_on = [
+    time_sleep.key_vault_ready
+  ]
+}
+
+resource "azurerm_key_vault_secret" "vm_identity_client_id" {
+  name         = "vm-identity-client-id"
+  value        = azurerm_user_assigned_identity.vm_identity.client_id
+  key_vault_id = azurerm_key_vault.site_vault.id
+
+  depends_on = [
+    time_sleep.key_vault_ready
+  ]
+}
+
+resource "azurerm_key_vault_secret" "vm_identity_id" {
+  name         = "vm-identity-id"
+  value        = azurerm_user_assigned_identity.vm_identity.id
+  key_vault_id = azurerm_key_vault.site_vault.id
+
+  depends_on = [
+    time_sleep.key_vault_ready
+  ]
+}
+
+resource "azurerm_role_assignment" "storage_account_vm_identity" {
+  principal_id                     = azurerm_user_assigned_identity.vm_identity.principal_id
+  role_definition_name             = "Storage Blob Data Owner"
+  scope                            = azurerm_storage_account.site_storage.id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "key_vault_current_user" {
+  principal_id                     = data.azurerm_client_config.current.object_id
+  role_definition_name             = "Key Vault Administrator"
+  scope                            = azurerm_key_vault.site_vault.id
+  skip_service_principal_aad_check = true
+}
+
+resource "azurerm_role_assignment" "key_vault_vm_identity" {
+  principal_id                     = azurerm_user_assigned_identity.vm_identity.principal_id
+  role_definition_name             = "Key Vault Secrets User"
+  scope                            = azurerm_key_vault.site_vault.id
+  skip_service_principal_aad_check = true
+}
+
+resource "time_sleep" "key_vault_ready" {
+  depends_on      = [azurerm_role_assignment.key_vault_current_user]
+  create_duration = "90s"
 }

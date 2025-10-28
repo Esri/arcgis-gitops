@@ -99,7 +99,7 @@ Instructions:
 
 GitHub Actions workflow **enterprise-base-windows-aws-application** configures or upgrades base ArcGIS Enterprise on EC2 instances.
 
-The workflow uses [application](application/README.md) Terraform template with [application.tfvars.json](../../config/aws/arcgis-enterprise-base-windows/application.tfvars.json) config file on.
+The workflow uses [application](application/README.md) Terraform template with [application.tfvars.json](../../config/aws/arcgis-enterprise-base-windows/application.tfvars.json) config file.
 
 Required IAM policies:
 
@@ -155,8 +155,6 @@ Instructions:
 1. Run enterprise-base-windows-aws-backup workflow using the main/default branch.
 
 To meet the required recovery point objective (RPO), schedule runs of enterprise-base-windows-aws-backup workflow by configuring 'schedule' event in enterprise-base-windows-aws-backup.yaml file. When the backup workflow is triggered manually, the backup-restore mode is specified by the workflow inputs. However, when the workflow is triggered on schedule, the backup-restore mode is retrieved from the backup.tfvars.json config file. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
-
-> Base ArcGIS Enterprise deployments in a site use the same S3 bucket for backups. Run backups only for the active deployment branch.
 
 #### Restoring from Application-level Backups
 
@@ -225,7 +223,7 @@ Instructions:
 
 ## Destroying Deployments
 
-GitHub Actions workflow **enterprise-base-windows-aws-destroy** destroys AWS resources created by enterprise-base-windows-aws-image, enterprise-base-windows-aws-snapshot, enterprise-base-windows-aws-infrastructure and enterprise-base-windows-aws-application workflows.
+GitHub Actions workflow **enterprise-base-windows-aws-destroy** destroys AWS resources created by enterprise-base-windows-aws-image, enterprise-base-windows-aws-infrastructure and enterprise-base-windows-aws-application workflows.
 
 The workflow uses [infrastructure](infrastructure/README.md) and [application](application/README.md) Terraform templates with [infrastructure.tfvars.json](../../config/aws/arcgis-enterprise-base-windows/infrastructure.tfvars.json) and [application.tfvars.json](../../config/aws/arcgis-enterprise-base-windows/application.tfvars.json) config files.
 

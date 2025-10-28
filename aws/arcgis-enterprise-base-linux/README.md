@@ -216,7 +216,7 @@ Instructions:
 
 ## In-Place Updates and Upgrades
 
-GitHub Actions workflow enterprise-base-linux-aws-application supports upgrade mode used to in-place patch or upgrade the base ArcGIS Enterprise applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Enterprise version was changed, it installs the new version of the ArcGIS Enterprise applications and re-configures the applications.
+GitHub Actions workflow enterprise-base-linux-aws-application supports upgrade mode used to patch or upgrade in place the base ArcGIS Enterprise applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Enterprise version was changed, it installs the new version of the ArcGIS Enterprise applications and re-configures the applications.
 
 Instructions:
 
@@ -228,7 +228,7 @@ Instructions:
 
 ## Destroying Deployments
 
-GitHub Actions workflow **enterprise-base-linux-aws-destroy** destroys AWS resources created by enterprise-base-linux-aws-image, enterprise-base-linux-aws-snapshot, enterprise-base-linux-aws-infrastructure and enterprise-base-linux-aws-application workflows.
+GitHub Actions workflow **enterprise-base-linux-aws-destroy** destroys AWS resources created by enterprise-base-linux-aws-image, enterprise-base-linux-aws-infrastructure and enterprise-base-linux-aws-application workflows.
 
 The workflow uses [infrastructure](infrastructure/README.md) and [application](application/README.md) Terraform templates with [infrastructure.tfvars.json](../../config/aws/arcgis-enterprise-base-linux/infrastructure.tfvars.json) and [application.tfvars.json](../../config/aws/arcgis-enterprise-base-linux/application.tfvars.json) config files.
 

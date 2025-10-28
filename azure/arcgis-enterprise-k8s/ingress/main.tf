@@ -304,7 +304,7 @@ resource "azurerm_key_vault_secret" "alb_dns_name" {
 
 # Create a CNAME record in the hosted zone that points the deployment's FQDN 
 # to the Application Gateway's frontend DNS name.
-resource "azurerm_dns_cname_record" "example" {
+resource "azurerm_dns_cname_record" "deployment_fqdn" {
   count               = var.hosted_zone_name != null ? 1 : 0
   name                = "${var.deployment_fqdn}."
   zone_name           = var.hosted_zone_name

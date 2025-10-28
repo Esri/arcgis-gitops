@@ -69,18 +69,23 @@ variable "bastion_subnet_cidr_block" {
   }
 }
 
-variable "app_gateway_subnets_cidr_blocks" {
+variable "app_gateway_subnets" {
   description = "CIDR blocks of Application Gateway subnets"
-  type        = list(string)
-  default = [
-    "10.4.0.0/16"
-  ]
+  type        = list(any)
+  default = [{
+    cidr_block = "10.4.0.0/16"
+    delegations = ["Microsoft.ServiceNetworking/trafficControllers"] 
+  },
+  {
+    cidr_block = "10.5.0.0/16"
+    delegations = ["Microsoft.Network/applicationGateways"] 
+  }]
 
   validation {
     condition = alltrue([
-      for b in var.app_gateway_subnets_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+      for b in var.app_gateway_subnets : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b.cidr_block))
     ])
-    error_message = "All elements in app_gateway_subnets_cidr_blocks list must be in IPv4 CIDR block format."
+    error_message = "All elements in app_gateway_subnets list must be in IPv4 CIDR block format."
   }
 }
 
@@ -119,4 +124,36 @@ variable "service_endpoints" {
   type        = list(string)
   default     = []
 }
+
+variable "images" {
+  description = "Azure VM images"
+  type        = map(any)
+  default     = {
+    windows2022 = {
+      publisher = "MicrosoftWindowsServer"
+      offer     = "WindowsServer"
+      sku       = "2022-datacenter-g2"
+      version   = null
+    }
+    windows2025 = {
+      publisher = "MicrosoftWindowsServer"
+      offer     = "WindowsServer"
+      sku       = "2025-datacenter-g2"
+      version   = null
+    }
+    ubuntu24 = {
+      publisher = "Canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
+      version   = null
+    }
+    rhel9 = {
+      publisher = "RedHat"
+      offer     = "RHEL"
+      sku       = "9_5"
+      version   = null
+    }
+  }
+}
+
 

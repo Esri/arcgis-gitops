@@ -44,6 +44,11 @@ data "azurerm_key_vault_secret" "vnet_id" {
   key_vault_id = data.azurerm_key_vault.site_vault.id
 }
 
+data "azurerm_key_vault_secret" "storage_account_key" {
+  name         = "storage-account-key"
+  key_vault_id = data.azurerm_key_vault.site_vault.id
+}
+
 data "azurerm_key_vault_secret" "storage_account_name" {
   name         = "storage-account-name"
   key_vault_id = data.azurerm_key_vault.site_vault.id

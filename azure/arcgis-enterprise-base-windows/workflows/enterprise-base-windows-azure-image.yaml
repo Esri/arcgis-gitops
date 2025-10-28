@@ -1,0 +1,60 @@
+# Copyright 2025 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: enterprise-base-windows-azure-image
+
+on: 
+  workflow_dispatch:
+
+env:
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_USE_AZUREAD: true
+  AZURE_DEFAULT_REGION: ${{ vars.AZURE_DEFAULT_REGION }}
+  ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
+  ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
+  RUN_AS_PASSWORD: ${{ secrets.RUN_AS_PASSWORD }}
+  PYTHONPATH: ${{ github.workspace }}/azure/scripts
+  CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-windows/image.vars.json
+
+concurrency:
+  group: ${{ github.ref_name }}
+  
+jobs:
+  image:
+    name: Build Images
+    runs-on: ubuntu-22.04
+    defaults:
+      run:
+        working-directory: azure/arcgis-enterprise-base-windows/image
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Azure SDK for Python
+        id: install-azure-sdk
+        run: pip install azure-identity azure-keyvault-secrets azure-mgmt-compute azure-storage-blob
+      - uses: hashicorp/setup-packer@main
+        with:
+          version: "1.14.1"
+      - name: Run Packer
+        id: packer
+        run: |
+          az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
+          az account set --subscription $ARM_SUBSCRIPTION_ID
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          VAULT_NAME=$(az keyvault list --query "[?tags.ArcGISSiteId=='$SITE_ID' && tags.ArcGISRole=='site-vault'].name" -o tsv)
+          packer init .
+          packer build -var-file=$CONFIG_FILE -var "vault_name=$VAULT_NAME" .

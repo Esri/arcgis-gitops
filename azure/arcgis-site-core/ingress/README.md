@@ -6,7 +6,7 @@ This module deploys an Azure Application Gateway for ArcGIS Enterprise site.
 ![ArcGIS Enterprise site ingress](arcgis-enterprise-ingress-azure.png "ArcGIS Enterprise site ingress")
 
 The Application Gateway is deployed into subnet specified by the "subnet_id" variable or,
-if the variable is not set "app-gateway-subnet-2" subnet of the site's VNet.
+if the variable is not set, "app-gateway-subnet-2" subnet of the site's VNet.
 
 The Application Gateway is configured with both public and private frontend IP configurations.
 The public frontend configuration is assigned a public IP address, while the

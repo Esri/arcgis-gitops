@@ -252,7 +252,7 @@ resource "azurerm_application_gateway" "ingress" {
     redirect_configuration_name = "private-http-redirect"
   }
   
-  # Create frontend ports for each listener defined by "listeners" variable.
+  # Create frontend ports for each listener defined by routing_rules variable.
   dynamic "frontend_port" {
     for_each = var.routing_rules
 

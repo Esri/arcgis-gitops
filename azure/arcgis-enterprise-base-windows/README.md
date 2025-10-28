@@ -27,7 +27,7 @@ Initial deployment of base ArcGIS Enterprise includes building images, provision
 
 ### 1. Set GitHub Actions Secrets for the Site
 
-Set the primary ArcGIS Enterprise site administrator credentials in the GitHub Actions secrets of the repository settings.
+Set the primary ArcGIS Enterprise site administrator, run as user, and VM administrator credentials in the GitHub Actions secrets of the repository settings.
 
 | Name                      | Description                                    |
 |---------------------------|------------------------------------------------|

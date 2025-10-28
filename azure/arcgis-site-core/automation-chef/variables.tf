@@ -52,12 +52,12 @@ variable "chef_client_paths" {
 }
 
 variable "arcgis_cookbooks_path" {
-  description = "S3 repository key of Chef cookbooks for ArcGIS distribution archive in the repository bucket"
+  description = "Blob name of Chef cookbooks for ArcGIS distribution archive in the repository bucket"
   type        = string
   default     = "cookbooks/arcgis-5.2.0-cookbooks.tar.gz"
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9!_.*'()-]+(\\/[a-zA-Z0-9!_.*'()-]+)*$", var.arcgis_cookbooks_path))
-    error_message = "The s3_key value must be in a valid S3 key format."
+    error_message = "The arcgis_cookbooks_path value must be in a valid blob name format."
   }
 }

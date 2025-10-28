@@ -48,7 +48,7 @@ Before using the module, the repository blob container must be created by infras
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| arcgis_cookbooks_path | S3 repository key of Chef cookbooks for ArcGIS distribution archive in the repository bucket | `string` | `"cookbooks/arcgis-5.2.0-cookbooks.tar.gz"` | no |
+| arcgis_cookbooks_path | Blob name of Chef cookbooks for ArcGIS distribution archive in the repository bucket | `string` | `"cookbooks/arcgis-5.2.0-cookbooks.tar.gz"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | chef_client_paths | Chef/CINC Client setup blob names by operating system | `map(any)` | ```{ "rhel9": { "description": "Chef Client setup blob name for Red Hat Enterprise Linux version 9", "path": "cinc/cinc-18.7.6-1.el9.x86_64.rpm" }, "ubuntu24": { "description": "Chef Client setup blob name for Ubuntu 24.04 LTS", "path": "cinc/cinc_18.7.6-1.ubuntu24.amd64.deb" }, "windows2022": { "description": "Chef Client setup blob name for Microsoft Windows Server 2022", "path": "cinc/cinc-18.7.6-1-x64.msi" }, "windows2025": { "description": "Chef Client setup blob name for Microsoft Windows Server 2025", "path": "cinc/cinc-18.7.6-1-x64.msi" } }``` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |

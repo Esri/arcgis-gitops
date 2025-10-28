@@ -1,6 +1,6 @@
 # Python Scripts
 
-The Terraform modules and Packer templates use python scripts to invoke AWS and ArcGIS web services.
+The Terraform modules and Packer templates use python scripts to invoke Azure and ArcGIS web services.
 
 The scripts require Python 3.9 or later with azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob [Azure SDK for Python](https://docs.microsoft.com/en-us/python/api/overview/azure/?view=azure-python) packages installed.
 

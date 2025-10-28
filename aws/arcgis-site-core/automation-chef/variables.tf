@@ -59,6 +59,6 @@ variable "arcgis_cookbooks_path" {
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9!_.*'()-]+(\\/[a-zA-Z0-9!_.*'()-]+)*$", var.arcgis_cookbooks_path))
-    error_message = "The s3_key value must be in a valid S3 key format."
+    error_message = "The arcgis_cookbooks_path value must be in a valid S3 key format."
   }
 }

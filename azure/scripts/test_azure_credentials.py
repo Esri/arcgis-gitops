@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Tests the AWS credentials configured in the system by accessing the specified S3 bucket.
+# Tests the Azure credentials configured in the system by accessing the specified blob container.
 
 import argparse
 import os

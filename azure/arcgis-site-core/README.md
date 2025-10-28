@@ -47,7 +47,7 @@ Instructions:
 
 ## Create Application Gateway for Windows and Linux Deployments
 
-GitHub Actions workflow **site-ingress-azure** creates an Application Gateway to be used by Windows and Linux ArcGIS Enterprise deployments.
+GitHub Actions workflow **site-ingress-azure** creates an Application Gateway for Windows and Linux ArcGIS Enterprise deployments.
 
 The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/azure/arcgis-site-core/ingress.tfvars.json) config file.
 

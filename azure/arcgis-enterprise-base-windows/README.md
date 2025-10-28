@@ -90,7 +90,7 @@ The workflow uses [application](application/README.md) Terraform template with [
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
 
 Instructions:
 
@@ -116,7 +116,7 @@ The template supports application-level base ArcGIS Enterprise backup and restor
 
 The application-level backup of base ArcGIS Enterprise deployment backups the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the "webgisdr-backups" blob container site's storage account.
 
-#### Creating Application-level Backups
+### Creating Application-level Backups
 
 GitHub Actions workflow **enterprise-base-windows-azure-backup** creates base ArcGIS Enterprise backups using WebGISDR utility.
 
@@ -124,7 +124,7 @@ The workflow uses [backup](backup/README.md) Terraform template with [backup.tfv
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
 
 Instructions:
 
@@ -132,7 +132,7 @@ Instructions:
 
 To meet the required recovery point objective (RPO), schedule runs of enterprise-base-windows-azure-backup workflow by configuring 'schedule' event in enterprise-base-windows-azure-backup.yaml file. When the backup workflow is triggered manually, the backup-restore mode is specified by the workflow inputs. However, when the workflow is triggered on schedule, the backup-restore mode is retrieved from the backup.tfvars.json config file. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
 
-#### Restoring from Application-level Backups
+### Restoring from Application-level Backups
 
 GitHub Actions workflow **enterprise-base-windows-azure-restore** restores base ArcGIS Enterprise from backup using WebGISDR utility.
 
@@ -140,7 +140,7 @@ The workflow uses [restore](restore/README.md) Terraform template with [restore.
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
 
 Instructions:
 

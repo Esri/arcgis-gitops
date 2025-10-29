@@ -18,7 +18,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 3.0 |
+| azurerm | n/a |
 | null | n/a |
 
 ## Resources

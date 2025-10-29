@@ -23,6 +23,8 @@ env:
   TF_VAR_admin_password: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
   TF_VAR_admin_email: ${{ secrets.ENTERPRISE_ADMIN_EMAIL }}
   TF_VAR_run_as_password: ${{ secrets.RUN_AS_PASSWORD }}
+  TF_VAR_vm_admin_username: ${{ secrets.VM_ADMIN_USERNAME }}
+  TF_VAR_vm_admin_password: ${{ secrets.VM_ADMIN_PASSWORD }}
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -30,6 +32,7 @@ env:
   ARM_USE_AZUREAD: true
   TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
   TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
+  PYTHONPATH: ${{ github.workspace }}/azure/scripts
   APPLICATION_CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-windows/application.tfvars.json
   INFRASTRUCTURE_CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-windows/infrastructure.tfvars.json
 
@@ -49,6 +52,9 @@ jobs:
       - name: Link config directory
         id: symlink
         run: ln -s ${{ github.workspace }}/config ~/config
+      - name: Azure SDK for Python
+        id: install-azure-sdk
+        run: pip install azure-identity azure-keyvault-secrets azure-mgmt-compute azure-mgmt-keyvault azure-storage-blob
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.10.0"
@@ -70,3 +76,11 @@ jobs:
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
                          -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/infrastructure.tfstate"
           terraform destroy -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve
+      - name: Delete VM Images
+        id: delete-images
+        run: |
+          az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+          az account set --subscription $ARM_SUBSCRIPTION_ID
+          SITE_ID=$(jq -r '.site_id' $INFRASTRUCTURE_CONFIG_FILE)
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $INFRASTRUCTURE_CONFIG_FILE)
+          python -m delete_deployment_images -s $SITE_ID -d $DEPLOYMENT_ID -u $ARM_SUBSCRIPTION_ID

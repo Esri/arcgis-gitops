@@ -102,6 +102,25 @@ Options:
   -l LOG_LEVEL          Log level
 ```
 
+## delete_deployment_images
+
+Deletes VM images used by the specified deployment and Key Vault secrets referencing the images.
+
+Usage:
+
+```shell
+python -m delete_deployment_images [-h] -s SITE_ID -d DEPLOYMENT_ID -u SUBSCRIPTION_ID
+```
+
+Options:
+
+```shell
+  -h, --help          show this help message and exit
+  -s SITE_ID          ArcGIS Enterprise site Id
+  -d DEPLOYMENT_ID    ArcGIS Enterprise deployment Id
+  -u SUBSCRIPTION_ID  Azure Subscription Id
+```
+
 ## publish_artifact
 
 Retrieves VM image Id from packer-manifest.json file and saves in Azure Key Vault secret.

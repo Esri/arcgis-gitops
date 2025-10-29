@@ -29,15 +29,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-terraform {
-  required_providers {
-    azurerm = {
-      source  = "hashicorp/azurerm"
-      version = "~> 3.0"
-    }
-  }
-}
-
 data "azurerm_resources" "site_vault" {
   resource_group_name = "${var.site_id}-infrastructure-core"
 

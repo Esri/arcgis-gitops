@@ -57,8 +57,9 @@ Required service principal roles:
 
 Instructions:
 
-1. Import or generate an SSL certificate for the ArcGIS Enterprise site domain name in the site's Key Vault. Note the "Secret Identifier" in the certificate's properties.
+1. Import in PKCS12 (.pfx) format or generate an SSL certificate for the ArcGIS Enterprise site domain name in the site's Key Vault. Note the "Secret Identifier" in the certificate's properties.
 2. Set "ssl_certificate_secret_id" property in the config file to the Key Vault secret Id of the SSL certificate.
+    > It is recommended to use a secret identifier that does not specify a version, enabling automatic certificate rotation by Application Gateway when a newer version is available in Key Vault.
 3. Set "deployment_fqdn" property to the ArcGIS Enterprise site domain name.
 4. (Optional) Update "routing_rules" array in the config file to specify routing rules required for the site. Remove rules that are not required.
 5. Commit the changes to the `main` branch and push the branch to GitHub.

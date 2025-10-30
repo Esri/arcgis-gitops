@@ -68,7 +68,7 @@ if __name__ == "__main__":
     
     jsonAttributes = base64.b64decode(os.environ['JSON_ATTRIBUTES']).decode('utf-8')
 
-    print("Setting Key Vault secret '{0}'...".format(args.json_attributes_secret))
+    print("Creating a Key Vault secret with the JSON attributes...")
 
     credential = DefaultAzureCredential()
     vault_url = "https://{0}.vault.azure.net".format(args.vault_name)

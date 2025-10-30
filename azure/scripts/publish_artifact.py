@@ -50,4 +50,4 @@ if __name__ == '__main__':
     client = SecretClient(vault_url=vault_url, credential=credential)
     client.set_secret(args.secret_name, image_id)
 
-    print("Image Id '{0}' stored in '{1}' Key Vault secret.".format(image_id, args.secret_name))
+    print("Image Id '{0}' stored in a Key Vault secret.".format(image_id))

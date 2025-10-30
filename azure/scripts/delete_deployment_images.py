@@ -62,13 +62,13 @@ def delete_vm_image_secrets(kv_mgmt_client, credential, arcgis_site_id, arcgis_d
         
         secrets_to_delete = [s.name for s in secrets if s.name.startswith(secret_prefix)]
 
+        print('Deleting the Key Vault secrets referencing the VM images...')
         for secret_name in secrets_to_delete:
             try:
-                print(f'Deleting Key Vault secret {secret_name}...')
                 secret_client.begin_delete_secret(secret_name).wait()
                 secret_client.purge_deleted_secret(secret_name)
             except Exception as e:
-                print(f'Warning: Could not delete secret {secret_name}. It may not exist. Error: {e}')  
+                print(f'Warning: Could not delete Key Vault secret. It may not exist. Error: {e}')  
 
 
 if __name__ == '__main__':

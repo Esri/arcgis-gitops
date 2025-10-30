@@ -29,6 +29,8 @@ from downloads_api import DownloadsAPIClient
 from token_service_client import TokenServiceClient
 from patch_notification import PatchNotification
 
+MAX_CONCURRENCY = 8
+
 def azure_blob_sha256(container_client, blob_name):
     try:
         blob_client = container_client.get_blob_client(blob_name)
@@ -78,7 +80,7 @@ def copy_file(url: str, path: str, filename: str, subfolder: str, container_clie
         with open(filepath, 'rb') as data:
             blob_client = container_client.get_blob_client(blob_name)
             
-            blob_client.upload_blob(data, overwrite=True)
+            blob_client.upload_blob(data, overwrite=True, max_concurrency=MAX_CONCURRENCY)
 
             properties = blob_client.get_blob_properties()
             blob_metadata = properties.metadata

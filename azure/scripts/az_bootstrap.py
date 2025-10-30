@@ -35,6 +35,9 @@ try {
               + [System.Environment]::GetEnvironmentVariable("Path","User")
     Write-Output \"Logging in to Azure using Managed Identity...\"
     az login --identity --client-id $ManagedIdentityClientId --output none
+    if ($? -eq $false) {
+        throw "Error logging in to Azure."
+    }
     $tempfolderpath = (Join-Path $env:TEMP 'esri')
     if (-not (Test-Path -Path $tempfolderpath)) {
         New-Item -ItemType Directory -Path $tempfolderpath
@@ -42,6 +45,9 @@ try {
     $chefClientMsi = (Join-Path $tempfolderpath 'chef-client.msi')
     Write-Output \"Downloading Chef/Cinc client from $ChefClientUrl...\"
     az storage blob download --blob-url $ChefClientUrl --file $chefClientMsi --auth-mode login --no-progress --output none
+    if ($? -eq $false) {
+        throw "Error downloading Chef/Cinc client. Run site-automation-chef-azure workflow to upload the client to repository blob container."
+    }
     Write-Output \"Installing Chef/Cinc client...\"
     Start-Process msiexec.exe -Wait -ArgumentList \"/I $chefClientMsi /qb\"
     $chefworkspacepath = (Join-Path $env:SystemDrive 'chef')
@@ -54,6 +60,9 @@ try {
     $cookbooks = (Join-Path $tempfolderpath 'cookbooks.tar.gz')
     Write-Output \"Downloading Chef Cookbooks for ArcGIS from $ChefCookbooksUrl...\"
     az storage blob download --blob-url $ChefCookbooksUrl --file $cookbooks --auth-mode login --no-progress --output none
+    if ($? -eq $false) {
+        throw "Error downloading Chef Cookbooks."
+    }
     Write-Output \"Extracting cookbooks from the archive...\"
     Start-Process -Wait -FilePath tar.exe -ArgumentList \"-C $chefworkspacepath -xvzf $cookbooks\"
     Remove-Item $cookbooks

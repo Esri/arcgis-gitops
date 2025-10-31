@@ -52,6 +52,12 @@ output "internal_subnets" {
   value       = jsondecode(data.azurerm_key_vault_secret.subnets.value).internal
 }
 
+output "storage_account_key" {
+  description = "Azure storage account key"
+  value       = data.azurerm_key_vault_secret.storage_account_key.value
+  sensitive   = true
+}
+
 output "storage_account_name" {
   description = "Azure storage account name"
   value       = data.azurerm_key_vault_secret.storage_account_name.value

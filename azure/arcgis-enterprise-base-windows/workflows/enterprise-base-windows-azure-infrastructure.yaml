@@ -1,0 +1,74 @@
+# Copyright 2025 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+name: enterprise-base-windows-azure-infrastructure
+
+on:
+  workflow_dispatch:
+    inputs:
+      terraform_command:
+        description: "Terraform Command"
+        type: choice
+        options:
+          - apply
+          - plan
+
+env:
+  TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}
+  TF_VAR_vm_admin_username: ${{ secrets.VM_ADMIN_USERNAME }}
+  TF_VAR_vm_admin_password: ${{ secrets.VM_ADMIN_PASSWORD }}
+  ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  ARM_USE_AZUREAD: true
+  TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
+  TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
+  CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-windows/infrastructure.tfvars.json
+
+concurrency:
+  group: ${{ github.ref_name }}
+
+jobs:
+   infrastructure:
+    name: Provision Azure Resources
+    runs-on: ubuntu-24.04
+    defaults:
+      run:
+        working-directory: azure/arcgis-enterprise-base-windows/infrastructure
+    permissions:
+      contents: read
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.10.0"
+      - name: Terraform Init
+        run: |
+          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+          terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
+                         -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
+                         -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/infrastructure.tfstate"
+      - name: Terraform Apply
+        if: github.event.inputs.terraform_command != 'plan'
+        run: |
+          # az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+          # az account set --subscription $ARM_SUBSCRIPTION_ID
+          terraform apply -var-file $CONFIG_FILE -auto-approve
+      - name: Terraform Plan
+        if: github.event.inputs.terraform_command == 'plan'
+        run: terraform plan -var-file $CONFIG_FILE

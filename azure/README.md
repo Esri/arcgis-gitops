@@ -11,6 +11,16 @@ The workflows require:
 * Authorization files for ArcGIS Enterprise software
 * SSL certificates for the ArcGIS Enterprise site domain names
 
+On Windows and Linux platforms the workflows use:
+
+* [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) to manage Azure resources
+* [Packer by HashiCorp](https://developer.hashicorp.com/packer) to build ArcGIS Enterprise VM images
+* [Terraform CLI by HashiCorp](https://developer.hashiCorp.com/terraform/cli) to provision infrastructure in Azure
+* [Azure Managed Run Commands](https://learn.microsoft.com/en-us/azure/virtual-machines/windows/run-command-managed) to remotely manage system and application configuration of the VMs
+* [Python scripts](./scripts/README.md) to invoke Azure services and download installation media
+* [Cinc Client](https://cinc.sh/) and [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/) to install and configure ArcGIS Enterprise applications, or
+* [Enterprise Admin CLI](../enterprise-admin-cli/README.md) container image to test the deployment
+
 On Kubernetes platform the workflows use:
 
 * [Azure CLI](https://learn.microsoft.com/en-us/cli/azure/) to manage Azure resources
@@ -27,6 +37,7 @@ An *ArcGIS Enterprise site* in this context is a group of *deployments* that typ
 The following templates are available for Microsoft Azure:
 
 * [arcgis-site-core](arcgis-site-core/README.md) - Provision core Azure resources for ArcGIS Enterprise site
+* [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
 * [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment in AKS
 
 ## Triggering Workflows

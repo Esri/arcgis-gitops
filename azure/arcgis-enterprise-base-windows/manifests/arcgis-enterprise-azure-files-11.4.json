@@ -1,0 +1,75 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "C:\\Software\\Archives",
+      "local_patches": "C:\\Software\\Archives\\Patches",      
+      "server": {
+        "account_name": "${account_name}",
+        "container_name": "${container_name}",
+        "auth_mode": "login",
+        "client_id": "${client_id}"  
+      },
+      "patch_notification": {
+        "products": [
+            "Portal for ArcGIS",
+            "ArcGIS Server",
+            "ArcGIS Data Store",
+            "ArcGIS Web Adaptor (IIS)"
+        ],
+        "versions": [
+          "11.4"
+        ],
+        "patches": [ 
+          "ArcGIS-114-*.msp"
+        ],
+        "subfolder": "software/arcgis/11.4/patches"
+      },
+      "metadata": {
+        "dotnet_setup": "dotnet-hosting-win.exe",
+        "web_deploy_setup": "WebDeploy_amd64_en-US.msi"
+      },
+      "files": {
+        "ArcGIS_Server_Windows_114_192938.exe": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "F476015D4DD4A66E95B4F3A7DF746B1DC507A40977CD43974C98AC692F04B76D"
+        },
+        "ArcGIS_Server_Windows_114_192938.exe.001": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "CC1731A804BFF7F1A2E8F745F45AC53E3CF1701F62ABC35FCFA1779AEBD19803"
+        },
+        "Portal_for_ArcGIS_Windows_114_192940.exe": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "17A2069884DB644F7D1A7263C8F1AAC6CE50A2E7D3C2ACEB13B92E6FC1FF385B"
+        },
+        "Portal_for_ArcGIS_Windows_114_192940.exe.001": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "FF702C43B41385A844449239C1C0216356BAF48B2A1F11CA0127783D42EDB5FF"
+        },
+        "Portal_for_ArcGIS_Web_Styles_Windows_114_192942.exe": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "D09C58BFF9C96B655C570FB55DE7925CC5CE3701EBD20201FE0533CF55A8E2BF"
+        },
+        "ArcGIS_DataStore_Windows_114_192943.exe": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "8D31DA14BB39658EB30A29245ABA7AF733E54F9A7191F0EE54C780499BBE7C30"
+        },
+        "ArcGIS_Web_Adaptor_for_Microsoft_IIS_114_192944.exe": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "59B725966D4206671A99A8444CCA8B7AE815F3E503B31D296B87CAE137E4468D"
+        },
+        "dotnet-hosting-win.exe": {
+          "url": "https://download.visualstudio.microsoft.com/download/pr/751d3fcd-72db-4da2-b8d0-709c19442225/33cc492bde704bfd6d70a2b9109005a0/dotnet-hosting-8.0.6-win.exe",
+          "subfolder": "thirdparty",
+          "sha256": "2AC38C2AAB8A55E50A2D761FEAD1320047D2AD5FD22C2F44316ACEB094505EC2"
+        },
+        "WebDeploy_amd64_en-US.msi": {
+          "url": "https://download.microsoft.com/download/webdeploy_amd64_en-US.msi",
+          "subfolder": "thirdparty"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::azure_files]"
+  ]
+}

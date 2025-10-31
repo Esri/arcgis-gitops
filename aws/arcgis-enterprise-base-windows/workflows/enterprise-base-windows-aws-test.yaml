@@ -23,7 +23,7 @@ env:
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/infrastructure.tfvars.json
 
 jobs:
-  applicatesttion:
+  test:
     name: Test Deployment
     runs-on: ubuntu-24.04
     defaults:

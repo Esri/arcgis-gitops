@@ -2,6 +2,6 @@
   "provider": "azure",
   "core": "arcgis-site-core",
   "deployments": [
-    "arcgis-enterprise-k8s"
+    "arcgis-enterprise-base-windows"
   ]
 }

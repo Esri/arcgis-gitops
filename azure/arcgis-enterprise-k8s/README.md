@@ -115,7 +115,7 @@ Instructions:
 
 ## Backups and Disaster Recovery
 
-The templates support configuring the organization's disaster recovery settings, default backup store in S3 bucket, and provides workflows for [backup and restore](https://enterprise-k8s.arcgis.com/en/latest/administer/backup-and-restore.htm) operations.
+The templates support configuring the organization's disaster recovery settings, default backup store in Azure blob storage, and provides workflows for [backup and restore](https://enterprise-k8s.arcgis.com/en/latest/administer/backup-and-restore.htm) operations.
 
 ### Create Backups
 

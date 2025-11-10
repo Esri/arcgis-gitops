@@ -167,7 +167,7 @@ Generates token for the specified user credentials.
 Usage:
 
 ```shell
-python -m token_service_client.py [-h] [-s TOKEN_SERVICE_URL] [-u USERNAME] [-p PASSWORD] [-e EXPIRATION]
+python -m token_service_client [-h] [-s TOKEN_SERVICE_URL] [-u USERNAME] [-p PASSWORD] [-e EXPIRATION]
 ```
 
 Options:

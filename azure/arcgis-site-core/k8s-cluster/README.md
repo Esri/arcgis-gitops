@@ -20,6 +20,9 @@ Once the AKS cluster is available, the module creates storage classes for Azure 
 The subnets and virtual network Ids are retrieved from Azure Key Vault secrets. The key vault, subnets, and other
 network infrastructure resources must be created by the [infrastructure-core](../infrastructure-core) module.
 
+Azure providers Microsoft.Monitor, Microsoft.Dashboard, Microsoft.NetworkFunction, and Microsoft.ServiceNetworking
+must be registered in the subscription.
+
 On the machine where Terraform is executed:
 
 * Azure subscription Id must be specified by ARM_SUBSCRIPTION_ID environment variable.
@@ -51,10 +54,6 @@ On the machine where Terraform is executed:
 | [azurerm_key_vault_secret.alb_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_kubernetes_cluster.site_cluster](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/kubernetes_cluster) | resource |
 | [azurerm_resource_group.cluster_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
-| [azurerm_resource_provider_registration.microsoft_dashboard](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_provider_registration) | resource |
-| [azurerm_resource_provider_registration.microsoft_monitor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_provider_registration) | resource |
-| [azurerm_resource_provider_registration.microsoft_network_function](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_provider_registration) | resource |
-| [azurerm_resource_provider_registration.microsoft_service_networking](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_provider_registration) | resource |
 | [azurerm_role_assignment.storage_blob_data_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [null_resource.storage_class](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
 | [null_resource.update_kubeconfig](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |

@@ -19,6 +19,9 @@
  *
  * The subnets and virtual network Ids are retrieved from Azure Key Vault secrets. The key vault, subnets, and other
  * network infrastructure resources must be created by the [infrastructure-core](../infrastructure-core) module.
+ *
+ * Azure providers Microsoft.Monitor, Microsoft.Dashboard, Microsoft.NetworkFunction, and Microsoft.ServiceNetworking 
+ * must be registered in the subscription.
  * 
  * On the machine where Terraform is executed:
  *
@@ -79,33 +82,10 @@ module "site_core_info" {
   site_id = var.site_id
 }
 
-resource "azurerm_resource_provider_registration" "microsoft_monitor" {
-  name = "Microsoft.Monitor"
-}
-
-resource "azurerm_resource_provider_registration" "microsoft_dashboard" {
-  name = "Microsoft.Dashboard"
-}
-
-resource "azurerm_resource_provider_registration" "microsoft_network_function" {
-  name = "Microsoft.NetworkFunction"
-}
-
-resource "azurerm_resource_provider_registration" "microsoft_service_networking" {
-  name = "Microsoft.ServiceNetworking"
-}
-
 # Create a resource group
 resource "azurerm_resource_group" "cluster_rg" {
   name     = "${var.site_id}-k8s-cluster"
   location = var.azure_region
-
-  depends_on = [
-    azurerm_resource_provider_registration.microsoft_monitor,
-    azurerm_resource_provider_registration.microsoft_dashboard,
-    azurerm_resource_provider_registration.microsoft_network_function,
-    azurerm_resource_provider_registration.microsoft_service_networking
-  ]
 }
 
 # Create an AKS cluster

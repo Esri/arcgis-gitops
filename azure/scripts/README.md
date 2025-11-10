@@ -159,3 +159,23 @@ Options:
   -a ACCOUNT_NAME    Storage account name
   -c CONTAINER_NAME  Blob container name
 ```
+
+## token_service_client
+
+Generates token for the specified user credentials.
+
+Usage:
+
+```shell
+python -m token_service_client [-h] [-s TOKEN_SERVICE_URL] [-u USERNAME] [-p PASSWORD] [-e EXPIRATION]
+```
+
+Options:
+
+```shell
+  -h, --help            show this help message and exit
+  -s TOKEN_SERVICE_URL  Token service URL
+  -u USERNAME           User name
+  -p PASSWORD           User password
+  -e EXPIRATION         Token expiration in seconds
+```

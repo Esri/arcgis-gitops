@@ -102,11 +102,11 @@ My Esri repository and ArcGIS Online token service URLs are specified by `arcgis
 
 `arcgis.repository.files.<filename>` attribute specifies the file name.
 
-If `arcgis.repository.files.<filename>.url` attribute is specified, the file source is a public URL. The file is copied form that URL to the destination S3 bucket in the subfolder (S3 key prefix) specified by `arcgis.repository.files.<filename>.subfolder` attribute.
+If `arcgis.repository.files.<filename>.url` attribute is specified, the file source is a public URL. The file is copied from that URL to the destination S3 bucket in the subfolder (S3 key prefix) specified by `arcgis.repository.files.<filename>.subfolder` attribute.
 
-If `arcgis.repository.files.<filename>.path` attribute is specified, the file source is local file system. The file is copied form that path to the destination S3 bucket in the subfolder (S3 key prefix) specified by `arcgis.repository.files.<filename>.subfolder` attribute.
+If `arcgis.repository.files.<filename>.path` attribute is specified, the file source is local file system. The file is copied from that path to the destination S3 bucket in the subfolder (S3 key prefix) specified by `arcgis.repository.files.<filename>.subfolder` attribute.
 
-If neither `arcgis.repository.files.<filename>.url` nor `arcgis.repository.files.<filename>.path` attribute is specified, the file source is My Esri repository. The file is copied form the repository folder specified by by `arcgis.repository.files.<filename>.subfolder` attribute to the destination S3 bucket in the subfolder (S3 key prefix) also specified by `arcgis.repository.files.<filename>.subfolder` attribute.
+If neither `arcgis.repository.files.<filename>.url` nor `arcgis.repository.files.<filename>.path` attribute is specified, the file source is My Esri repository. The file is copied from the repository folder specified by `arcgis.repository.files.<filename>.subfolder` attribute to the destination S3 bucket in the subfolder (S3 key prefix) also specified by `arcgis.repository.files.<filename>.subfolder` attribute.
 
 `arcgis.repository.files.<filename>.sha256` attribute specifies SHA-256 hash of the file content used for checking integrity of the copied files and to prevent unnecessary overwrites of files already present in the destination S3 bucket.  
 

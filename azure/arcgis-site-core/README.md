@@ -13,6 +13,8 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 > Refer to READMEs of the Terraform modules for descriptions of specific configuration properties.
 
+![Platform Dependencies](platform-dependencies.png "Platform Dependencies")  
+
 ## Create Core Azure Resources
 
 GitHub Actions workflow **site-core-azure** creates core Azure resources for an ArcGIS Enterprise site.
@@ -75,6 +77,13 @@ The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8
 Required service principal roles:
 
 * Owner role at the subscription scope
+
+Required Azure providers:
+
+* Microsoft.Monitor
+* Microsoft.Dashboard
+* Microsoft.NetworkFunction
+* Microsoft.ServiceNetworking
 
 Instructions:
 

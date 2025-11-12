@@ -99,15 +99,12 @@ resource "azurerm_container_registry_credential_set" "credential_set" {
   }
 }
 
-# Grant the ACR pull-through cache principal access to the Key Vault secrets.
-resource "azurerm_key_vault_access_policy" "pull_through_cache" {
-  key_vault_id = module.site_core_info.vault_id
-  tenant_id    = azurerm_container_registry_credential_set.credential_set.identity[0].tenant_id
-  object_id    = azurerm_container_registry_credential_set.credential_set.identity[0].principal_id
-
-  secret_permissions = [
-    "Get"
-  ]
+# Allow the ACR pull-through cache principal access to the Key Vault secrets.
+resource "azurerm_role_assignment" "pull_through_cache" {
+  principal_id                     = azurerm_container_registry_credential_set.credential_set.identity[0].principal_id
+  role_definition_name             = "Key Vault Secrets User"
+  scope                            =  module.site_core_info.vault_id
+  skip_service_principal_aad_check = true
 }
 
 resource "azurerm_container_registry_cache_rule" "pull_through_cache" {

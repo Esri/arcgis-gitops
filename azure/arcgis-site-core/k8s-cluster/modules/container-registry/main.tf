@@ -103,7 +103,7 @@ resource "azurerm_container_registry_credential_set" "credential_set" {
 resource "azurerm_role_assignment" "pull_through_cache" {
   principal_id                     = azurerm_container_registry_credential_set.credential_set.identity[0].principal_id
   role_definition_name             = "Key Vault Secrets User"
-  scope                            =  module.site_core_info.vault_id
+  scope                            = module.site_core_info.vault_id
   skip_service_principal_aad_check = true
 }
 

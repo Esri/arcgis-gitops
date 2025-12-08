@@ -1,14 +1,14 @@
 {
   "arcgis_data_store_patches": [
-    "ArcGIS-115-DS-*.msp"
+    "ArcGIS-120-DS-*.msp"
   ],
   "arcgis_portal_patches": [
-    "ArcGIS-115-PFA-*.msp"
+    "ArcGIS-120-PFA-*.msp"
   ],
   "arcgis_server_patches": [
-    "ArcGIS-115-S-*.msp"
+    "ArcGIS-120-S-*.msp"
   ],
-  "arcgis_version": "11.5",
+  "arcgis_version": "12.0",
   "arcgis_web_adaptor_patches": [],
   "deployment_id": "enterprise-base-windows",
   "instance_type": "m7i.2xlarge",

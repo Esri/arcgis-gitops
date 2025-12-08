@@ -27,6 +27,10 @@
  * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby EC2 instances
  * * Subscribes the primary ArcGIS Enterprise administrator e-mail address to the SNS topic of the monitoring subsystem
  *
+ * Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AMAZON,
+ * the module configures ArcGIS Server to store server directories in an S3 bucket and 
+ * the configuration store in a DynamoDB table, rather than on a file share.
+ *
  * ## Requirements
  *
  * The AWS resources for the deployment must be provisioned by Infrastructure terraform module for base ArcGIS Enterprise on Windows.
@@ -221,6 +225,69 @@ locals {
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}\\${basename(var.root_cert_file_path)}" : ""
 
   timestamp = formatdate("YYYYMMDDHHmmss", timestamp())
+
+  cloud_config = var.config_store_type == "AMAZON" ? jsonencode([
+    {
+      name      = "AWS"
+      namespace = "${var.site_id}-${var.deployment_id}"
+      region    = data.aws_region.current.id
+      credential = {
+        type = "IAM-ROLE"
+      }
+      cloudServices = [{
+        type     = "objectStore"
+        name     = "AWS S3"
+        category = "storage"
+        connection = {
+          bucketName        = nonsensitive(data.aws_ssm_parameter.object_store.value)
+          regionEndpointUrl = "https://s3.${data.aws_region.current.id}.amazonaws.com"
+          rootDir           = "arcgis"
+        }
+      }, {
+        type     = "tableStore"
+        name     = "Amazon Dynamo DB"
+        category = "storage"
+        connection = {
+          regionEndpointUrl = "https://dynamodb.${data.aws_region.current.id}.amazonaws.com"
+        }
+      }, {
+        type     = "queueService"
+        name     = "Amazon Queue Service"
+        category = "queue"
+        connection = {
+          regionEndpointUrl = "https://sqs.${data.aws_region.current.id}.amazonaws.com"
+        }
+      }]
+      cloudServiceTags = [{
+        ArcGISSiteId = var.site_id
+      }, {
+        ArcGISDeploymentId = var.deployment_id
+      }, {
+        ArcGISRole = "config-store"
+      }]
+    }]
+  ) : null
+
+  // Register S3 object store when config_store_type is not AMAZON
+  data_items = var.config_store_type == "AMAZON" ? [] : [{
+    path     = "/cloudStores/cloudObjectStore"
+    type     = "objectStore"
+    provider = "amazon"
+    info = {
+      isManaged     = true
+      systemManaged = false
+      isManagedData = true
+      purposes      = ["feature-tile", "scene"]
+      connectionString = jsonencode({
+        regionEndpointUrl        = "https://s3.${data.aws_region.current.region}.amazonaws.com"
+        defaultEndpointsProtocol = "https"
+        credentialType           = "IAMRole"
+        region                   = data.aws_region.current.region
+      })
+      objectStore       = "${nonsensitive(data.aws_ssm_parameter.object_store.value)}/store"
+      encryptAttributes = ["info.connectionString"]
+    }
+  }]
 }
 
 module "site_core_info" {
@@ -636,35 +703,17 @@ module "arcgis_enterprise_primary" {
         log_dir                        = "C:\\arcgisserver\\logs"
         log_level                      = var.log_level
         config_store_type              = var.config_store_type
-        config_store_connection_string = (var.config_store_type == "AMAZON" ?
-          "NAMESPACE=${var.site_id}-${var.deployment_id};REGION=${data.aws_region.current.region}" :
-          "\\\\FILESERVER\\arcgisserver\\config-store")
-        config_store_connection_secret = ""
+        # If cloud_config is set, config_store_connection_string is ignored
+        config_store_connection_string = "\\\\FILESERVER\\arcgisserver\\config-store"
+        cloud_config                   = local.cloud_config
         wa_name                        = local.server_web_context
         services_dir_enabled           = true
+        callback_functions_enabled     = true
         system_properties = {
           WebContextURL = "https://${local.deployment_fqdn}/${local.server_web_context}"
         }
         # Configure the object store in S3 bucket
-        data_items = [{
-          path = "/cloudStores/cloudObjectStore"
-          type = "objectStore"
-          provider = "amazon"
-          info = {
-            isManaged = true
-            systemManaged = false
-            isManagedData = true
-            purposes = [ "feature-tile", "scene" ]
-            connectionString = jsonencode({
-              regionEndpointUrl = "https://s3.${data.aws_region.current.region}.amazonaws.com"
-              defaultEndpointsProtocol = "https"
-              credentialType = "IAMRole"
-              region = data.aws_region.current.region
-            })
-            objectStore = "${nonsensitive(data.aws_ssm_parameter.object_store.value)}/store"
-            encryptAttributes = [ "info.connectionString" ]
-          }
-        }]
+        data_items = local.data_items
       }
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"

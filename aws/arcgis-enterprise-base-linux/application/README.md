@@ -27,6 +27,10 @@ Then the module:
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby EC2 instances
 * Subscribes the primary ArcGIS Enterprise administrator e-mail address to the SNS topic of the monitoring subsystem
 
+Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AMAZON,
+the module configures ArcGIS Server to store server directories in an S3 bucket and
+the configuration store in a DynamoDB table, rather than on the EFS file system.
+
 ## Requirements
 
 The AWS resources for the deployment must be provisioned by Infrastructure terraform module for base ArcGIS Enterprise on Linux.
@@ -64,7 +68,7 @@ The module reads the following SSM parameters:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 
 ## Modules
 
@@ -118,7 +122,7 @@ The module reads the following SSM parameters:
 | arcgis_data_store_patches | File names of ArcGIS Data Store patches to install. | `list(string)` | `[]` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install. | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"11.5"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |

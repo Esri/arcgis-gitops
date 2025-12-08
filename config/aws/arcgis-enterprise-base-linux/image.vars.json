@@ -1,14 +1,14 @@
 {
   "arcgis_data_store_patches": [
-    "ArcGIS-115-DS-*-linux.tar"
+    "ArcGIS-120-DS-*-linux.tar"
   ],
   "arcgis_portal_patches": [
-    "ArcGIS-115-PFA-*-linux.tar"
+    "ArcGIS-120-PFA-*-linux.tar"
   ],
   "arcgis_server_patches": [
-    "ArcGIS-115-S-*-linux.tar"
+    "ArcGIS-120-S-*-linux.tar"
   ],
-  "arcgis_version": "11.5",
+  "arcgis_version": "12.0",
   "arcgis_web_adaptor_patches": [],
   "deployment_id": "enterprise-base-linux",
   "instance_type": "m7i.2xlarge",

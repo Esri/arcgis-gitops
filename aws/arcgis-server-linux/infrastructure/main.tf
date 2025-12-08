@@ -327,6 +327,39 @@ resource "aws_route53_record" "primary" {
   records = [aws_instance.primary.private_ip]
 }
 
+# Create S3 bucket for the object store
+resource "aws_s3_bucket" "object_store" {
+  bucket_prefix = "${var.site_id}-object-store"
+  force_destroy = true
+
+  tags = {
+    ArcGISRole = "object-store"
+  }
+}
+
+# Enable S3 bucket versioning required by AWS Backup
+resource "aws_s3_bucket_versioning" "object_store" {
+  bucket = aws_s3_bucket.object_store.id
+  versioning_configuration {
+    status = "Enabled"
+  }
+}
+
+# AWS Backup S3 restores require the ability to set object ACLs.
+resource "aws_s3_bucket_ownership_controls" "object_store" {
+  bucket = aws_s3_bucket.object_store.id
+  rule {
+    object_ownership = "BucketOwnerPreferred"
+  }
+}
+
+resource "aws_ssm_parameter" "object_store_s3_bucket" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket"
+  type        = "String"
+  value       = aws_s3_bucket.object_store.bucket
+  description = "Object store S3 bucket"
+}
+
 # Configure CloudWatch agent on the EC2 instances.
 module "cw_agent" {
   source        = "../../modules/cw_agent"

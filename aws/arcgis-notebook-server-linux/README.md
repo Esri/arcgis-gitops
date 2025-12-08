@@ -6,6 +6,7 @@ Supported ArcGIS Notebook Server versions:
 
 * 11.4
 * 11.5
+* 12.0
 
 Supported Operating Systems:
 

@@ -1,30 +1,34 @@
 <!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for Base ArcGIS Enterprise on Windows
 
-The Terraform module configures or upgrades applications of base ArcGIS Enterprise deployment on Windows platform.
+This Terraform module configures or upgrades applications of base ArcGIS Enterprise deployment on the Windows platform.
 
 ![Base ArcGIS Enterprise on Windows](enterprise-base-windows-azure-application.png "Base ArcGIS Enterprise on Windows")
 
 First, the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all VMs of the deployment.
 
-If is_upgrade input variable is set to true, the module:
+If "is_upgrade" input variable is set to true, the module:
 
-* Un-registers ArcGIS Server's Web Adaptor on standby VM
+* Un-registers the ArcGIS Server Web Adaptor on the standby VM
 * Copies the installation media for the ArcGIS Enterprise version specified by arcgis_version input variable to the private repository blob container
-* Downloads the installation media from the private repository blob container to primary and standby VMs
-* Installs/upgrades  ArcGIS Enterprise software on primary and standby VMs
-* Installs the software patches on primary and standby VMs
+* Downloads the installation media from the private repository blob container to the primary and standby VMs
+* Installs or upgrades ArcGIS Enterprise software on the primary and standby VMs
+* Installs software patches on the primary and standby VMs
 
 Then the module:
 
 * Copies the ArcGIS Server and Portal for ArcGIS authorization files to the private repository blob container
-* Copies keystore and, if specified, root certificate files to the private repository blob container
+* Copies the keystore and, if specified, root certificate files to the private repository blob container
 * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository blob container to primary and standby VMs
-* Downloads the keystore and root certificate files from the private repository blob container to primary and standby VMs
+* Downloads the keystore and root certificate files from the private repository blob container to the primary and standby VMs
 * Creates the required network shares and directories in the primary VM
-* Configures base ArcGIS Enterprise on primary VM
-* Configures base ArcGIS Enterprise on standby VM
-* Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby VMs
+* Configures base ArcGIS Enterprise on the primary VM
+* Configures base ArcGIS Enterprise on the standby VM
+* Deletes the downloaded setup archives, the extracted setups, and other temporary files from the primary and standby VMs
+
+Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AZURE,
+the module configures ArcGIS Server to store server directories in an Azure Blob container and
+the configuration store in a Cosmos DB database, rather than on a file share.
 
 ## Requirements
 
@@ -106,7 +110,7 @@ The module reads the following Key Vault secrets:
 | arcgis_data_store_patches | File names of ArcGIS Data Store patches to install. | `list(string)` | `[]` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install. | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"11.5"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |

@@ -24,6 +24,10 @@ Then the module:
 * * Registers ArcGIS Web Adaptor with ArcGIS Server on primary and node EC2 instances
 * If server_role input variable is specified, federates ArcGIS Server with Portal for ArcGIS
 
+Starting with ArcGIS Server 12.0, if the config_store_type input variable is set to AMAZON,
+the module configures ArcGIS Server to store server directories in an S3 bucket and
+the configuration store in a DynamoDB table, rather than on the EFS file system.
+
 ## Requirements
 
 The AWS resources for the deployment must be provisioned by Infrastructure terraform module for ArcGIS Server on Linux.
@@ -57,7 +61,7 @@ The module reads the following SSM parameters:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 
 ## Modules
 
@@ -94,6 +98,7 @@ The module reads the following SSM parameters:
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.sns_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -106,7 +111,7 @@ The module reads the following SSM parameters:
 | admin_password | Primary ArcGIS Server administrator user password | `string` | n/a | yes |
 | admin_username | Primary ArcGIS Server administrator user name | `string` | `"siteadmin"` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Server version | `string` | `"11.5"` | no |
+| arcgis_version | ArcGIS Server version | `string` | `"12.0"` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_id | Deployment Id | `string` | `"server-linux"` | no |

@@ -138,7 +138,7 @@ variable "images" {
     windows2025 = {
       publisher = "MicrosoftWindowsServer"
       offer     = "WindowsServer"
-      sku       = "2025-datacenter-g2"
+      sku       = "2025-datacenter-azure-edition"
       version   = null
     }
     ubuntu24 = {

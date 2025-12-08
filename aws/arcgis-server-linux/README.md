@@ -8,6 +8,7 @@ Supported ArcGIS Server versions:
 
 * 11.4
 * 11.5
+* 12.0
 
 Supported Linux distributions:
 
@@ -122,6 +123,8 @@ Instructions:
 4. To install configure ArcGIS Server and Apache Tomcat use specific SSL certificates, set "keystore_file_path" and "keystore_file_password" properties to the certificates file path and password.
 5. Commit the changes to the Git branch and push the branch to GitHub.
 6. Run server-linux-aws-application workflow using the branch.
+
+> Starting with ArcGIS Server 12.0, for highly-available deployments, "config_store_type" property can be set to "AMAZON" to configure the ArcGIS Server site to use Amazon DynamoDB as the configuration store, S3 as the object store and server directories, and SQS for GeoProcessing service queues, instead of relying on the file system.
 
 > '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 

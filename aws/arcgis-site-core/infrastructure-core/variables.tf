@@ -38,6 +38,7 @@ variable "iam_role_policies" {
   default = [
     "arn:aws:iam::aws:policy/AmazonDynamoDBFullAccess",
     "arn:aws:iam::aws:policy/AmazonS3FullAccess",
+    "arn:aws:iam::aws:policy/AmazonSQSFullAccess",
     "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore",
     "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy",
     "arn:aws:iam::aws:policy/AmazonElasticFileSystemClientFullAccess",
@@ -85,7 +86,8 @@ variable "interface_vpc_endpoints" {
     "monitoring",
     "ssm",
     "ssmmessages",
-    "sts"
+    "sts",
+    "sqs"
   ]
 }
 

@@ -50,7 +50,7 @@ The template uses the following SSM parameters:
 | arcgis_data_store_patches |File names of ArcGIS Data Store patches to install | `string` | `[]` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `string` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"11.5"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
 | instance_type | EC2 instance type | `string` | `"6i.xlarge"` | no |

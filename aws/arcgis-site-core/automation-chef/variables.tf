@@ -34,19 +34,19 @@ variable "chef_client_paths" {
   type        = map(any)
   default = {
     windows2025 = {
-      path        = "cinc/cinc-18.7.6-1-x64.msi"
+      path        = "cinc/cinc-18.8.54-1-x64.msi"
       description = "Chef Client setup S3 key for Microsoft Windows Server 2022"
     }
     windows2022 = {
-      path        = "cinc/cinc-18.7.6-1-x64.msi"
+      path        = "cinc/cinc-18.8.54-1-x64.msi"
       description = "Chef Client setup S3 key for Microsoft Windows Server 2022"
     }
     ubuntu22 = {
-      path        = "cinc/cinc_18.7.6-1.ubuntu22.amd64.deb"
+      path        = "cinc/cinc_18.8.54-1.ubuntu22.amd64.deb"
       description = "Chef Client setup S3 key for Ubuntu 22.04 LTS"
     }
     rhel9 = {
-      path        = "cinc/cinc-18.7.6-1.el9.x86_64.rpm"
+      path        = "cinc/cinc-18.8.54-1.el9.x86_64.rpm"
       description = "Chef Client setup S3 key for Red Hat Enterprise Linux version 9"
     }
   }
@@ -55,7 +55,7 @@ variable "chef_client_paths" {
 variable "arcgis_cookbooks_path" {
   description = "S3 repository key of Chef cookbooks for ArcGIS distribution archive in the repository bucket"
   type        = string
-  default     = "cookbooks/arcgis-5.2.0-cookbooks.tar.gz"
+  default     = "cookbooks/arcgis-5.3.0-cookbooks.tar.gz"
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9!_.*'()-]+(\\/[a-zA-Z0-9!_.*'()-]+)*$", var.arcgis_cookbooks_path))

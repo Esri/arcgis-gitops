@@ -60,10 +60,10 @@ The template writes the following SSM parameters:
 |------|-------------|------|---------|:--------:|
 | aws_region | AWS region Id | `string` | `env("AWS_DEFAULT_REGION")` | no |
 | arcgis_notebook_server_patches | File names of ArcGIS Notebook Server patches to install | `string` | `[]` | no |
-| arcgis_version | ArcGIS Notebook Server version | `string` | `"11.5"` | no |
+| arcgis_version | ArcGIS Notebook Server version | `string` | `"12.0"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
 | deployment_id | Deployment Id | `string` | `"notebook-server-linux"` | no |
-| instance_type | EC2 instance type | `string` | `"6i.xlarge"` | no |
+| instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | license_level | ArcGIS Notebook Server license level | `string` | `"standard"` | no |
 | os | Operating system | `string` | `"rhel9"` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `128` | no |

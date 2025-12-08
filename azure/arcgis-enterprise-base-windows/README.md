@@ -6,6 +6,7 @@ Supported ArcGIS Enterprise versions:
 
 * 11.4
 * 11.5
+* 12.0
   
 Supported Operating Systems:
 
@@ -99,6 +100,10 @@ Instructions:
 3. Add SSL certificates for the base ArcGIS Enterprise domain name and (optionally) trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run the enterprise-base-windows-azure-application workflow using the branch.
+
+> Starting with ArcGIS Enterprise 12.0, for highly-available deployments, "config_store_type" property can be set to "AZURE" to configure the ArcGIS Server site to use Azure CosmosDB as the configuration store, Azure Blob storage as the object store and server directories, and Azure Service Bus for GeoProcessing service queues, instead of relying on the network file shares.
+
+> '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
 ### 5. Test Base ArcGIS Enterprise Deployment
 

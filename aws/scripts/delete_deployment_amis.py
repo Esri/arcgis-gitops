@@ -51,6 +51,11 @@ if __name__ == '__main__':
     for image in images:
         image_id = image['ImageId']
         image_name = image['Name']
+
+        # Skip AWS Backup created AMIs
+        if image_name.startswith('AwsBackup_'):
+            continue
+
         print(f'Deleting AMI {image_id} ({image_name})...')
         
         ec2_client.deregister_image(ImageId=image_id)

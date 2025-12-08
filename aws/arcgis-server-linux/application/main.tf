@@ -24,6 +24,10 @@
  * * * Registers ArcGIS Web Adaptor with ArcGIS Server on primary and node EC2 instances
  * * If server_role input variable is specified, federates ArcGIS Server with Portal for ArcGIS
  *
+ * Starting with ArcGIS Server 12.0, if the config_store_type input variable is set to AMAZON,
+ * the module configures ArcGIS Server to store server directories in an S3 bucket and 
+ * the configuration store in a DynamoDB table, rather than on the EFS file system.
+ *
  * ## Requirements
  *
  * The AWS resources for the deployment must be provisioned by Infrastructure terraform module for ArcGIS Server on Linux.
@@ -116,6 +120,10 @@ data "aws_ssm_parameter" "portal_url" {
   name  = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
 }
 
+data "aws_ssm_parameter" "object_store" {
+  name = "/arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket"
+}
+
 # Retrieve attributes of the primary EC2 instance
 data "aws_instance" "primary" {
   filter {
@@ -155,6 +163,48 @@ locals {
   authorization_files_dir = "/opt/software/authorization"
   keystore_file           = "/opt/software/certificate.pfx"
   timestamp               = formatdate("YYYYMMDDhhmm", timestamp())
+
+  cloud_config = var.config_store_type == "AMAZON" ? jsonencode([
+    {
+      name      = "AWS"
+      namespace = "${var.site_id}-${var.deployment_id}"
+      region    = data.aws_region.current.id
+      credential = {
+        type = "IAM-ROLE"
+      }
+      cloudServices = [{
+        type     = "objectStore"
+        name     = "AWS S3"
+        category = "storage"
+        connection = {
+          bucketName        = nonsensitive(data.aws_ssm_parameter.object_store.value)
+          regionEndpointUrl = "https://s3.${data.aws_region.current.id}.amazonaws.com"
+          rootDir           = "arcgis"
+        }
+      }, {
+        type     = "tableStore"
+        name     = "Amazon Dynamo DB"
+        category = "storage"
+        connection = {
+          regionEndpointUrl = "https://dynamodb.${data.aws_region.current.id}.amazonaws.com"
+        }
+      }, {
+        type     = "queueService"
+        name     = "Amazon Queue Service"
+        category = "queue"
+        connection = {
+          regionEndpointUrl = "https://sqs.${data.aws_region.current.id}.amazonaws.com"
+        }
+      }]
+      cloudServiceTags = [{
+        ArcGISSiteId = var.site_id
+      }, {
+        ArcGISDeploymentId = var.deployment_id
+      }, {
+        ArcGISRole = "config-store"
+      }]
+    }]
+  ) : null
 }
 
 module "site_core_info" {
@@ -307,9 +357,9 @@ module "arcgis_server_primary" {
     admin_password        = var.admin_password
     directories_root      = "${local.mount_point}/gisdata/arcgisserver"
     config_store_type     = var.config_store_type
-    config_store_connection_string = (var.config_store_type == "AMAZON" ?
-      "NAMESPACE=${var.site_id}-${var.deployment_id};REGION=${data.aws_region.current.region}" :
-    "${local.mount_point}/gisdata/arcgisserver/config-store")
+    # If cloud_config is set, config_store_connection_string is ignored
+    config_store_connection_string = "${local.mount_point}/gisdata/arcgisserver/config-store"
+    cloud_config                   = local.cloud_config
     config_store_connection_secret = ""
     log_level                      = var.log_level
     log_dir                        = "/opt/arcgis/server/usr/logs"

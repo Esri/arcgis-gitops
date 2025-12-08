@@ -1,5 +1,5 @@
 /**
- * # Infrastructure Terraform Module for base ArcGIS Enterprise on Windows
+ * # Infrastructure Terraform Module for Base ArcGIS Enterprise on Windows
  *
  * This Terraform module provisions Azure resources required for a base ArcGIS Enterprise deployment on Windows.
  *
@@ -15,6 +15,7 @@
  *   > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
  * - Provisions an Azure Storage Account with blob containers for portal content and object store.
  *   The storage account name is stored in the Key Vault secret "${var.deployment_id}-storage-account-name".
+ * - If "is_ha" variable is true, provisions a Cosmos DB account and a Service Bus namespace for ArcGIS Server configuration store.
  * - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
  * - Creates an Azure Monitor dashboard for monitoring key VM metrics.
  * - Tags all resources with ArcGISSiteId and ArcGISDeploymentId for easy identification.
@@ -281,4 +282,120 @@ resource "azurerm_key_vault_secret" "storage_account_name" {
     ArcGISSiteId       = var.site_id
     ArcGISDeploymentId = var.deployment_id
   }
+}
+
+# Cosmos DB account for ArcGIS Enterprise
+resource "azurerm_cosmosdb_account" "deployment_cosmosdb" {
+  count               = var.is_ha ? 1 : 0
+  name                = "gis${random_id.unique_name_suffix.hex}"
+  location            = azurerm_resource_group.deployment_rg.location
+  resource_group_name = azurerm_resource_group.deployment_rg.name
+  offer_type          = "Standard"
+  kind                = "GlobalDocumentDB"
+  # is_virtual_network_filter_enabled = true
+
+  consistency_policy {
+    consistency_level = "Strong"
+  }
+
+  backup {
+    type = "Continuous"
+    tier = "Continuous30Days"
+  }
+
+  geo_location {
+    location          = azurerm_resource_group.deployment_rg.location
+    failover_priority = 0
+  }
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+}
+
+resource "azurerm_cosmosdb_sql_database" "config_store" {
+  count               = var.is_ha ? 1 : 0
+  name                = "config-store"
+  resource_group_name = azurerm_cosmosdb_account.deployment_cosmosdb[0].resource_group_name
+  account_name        = azurerm_cosmosdb_account.deployment_cosmosdb[0].name
+  # throughput          = 400
+}
+
+# Assign Cosmos DB Operator role to the current user identity
+resource "azurerm_role_assignment" "cosmosdb_owner" {
+  count                            = var.is_ha ? 1 : 0
+  principal_id                     = data.azurerm_client_config.current.object_id
+  role_definition_name             = "Cosmos DB Operator"
+  scope                            = azurerm_cosmosdb_account.deployment_cosmosdb[0].id
+  skip_service_principal_aad_check = true
+}
+
+# Assign Cosmos DB Operator role to the VM identity
+resource "azurerm_role_assignment" "cosmosdb_vm_identity" {
+  count                            = var.is_ha ? 1 : 0
+  principal_id                     = data.azurerm_key_vault_secret.vm_identity_principal_id.value
+  role_definition_name             = "Cosmos DB Operator"
+  scope                            = azurerm_cosmosdb_account.deployment_cosmosdb[0].id
+  skip_service_principal_aad_check = true
+}
+
+# Assign Data Contributor role to the current user identity and VM identity for Cosmos DB SQL API
+data "azurerm_cosmosdb_sql_role_definition" "data_contributor" {
+  count               = var.is_ha ? 1 : 0
+  account_name        = azurerm_cosmosdb_account.deployment_cosmosdb[0].name
+  resource_group_name = azurerm_cosmosdb_account.deployment_cosmosdb[0].resource_group_name
+  role_definition_id  = "00000000-0000-0000-0000-000000000002" # Built-in Data Contributor role ID
+}
+
+resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_owner" {
+  count               = var.is_ha ? 1 : 0
+  account_name        = azurerm_cosmosdb_account.deployment_cosmosdb[0].name
+  resource_group_name = azurerm_cosmosdb_account.deployment_cosmosdb[0].resource_group_name
+  principal_id        = data.azurerm_client_config.current.object_id
+  role_definition_id  = data.azurerm_cosmosdb_sql_role_definition.data_contributor[0].id
+  scope               = azurerm_cosmosdb_account.deployment_cosmosdb[0].id
+}
+
+resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_vm_identity" {
+  count               = var.is_ha ? 1 : 0
+  account_name        = azurerm_cosmosdb_account.deployment_cosmosdb[0].name
+  resource_group_name = azurerm_cosmosdb_account.deployment_cosmosdb[0].resource_group_name
+  principal_id        = data.azurerm_key_vault_secret.vm_identity_principal_id.value
+  role_definition_id  = data.azurerm_cosmosdb_sql_role_definition.data_contributor[0].id
+  scope               = azurerm_cosmosdb_account.deployment_cosmosdb[0].id
+}
+
+# Service Bus namespace for ArcGIS Server configuration store
+resource "azurerm_servicebus_namespace" "deployment_servicebus" {
+  count               = var.is_ha ? 1 : 0
+  name                = "gis${random_id.unique_name_suffix.hex}"
+  location            = azurerm_resource_group.deployment_rg.location
+  resource_group_name = azurerm_resource_group.deployment_rg.name
+  sku                 = "Premium"
+  capacity            = 1
+  premium_messaging_partitions = 1
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+}
+
+# Assign Data Owner role to the current user identity
+resource "azurerm_role_assignment" "servicebus_owner" {
+  count                            = var.is_ha ? 1 : 0
+  principal_id                     = data.azurerm_client_config.current.object_id
+  role_definition_name             = "Azure Service Bus Data Owner"
+  scope                            = azurerm_servicebus_namespace.deployment_servicebus[0].id
+  skip_service_principal_aad_check = true
+}
+
+# Assign Data Owner role to the VM identity
+resource "azurerm_role_assignment" "servicebus_vm_identity" {
+  count                            = var.is_ha ? 1 : 0
+  principal_id                     = data.azurerm_key_vault_secret.vm_identity_principal_id.value
+  role_definition_name             = "Azure Service Bus Data Owner"
+  scope                            = azurerm_servicebus_namespace.deployment_servicebus[0].id
+  skip_service_principal_aad_check = true
 }

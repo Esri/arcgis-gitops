@@ -1,30 +1,34 @@
 /**
  * # Application Terraform Module for Base ArcGIS Enterprise on Windows
  *
- * The Terraform module configures or upgrades applications of base ArcGIS Enterprise deployment on Windows platform.
+ * This Terraform module configures or upgrades applications of base ArcGIS Enterprise deployment on the Windows platform.
  *
  * ![Base ArcGIS Enterprise on Windows](enterprise-base-windows-azure-application.png "Base ArcGIS Enterprise on Windows")
  *
  * First, the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all VMs of the deployment.
  *
- * If is_upgrade input variable is set to true, the module:
+ * If "is_upgrade" input variable is set to true, the module:
  *
- * * Un-registers ArcGIS Server's Web Adaptor on standby VM
+ * * Un-registers the ArcGIS Server Web Adaptor on the standby VM
  * * Copies the installation media for the ArcGIS Enterprise version specified by arcgis_version input variable to the private repository blob container
- * * Downloads the installation media from the private repository blob container to primary and standby VMs
- * * Installs/upgrades  ArcGIS Enterprise software on primary and standby VMs
- * * Installs the software patches on primary and standby VMs
+ * * Downloads the installation media from the private repository blob container to the primary and standby VMs
+ * * Installs or upgrades ArcGIS Enterprise software on the primary and standby VMs
+ * * Installs software patches on the primary and standby VMs
  *
  * Then the module:
  *
  * * Copies the ArcGIS Server and Portal for ArcGIS authorization files to the private repository blob container
- * * Copies keystore and, if specified, root certificate files to the private repository blob container
+ * * Copies the keystore and, if specified, root certificate files to the private repository blob container
  * * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository blob container to primary and standby VMs
- * * Downloads the keystore and root certificate files from the private repository blob container to primary and standby VMs
+ * * Downloads the keystore and root certificate files from the private repository blob container to the primary and standby VMs
  * * Creates the required network shares and directories in the primary VM
- * * Configures base ArcGIS Enterprise on primary VM
- * * Configures base ArcGIS Enterprise on standby VM
- * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby VMs
+ * * Configures base ArcGIS Enterprise on the primary VM
+ * * Configures base ArcGIS Enterprise on the standby VM
+ * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from the primary and standby VMs
+ *
+ * Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AZURE,
+ * the module configures ArcGIS Server to store server directories in an Azure Blob container and 
+ * the configuration store in a Cosmos DB database, rather than on a file share.
  *
  * ## Requirements
  *
@@ -145,8 +149,73 @@ locals {
 
   storage_account_name          = data.azurerm_key_vault_secret.storage_account_name.value
   storage_account_blob_endpoint = "https://${data.azurerm_key_vault_secret.storage_account_name.value}.blob.core.windows.net"
-  
+  cosmos_db_account_name        = local.storage_account_name
+  service_bus_namespace         = local.storage_account_name
+   
   is_ha = length(data.azurerm_resources.standby.resources) > 0
+
+  # See "Azure user-assigned identity example" in cloudConfigJson parameter description at
+  # https://developers.arcgis.com/rest/enterprise-administration/server/createsite/
+  cloud_config = var.config_store_type == "AZURE" ? jsonencode([{
+    name = "AZURE"
+    namespace = "${var.site_id}-${var.deployment_id}"
+    credential = {
+      type = "USER-ASSIGNED-IDENTITY"
+      secret = {
+        managedIdentityClientId = data.azurerm_key_vault_secret.vm_identity_client_id.value
+      }
+    }    
+    cloudServices = [{
+      name  = "Azure Blob Store"
+      type  = "objectStore"
+      usage = "DEFAULT"
+      connection = {
+        containerName = "object-store"
+        rootDir = "arcgis"
+        accountEndpointUrl = "https://${local.storage_account_name}.blob.core.windows.net"
+      }
+      category = "storage"
+    },
+    {
+      name = "Azure Cosmos DB"
+      type = "tableStore"
+      connection = {
+        subscriptionId = data.azurerm_client_config.current.subscription_id
+        resourceGroupName = "${var.site_id}-${var.deployment_id}-rg"
+        accountEndpointUrl = "https://${local.cosmos_db_account_name}.documents.azure.com"
+        databaseId = "config-store"
+        cosmosDBConnectionMode = "Gateway"
+      }
+      category = "storage"
+    },
+    {
+      name = "Azure Service Bus"
+      type = "queueService"
+      connection = {
+        serviceBusEndpointUrl = "sb://${local.service_bus_namespace}.servicebus.windows.net"
+      }
+      category = "queue"
+    }]
+  }]) : null
+
+  data_items = var.config_store_type == "AZURE" ? [] : [{
+    path     = "/cloudStores/cloudObjectStore"
+    type     = "objectStore"
+    provider = "azure"
+    info = {
+      isManaged     = true
+      systemManaged = false
+      isManagedData = true
+      purposes      = ["feature-tile", "scene"]
+      connectionString = jsonencode({
+        accountName             = local.storage_account_name
+        credentialType          = "userAssignedIdentity"
+        managedIdentityClientId = data.azurerm_key_vault_secret.vm_identity_client_id.value
+      })
+      objectStore       = "object-store"
+      encryptAttributes = ["info.connectionString"]
+    }
+  }]
 }
 
 module "site_core_info" {
@@ -572,35 +641,17 @@ module "arcgis_enterprise_primary" {
         log_dir                     = "C:\\arcgisserver\\logs"
         log_level                   = var.log_level
         config_store_type           = var.config_store_type
-        # If config_store_type is "AZURE", configure the config store in blob container
-        config_store_connection_string = (var.config_store_type == "AZURE" ?
-          "NAMESPACE=default;AccountName=${local.storage_account_name};CredentialType=UserAssignedIdentity;ManagedIdentityClientId=${data.azurerm_key_vault_secret.vm_identity_client_id.value}" :
-          "\\\\FILESERVER\\arcgisserver\\config-store")
-        config_store_connection_secret = ""
-        wa_name                        = var.server_web_context
-        services_dir_enabled           = true
+        # If cloud_config is set, config_store_connection_string is ignored
+        config_store_connection_string = "\\\\FILESERVER\\arcgisserver\\config-store"
+        cloud_config                = local.cloud_config
+        wa_name                     = var.server_web_context
+        services_dir_enabled        = true
+        callback_functions_enabled  = true
         system_properties = {
           WebContextURL = "https://${var.deployment_fqdn}/${var.server_web_context}"
         }
         # Configure the managed object store in blob container
-        data_items = [{
-          path     = "/cloudStores/cloudObjectStore"
-          type     = "objectStore"
-          provider = "azure"
-          info = {
-            isManaged     = true
-            systemManaged = false
-            isManagedData = true
-            purposes      = ["feature-tile", "scene"]
-            connectionString = jsonencode({
-              accountName             = local.storage_account_name
-              credentialType          = "userAssignedIdentity"
-              managedIdentityClientId = data.azurerm_key_vault_secret.vm_identity_client_id.value
-            })
-            objectStore       = "object-store"
-            encryptAttributes = ["info.connectionString"]
-          }
-        }]
+        data_items = local.data_items
       }
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"

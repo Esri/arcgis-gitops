@@ -22,16 +22,16 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 | null | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [aws_cloudwatch_log_group.deployment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/cloudwatch_log_group) | resource |
 | [aws_ssm_parameter.cloudwatch_agent_config](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [null_resource.ssm_cloudwatch_config](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.output_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs

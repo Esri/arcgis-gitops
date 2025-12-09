@@ -49,6 +49,8 @@ data "aws_ssm_parameter" "output_s3_bucket" {
 }
 
 locals {
+  log_group_name = "monitoring/${var.site_id}/${var.deployment_id}/deployment"
+
   linux_agent_config = jsonencode({
     agent = {
       metrics_collection_interval = 60
@@ -129,13 +131,13 @@ locals {
           collect_list = [
             {
               file_path        = "/var/log/messages"
-              log_group_name   = aws_cloudwatch_log_group.deployment.name
+              log_group_name   = local.log_group_name
               log_stream_name  = "{instance_id}-system"
               timestamp_format = "%b %-d %H:%M:%S"
             },
             {
               file_path        = "/var/log/chef-run.log"
-              log_group_name   = aws_cloudwatch_log_group.deployment.name
+              log_group_name   = local.log_group_name
               log_stream_name  = "{instance_id}-chef"
               timestamp_format = "%Y-%m-%dT%H:%M:%S"
             }
@@ -260,7 +262,7 @@ locals {
               event_name      = "System"
               event_format    = "text"
               event_levels    = ["INFORMATION", "ERROR"]
-              log_group_name  = aws_cloudwatch_log_group.deployment.name
+              log_group_name  = local.log_group_name
               log_stream_name = "{instance_id}-system"
             }
           ]
@@ -270,7 +272,7 @@ locals {
             {
               file_path        = "C:\\chef\\chef-run.log"
               encoding         = "utf-16"
-              log_group_name   = aws_cloudwatch_log_group.deployment.name
+              log_group_name   = local.log_group_name
               log_stream_name  = "{instance_id}-chef"
               timestamp_format = "%Y-%m-%dT%H:%M:%S"
             }
@@ -280,11 +282,6 @@ locals {
       }
     }
   })
-}
-
-resource "aws_cloudwatch_log_group" "deployment" {
-  name              = "monitoring/${var.site_id}/${var.deployment_id}/deployment"
-  retention_in_days = 7
 }
 
 resource "aws_ssm_parameter" "cloudwatch_agent_config" {

@@ -1,8 +1,8 @@
 {
   "arcgis_server_patches": [
-    "ArcGIS-115-S-*-linux.tar"
+    "ArcGIS-120-S-*-linux.tar"
   ],
-  "arcgis_version": "11.5",
+  "arcgis_version": "12.0",
   "deployment_id": "server-linux",
   "instance_type": "m7i.2xlarge",
   "os": "rhel9",

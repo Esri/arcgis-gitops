@@ -24,6 +24,8 @@
 # * * NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 
 JSON_ATTRIBUTES_PARAMETER='<json_attributes_parameter>'
+DOCKER_CE_PACKAGE_VERSION='5:28.5.2-1~ubuntu.22.04~jammy'
+DOCKER_CE_CLI_PACKAGE_VERSION='5:28.5.2-1~ubuntu.22.04~jammy'
 
 # Get the script input parameters in JSON format from SSM Parameter Store
 attributes=$(aws ssm get-parameter --name $JSON_ATTRIBUTES_PARAMETER --query 'Parameter.Value' --with-decryption --output text)
@@ -53,7 +55,7 @@ echo \
 sudo apt-get update -y
 
 # Install Docker CE
-sudo apt-get install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo apt-get install -y docker-ce=$DOCKER_CE_PACKAGE_VERSION docker-ce-cli=$DOCKER_CE_CLI_PACKAGE_VERSION containerd.io docker-buildx-plugin docker-compose-plugin
 
 if [ "$GPU_READY" == "true" ]; then
   # Install gcc

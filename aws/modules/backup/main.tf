@@ -60,9 +60,19 @@ data "aws_dynamodb_table" "config_store_table" {
   name = jsondecode(data.aws_dynamodb_table_item.config_store.item).DBTableName.S
 }
 
+locals {
+  tags = var.backup_s3_bucket ? {
+    "ArcGISSiteId" : var.site_id,
+    "ArcGISDeploymentId" : var.deployment_id,
+    "ArcGISRole" : "config-store"
+  } : {}
+}
+
 # Tag the config store S3 bucket with ArcGIS site ID, deployment ID, and role.
 # Enable S3 bucket versioning required by AWS Backup.
 resource "null_resource" "tag_s3_bucket" {
+  count = var.backup_s3_bucket ? 1 : 0
+
   triggers = {
     always_run = "${timestamp()}"
   }
@@ -77,26 +87,54 @@ resource "null_resource" "tag_s3_bucket" {
 }
 
 resource "aws_dynamodb_tag" "config_store_table" {
-  for_each = {
-    "ArcGISSiteId" : var.site_id,
-    "ArcGISDeploymentId" : var.deployment_id,
-    "ArcGISRole" : "config-store"
-  }
+  for_each = local.tags
 
   resource_arn = data.aws_dynamodb_table.config_store_table.arn
   key         = each.key
   value       = each.value
 }
 
-# Add all the deployment's config store S3 bucket and DynamoDB table to 
+# Retrieve all DynamoDB tables and S3 buckets tagged as the deployment's config store.
+data "aws_resourcegroupstaggingapi_resources" "dynamodb_tables_by_tag" {
+  tag_filter {
+    key    = "ArcGISSiteId"
+    values = [var.site_id]
+  }
+
+  tag_filter {
+    key    = "ArcGISDeploymentId"
+    values = [var.deployment_id]
+  }
+
+  tag_filter {
+    key    = "ArcGISRole"
+    values = ["config-store"]
+  }
+
+  resource_type_filters = [
+    "dynamodb:table",
+    "s3:bucket"
+  ]
+
+  depends_on = [ 
+    null_resource.tag_s3_bucket,
+    aws_dynamodb_tag.config_store_table
+  ]
+}
+
+# Add all the deployment's config store S3 bucket and DynamoDB tables to 
 # the backup plan resources selection.
 resource "aws_backup_selection" "application" {
   iam_role_arn = nonsensitive(data.aws_ssm_parameter.backup_role_arn.value)
   name         = "${var.site_id}-${var.deployment_id}-application"
   plan_id      = nonsensitive(data.aws_ssm_parameter.backup_plan_id.value)
 
-  resources = [
-    data.aws_s3_bucket.config_store_bucket.arn,
-    data.aws_dynamodb_table.config_store_table.arn
-  ]
+  resources = data.aws_resourcegroupstaggingapi_resources.dynamodb_tables_by_tag.resource_tag_mapping_list[*].resource_arn
+
+  # resources = var.backup_s3_bucket ? [
+  #   data.aws_s3_bucket.config_store_bucket.arn,
+  #   data.aws_dynamodb_table.config_store_table.arn
+  # ] : [
+  #   data.aws_dynamodb_table.config_store_table.arn
+  # ]
 }

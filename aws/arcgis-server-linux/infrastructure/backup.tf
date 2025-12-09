@@ -54,9 +54,11 @@ resource "aws_backup_selection" "infrastructure" {
   resources = var.node_count > 0 ? [
     aws_instance.primary.arn,
     aws_instance.nodes[0].arn,
-    aws_efs_file_system.fileserver.arn
+    aws_efs_file_system.fileserver.arn,
+    aws_s3_bucket.object_store.arn
   ] : [
     aws_instance.primary.arn,
-    aws_efs_file_system.fileserver.arn
+    aws_efs_file_system.fileserver.arn,
+    aws_s3_bucket.object_store.arn
   ]
 }

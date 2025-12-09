@@ -108,7 +108,7 @@ The module reads the following SSM parameters:
 | admin_password | Primary ArcGIS Notebook Server administrator user password | `string` | n/a | yes |
 | admin_username | Primary ArcGIS Notebook Server administrator user name | `string` | `"siteadmin"` | no |
 | arcgis_notebook_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Notebook Server version | `string` | `"11.5"` | no |
+| arcgis_version | ArcGIS Notebook Server version | `string` | `"12.0"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |

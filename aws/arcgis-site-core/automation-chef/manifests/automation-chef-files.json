@@ -2,25 +2,25 @@
   "arcgis": {
     "repository": {
       "files": {
-        "cinc-18.7.6-1-x64.msi": {
-          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/windows/2022/cinc-18.7.6-1-x64.msi",
+        "cinc-18.8.54-1-x64.msi": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.8.54/windows/2022/cinc-18.8.54-1-x64.msi",
           "subfolder": "cinc",
-          "sha256": "E53106F7EDCD98A5B42D38B60A80851FAF80E9FE919E3971D2DAECFC69BB1B78"
+          "sha256": "28e1011bb29211fd53456d03e5d5cde942a8f7a14ff363a24fbd31bb16e18472"
         },
-        "cinc_18.7.6-1.ubuntu22.amd64.deb": {
-          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/ubuntu/22.04/cinc_18.7.6-1_amd64.deb",
+        "cinc_18.8.54-1.ubuntu22.amd64.deb": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.8.54/ubuntu/22.04/cinc_18.8.54-1_amd64.deb",
           "subfolder": "cinc",
-          "sha256": "88783D2FD6907AE29E776A421A07674FEFAC1EF3A135EFCE2C6590FE07EDB976"
+          "sha256": "17028DCFE23E57A43D2FFFD490D696BFBCD47F796DD9FE302AC0515B0D4218EC"
         },
-        "cinc-18.7.6-1.el9.x86_64.rpm": {
-          "url": "https://downloads.cinc.sh/files/stable/cinc/18.7.6/el/9/cinc-18.7.6-1.el9.x86_64.rpm",
+        "cinc-18.8.54-1.el9.x86_64.rpm": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.8.54/el/9/cinc-18.8.54-1.el9.x86_64.rpm",
           "subfolder": "cinc",
-          "sha256": "28676545126946BDD5F7F079D387F22B98BFFADBA37F646F6654EF336E6A241D"
+          "sha256": "9AC7AD3016194E512841AC39EEB34B15143E64E0CDF7D3F72EE1A4BB1735AF7A"
         },
-        "arcgis-5.2.0-cookbooks.tar.gz": {
-          "path": "cookbooks/arcgis-5.2.0-cookbooks.tar.gz",
+        "arcgis-5.3.0-cookbooks.tar.gz": {
+          "path": "cookbooks/arcgis-5.3.0-cookbooks.tar.gz",
           "subfolder": "cookbooks",
-          "sha256": "40CCD719E456C234A195C0289E41C6DE301EDCF4501352BB732792A482016BB4"
+          "sha256": "16C57C177643C01F22888BD6E12613E608F2E0146F33E51E337F494E90B6E4C4"
         }
       }
     }

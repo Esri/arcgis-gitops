@@ -91,7 +91,7 @@ The module writes the following SSM parameters:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 
 ## Modules
 

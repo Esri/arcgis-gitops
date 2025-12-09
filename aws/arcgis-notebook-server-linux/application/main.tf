@@ -651,6 +651,7 @@ module "backup" {
   source             = "../../modules/backup"
   arcgis_application = "server"
   arcgis_version     = var.arcgis_version
+  backup_s3_bucket   = true
   deployment_id      = var.deployment_id
   site_id            = var.site_id
 

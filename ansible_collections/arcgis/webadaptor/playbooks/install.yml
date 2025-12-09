@@ -15,7 +15,7 @@
 - name: Install ArcGIS Web Adaptor
   hosts: all
   vars:
-    arcgis_version: '11.5'
+    arcgis_version: '12.0'
     local_repository: '/opt/software/archives'
     setups_directory: '/opt/software/setups'
     arcgis_webdaptor_setup_archive:
@@ -23,6 +23,7 @@
       "11.3" : ArcGIS_Web_Adaptor_Java_Linux_113_190319.tar.gz
       "11.4" : ArcGIS_Web_Adaptor_Java_Linux_114_192983.tar.gz
       "11.5" : ArcGIS_Web_Adaptor_Java_Linux_115_195462.tar.gz
+      "12.0" : ArcGIS_Web_Adaptor_Java_Linux_120_197824.tar.gz
     install_dir: '/opt'
     webapp_dir: '/opt/tomcat_arcgis/webapps'
     wa_name: 'arcgis'

@@ -53,11 +53,11 @@ variable "deployment_id" {
 variable "arcgis_version" {
   description = "ArcGIS Enterprise version"
   type        = string
-  default     = "11.5"
+  default     = "12.0"
 
   validation {
-    condition     = contains(["11.4", "11.5"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.4 and 11.5."
+    condition     = contains(["11.4", "11.5", "12.0"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.4, 11.5, and 12.0."
   }
 }
 
@@ -214,5 +214,10 @@ variable "config_store_type" {
   validation {
     condition     = contains(["FILESYSTEM", "AMAZON"], var.config_store_type)
     error_message = "Valid values for the config_store_type variable are FILESYSTEM and AMAZON"
+  }
+
+  validation {
+    condition = var.config_store_type == "AMAZON" ? contains(["12.0"], var.arcgis_version) : true
+    error_message = "config_store_type \"AMAZON\" is supported with ArcGIS Enterprise versions 12.0 and later."
   }
 }

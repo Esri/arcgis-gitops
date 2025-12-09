@@ -96,7 +96,24 @@ def run_command(
     if not filtered_vms:
         print("No VMs found.")
         return False
-
+    
+    # Wait up to 10 minutes for VMs to be in 'Succeeded' provisioning state
+    for vm in filtered_vms:
+        resource_group = vm.id.split("/")[4]
+        for _ in range(60):
+            vm_instance = compute_client.virtual_machines.get(
+                resource_group_name=resource_group,
+                vm_name=vm.name,
+                expand="instanceView"
+            )
+            
+            if vm_instance.provisioning_state == "Succeeded":
+                # print(f"VM '{vm.name}' is in 'Succeeded' provisioning state.")
+                break
+            
+            print(f"Waiting for VM '{vm.name}' to be in 'Succeeded' provisioning state...")
+            time.sleep(10)
+    
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     # Start timer
     start_time = time.time()

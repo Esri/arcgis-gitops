@@ -138,7 +138,7 @@
         },      
         "inputs": {
           "runCommand": [
-            "& $Env:ProgramFiles\\Amazon\\EC2Launch\\EC2Launch.exe reset"
+            "& $Env:ProgramFiles\\Amazon\\EC2Launch\\EC2Launch.exe sysprep --shutdown=true"
           ],
           "timeoutSeconds": "{{ ExecutionTimeout }}"
         }

@@ -63,52 +63,83 @@ s3_client      = boto3.client('s3')
 dynamodb_client = boto3.client('dynamodb')
 ssm_client     = boto3.client('ssm')
 backup_client  = boto3.client('backup')
+tagging_client = boto3.client('resourcegroupstaggingapi')
+
+def get_config_store_resources(site_id, deployment_id):
+    paginator = tagging_client.get_paginator('get_resources')
+        
+    tag_filters = [
+        {
+            'Key': SITE_ID_TAG,
+            'Values': [site_id]
+        },
+        {
+            'Key': DEPLOYMENT_ID_TAG,
+            'Values': [deployment_id]
+        },
+        {
+            'Key': ROLE_TAG,
+            'Values': [CONFIG_STORE_ROLE]
+        }
+    ]
+        
+    # Note: S3 Buckets are searched using the service prefix 's3'
+    resource_filters = ['dynamodb:table', 's3']
+
+    resources = []
+
+    for page in paginator.paginate(TagFilters=tag_filters, ResourceTypeFilters=resource_filters):
+        for resource_map in page.get('ResourceTagMappingList', []):
+            resources.append(resource_map['ResourceARN'])
+
+    return resources
 
 
-# The function recovers ArcGIS Server config store DynamoDB table and S3 bucket
+# The function recovers ArcGIS Server config store DynamoDB table
 # of the specified site and deployment from AWS Backup recovery points.
 # Returns ARNs of the restored application resources.
 def restore_server_config_store(backup_vault, site_id, deployment_id, backup_date, backup_plan_id, backup_role_arn, test_mode):
-    # Find the recovery points for the DynamoDB table and S3 bucket that were created before the specified backup date.
-    db_recovery_points = get_recovery_points(backup_vault, 'DynamoDB', site_id, deployment_id, backup_date)
-    s3_recovery_points = get_recovery_points(backup_vault, 'S3', site_id, deployment_id, backup_date)
+    # Find the recovery points for the DynamoDB table that were created before the specified backup date.
+    db_recovery_points = get_db_recovery_points(backup_vault, site_id, deployment_id, backup_date)
 
-    if CONFIG_STORE_ROLE not in db_recovery_points or CONFIG_STORE_ROLE not in s3_recovery_points:
+    if len(db_recovery_points) == 0:
         logger.info(f"No cloud config store recovery points found for deployment {site_id}/{deployment_id}.")
         return
 
     deployment_namespace = f"{site_id}-{deployment_id}"
 
-    if CONFIG_STORE_ROLE not in db_recovery_points:
-        raise Exception(f"No recovery points found for the config store DynamoDB table.")
+    # Find recovery point of the config store DynamoDB table
+    item = dynamodb_client.get_item(
+        TableName=CONFIG_STORES_TABLE_NAME, 
+        Key={'Namespace': {'S': deployment_namespace}})
 
-    if CONFIG_STORE_ROLE not in s3_recovery_points:
-        raise Exception(f"No recovery points found for the config store S3 bucket.")
+    original_db_table_name = None
+    
+    if 'Item' in item and 'DBTableName' in item['Item']:
+        original_db_table_name = item['Item']['DBTableName']['S']
+        print(f"Original config store table name: {original_db_table_name}")
+    else:
+        raise Exception(f"No entry found for namespace '{deployment_namespace}' in ArcGISConfigStores table.")
 
-    db_table_recovery_point = db_recovery_points[CONFIG_STORE_ROLE]
-    s3_bucket_recovery_point = s3_recovery_points[CONFIG_STORE_ROLE]
+    db_table_recovery_point = None
+    
+    for rp in db_recovery_points:
+        if rp['ResourceName'] == original_db_table_name:
+            db_table_recovery_point = rp
+            break
+
+    if db_table_recovery_point is None:
+        raise Exception(f"No recovery point found for DynamoDB table 'ArcGISConfigStore.{deployment_namespace}'.")
 
     new_db_table_name = f"ArcGISConfigStore.{site_id}-{deployment_id}-{timestamp}"
-    new_s3_bucket_name = f"{site_id}-{deployment_id}-config-store-{timestamp}"
 
     if test_mode:
         logger.info(f"Restoring recovery point '{db_table_recovery_point['RecoveryPointArn']}' ({db_table_recovery_point['CreationDate']}) to new DynamoDB table {new_db_table_name}...")
-        logger.info(f"Restoring recovery point '{s3_bucket_recovery_point['RecoveryPointArn']}' ({s3_bucket_recovery_point['CreationDate']}) to new S3 bucket {new_s3_bucket_name}...")
         return
 
     logger.info("Starting config store restore jobs...")
 
     job_ids = []
-
-    job_ids.append(backup_client.start_restore_job(
-        RecoveryPointArn=s3_bucket_recovery_point['RecoveryPointArn'],
-        Metadata={
-            'DestinationBucketName': new_s3_bucket_name,
-            'NewBucket': 'true'
-        },
-        ResourceType='S3',
-        IamRoleArn=backup_role_arn
-    )['RestoreJobId'])
 
     job_ids.append(backup_client.start_restore_job(
         RecoveryPointArn=db_table_recovery_point['RecoveryPointArn'],
@@ -122,7 +153,6 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
     # Wait for the restore jobs to complete
     jobs = wait_for_restore_jobs(job_ids)
 
-    new_resources = []
     for job in jobs:
         if job['Status'] != 'COMPLETED':
             raise Exception(f"Restoring from recovery point {job['RecoveryPointArn']} failed. {job['StatusMessage']}")
@@ -144,29 +174,31 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
                 }]
             )
 
-        if job['ResourceType'] == 'S3':
-            s3_client.put_bucket_tagging(
-                Bucket=new_s3_bucket_name,
-                Tagging={
-                    'TagSet': [{
-                        'Key': SITE_ID_TAG,
-                        'Value': site_id
-                    },
-                    {
-                        'Key': DEPLOYMENT_ID_TAG,
-                        'Value': deployment_id
-                    },
-                    {
-                        'Key': ROLE_TAG,
-                        'Value': CONFIG_STORE_ROLE
-                    }]
-                }
+            # Update ArcGISRole tag on the restored DynamoDB table
+            original_db_table_arn = backup_client.describe_recovery_point(
+                BackupVaultName=backup_vault,
+                RecoveryPointArn=job['RecoveryPointArn']
+            )['ResourceArn']
+
+            dynamodb_client.tag_resource(
+                ResourceArn=original_db_table_arn,
+                Tags=[{
+                    'Key': SITE_ID_TAG,
+                    'Value': site_id
+                },
+                {
+                    'Key': DEPLOYMENT_ID_TAG,
+                    'Value': deployment_id
+                },
+                {
+                    'Key': ROLE_TAG,
+                    'Value': "config-store-backup"
+                }]
             )
 
         logger.info(f"Recovery point {job['RecoveryPointArn']} restored to {job['CreatedResourceArn']}.")
-        new_resources.append(job['CreatedResourceArn'])
-
-    logger.info(f"Updating namespace '{deployment_namespace}' in ArcGISConfigStores table with the new DynamoDB table and S3 bucket names...")
+        
+    logger.info(f"Updating namespace '{deployment_namespace}' in ArcGISConfigStores table with the new DynamoDB table name...")
 
     try:
         dynamodb_client.describe_table(TableName=CONFIG_STORES_TABLE_NAME)
@@ -208,12 +240,6 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
                     'S': new_db_table_name
                 },
                 'Action': 'PUT'
-            },
-            'S3BucketName': {
-                'Value': {
-                    'S': new_s3_bucket_name
-                },
-                'Action': 'PUT'
             }
         }
     )
@@ -236,6 +262,8 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
                 BackupPlanId=backup_plan_id,
                 SelectionId=selection['SelectionId']
             )
+
+            new_resources = get_config_store_resources(site_id, deployment_id)
 
             backup_client.create_backup_selection(
                 BackupPlanId=backup_plan_id,
@@ -318,6 +346,42 @@ def restore_deployment_infrastructure(backup_vault, site_id, deployment_id, back
     update_deployment_images(site_id, deployment_id, ec2_recovery_points)
 
     wait_for_restore_jobs(job_ids)
+
+def get_db_recovery_points(backup_vault, site_id, deployment_id, backup_time):
+    protected_resources = []
+    paginator = backup_client.get_paginator('list_protected_resources_by_backup_vault')
+    for page in paginator.paginate(BackupVaultName=backup_vault):
+        protected_resources.extend(page['Results'])
+
+    # Get all the recovery points in the vault for DynamoDB 
+    # belonging to the specified site and deployment ids and created before the specified date.
+    resource_recovery_points = []
+    for protected_resource in protected_resources:
+        if protected_resource['ResourceType'] != 'DynamoDB':
+            continue
+
+        recovery_points_by_resource = []
+        paginator = backup_client.get_paginator('list_recovery_points_by_resource')
+        for page in paginator.paginate(ResourceArn=protected_resource['ResourceArn']):
+            recovery_points_by_resource.extend(page['RecoveryPoints'])
+
+        for recovery_point in recovery_points_by_resource:
+            if recovery_point['Status'] != 'COMPLETED' or recovery_point['CreationDate'] > backup_time:
+                    continue
+                    
+            tags = backup_client.list_tags(
+                ResourceArn=recovery_point['RecoveryPointArn']
+            )['Tags']
+
+            if (SITE_ID_TAG in tags and tags[SITE_ID_TAG] == site_id and \
+               DEPLOYMENT_ID_TAG in tags and tags[DEPLOYMENT_ID_TAG] == deployment_id) and \
+               ROLE_TAG in tags and tags[ROLE_TAG] == CONFIG_STORE_ROLE:
+                resource_recovery_points.append(recovery_point)
+
+    # Sort recovery points by creation date in descending order
+    resource_recovery_points.sort(key=lambda x: x['CreationDate'], reverse=True)
+
+    return resource_recovery_points
 
 
 # Retrieves recovery points for the specified resource type based on the specified 
@@ -440,7 +504,6 @@ def deployment_s3_buckets(site_id, deployment_id):
 
             if tag_dict.get(SITE_ID_TAG) == site_id and \
                tag_dict.get(DEPLOYMENT_ID_TAG) == deployment_id and \
-               tag_dict.get(ROLE_TAG) != CONFIG_STORE_ROLE and \
                ROLE_TAG in tag_dict:
                 s3_buckets[tag_dict[ROLE_TAG]] = bucket['Name']
 

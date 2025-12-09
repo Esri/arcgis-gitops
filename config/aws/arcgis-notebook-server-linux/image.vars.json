@@ -1,9 +1,9 @@
 {
   "arcgis_notebook_server_patches": [
-    "ArcGIS-115-NS-*.tar",
-    "ArcGIS-115-NS-*.tar.gz"
+    "ArcGIS-120-NS-*.tar",
+    "ArcGIS-120-NS-*.tar.gz"
   ],
-  "arcgis_version": "11.5",
+  "arcgis_version": "12.0",
   "arcgis_web_adaptor_patches": [],
   "deployment_id": "notebook-server-linux",
   "instance_type": "m7i.2xlarge",

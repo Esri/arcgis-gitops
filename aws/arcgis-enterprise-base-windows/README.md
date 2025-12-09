@@ -6,6 +6,7 @@ Supported ArcGIS Enterprise versions:
 
 * 11.4
 * 11.5
+* 12.0
   
 Supported Operating Systems:
 
@@ -117,6 +118,8 @@ Instructions:
 3. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run the enterprise-base-windows-aws-application workflow using the branch.
+
+> Starting with ArcGIS Enterprise 12.0, for highly-available deployments, "config_store_type" property can be set to "AMAZON" to configure the ArcGIS Server site to use Amazon DynamoDB as the configuration store, S3 as the object store and server directories, and SQS for GeoProcessing service queues, instead of relying on the file system.
 
 ### 5. Test Base ArcGIS Enterprise Deployment
 

@@ -50,3 +50,9 @@ variable "site_id" {
   }
 }
 
+# In ArcGIS Server 12.0 and later the config store S3 bucket must be pre-created.
+variable "backup_s3_bucket" {
+  description = "Backup the config store S3 bucket"
+  type        = bool
+  default     = false
+}

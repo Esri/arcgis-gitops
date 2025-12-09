@@ -21,13 +21,14 @@
 - name: Install ArcGIS Server
   hosts: all
   vars:
-    arcgis_version: '11.5'
+    arcgis_version: '12.0'
     local_repository: '/opt/software/archives'
     arcgis_server_setup_archive:
       "11.2" : ArcGIS_Server_Linux_112_188327.tar.gz
       "11.3" : ArcGIS_Server_Linux_113_190305.tar.gz
       "11.4" : ArcGIS_Server_Linux_114_192977.tar.gz
       "11.5" : ArcGIS_Server_Linux_115_195440.tar.gz
+      "12.0" : ArcGIS_Server_Linux_120_197810.tar.gz
     setups_directory: '/opt/software/setups'
     install_dir: '/opt'
     run_as_user: 'arcgis'

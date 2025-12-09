@@ -25,6 +25,8 @@
 # * * NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
 
 JSON_ATTRIBUTES_PARAMETER='<json_attributes_parameter>'
+DOCKER_CE_PACKAGE_VERSION='3:28.5.2-1.el9'
+DOCKER_CE_CLI_PACKAGE_VERSION='1:28.5.2-1.el9'
 
 # Get the script input parameters in JSON format from SSM Parameter Store
 attributes=$(aws ssm get-parameter --name $JSON_ATTRIBUTES_PARAMETER --query 'Parameter.Value' --with-decryption --output text)
@@ -48,7 +50,7 @@ sudo systemctl enable --now iptables
 # Install Docker CE
 sudo dnf install -y dnf-plugins-core
 sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
-sudo dnf install -y docker-ce docker-ce-cli containerd.io docker-buildx-plugin docker-compose-plugin
+sudo dnf install -y docker-ce-$DOCKER_CE_PACKAGE_VERSION docker-ce-cli-$DOCKER_CE_CLI_PACKAGE_VERSION containerd.io docker-buildx-plugin docker-compose-plugin
 echo '{"iptables": true}' | sudo tee /etc/docker/daemon.json
 sudo systemctl enable --now docker
 

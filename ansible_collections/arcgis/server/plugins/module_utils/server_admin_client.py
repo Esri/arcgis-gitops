@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -92,7 +92,7 @@ class ServerAdminClient:
 
     # Creates a new ArcGIS Server site
     # See https://developers.arcgis.com/rest/enterprise-administration/server/createsite/
-    def create_site(self, config_store_connection, directories, settings, runAsync):
+    def create_site(self, config_store_connection, directories, cloud_config, settings, runAsync):
         data = {
             'username': self.username,
             'password': self.password,
@@ -100,11 +100,14 @@ class ServerAdminClient:
             'f': 'json'
         }
 
-        if config_store_connection is not None:
-            data['configStoreConnection'] = json.dumps(config_store_connection)
+        if cloud_config is not None:
+            data['cloudConfigJson'] = cloud_config
+        else:
+            if config_store_connection is not None:
+                data['configStoreConnection'] = json.dumps(config_store_connection)
 
-        if directories is not None:
-            data['directories'] = json.dumps(directories)
+            if directories is not None:
+                data['directories'] = json.dumps(directories)
 
         if settings is not None:
             data['settings'] = json.dumps(settings)

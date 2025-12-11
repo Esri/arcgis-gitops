@@ -107,10 +107,6 @@ Required IAM policies:
 * TerraformBackend
 * ArcGISEnterpriseApplication
 
-Inputs:
-
-* terraform_command - Terraform command (apply|plan)
-
 Outputs:
 
 * arcgis_server_url - ArcGIS Server URL

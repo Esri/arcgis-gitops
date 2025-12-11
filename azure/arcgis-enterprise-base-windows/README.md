@@ -75,6 +75,10 @@ Required service principal roles:
 
 * Owner role at the subscription scope
 
+Workflow Inputs:
+
+* terraform_command - Terraform command (apply|plan)
+
 Instructions:
 
 1. If required, change "vm_size" and "os_disk_size" properties to the required VM size and OS disk size (in GB).

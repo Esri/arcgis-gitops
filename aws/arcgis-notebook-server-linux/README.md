@@ -73,6 +73,8 @@ Instructions:
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run the notebook-server-linux-aws-infrastructure workflow using the branch.
 
+> When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
+
 ### 3. Configure Applications
 
 GitHub Actions workflow **notebook-server-linux-aws-application** configures or upgrades ArcGIS Notebook Server on EC2 instances.
@@ -83,10 +85,6 @@ Required IAM policies:
 
 * TerraformBackend
 * ArcGISEnterpriseApplication
-
-Inputs:
-
-* terraform_command - Terraform command (apply|plan)
 
 Outputs:
 

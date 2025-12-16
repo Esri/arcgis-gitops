@@ -37,8 +37,9 @@ On the machine where terraform is executed must be installed AWS CLI, kubectl, h
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | cluster_name | Name of the EKS cluster | `string` | n/a | yes |
-| controller_version | Version of the AWS Load Balancer Controller | `string` | `"2.7.0"` | no |
+| controller_version | Version of the controller | `string` | `"2.16.0"` | no |
 | copy_image | If set to true, the controller's image is copied to the private ECR repository | `bool` | `false` | no |
 | enable_waf | Enable WAF and Shield addons for ALB | `bool` | `true` | no |
 | oidc_arn | OIDC provider ARN for the EKS cluster | `string` | n/a | yes |
+| vpc_id | The ID of the VPC where the EKS cluster is deployed | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

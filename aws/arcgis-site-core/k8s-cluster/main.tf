@@ -169,6 +169,10 @@ resource "aws_launch_template" "node_groups" {
 
   metadata_options {
     http_tokens = "required"
+    
+    # By default, EKS nodes use IMDSv2 with a hop limit of 1.
+    # The hop limit greater than 1 is required to allow containers access to IMDSv2.
+    http_put_response_hop_limit = 2
   }
 
   key_name = var.key_name
@@ -218,6 +222,7 @@ module "load_balancer_controller" {
   oidc_arn     = aws_iam_openid_connect_provider.eks_oidc.arn
   enable_waf   = var.enable_waf
   copy_image   = !var.pull_through_cache
+  vpc_id       = module.site_core_info.vpc_id
 
   depends_on = [
     aws_eks_node_group.node_groups

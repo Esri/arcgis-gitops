@@ -30,7 +30,7 @@ variable "cluster_name" {
 variable "controller_version" {
   description = "Version of the ALB Controller"
   type        = string
-  default     = "1.8.9"
+  default     = "1.8.12"
 }
 
 variable "alb_subnet_id" {

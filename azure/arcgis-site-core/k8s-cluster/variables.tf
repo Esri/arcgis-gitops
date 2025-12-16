@@ -17,6 +17,12 @@ variable "azure_region" {
   type        = string
 }
 
+variable "kubernetes_version" {
+  description = "AKS Kubernetes version"
+  type        = string
+  default     = "1.33.5"
+}
+
 variable "site_id" {
   description = "ArcGIS Enterprise site Id"
   type        = string

@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,9 +13,9 @@
 # limitations under the License.
 
 variable "controller_version" {
-  description = "Version of the AWS Load Balancer Controller"
+  description = "Version of the controller"
   type        = string
-  default     = "2.7.0"
+  default     = "2.16.0"
 }
 
 variable "cluster_name" {
@@ -38,4 +38,9 @@ variable "copy_image" {
   description = "If set to true, the controller's image is copied to the private ECR repository"
   type        = bool
   default     = false
+}
+
+variable "vpc_id" {
+  description = "The ID of the VPC where the EKS cluster is deployed"
+  type        = string
 }

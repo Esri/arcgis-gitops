@@ -51,10 +51,10 @@ variable "ecr_repository_prefix" {
 variable "eks_version" {
   description = "The desired Kubernetes version for the EKS cluster"
   type        = string
-  default     = "1.28"
+  default     = "1.33"
   validation {
     condition     = can(regex("^[0-9]+\\.[0-9]+$", var.eks_version))
-    error_message = "The eks_version value must be in the format of major.minor, for example, 1.29"
+    error_message = "The eks_version value must be in the format of major.minor, for example, 1.33"
   }
 }
 

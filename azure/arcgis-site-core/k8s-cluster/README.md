@@ -68,6 +68,7 @@ On the machine where Terraform is executed:
 | container_registry_url | Source container registry URL | `string` | `"docker.io"` | no |
 | container_registry_user | Source container registry user name | `string` | `null` | no |
 | default_node_pool | <p>Default AKS node pool configuration properties:</p>   <ul>   <li>name - The name which should be used for the default Kubernetes Node Pool</li>   <li>vm_size - The size of the Virtual Machine</li>   <li>os_disk_size_gb - The size of the OS Disk which should be used for each agent in the Node Pool</li>   <li>node_count - The initial number of nodes which should exist in this Node Pool</li>   <li>max_count - The maximum number of nodes which should exist in this Node Pool</li>   <li>min_count - The minimum number of nodes which should exist in this Node Pool</li>   </ul> | ```object({ name = string vm_size = string os_disk_size_gb = number node_count = number max_count = number min_count = number })``` | ```{ "max_count": 8, "min_count": 4, "name": "default", "node_count": 4, "os_disk_size_gb": 1024, "vm_size": "Standard_D8s_v5" }``` | no |
+| kubernetes_version | AKS Kubernetes version | `string` | `"1.33.5"` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | subnet_id | AKS cluster subnet ID | `string` | `null` | no |
 

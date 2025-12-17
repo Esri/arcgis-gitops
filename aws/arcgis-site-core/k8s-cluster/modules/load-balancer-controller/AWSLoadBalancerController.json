@@ -144,6 +144,7 @@
             "Action": [
                 "elasticloadbalancing:CreateListener",
                 "elasticloadbalancing:DeleteListener",
+                "elasticloadbalancing:DescribeListenerAttributes",
                 "elasticloadbalancing:CreateRule",
                 "elasticloadbalancing:DeleteRule"
             ],

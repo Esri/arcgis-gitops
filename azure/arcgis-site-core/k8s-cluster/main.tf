@@ -93,6 +93,7 @@ resource "azurerm_kubernetes_cluster" "site_cluster" {
   name                      = var.site_id
   location                  = azurerm_resource_group.cluster_rg.location
   resource_group_name       = azurerm_resource_group.cluster_rg.name
+  kubernetes_version        = var.kubernetes_version
   dns_prefix                = var.site_id
   sku_tier                  = "Standard"
   cost_analysis_enabled     = true

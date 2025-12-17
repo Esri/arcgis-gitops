@@ -10,7 +10,7 @@
  * On the machine where terraform is executed must be installed AWS CLI, kubectl, helm, and Docker.
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -40,6 +40,7 @@ locals {
     "enableShield" = var.enable_waf
     "enableWaf" = var.enable_waf
     "enableWafv2" = var.enable_waf
+    "vpcId" = var.vpc_id
   }
   helm_values_str = join(" ", [for key, value in local.helm_values : "--set ${key}=${value}"])
 }

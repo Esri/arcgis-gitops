@@ -70,13 +70,13 @@ variable "license_level" {
 }
 
 variable "os" {
-  description = "Operating system Id (rhel9|ubuntu22)"
+  description = "Operating system Id (rhel9|ubuntu22|ubuntu24)"
   type        = string
   default     = "rhel9"
 
   validation {
-    condition     = contains(["rhel9", "ubuntu22"], var.os)
-    error_message = "Valid values for os variable are rhel9 and ubuntu22."
+    condition     = contains(["rhel9", "ubuntu22", "ubuntu24"], var.os)
+    error_message = "Valid values for os variable are rhel9, ubuntu22, and ubuntu24."
   }
 }
 

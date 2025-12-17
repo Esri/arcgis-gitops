@@ -63,7 +63,12 @@ variable "images" {
     ubuntu22 = {
       ami_name_filter = "ubuntu/images/hvm-ssd/ubuntu-*22*-amd64-server-*"
       owner           = "099720109477" # Canonical
-      description     = "Canonical, Ubuntu, 22.04 LTS, amd64 focal image"
+      description     = "Canonical, Ubuntu, 22.04 LTS, amd64 jammy image"
+    }
+    ubuntu24 = {
+      ami_name_filter = "ubuntu/images/hvm-ssd-gp3/ubuntu-*-24.04-amd64-server-*"
+      owner           = "099720109477" # Canonical
+      description     = "Canonical, Ubuntu, 24.04 LTS, amd64 noble image"
     }
     rhel9 = {
       ami_name_filter = "RHEL-9.5.0_HVM-*-x86_64-*-Hourly2-GP3"

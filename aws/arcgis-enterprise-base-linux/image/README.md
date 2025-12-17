@@ -57,7 +57,7 @@ The template uses the following SSM parameters:
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
 | instance_type | EC2 instance type | `string` | `"6i.xlarge"` | no |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-linux"` | no |
-| os | Operating system | `string` | `"rhel9"` | no |
+| os | Operating system Id (rhel9\|ubuntu22\|ubuntu24) | `string` | `"rhel9"` | no |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `100` | no |
 | run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store | `string` | `"arcgis"` | no |

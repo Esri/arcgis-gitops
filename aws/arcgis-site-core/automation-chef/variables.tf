@@ -45,6 +45,10 @@ variable "chef_client_paths" {
       path        = "cinc/cinc_18.8.54-1.ubuntu22.amd64.deb"
       description = "Chef Client setup S3 key for Ubuntu 22.04 LTS"
     }
+    ubuntu24 = {
+      path        = "cinc/cinc_18.8.54-1.ubuntu24.amd64.deb"
+      description = "Chef Client setup S3 key for Ubuntu 24.04 LTS"
+    }
     rhel9 = {
       path        = "cinc/cinc-18.8.54-1.el9.x86_64.rpm"
       description = "Chef Client setup S3 key for Red Hat Enterprise Linux version 9"

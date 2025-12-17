@@ -131,7 +131,7 @@ The module reads the following SSM parameters:
 | keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
 | keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
-| os | Operating system id (rhel9\|ubuntu22) | `string` | `"rhel9"` | no |
+| os | Operating system id (rhel9\|ubuntu22\|ubuntu24) | `string` | `"rhel9"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |
 | portal_user_license_type_id | Portal for ArcGIS administrator user license type Id | `string` | `""` | no |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |

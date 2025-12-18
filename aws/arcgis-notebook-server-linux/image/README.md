@@ -65,7 +65,7 @@ The template writes the following SSM parameters:
 | deployment_id | Deployment Id | `string` | `"notebook-server-linux"` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | license_level | ArcGIS Notebook Server license level | `string` | `"standard"` | no |
-| os | Operating system | `string` | `"rhel9"` | no |
+| os | Operating system Id (rhel9\|ubuntu22\|ubuntu24) | `string` | `"rhel9"` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `128` | no |
 | run_as_user | User account used to run ArcGIS Notebook Server | `string` | `"arcgis"` | no |
 | notebook_server_web_context | ArcGIS Notebook Server web context | `string` | `"notebooks"` | no |

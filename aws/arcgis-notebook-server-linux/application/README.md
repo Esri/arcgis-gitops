@@ -62,7 +62,7 @@ The module reads the following SSM parameters:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 
 ## Modules
 
@@ -120,7 +120,7 @@ The module reads the following SSM parameters:
 | log_level | ArcGIS Notebook Server log level | `string` | `"WARNING"` | no |
 | notebook_server_authorization_file_path | Local path of ArcGIS Notebook Server authorization file | `string` | n/a | yes |
 | notebook_server_authorization_options | Additional ArcGIS Notebook Server software authorization command line options | `string` | `""` | no |
-| os | Operating system id (rhel9\|ubuntu22) | `string` | `"rhel9"` | no |
+| os | Operating system id (rhel9\|ubuntu22\|ubuntu24) | `string` | `"rhel9"` | no |
 | portal_org_id | ArcGIS Enterprise organization Id | `string` | `null` | no |
 | portal_password | Portal for ArcGIS user password | `string` | `null` | no |
 | portal_url | Portal for ArcGIS URL | `string` | `null` | no |

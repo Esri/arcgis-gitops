@@ -12,6 +12,11 @@
           "subfolder": "cinc",
           "sha256": "17028DCFE23E57A43D2FFFD490D696BFBCD47F796DD9FE302AC0515B0D4218EC"
         },
+        "cinc_18.8.54-1.ubuntu24.amd64.deb": {
+          "url": "https://downloads.cinc.sh/files/stable/cinc/18.8.54/ubuntu/24.04/cinc_18.8.54-1_amd64.deb",
+          "subfolder": "cinc",
+          "sha256": "B6908A59302337C2DBC959A78C40128821531312385398032EB753A21738C3DF"
+        },
         "cinc-18.8.54-1.el9.x86_64.rpm": {
           "url": "https://downloads.cinc.sh/files/stable/cinc/18.8.54/el/9/cinc-18.8.54-1.el9.x86_64.rpm",
           "subfolder": "cinc",

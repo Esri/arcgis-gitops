@@ -41,7 +41,7 @@ Before using the module, the repository S3 bucket must be created by infrastruct
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 
 ## Modules
 
@@ -67,8 +67,8 @@ Before using the module, the repository S3 bucket must be created by infrastruct
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| arcgis_cookbooks_path | S3 repository key of Chef cookbooks for ArcGIS distribution archive in the repository bucket | `string` | `"cookbooks/arcgis-5.2.0-cookbooks.tar.gz"` | no |
+| arcgis_cookbooks_path | S3 repository key of Chef cookbooks for ArcGIS distribution archive in the repository bucket | `string` | `"cookbooks/arcgis-5.3.0-cookbooks.tar.gz"` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
-| chef_client_paths | Chef/CINC Client setup S3 keys by operating system | `map(any)` | ```{ "rhel9": { "description": "Chef Client setup S3 key for Red Hat Enterprise Linux version 9", "path": "cinc/cinc-18.7.6-1.el9.x86_64.rpm" }, "ubuntu22": { "description": "Chef Client setup S3 key for Ubuntu 22.04 LTS", "path": "cinc/cinc_18.7.6-1.ubuntu22.amd64.deb" }, "windows2022": { "description": "Chef Client setup S3 key for Microsoft Windows Server 2022", "path": "cinc/cinc-18.7.6-1-x64.msi" }, "windows2025": { "description": "Chef Client setup S3 key for Microsoft Windows Server 2022", "path": "cinc/cinc-18.7.6-1-x64.msi" } }``` | no |
+| chef_client_paths | Chef/CINC Client setup S3 keys by operating system | `map(any)` | ```{ "rhel9": { "description": "Chef Client setup S3 key for Red Hat Enterprise Linux version 9", "path": "cinc/cinc-18.8.54-1.el9.x86_64.rpm" }, "ubuntu22": { "description": "Chef Client setup S3 key for Ubuntu 22.04 LTS", "path": "cinc/cinc_18.8.54-1.ubuntu22.amd64.deb" }, "ubuntu24": { "description": "Chef Client setup S3 key for Ubuntu 24.04 LTS", "path": "cinc/cinc_18.8.54-1.ubuntu24.amd64.deb" }, "windows2022": { "description": "Chef Client setup S3 key for Microsoft Windows Server 2022", "path": "cinc/cinc-18.8.54-1-x64.msi" }, "windows2025": { "description": "Chef Client setup S3 key for Microsoft Windows Server 2022", "path": "cinc/cinc-18.8.54-1-x64.msi" } }``` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 <!-- END_TF_DOCS -->

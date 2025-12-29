@@ -8,7 +8,7 @@ The directory contains user managed IAM policies for the GitHub Actions workflow
 
 ## Creating IAM Policies
 
-Use create-iam-policies.sh script create IAM policies for the GitHub Action workflows using the JSON policy documents.
+Use create-iam-policies.sh script to create IAM policies for the GitHub Action workflows using the JSON policy documents.
 
 Allow execution of the scripts in this directory:
 

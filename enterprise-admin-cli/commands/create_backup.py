@@ -61,9 +61,10 @@ if __name__ == '__main__':
 
                 if job_status['status'] == 'COMPLETED':
                     print("Backup completed.")
-                    for stage in job_status['result']['stages']:
-                        print("Stage '{name}' {state} in {duration}.".format(
-                              name = stage['name'], state=stage['state'], duration = stage['duration']))
+                    if 'result' in job_status:
+                        for stage in job_status['result']['stages']:
+                            print("Stage '{name}' {state} in {duration}.".format(
+                                name = stage['name'], state=stage['state'], duration = stage['duration']))
                     break
                 elif job_status['status'] == 'FAILED':
                     raise RestServiceError(500, "Backup job failed.", job_status['messages'])

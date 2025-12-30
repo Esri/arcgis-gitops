@@ -75,7 +75,7 @@ The target group is configured to forward requests for specific path patterns.
 | alb_port | Target group port | `number` | `80` | no |
 | health_check_path | Health check path | `string` | `"/server/rest/info/healthcheck"` | no |
 | instance_port | Instance port | `number` | `80` | no |
-| name | Target group name | `string` | n/a | yes |
+| name | Target group name | `string` | `null` | no |
 | path_patterns | Listener rule path patterns | `list(string)` | ```[ "/portal", "/portal/*", "/server", "/server/*" ]``` | no |
 | priority | Target group priority | `number` | `100` | no |
 | protocol | Target group protocol | `string` | `"HTTP"` | no |

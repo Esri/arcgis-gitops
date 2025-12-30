@@ -20,7 +20,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 | null | n/a |
 
 ## Resources

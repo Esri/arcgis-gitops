@@ -25,7 +25,7 @@ The module retrieves the backup S3 bucket name and region from '/arcgis/${var.ba
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 
 ## Modules
 

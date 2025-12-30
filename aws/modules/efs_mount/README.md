@@ -20,7 +20,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 | null | n/a |
 
 ## Resources
@@ -28,6 +28,7 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [null_resource.nfs_mount](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.output_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs

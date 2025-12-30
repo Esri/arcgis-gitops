@@ -33,7 +33,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 | tls | ~> 3.0 |
 
 ## Modules
@@ -76,7 +76,7 @@ the subnet IDs are retrieved from the following SSM parameters:
 | container_registry_user | Source container registry user name | `string` | `null` | no |
 | containerinsights_log_retention | The number of days to retain CloudWatch Container Insights log events | `number` | `90` | no |
 | ecr_repository_prefix | The repository name prefix to use when caching images from the source registry | `string` | `"docker-hub"` | no |
-| eks_version | The desired Kubernetes version for the EKS cluster | `string` | `"1.28"` | no |
+| eks_version | The desired Kubernetes version for the EKS cluster | `string` | `"1.33"` | no |
 | eks_worker_node_role_policies | List of IAM role policy ARNs to attach to the EKS worker node role | `list(string)` | ```[ "arn:aws:iam::aws:policy/AmazonEKSWorkerNodePolicy", "arn:aws:iam::aws:policy/AmazonEC2ContainerRegistryFullAccess", "arn:aws:iam::aws:policy/AmazonEKS_CNI_Policy", "arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore", "arn:aws:iam::aws:policy/CloudWatchAgentServerPolicy", "arn:aws:iam::aws:policy/AmazonS3FullAccess" ]``` | no |
 | enable_waf | Enable WAF and Shield addons for ALB | `bool` | `true` | no |
 | key_name | EC2 key pair name | `string` | `null` | no |

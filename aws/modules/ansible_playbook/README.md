@@ -20,7 +20,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 | local | n/a |
 | null | n/a |
 
@@ -39,8 +39,8 @@ On the machine where Terraform is executed:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
-| external_vars | Ansible external vars | `map(any)` | n/a | yes |
+| external_vars | Ansible external vars | `any` | n/a | yes |
 | machine_roles | List of machine roles. | `list(string)` | n/a | yes |
-| playbook_path | Path to the Ansible playbook | `string` | n/a | yes |
+| playbook | Ansible playbook | `string` | n/a | yes |
 | site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

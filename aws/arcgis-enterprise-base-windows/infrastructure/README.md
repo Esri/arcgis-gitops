@@ -82,13 +82,13 @@ The module writes the following SSM parameters:
 | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
 | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
- | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
+| /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
 
 ## Providers
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 
 ## Modules
 

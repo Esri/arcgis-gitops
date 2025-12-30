@@ -19,6 +19,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
+| aws | ~> 6.10 |
 | null | n/a |
 
 ## Resources
@@ -26,6 +27,7 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [null_resource.s3_copy_files](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 
 ## Inputs
 

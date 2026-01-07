@@ -27,7 +27,7 @@ The workflows leverage popular DevOps tools, including Terraform, Ansible, and P
 
 ## Instructions
 
-The workflows designed to be used together to achieve a specific goal are grouped into *templates*.
+A *template* is a group of workflows designed to be used together to achieve a specific goal.
 
 See the [walkthroughs](https://github.com/Esri/arcgis-gitops/wiki) in the wiki pages for step-by-step instructions on how to use the templates.
 

@@ -72,7 +72,7 @@ Create a service principal in Microsoft Entra ID that will be used by the workfl
 
 > The templates use the same Azure credentials for all the workflows. To implement the principle of least privilege and enforce separation of duties, consider modifying the workflows to use different Azure credentials for different workflows. Consider using separate service principals for core infrastructure, deployments infrastructure, and application workflows.  
 
-Create an Azure storage account and a blob container in the account for the [Terraform backend](https://developer.hashicorp.com/terraform/language/backend/azurerm). Assign the service principal "Storage Blob Data Owner" or "Container Blob Data Owner" role in the storage Account.
+Create an Azure storage account and a blob container in the account for the [Terraform backend](https://developer.hashicorp.com/terraform/language/settings/backends/azurerm). Assign the service principal the "Storage Blob Data Owner" role at the storage account or container scope.
 
 ### 3. GitHub Repository Settings
 
@@ -109,7 +109,7 @@ For ArcGIS Enterprise on Kubernetes:
 | TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME | Azure storage account name of Terraform backend   |
 | TERRAFORM_BACKEND_CONTAINER_NAME       | Azure storage container name of Terraform backend |
 
-Run validate-settings-azure GitHub Actions workflow to validate the settings.
+Run **validate-settings-azure** GitHub Actions workflow to validate the settings.
 
 > If the GitHub subscription plan supports GitHub Actions Environments, consider [environment secrets](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) to use secrets specific to each environment.
 

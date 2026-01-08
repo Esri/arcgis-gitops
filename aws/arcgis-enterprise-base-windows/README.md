@@ -37,13 +37,13 @@ Set the primary ArcGIS Enterprise site administrator credentials in the GitHub A
 | ENTERPRISE_ADMIN_USERNAME | ArcGIS Enterprise administrator user name      |
 | ENTERPRISE_ADMIN_PASSWORD | ArcGIS Enterprise administrator user password  |
 | ENTERPRISE_ADMIN_EMAIL    | ArcGIS Enterprise administrator e-mail address |
-| RUN_AS_PASSWORD           | Password of 'arcgis' windows user account      |
+| RUN_AS_PASSWORD           | Password of the 'arcgis' Windows user account  |
 
 > The ArcGIS Enterprise administrator user name must be between 6 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
 
 > The ArcGIS Enterprise administrator user password must be between 8 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
 
-> The password of 'arcgis' windows user account must be at least 8 characters long, include at least three of the four character types: uppercase letters, lowercase letters, numbers, and special characters. Additionally, passwords should not contain the account name ('arcgis').
+> The password of the 'arcgis' Windows user account must be at least 8 characters long, include at least three of the four character types: uppercase letters, lowercase letters, numbers, and special characters. Additionally, passwords should not contain the account name ('arcgis').
 
 ### 2. Build Images
 
@@ -61,7 +61,7 @@ Instructions:
 2. Commit the changes to a Git branch and push the branch to GitHub.
 3. Run the enterprise-base-windows-aws-image workflow using the branch.
 
-> In the configuration files, "os" and "arcgis_version" properties values for the same deployment must match across all the configuration files of the deployment.
+> In the configuration files, "os" and "arcgis_version" property values for the same deployment must match across all the configuration files of the deployment.
 
 ### 3. Provision AWS Resources
 
@@ -114,12 +114,12 @@ Outputs:
 Instructions:
 
 1. Add Portal for ArcGIS and ArcGIS Server authorization files for the ArcGIS Enterprise version to `config/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties to the file paths.
-2. Set "admin_full_name", "admin_description", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
-3. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
+2. Set "admin_full_name", "admin_description", "security_question_index", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
+3. (Optionally) Add SSL certificates for the base ArcGIS Enterprise domain name and trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to the password of the keystore file.
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run the enterprise-base-windows-aws-application workflow using the branch.
 
-> Starting with ArcGIS Enterprise 12.0, for highly-available deployments, "config_store_type" property can be set to "AMAZON" to configure the ArcGIS Server site to use Amazon DynamoDB as the configuration store, S3 as the object store and server directories, and SQS for GeoProcessing service queues, instead of relying on the file system.
+> Starting with ArcGIS Enterprise 12.0, for highly available deployments, "config_store_type" property can be set to "AMAZON" to configure the ArcGIS Server site to use Amazon DynamoDB as the configuration store, S3 as the object store and server directories, and SQS for GeoProcessing service queues, instead of relying on the file system.
 
 ### 5. Test Base ArcGIS Enterprise Deployment
 
@@ -140,7 +140,7 @@ The template supports:
 
 ### Application-level Backups
 
-The application-level base ArcGIS Enterprise deployment backups backup the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the site's backup S3 bucket.
+The application-level base ArcGIS Enterprise deployment backups back up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the site's backup S3 bucket.
 
 #### Creating Application-level Backups
 
@@ -176,9 +176,9 @@ Instructions:
 
 ### System-level backups
 
-The system-level base ArcGIS Enterprise deployment backups backup S3 buckets, DynamoDB tables, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the site's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
+The system-level base ArcGIS Enterprise deployment backups back up S3 buckets, DynamoDB tables, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the site's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
 
-> System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or a edit to a feature service that is made during the backup process.
+> System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or an edit to a feature service that is made during the backup process.
 
 #### Creating System-level Backups
 
@@ -214,7 +214,7 @@ Instructions:
 
 ## In-Place Updates and Upgrades
 
-GitHub Actions workflow enterprise-base-windows-aws-application supports upgrade mode used to in-place patch or upgrade the base ArcGIS Enterprise applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Enterprise version was changed, it installs the new version of the ArcGIS Enterprise applications and re-configures the applications.
+GitHub Actions workflow enterprise-base-windows-aws-application supports upgrade mode used to patch or upgrade in place the base ArcGIS Enterprise applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Enterprise version was changed, it installs the new version of the ArcGIS Enterprise applications and re-configures the applications.
 
 Instructions:
 
@@ -243,7 +243,7 @@ Instructions:
 
 ## Disconnected Environments
 
-To prevent deployments from accessing the Internet, use "internal" subnets for EC2 instances. The internal subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in specific AWS region.
+To prevent deployments from accessing the Internet, use "internal" subnets for EC2 instances. The internal subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in a specific AWS region.
 
 The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, pollination services, and time services.
 

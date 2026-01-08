@@ -27,7 +27,7 @@ The workflows leverage popular DevOps tools, including Terraform, Ansible, and P
 
 ## Instructions
 
-The workflows designed to be used together to achieve a specific goal are grouped into *templates*.
+A *template* is a group of workflows designed to be used together to achieve a specific goal.
 
 See the [walkthroughs](https://github.com/Esri/arcgis-gitops/wiki) in the wiki pages for step-by-step instructions on how to use the templates.
 
@@ -46,7 +46,7 @@ Esri welcomes contributions from anyone and everyone. Please see our [guidelines
 
 ## Licensing
 
-Copyright 2024-2025 Esri
+Copyright 2024-2026 Esri
 
 Licensed under the Apache License, Version 2.0 (the "License");
 You may not use this file except in compliance with the License.

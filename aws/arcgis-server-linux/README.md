@@ -56,12 +56,12 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "arcgis_server_patches" property to the lists of patch file names that must be installed on the images.
+1. Set "arcgis_server_patches" property to the list of patch file names that must be installed on the images.
 2. If ArcGIS Web Adaptor is required, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
 3. Commit the changes to a Git branch and push the branch to GitHub.
 4. Run server-linux-aws-image workflow using the branch.
 
-> In the configuration files, "os" and "arcgis_version" properties values for the same deployment must match across all the configuration files of the deployment.
+> In the configuration files, "os" and "arcgis_version" property values for the same deployment must match across all the configuration files of the deployment.
 
 ### 3. Provision AWS Resources
 
@@ -85,7 +85,7 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
-2. To add the deployment to the load balancer of a base ArcGIS Enterprise deployment, set "alb_deployment_id" property to the base deployment Id. Otherwise, set "deployment_fqdn" property to the ArcGIS Server deployment fully qualified domain name, provision or import SSL certificate for the domain name into AWS Certificate Manager service in the selected AWS region, and set "ssl_certificate_arn" property to the certificate ARN.
+2. To add the deployment to the load balancer of a base ArcGIS Enterprise deployment, set "alb_deployment_id" property to the base deployment ID. Otherwise, set "deployment_fqdn" property to the ArcGIS Server deployment fully qualified domain name, provision or import an SSL certificate for the domain name into AWS Certificate Manager service in the selected AWS region, and set "ssl_certificate_arn" property to the certificate ARN.
 3. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
 4. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
 5. Commit the changes to the Git branch and push the branch to GitHub.
@@ -113,16 +113,16 @@ Outputs:
 
 Instructions:
 
-1. Add ArcGIS Server authorization file for the ArcGIS Server version to `config/authorization/<ArcGIS version>` directory of the repository and set "server_authorization_file_path" property to the file paths.
-2. If ArcGIS Web Adaptor is used, set "use_webadaptor" property `true`.
-3. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "server_role" and "server_functions" properties to the required server role and function. If the server does not share the load balancer with the base ArcGIS Enterprise deployment, set "portal_url" property to the Portal for ArcGIS URL. To federate the server with ArcGIS Enterprise on Kubernetes organization, set "portal_org_id" property to "0123456789ABCDEF", which is the default organization Id.
-4. To install configure ArcGIS Server and Apache Tomcat use specific SSL certificates, set "keystore_file_path" and "keystore_file_password" properties to the certificates file path and password.
+1. Add ArcGIS Server authorization file for the ArcGIS Server version to `config/authorization/<ArcGIS version>` directory of the repository and set "server_authorization_file_path" property to the file path.
+2. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true`.
+3. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "server_role" and "server_functions" properties to the required server role and function. If the server does not share the load balancer with the base ArcGIS Enterprise deployment, set "portal_url" property to the Portal for ArcGIS URL. To federate the server with ArcGIS Enterprise on Kubernetes organization, set "portal_org_id" property to "0123456789ABCDEF", which is the default organization ID.
+4. To configure ArcGIS Server and Apache Tomcat with specific SSL certificates, set "keystore_file_path" and "keystore_file_password" properties to the certificate file path and password.
 5. Commit the changes to the Git branch and push the branch to GitHub.
 6. Run server-linux-aws-application workflow using the branch.
 
 > Starting with ArcGIS Server 12.0, for highly-available deployments, "config_store_type" property can be set to "AMAZON" to configure the ArcGIS Server site to use Amazon DynamoDB as the configuration store, S3 as the object store and server directories, and SQS for GeoProcessing service queues, instead of relying on the file system.
 
-> '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
+> '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
 ### 5. Test ArcGIS Server Deployment
 
@@ -182,7 +182,7 @@ Instructions:
 
 The system-level ArcGIS Server deployment backups back up S3 buckets, DynamoDB tables, EFS file systems, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the site's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
 
-> System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or a edit to a feature service that is made during the backup process.
+> System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or an edit to a feature service that is made during the backup process.
 
 #### Creating System-level Backups
 
@@ -216,7 +216,7 @@ Instructions:
 
 ## In-Place Updates and Upgrades
 
-GitHub Actions workflow server-linux-aws-application supports upgrade mode used to in-place patch or upgrade the ArcGIS Server applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Server version was changed, it installs the new version of ArcGIS Server and re-configures it.
+GitHub Actions workflow server-linux-aws-application supports upgrade mode used to patch or upgrade in place the ArcGIS Server applications on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Server version was changed, it installs the new version of ArcGIS Server and re-configures it.
 
 Instructions:
 
@@ -245,7 +245,7 @@ Instructions:
 
 ## Disconnected Environments
 
-To prevent deployments from accessing the Internet, use "internal" subnets for EC2 instances. The internal subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in specific AWS region.
+To prevent deployments from accessing the Internet, use "internal" subnets for EC2 instances. The internal subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in a specific AWS region.
 
 The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, pollination services, and time services.
 

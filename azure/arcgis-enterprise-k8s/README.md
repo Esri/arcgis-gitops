@@ -1,6 +1,6 @@
 # ArcGIS Enterprise on Kubernetes Deployment in AKS
 
-This template provides GitHub Actions workflows for [ArcGIS Enterprise on Kubernetes](https://www.esri.com/en-us/arcgis/products/arcgis-enterprise/kubernetes) deployment and operations in Microsoft Azure Kubernetes Services (AKS) cluster.
+This template provides GitHub Actions workflows for [ArcGIS Enterprise on Kubernetes](https://www.esri.com/en-us/arcgis/products/arcgis-enterprise/kubernetes) deployment and operations in Microsoft Azure Kubernetes Service (AKS) cluster.
 
 Supported ArcGIS Enterprise on Kubernetes versions:
 
@@ -27,7 +27,7 @@ Initial deployment of ArcGIS Enterprise on Kubernetes includes provisioning cont
 
 ### 1. Provisioning Container Images
 
-GitHub Actions workflow **enterprise-k8s-azure-image** builds container image for [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) and pushes it to the private  container registry (ACR) repository.
+GitHub Actions workflow **enterprise-k8s-azure-image** builds a container image for [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) and pushes it to the private container registry (ACR).
 
 The workflow uses [shell scripts](image/README.md) with [image.vars.json](../../config/azure/arcgis-enterprise-k8s/image.vars.json) config file.
 
@@ -42,7 +42,7 @@ Instructions:
 
 ### 2. Create Ingress Resources
 
-GitHub Actions workflow **enterprise-k8s-azure-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on Kubernetes deployment in the AKS cluster and ingress resources that routes traffic to the deployment.
+GitHub Actions workflow **enterprise-k8s-azure-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on Kubernetes deployment in the AKS cluster and ingress resources that route traffic to the deployment.
 
 The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/azure/arcgis-enterprise-k8s/ingress.tfvars.json) config file.
 
@@ -90,7 +90,7 @@ Instructions:
 
 1. Set "helm_charts_version" property to the Helm Charts for ArcGIS Enterprise on Kubernetes version for the ArcGIS Enterprise on Kubernetes version.
 2. Download the ArcGIS Enterprise on Kubernetes Helm Charts package archive for the charts version from [My Esri](https://www.esri.com/en-us/my-esri-login) and extract the archive to `azure/arcgis-enterprise-k8s/organization/helm-charts/arcgis-enterprise/<Helm Charts version>` folder in the repository.
-3. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file paths.
+3. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file path.
 4. Set "system_arch_profile" property to the required ArcGIS Enterprise on Kubernetes architecture profile.
 5. Set "deployment_fqdn" property to the ArcGIS Enterprise deployment fully qualified domain name.
 6. Set "admin_username", "admin_password", "admin_first_name", "admin_last_name", "admin_email", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
@@ -98,13 +98,13 @@ Instructions:
 8. Commit the changes to the Git branch and push the branch to GitHub.
 9. Run enterprise-k8s-azure-organization workflow using the branch.
 
-> '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
+> '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
 ### 4. Test ArcGIS Enterprise Deployment
 
 GitHub Actions workflow **enterprise-k8s-azure-test** tests the ArcGIS Enterprise deployment.
 
-The workflow executes "test-publish-csv" script from [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) to test the deployment's health. The scrip runs in "enterprise-admin-cli" Kubernetes pod that impersonates an ArcGIS Enterprise user by retrieving the user credentials from "admin-cli-credentials" Kubernetes secret.
+The workflow executes "test-publish-csv" script from [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) to test the deployment's health. The script runs in "enterprise-admin-cli" Kubernetes pod that impersonates an ArcGIS Enterprise user by retrieving the user credentials from "admin-cli-credentials" Kubernetes secret.
 
 Required user roles:
 
@@ -116,7 +116,7 @@ Instructions:
 
 ## Backups and Disaster Recovery
 
-The templates support configuring the organization's disaster recovery settings, default backup store in Azure blob storage, and provides workflows for [backup and restore](https://enterprise-k8s.arcgis.com/en/latest/administer/backup-and-restore.htm) operations.
+The templates support configuring the organization's disaster recovery settings, default backup store in Azure Blob Storage, and provides workflows for [backup and restore](https://enterprise-k8s.arcgis.com/en/latest/administer/backup-and-restore.htm) operations.
 
 ### Create Backups
 
@@ -132,7 +132,7 @@ Required user roles:
 
 Instructions:
 
-1. Set "passcode" property in the config file to the pass code that will be used to encrypt content of the backup.
+1. Set "passcode" property in the config file to the passcode used to encrypt the content of the backup.
 2. (Optional) Set "retention" property in the config file to backup retention interval (in days).
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-k8s-azure-backup workflow using the branch.
@@ -154,7 +154,7 @@ Required user roles:
 Instructions:
 
 1. (Optional) Set "backup" property in the config file to the backup name. If "backup" property is set to null or empty string, the latest completed backup in the store will be used.
-2. Set "passcode" property in the config file to the pass code used to create the backup.
+2. Set "passcode" property in the config file to the passcode used to encrypt the content of the backup.
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-k8s-azure-restore workflow using the branch.
 
@@ -164,7 +164,7 @@ GitHub Actions workflow enterprise-k8s-azure-organization supports [updates and 
 
 Instructions:
 
-1. In case of upgrade to a new version, add ArcGIS Enterprise on Kubernetes authorization files for the new ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property in [organization.tfvars.json](../../config/azure/arcgis-enterprise-k8s/organization.tfvars.json) config file to the file paths.
+1. In case of upgrade to a new version, add ArcGIS Enterprise on Kubernetes authorization files for the new ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property in [organization.tfvars.json](../../config/azure/arcgis-enterprise-k8s/organization.tfvars.json) config file to the file path.
 2. Download the ArcGIS Enterprise on Kubernetes Helm Charts package archive for the new charts version from [My Esri](https://www.esri.com/en-us/my-esri-login) and extract the archive to `azure/arcgis-enterprise-k8s/organization/helm-charts/arcgis-enterprise/<Helm Charts version>` folder in the repository.
 3. Set "helm_charts_version" property to the Helm Charts version of the new ArcGIS Enterprise on Kubernetes version (see "Chart Version Compatibility" section in the charts' READMEs).
 4. Commit the changes to the Git branch and push the branch to GitHub.

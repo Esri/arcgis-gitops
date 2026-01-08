@@ -18,7 +18,7 @@ Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
 2. Create core AWS resources and Chef automation resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
-3. Create a base ArcGIS Enterprise deployment using [arcgis-notebook-server-linux](../arcgis-notebook-server-linux/README.md) or [arcgis-enterprise-base-windows](../arcgis-enterprise-base-windows/) templates.
+3. Create a base ArcGIS Enterprise deployment using [arcgis-enterprise-base-linux](../arcgis-enterprise-base-linux/README.md) or [arcgis-enterprise-base-windows](../arcgis-enterprise-base-windows/README.md) templates.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 
@@ -41,11 +41,11 @@ Required IAM policies:
 Instructions:
 
 1. (Optional) Set "arcgis_notebook_server_patches" and "arcgis_web_adaptor_patches" properties to the lists of patch file names that must be installed on the images.
-2. (Optional) Set "gpu_ready" property to `true` to configure the AMI to [use GPUs](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/configure-arcgis-notebook-server-to-use-gpus.htm). This also requires requires "instance_type" to be set to an EC2 instance type with GPU support in image.vars.json and infrastructure.tfvars.json config files.
+2. (Optional) Set "gpu_ready" property to `true` to configure the AMI to [use GPUs](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/configure-arcgis-notebook-server-to-use-gpus.htm). This also requires "instance_type" to be set to an EC2 instance type with GPU support in image.vars.json and infrastructure.tfvars.json config files.
 3. Commit the changes to a Git branch and push the branch to GitHub.
 4. Run the notebook-server-linux-aws-image workflow using the branch.
 
-> In the configuration files, "os" and "arcgis_version" properties values for the same deployment must match across all the configuration files of the deployment.
+> In the configuration files, "os" and "arcgis_version" property values for the same deployment must match across all the configuration files of the deployment.
 
 ### 2. Provision AWS Resources
 
@@ -69,7 +69,7 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property in the config file to the key pair name. Save the private key in a secure location.
-2. To add the deployment to the load balancer of a base ArcGIS Enterprise deployment, set "alb_deployment_id" property to the base deployment Id. Otherwise, set "deployment_fqdn" property to the ArcGIS Notebook Server deployment fully qualified domain name, provision or import SSL certificate for the domain name into AWS Certificate Manager service in the selected AWS region, and set "ssl_certificate_arn" property to the certificate ARN.
+2. To add the deployment to the load balancer of a base ArcGIS Enterprise deployment, set "alb_deployment_id" property to the base deployment ID. Otherwise, set "deployment_fqdn" property to the ArcGIS Notebook Server deployment fully qualified domain name, provision or import an SSL certificate for the domain name into AWS Certificate Manager service in the selected AWS region, and set "ssl_certificate_arn" property to the certificate ARN.
 3. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run the notebook-server-linux-aws-infrastructure workflow using the branch.
@@ -93,12 +93,12 @@ Outputs:
 
 Instructions:
 
-1. Add ArcGIS Notebook Server authorization file to `config/authorization/<ArcGIS version>` directory of the repository and set "notebook_server_authorization_file_path" properties to the file path.
+1. Add ArcGIS Notebook Server authorization file to `config/authorization/<ArcGIS version>` directory of the repository and set "notebook_server_authorization_file_path" property to the file path.
 2. If the server does not share the load balancer with the base ArcGIS Enterprise deployment, set "portal_url" property to the Portal for ArcGIS URL.
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run the notebook-server-linux-aws-application workflow using the branch.
 
-> '~/config/' paths is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
+> '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
 ### 4. Test ArcGIS Notebook Server Deployment
 
@@ -116,7 +116,7 @@ The template supports application-level and system-level ArcGIS Notebook Server 
 
 ### Application-level Backups
 
-The application-level ArcGIS Notebook Server deployment backups back up and restore the site's configuration store using [Export Site and Import Site tools](https://enterprise.arcgis.com/en/notebook/latest/administer/windows/back-up-and-restore-arcgis-notebook-server.htm) and *arcgisworkspace* directory. The backups are stored in the site's backup S3 bucket.
+The application-level ArcGIS Notebook Server deployment backups back up and restore the site's configuration store using [Export Site and Import Site tools](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm) and the *arcgisworkspace* directory. The backups are stored in the site's backup S3 bucket.
 
 #### Creating Application-level Backups
 
@@ -154,7 +154,7 @@ Instructions:
 
 The system-level ArcGIS Notebook Server deployment backups back up S3 buckets, DynamoDB tables, EFS file systems, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the site's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
 
-> System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or a edit to a feature service that is made during the backup process.
+> System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or an edit to a feature service that is made during the backup process.
 
 #### Creating System-level Backups
 
@@ -188,12 +188,12 @@ Instructions:
 
 ## In-Place Updates and Upgrades
 
-GitHub Actions workflow notebook-server-linux-aws-application supports upgrade mode used to in-place patch or upgrade ArcGIS Notebook Server on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Notebook Server version was changed, it installs the new version and re-configures the applications.
+GitHub Actions workflow notebook-server-linux-aws-application supports upgrade mode used to patch or upgrade in place ArcGIS Notebook Server on the EC2 instances. In the upgrade mode, the workflow copies the required patches and setups to the private repository S3 bucket and downloads them to the EC2 instances. If the ArcGIS Notebook Server version was changed, it installs the new version and re-configures the applications.
 
 Instructions:
 
 1. Set "arcgis_notebook_server_patches" and "arcgis_web_adaptor_patches" properties in application.tfvars.json file to the lists of patch file names that must be installed on the EC2 instances.
-2. Add ArcGIS Notebook Server authorization files for the new version to `config/authorization/<ArcGIS version>` directory of the repository and set "notebook_server_authorization_file_path" property in application.tfvars.json file to the file path.
+2. Add ArcGIS Notebook Server authorization file for the new version to `config/authorization/<ArcGIS version>` directory of the repository and set "notebook_server_authorization_file_path" property in application.tfvars.json file to the file path.
 3. Change "is_upgrade" property in application.tfvars.json file to `true`.
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run the notebook-server-linux-aws-application workflow using the branch.
@@ -217,7 +217,7 @@ Instructions:
 
 ## Disconnected Environments
 
-To prevent deployments from accessing the Internet, use "internal" subnets for EC2 instances. The internal subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in specific AWS region.
+To prevent deployments from accessing the Internet, use "internal" subnets for EC2 instances. The internal subnets do not have public IP addresses and are routed only to VPC endpoints of certain AWS services in a specific AWS region.
 
 The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, pollination services, and time services.
 

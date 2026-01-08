@@ -9,7 +9,7 @@ Before running the template workflows, configure the GitHub repository settings 
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in the `main` branch, commit the changes, and push the branch to GitHub.
 
-> To prevent accidental destruction of the resources, don't enable *-destroy workflows until it is necessary.
+> To prevent accidental destruction of the resources, don't enable *-destroy workflows until needed.
 
 > Refer to READMEs of the Terraform modules for descriptions of specific configuration properties.
 
@@ -60,7 +60,7 @@ Required service principal roles:
 Instructions:
 
 1. Import in PKCS12 (.pfx) format or generate an SSL certificate for the ArcGIS Enterprise site domain name in the site's Key Vault. Note the "Secret Identifier" in the certificate's properties.
-2. Set "ssl_certificate_secret_id" property in the config file to the Key Vault secret Id of the SSL certificate.
+2. Set "ssl_certificate_secret_id" property in the config file to the Key Vault secret ID of the SSL certificate.
     > It is recommended to use a secret identifier that does not specify a version, enabling automatic certificate rotation by Application Gateway when a newer version is available in Key Vault.
 3. Set "deployment_fqdn" property to the ArcGIS Enterprise site domain name.
 4. (Optional) Update "routing_rules" array in the config file to specify routing rules required for the site. Remove rules that are not required.
@@ -70,7 +70,7 @@ Instructions:
 
 ## Deploy K8s Cluster
 
-GitHub Actions workflow **site-k8s-cluster-azure** deploys Azure AKS cluster that meets the ArcGIS Enterprise on Kubernetes system requirements.
+GitHub Actions workflow **site-k8s-cluster-azure** deploys an AKS cluster that meets the ArcGIS Enterprise on Kubernetes system requirements.
 
 The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8s-cluster.tfvars.json](../../config/azure/arcgis-site-core/k8s-cluster.tfvars.json) config file.
 
@@ -88,7 +88,7 @@ Required Azure providers:
 Instructions:
 
 1. (Optional) Set "default_node_pool" properties to the required node pool configuration.
-2. (Optional) Set "subnet_id" property to the subnet Id from the site's VNet. By default, the first private subnet is used.
+2. (Optional) Set "subnet_id" property to the subnet ID from the site's VNet. By default, the first private subnet is used.
 3. Commit the changes to the `main` branch and push the branch to GitHub.
 4. Run site-k8s-cluster-azure workflow using the `main` branch.
 

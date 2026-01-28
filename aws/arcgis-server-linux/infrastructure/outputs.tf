@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,11 +15,6 @@
 output "security_group_id" {
   description = "EC2 security group Id"
   value       = module.security_group.id
-}
-
-output "alb_dns_name" {
-  description = "DNS name of the application load balancer"
-  value       = local.alb_dns_name
 }
 
 output "deployment_url" {

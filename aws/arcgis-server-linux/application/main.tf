@@ -1,7 +1,7 @@
 /**
  * # Application Terraform Module for ArcGIS Server on Linux
  *
- * The Terraform module configures or upgrades applications of highly available ArcGIS Server deployment on Linux platforms.
+ * The Terraform module configures or upgrades applications of ArcGIS Server deployment on the Linux platforms.
  *
  * ![ArcGIS Server on Linux](arcgis-server-linux-application.png "ArcGIS Server on Linux")
  *
@@ -51,14 +51,19 @@
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified and portal_url is not specified) | 
+ * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified) | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
+ * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
+ * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+ * | /arcgis/${var.site_id}/vpc/id | VPC ID |
+ * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -103,10 +108,6 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "sns_topic" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
-}
-
 data "aws_ssm_parameter" "deployment_fqdn" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
 }
@@ -116,7 +117,7 @@ data "aws_ssm_parameter" "server_web_context" {
 }
 
 data "aws_ssm_parameter" "portal_url" {
-  count = var.server_role != "" && var.portal_url == null ? 1 : 0
+  count = var.server_role != "" ? 1 : 0
   name  = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
 }
 
@@ -157,7 +158,6 @@ locals {
   mount_point             = "/mnt/efs"
   deployment_fqdn         = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
   server_web_context      = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
-  portal_url              = var.server_role != "" && var.portal_url == null ? nonsensitive(data.aws_ssm_parameter.portal_url[0].value) : var.portal_url
   primary_hostname        = data.aws_instance.primary.private_ip
   software_dir            = "/opt/software/*"
   authorization_files_dir = "/opt/software/authorization"
@@ -448,7 +448,7 @@ module "arcgis_server_federation" {
   playbook      = "arcgis.portal.federate_server"
   external_vars = {
     portal_org_id    = var.portal_org_id
-    portal_url       = local.portal_url
+    portal_url       = nonsensitive(data.aws_ssm_parameter.portal_url[0].value)
     username         = var.portal_username
     password         = var.portal_password
     server_url       = "https://${local.deployment_fqdn}/${local.server_web_context}"
@@ -461,16 +461,5 @@ module "arcgis_server_federation" {
   depends_on = [
     module.arcgis_server_node,
     module.arcgis_webadaptor
-  ]
-}
-
-# Create SNS topic subscription for infrastructure alarms
-resource "aws_sns_topic_subscription" "infrastructure_alarms" {
-  topic_arn = data.aws_ssm_parameter.sns_topic.value
-  protocol  = "email"
-  endpoint  = var.admin_email
-  depends_on = [
-    module.arcgis_server_node,
-    module.arcgis_server_federation
   ]
 }

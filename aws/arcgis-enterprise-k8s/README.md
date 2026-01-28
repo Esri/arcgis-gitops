@@ -21,8 +21,6 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of ArcGIS Enterprise on Kubernetes includes provisioning container images, creating an ingress controller, creating an ArcGIS Enterprise organization, and testing deployment web services.
 
-![ArcGIS Enterprise on Kubernetes Configuration Flow](./arcgis-enterprise-k8s-flowchart.png)
-
 > The IAM principal used by the template's workflows must have EKS cluster administrator permissions. The IAM principal used to create the EKS cluster is granted the required permissions by the site-k8s-cluster-aws workflow.
 
 ### 1. Provisioning Container Images
@@ -43,9 +41,9 @@ Instructions:
 
 > Copying the container images may take several hours.
 
-### 2. Create Ingress Controller
+### 2. Create Application Load Balancer Ingress
 
-GitHub Actions workflow **enterprise-k8s-aws-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on Kubernetes deployment in Amazon EKS cluster and a cluster-level ingress controller that routes traffic to the deployment.
+GitHub Actions workflow **enterprise-k8s-aws-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on Kubernetes deployment in Amazon EKS cluster and an Application Load Balancer (ALB) ingress that routes traffic to the deployment.
 
 The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/aws/arcgis-enterprise-k8s/ingress.tfvars.json) config file.
 
@@ -73,6 +71,8 @@ Instructions:
 
 > See [Elastic Load Balancing SSL negotiation configuration](https://docs.aws.amazon.com/elasticloadbalancing/latest/application/create-https-listener.html#describe-ssl-policies) for the list of SSL policies.
 
+> By default "waf_mode" property is set to "detect", that configures the Web Application Firewall (WAF) rules assigned to the Application Load Balancer to count and log suspicious requests instead of blocking them. It is strongly recommended that all deployments start out running in “detect” mode to avoid breaking workflows unexpectedly. Once the rules are fully tuned and WAF logs no longer reveal false positives, the WAF can be shifted into “protect” mode.
+
 ### 3. Create ArcGIS Enterprise Organization
 
 GitHub Actions workflow **enterprise-k8s-aws-organization** deploys ArcGIS Enterprise on Kubernetes in Amazon EKS cluster and creates an ArcGIS Enterprise organization.
@@ -95,11 +95,10 @@ Instructions:
 2. Download the ArcGIS Enterprise on Kubernetes Helm Charts package archive for the charts version from [My Esri](https://www.esri.com/en-us/my-esri-login) and extract the archive to `aws/arcgis-enterprise-k8s/organization/helm-charts/arcgis-enterprise/<Helm Charts version>` folder in the repository.
 3. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file path.
 4. Set "system_arch_profile" property to the required ArcGIS Enterprise on Kubernetes architecture profile.
-5. Set "deployment_fqdn" property to the ArcGIS Enterprise deployment fully qualified domain name.
-6. Set "admin_username", "admin_password", "admin_first_name", "admin_last_name", "admin_email", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
-7. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
-8. Commit the changes to the Git branch and push the branch to GitHub.
-9. Run enterprise-k8s-aws-organization workflow using the branch.
+5. Set "admin_username", "admin_password", "admin_first_name", "admin_last_name", "security_question_index", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
+6. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
+7. Commit the changes to the Git branch and push the branch to GitHub.
+8. Run enterprise-k8s-aws-organization workflow using the branch.
 
 > '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 

@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -41,12 +41,6 @@ variable "deployment_id" {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
-}
-
-variable "alb_arn" {
-  description = "ARN of Application Load Balancer"
-  type        = string
-  default     = null
 }
 
 variable "log_group_name" {

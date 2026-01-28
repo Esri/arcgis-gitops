@@ -100,8 +100,6 @@
         {
             "Effect": "Allow",
             "Action": [
-                "elasticloadbalancing:DeleteListener",
-                "elasticloadbalancing:DeleteLoadBalancer",
                 "elasticloadbalancing:DeleteRule",
                 "elasticloadbalancing:DeleteTargetGroup",
                 "elasticloadbalancing:DeleteTrustStore",

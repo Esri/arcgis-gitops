@@ -46,14 +46,6 @@ jobs:
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn // empty' $CONFIG_FILE)
-        if [ -z "$DEPLOYMENT_FQDN" ]; then
-          DEPLOYMENT_FQDN=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/deployment-fqdn" --query "Parameter.Value" --output text)
-        fi
-        NOTEBOOK_SERVER_WEB_CONTEXT=$(jq -r '.notebook_server_web_context' $CONFIG_FILE)
-        DEPLOYMENT_URL=https://$DEPLOYMENT_FQDN/$NOTEBOOK_SERVER_WEB_CONTEXT
-        PORTAL_URL=$(jq -r '.portal_url // empty' $APPLICATION_CONFIG_FILE)
-        if [ -z "$PORTAL_URL" ]; then
-          PORTAL_URL=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/portal-url" --query "Parameter.Value" --output text)
-        fi
+        DEPLOYMENT_URL=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/deployment-url" --query "Parameter.Value" --output text)
+        PORTAL_URL=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/portal-url" --query "Parameter.Value" --output text)
         docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-nb-admin --nb-url $DEPLOYMENT_URL --url $PORTAL_URL

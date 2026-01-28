@@ -1,38 +1,38 @@
 /**
  * # Infrastructure Terraform Module for ArcGIS Server on Linux
  *
- * The Terraform module provisions AWS resources for highly available ArcGIS Server deployment on Linux platform.
+ * The Terraform module provisions AWS resources for ArcGIS Server deployment on the Linux platform.
  *
  * ![Infrastructure for ArcGIS Server on Linux](arcgis-server-linux-infrastructure.png "Infrastructure for ArcGIS Server on Linux")  
  *
- * The module launches two SSM managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
- * The instances are launched from image retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameter. 
- * The image must be created by the Packer Template for ArcGIS Server on Linux AMI. 
+ * The module launches one primary SSM-managed EC2 instance and node_count node instances 
+ * in the private VPC subnets or subnets specified by the subnet_ids input variable.
+ * The instances are launched from images retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
+ * The images must be created by the Packer Template for ArcGIS Server on Linux AMI. 
  *
- * For the primary EC2 instances the module creates "A" record in the VPC Route53 private hosted zone
- * to make the instance addressable using permanent DNS names.
+ * For the primary EC2 instance the module creates an "A" record in the VPC Route 53 private hosted zone
+ * to make the instance addressable using a permanent DNS name.
  *
- * > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module
+ * > Note that the EC2 instance will be terminated and recreated if the Terraform module
  *   is applied again after the SSM parameter value was modified by a new image build.
  *
- * A highly available EFS file system is created and mounted to the EC2 instances. 
+ * A highly available EFS file system is created and mounted on the EC2 instances. 
  *
- * If alb_deployment_id input variable is null, the module creates and configure an Application Load Balancer (ALB) for the deployment. 
- * Otherwise, the it uses the ALB from deployment specified by alb_deployment_id and ignores the values of client_cidr_blocks, deployment_fqdn, hosted_zone_id, internal_load_balancer, ssl_certificate_arn, and ssl_policy input variables.
- * Internet-facing load balancer is configured to use two of the public VPC subnets, while internal load balancer uses the private subnets.
+ * The module creates target groups that target the EC2 instances and associates 
+ * the target groups with the deployment's load balancer listeners.
  * 
- * For the ALB the module creates target groups that target the EC2 instances. The target group for port 443 is always created. While the target group for port 6443 is created only if use_webadaptor input variable is set to false.
- * 
- * By default the HTTPS listener on port 443 is forwarded to instance port 6443. Set the use_webadaptor input variable to true, to use port 443.
+ * By default the HTTPS listener on port 443 is forwarded to instance port 6443. 
+ * Set the use_webadaptor input variable to true to use port 443.
  *  
  * The deployment's Monitoring Subsystem consists of:
  *
- * * An SNS topic and a CloudWatch alarms that monitor the target groups and post to the SNS topic if the number of unhealthy instances in nonzero. 
  * * A CloudWatch log group
- * * CloudWatch agent on the EC2 instances that sends the system logs to the log group as well as metrics fo resource utilization on the EC2 instances.
- * * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and logs of the deployment.
+ * * CloudWatch agent on the EC2 instances that sends the system logs to the log group 
+ *   as well as metrics for resource utilization on the EC2 instances.
+ * * A CloudWatch dashboard that displays the CloudWatch metrics and logs of the deployment.
  *
- * The module also creates an AWS backup plan for the deployment that backs up all the EC2 instances and EFS file system in the site's backup vault.
+ * The module also creates an AWS backup plan for the deployment that backs up all the EC2 
+ * instances and EFS file system in the site's backup vault.
  *
  * All the created AWS resources are tagged with ArcGISSiteId and ArcGISDeploymentId tags.
  *
@@ -44,57 +44,46 @@
  * * Path to aws/scripts directory must be added to PYTHONPATH.
  * * AWS credentials must be configured.
  *
- * If alb_deployment_id is not set:
- *
- * * Before creating the infrastructure, an SSL certificate for the ArcGIS Server deployment FQDN 
- *   must be imported into or issued by AWS Certificate Manager service in the AWS account. The certificate's
- *   ARN specified by "ssl_certificate_arn" input variable will be used to configure HTTPS listeners of the load balancer.
- * * After creating the infrastructure, the deployment FQDN must be pointed to the DNS name of Application Load Balancer
- *   exported by "alb_dns_name" output value of the module.
- *
  * ## Troubleshooting
  *
  * Use Session Manager connection in AWS Console for SSH access to the EC2 instances.
  *
- * The SSM commands output stored in the logs S3 bucket is copied in the Terraform stdout.
- * 
  * ## SSM Parameters
  *
  * The module reads the following SSM parameters: 
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/arn | ALB ARN (if alb_deployment_id is specified) |
- * | /arcgis/${var.site_id}/${var.alb_deployment_id}/alb/security-group-id | ALB security group Id (if alb_deployment_id is specified) |
- * | /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment (if alb_deployment_id is specified) |
- * | /arcgis/${var.site_id}/${var.alb_deployment_id}/deployment-url | Portal for ArcGIS URL (if alb_deployment_id is specified) |
+ * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn | ALB ARN |
+ * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id | ALB security group ID |
+ * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
+ * | /arcgis/${var.site_id}/${var.portal_deployment_id}/deployment-url | Deployment ID of Portal for ArcGIS (if portal_deployment_id is set) |
  * | /arcgis/${var.site_id}/backup/vault-name | Name of the AWS Backup vault |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI Id |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI Id |
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
- * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone Id |
- * | /arcgis/${var.site_id}/vpc/id | VPC Id |
- * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
+ * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
+ * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
+ * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+ * | /arcgis/${var.site_id}/vpc/id | VPC ID |
+ * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
  *
  * The module writes the following SSM parameters:
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer (if alb_deployment_id is not specified) |
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer (if alb_deployment_id is not specified) |
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/security-group-id | Security group Id of the application load balancer (if alb_deployment_id is not specified) |
  * | /arcgis/${var.site_id}/${var.deployment_id}/backup-plan-id | Backup plan ID for the deployment | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
- * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group Id |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
  * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
- * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | ARN of SNS topic for deployment alarms |
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -145,6 +134,11 @@ data "aws_ssm_parameter" "node_ami" {
   name = "/arcgis/${var.site_id}/images/${var.deployment_id}/node"
 }
 
+data "aws_ssm_parameter" "portal_deployment_url" {
+  count = var.portal_deployment_id == null ? 0 : 1
+  name = "/arcgis/${var.site_id}/${var.portal_deployment_id}/deployment-url"
+}
+
 data "aws_ami" "ami" {
   filter {
     name   = "image-id"
@@ -152,11 +146,32 @@ data "aws_ami" "ami" {
   }
 }
 
+data "aws_ssm_parameter" "alb_deployment_fqdn" {
+  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn"
+}
+
+data "aws_ssm_parameter" "alb_security_group_id" {
+  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id"
+}
+  
+data "aws_ssm_parameter" "alb_arn" {
+  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn"
+}
+
+data "aws_lb" "alb" {
+  arn   = data.aws_ssm_parameter.alb_arn.value
+}
+
 locals {
   subnets = (length(var.subnet_ids) == 0 ? module.site_core_info.private_subnets : var.subnet_ids)
 
   # Get value of ArcGISVersion tags from the AMI to copy them to the EC2 instances.
   arcgis_version     = try(data.aws_ami.ami.tags.ArcGISVersion, null)
+
+  alb_security_group_id = nonsensitive(data.aws_ssm_parameter.alb_security_group_id.value)
+  alb_arn               = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
+  alb_dns_name          = data.aws_lb.alb.dns_name
+  deployment_fqdn       = nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)
 }
 
 module "site_core_info" {
@@ -300,6 +315,23 @@ resource "aws_instance" "nodes" {
   }
 }
 
+# Create Application Load Balancer target group for HTTPS port 443, attach 
+# primary and node instances to it, and add the target group to the load balancer. 
+# Configure the target group to forward requests to the HTTP web context.
+module "server_https_alb_target" {
+  source            = "../../modules/alb_target_group"
+  name              = substr(var.server_web_context, 0, 6)
+  vpc_id            = module.site_core_info.vpc_id
+  alb_arn           = local.alb_arn
+  protocol          = "HTTPS"
+  alb_port          = 443
+  instance_port     = var.use_webadaptor ? 443 : 6443
+  health_check_path = "/${var.server_web_context}/rest/info/healthcheck"
+  path_patterns     = ["/${var.server_web_context}", "/${var.server_web_context}/*"]
+  priority          = 110
+  target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.nodes : n.id])
+}
+
 # Mount /mnt/efs/ to the EFS file system on the EC2 instances.
 module "nfs_mount" {
   source        = "../../modules/ansible_playbook"
@@ -378,9 +410,40 @@ module "dashboard" {
   platform      = "linux"
   site_id       = var.site_id
   deployment_id = var.deployment_id
-  alb_arn       = local.alb_arn
   log_group_name = module.cw_agent.log_group_name
   depends_on = [
     module.cw_agent
   ]
+}
+
+# Save the ALB DNS name to SSM parameter store for use by other modules.
+resource "aws_ssm_parameter" "deployment_fqdn" {
+  count       = var.ingress_deployment_id == null ? 0 : 1
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+  type        = "String"
+  value       = local.deployment_fqdn
+  description = "Fully qualified domain name of the deployment"
+}
+
+resource "aws_ssm_parameter" "server_web_context" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
+  type        = "String"
+  value       = var.server_web_context
+  description = "ArcGIS Server web context"
+}
+
+resource "aws_ssm_parameter" "deployment_url" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-url"
+  type        = "String"
+  value       = "https://${local.deployment_fqdn}/${var.server_web_context}"
+  description = "URL of the deployment"
+}
+
+# Save the Portal for ArcGIS URL to SSM parameter store for use by other modules.
+resource "aws_ssm_parameter" "portal_url" {
+  count       = var.portal_deployment_id == null ? 0 : 1
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
+  type        = "String"
+  value       = nonsensitive(data.aws_ssm_parameter.portal_deployment_url[0].value)
+  description = "Portal for ArcGIS URL"
 }

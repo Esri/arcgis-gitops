@@ -11,7 +11,7 @@ If "is_upgrade" input variable is set to `true`, the module:
 
 * Copies the installation media for the ArcGIS Enterprise version specified by arcgis_version input variable to the private repository S3 bucket
 * Downloads the installation media from the private repository S3 bucket to primary and node EC2 instances
-* Installs/upgrades  ArcGIS Enterprise software on primary and node EC2 instances
+* Installs/upgrades ArcGIS Enterprise software on primary and node EC2 instances
 * Installs the software patches on primary and node EC2 instances
 
 Then the module:
@@ -22,9 +22,10 @@ Then the module:
 * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and node EC2 instances
 * Creates the required directories in the NFS mount
 * Configures ArcGIS Notebook Server on primary EC2 instance
-* Configures ArcGIS Notebook Server on node EC2 instance
+* Configures ArcGIS Notebook Server on node EC2 instances if any
+* Federates ArcGIS Notebook Server with Portal for ArcGIS
+* If config_store_type input variable is set to "AMAZON", configures system-level backups of the config store using AWS Backup service
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and node EC2 instances
-* Subscribes the primary ArcGIS Notebook Server administrator e-mail address to the SNS topic of the monitoring subsystem
 
 ## Requirements
 
@@ -46,17 +47,20 @@ The module reads the following SSM parameters:
 | SSM parameter name | Description |
 |--------------------|-------------|
 | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
-| /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
 | /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
-| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if portal_url is not specified) |
-| /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
+| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
 | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
 | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
 | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
 | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
 | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
+| /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+| /arcgis/${var.site_id}/vpc/id | VPC ID |
+| /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+
+> The module also writes multiple “attributes” SSM parameters used to run Chef.
 
 ## Providers
 
@@ -91,14 +95,12 @@ The module reads the following SSM parameters:
 | [aws_s3_object.keystore_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.notebook_server_authorization_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.root_cert_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_sns_topic_subscription.infrastructure_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
 | [aws_instances.nodes](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.notebook_server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.sns_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 
@@ -122,9 +124,8 @@ The module reads the following SSM parameters:
 | notebook_server_authorization_options | Additional ArcGIS Notebook Server software authorization command line options | `string` | `""` | no |
 | os | Operating system id (rhel9\|ubuntu22\|ubuntu24) | `string` | `"rhel9"` | no |
 | portal_org_id | ArcGIS Enterprise organization Id | `string` | `null` | no |
-| portal_password | Portal for ArcGIS user password | `string` | `null` | no |
-| portal_url | Portal for ArcGIS URL | `string` | `null` | no |
-| portal_username | Portal for ArcGIS user name | `string` | `null` | no |
+| portal_password | Portal for ArcGIS user password | `string` | n/a | yes |
+| portal_username | Portal for ArcGIS user name | `string` | n/a | yes |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
 | run_as_user | User name for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |

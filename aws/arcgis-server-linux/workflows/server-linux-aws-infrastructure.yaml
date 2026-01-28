@@ -77,5 +77,5 @@ jobs:
       run: terraform plan -var-file $CONFIG_FILE 
     - name: Terraform Output
       id: output  
-      run: echo alb_dns_name=$(terraform output alb_dns_name) >> $GITHUB_OUTPUT
+      run: echo deployment_url=$(terraform output deployment_url) >> $GITHUB_OUTPUT
 

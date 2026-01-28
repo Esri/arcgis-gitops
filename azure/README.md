@@ -80,11 +80,12 @@ Configure secrets and variables for GitHub Actions in the repository settings.
 
 #### Secrets
 
-| Name                | Description                     |
-|---------------------|---------------------------------|
-| AZURE_CLIENT_ID     | Service principal client ID     |
-| AZURE_CLIENT_SECRET | Service principal client secret |
-| AZURE_TENANT_ID     | Microsoft Entra tenant ID       |
+| Name                   | Description                       |
+|------------------------|-----------------------------------|
+| AZURE_CLIENT_ID        | Service principal client ID       |
+| AZURE_CLIENT_SECRET    | Service principal client secret   |
+| AZURE_TENANT_ID        | Microsoft Entra tenant ID         |
+| ENTERPRISE_ADMIN_EMAIL | Site administrator e-mail address |
 
 For ArcGIS Enterprise on Windows and Linux:
 

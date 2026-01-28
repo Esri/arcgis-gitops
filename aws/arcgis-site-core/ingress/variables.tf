@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -11,6 +11,11 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+variable "aws_region" {
+  description = "AWS region Id"
+  type        = string
+}
 
 variable "client_cidr_blocks" {
   description = "Client CIDR blocks"
@@ -38,10 +43,28 @@ variable "deployment_fqdn" {
 variable "deployment_id" {
   description = "Deployment Id"
   type        = string
+  default     = "enterprise-ingress"
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "enable_access_log" {
+  description = "Enable access logging for the load balancer"
+  type        = bool
+  default     = true
+}
+
+variable "hosted_zone_id" {
+  description = "The Route 53 public hosted zone ID for the domain"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = can(regex("^Z[0-9A-Z]{12,}$", var.hosted_zone_id)) || var.hosted_zone_id == null
+    error_message = "The hosted_zone_id value must be a valid Route 53 hosted zone ID."
   }
 }
 
@@ -54,7 +77,7 @@ variable "http_ports" {
 variable "https_ports" {
   description = "List of HTTPS ports for the load balancer"
   type        = list(number)
-  default     = [443]
+  default     = [443, 6443, 7443, 11443]
 }
 
 variable "internal_load_balancer" {
@@ -66,6 +89,7 @@ variable "internal_load_balancer" {
 variable "site_id" {
   description = "ArcGIS Enterprise site Id"
   type        = string
+  default     = "arcgis"
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
@@ -89,22 +113,12 @@ variable "ssl_policy" {
   default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
 }
 
-variable "subnets" {
-  description = "List of subnet IDs for the load balancer"
-  type        = list(string)
-
-  validation {
-    condition     = length(var.subnets) > 0
-    error_message = "The subnets variable must not be empty."
-  }
-}
-
-variable "vpc_id" {
-  description = "VPC ID for the load balancer"
+variable "waf_mode" {
+  description = "Specifies the mode of the Web Application Firewall (WAF). Valid values are 'detect' and 'protect'."
   type        = string
-
+  default     = "detect"
   validation {
-    condition     = can(regex("^vpc-[0-9a-f]{8,}$", var.vpc_id))
-    error_message = "The vpc_id value must be a valid VPC ID."
+    condition     = var.waf_mode == "detect" || var.waf_mode == "protect"
+    error_message = "The waf_mode value must be either 'detect' or 'protect'."
   }
 }

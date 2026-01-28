@@ -4,6 +4,48 @@
         {
             "Effect": "Allow",
             "Action": [
+                "elasticloadbalancing:*",
+                "wafv2:*"
+            ],
+            "Resource": "*"
+        },       
+        {
+            "Effect": "Allow",
+            "Action": [
+                "sns:DeleteTopic",
+                "sns:GetTopicAttributes",
+                "sns:GetSubscriptionAttributes",
+                "sns:ListTagsForResource"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "cloudwatch:DeleteAlarms",
+                "cloudwatch:DeleteDashboards",
+                "cloudwatch:DescribeAlarms",
+                "cloudwatch:GetDashboard",
+                "cloudwatch:ListTagsForResource"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "logs:DescribeResourcePolicies",
+                "logs:DeleteResourcePolicy",
+                "logs:DeleteLogGroup",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "logs:ListTagsForResource",
+                "logs:ListTagsLogGroup"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
                 "ec2:DescribeImages"
             ],
             "Resource": "*"
@@ -20,6 +62,7 @@
                 "ec2:DescribePrefixLists",
                 "ec2:DescribeRouteTables",
                 "ec2:DescribeSecurityGroups",
+                "ec2:DescribeSecurityGroupRules",
                 "ec2:DescribeSubnets",
                 "ec2:DescribeVpcAttribute",
                 "ec2:DescribeVpcEndpoints",
@@ -44,7 +87,8 @@
                 "ec2:DetachInternetGateway",
                 "ec2:DisassociateRouteTable",
                 "ec2:ReleaseAddress",
-                "ec2:RevokeSecurityGroupEgress"
+                "ec2:RevokeSecurityGroupEgress",
+                "ec2:RevokeSecurityGroupIngress"
             ],
             "Resource": "*",
             "Condition": {
@@ -80,6 +124,7 @@
         {
             "Effect": "Allow",
             "Action": [
+                "route53:ChangeResourceRecordSets",
                 "route53:DeleteHostedZone",
                 "route53:GetChange",
                 "route53:GetHostedZone",
@@ -94,6 +139,7 @@
                 "ssm:DescribeDocument",
                 "ssm:DescribeDocumentPermission",
                 "ssm:DescribeParameters",
+                "ssm:GetParameter",
                 "ssm:GetParameters",
                 "ssm:ListTagsForResource"
             ],

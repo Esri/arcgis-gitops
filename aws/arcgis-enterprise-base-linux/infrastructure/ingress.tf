@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,21 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-module "alb" {
-  source                 = "../../modules/alb"
-  client_cidr_blocks     = var.client_cidr_blocks
-  deployment_fqdn        = var.deployment_fqdn
-  deployment_id          = var.deployment_id
-  http_ports             = [80]
-  https_ports            = [443, 6443, 7443, 11443, 13443, 20443, 21443]
-  internal_load_balancer = var.internal_load_balancer
-  site_id                = var.site_id
-  ssl_certificate_arn    = var.ssl_certificate_arn
-  ssl_policy             = var.ssl_policy
-  subnets = (var.internal_load_balancer ?
-    module.site_core_info.private_subnets :
-    module.site_core_info.public_subnets)
-  vpc_id = module.site_core_info.vpc_id
+data "aws_ssm_parameter" "alb_deployment_fqdn" {
+  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn"
+}
+
+data "aws_ssm_parameter" "alb_arn" {
+  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn"
 }
 
 # Create Application Load Balancer target group for HTTPS port 443, attach 
@@ -36,7 +27,7 @@ module "server_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "server"
   vpc_id            = module.site_core_info.vpc_id
-  alb_arn           = module.alb.alb_arn
+  alb_arn           = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
   protocol          = "HTTPS"
   alb_port          = 443
   instance_port     = 443
@@ -44,9 +35,6 @@ module "server_https_alb_target" {
   path_patterns     = ["/${var.server_web_context}", "/${var.server_web_context}/*"]
   priority          = 100
   target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.standby : n.id])
-  depends_on = [
-    module.alb
-  ]
 }
 
 # Create Application Load Balancer target group for HTTPS port 443, attach 
@@ -56,7 +44,7 @@ module "portal_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = "portal"
   vpc_id            = module.site_core_info.vpc_id
-  alb_arn           = module.alb.alb_arn
+  alb_arn           = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
   protocol          = "HTTPS"
   alb_port          = 443
   instance_port     = 443
@@ -64,9 +52,13 @@ module "portal_https_alb_target" {
   path_patterns     = ["/${var.portal_web_context}", "/${var.portal_web_context}/*"]
   priority          = 101
   target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.standby : n.id])
-  depends_on = [
-    module.alb
-  ]
+}
+
+resource "aws_ssm_parameter" "deployment_fqdn" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+  type        = "String"
+  value       = nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)
+  description = "Fully qualified domain name of the deployment"
 }
 
 resource "aws_ssm_parameter" "portal_web_context" {
@@ -86,6 +78,6 @@ resource "aws_ssm_parameter" "server_web_context" {
 resource "aws_ssm_parameter" "deployment_url" {
   name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-url"
   type        = "String"
-  value       = "https://${var.deployment_fqdn}/${var.portal_web_context}"
+  value       = "https://${nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)}/${var.portal_web_context}"
   description = "Portal for ArcGIS URL of the deployment"
 }

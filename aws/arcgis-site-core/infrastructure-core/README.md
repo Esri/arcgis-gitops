@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Terraform module infrastructure-core
 
-Terraform module creates the networking, storage, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise site.
+Terraform module creates the networking, storage, monitoring, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise site.
 
 The module also looks up the latest public AMIs for the specified operating systems and stores the AMI IDs in SSM parameters.
 
@@ -21,6 +21,7 @@ Ids of the created AWS resources are stored in SSM parameters:
 | /arcgis/${var.site_id}/s3/logs | S3 bucket used by deployments to store logs |
 | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
 | /arcgis/${var.site_id}/s3/repository | S3 bucket of private repository |
+| /arcgis/${var.site_id}/sns-topic-arn/site-alarms | ARN of SNS topic for site alarms |
 | /arcgis/${var.site_id}/vpc/hosted-zone-id | Private hosted zone Id of ArcGIS Enterprise site |
 | /arcgis/${var.site_id}/vpc/id | VPC Id of ArcGIS Enterprise site |
 | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
@@ -64,7 +65,10 @@ Ids of the created AWS resources are stored in SSM parameters:
 | [aws_s3_bucket.backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket.logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
 | [aws_s3_bucket.repository](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
+| [aws_s3_bucket_policy.logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_policy) | resource |
 | [aws_security_group.vpc_endpoints_sg](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/security_group) | resource |
+| [aws_sns_topic.site_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic) | resource |
+| [aws_sns_topic_subscription.admin_email](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [aws_ssm_parameter.backup_role_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.backup_vault_name](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.hosted_zone_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
@@ -74,6 +78,7 @@ Ids of the created AWS resources are stored in SSM parameters:
 | [aws_ssm_parameter.s3_logs](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.s3_region](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.s3_repository](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.sns_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.vpc_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_subnet.internal_subnets](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/subnet) | resource |
@@ -91,6 +96,7 @@ Ids of the created AWS resources are stored in SSM parameters:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| admin_email | ArcGIS Enterprise site administrator e-mail address | `string` | `null` | no |
 | availability_zones | AWS availability zones (if the list contains less that two elements, the first two available availability zones in the AWS region will be used.) | `list(string)` | `[]` | no |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | gateway_vpc_endpoints | List of gateway VPC endpoints to create | `list(string)` | ```[ "dynamodb", "s3" ]``` | no |

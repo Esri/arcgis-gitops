@@ -5,28 +5,26 @@ The module deploys ArcGIS Enterprise on Kubernetes in Amazon EKS cluster and cre
 
 ![ArcGIS Enterprise on Kubernetes](arcgis-enterprise-k8s-organization.png "ArcGIS Enterprise on Kubernetes")  
 
-The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.2.0/deploy-guide) distributed separately from the module.
+The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.6.0/deploy-guide) distributed separately from the module.
 The Helm charts package for the version used by the deployment must be extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
 
 The following table explains the compatibility of chart versions and ArcGIS Enterprise on Kubernetes.
 
-Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description |
---- | --- | --- | --- | --- | --- |
-v1.2.0 | 11.2.0.5207 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.2 or upgrading 11.1 to 11.2 |
-v1.2.1 | 11.2.0.5500 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Help Language Pack Update |
-v1.2.2 | 11.2.0.5505 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Q2 2024 Base Operating System Image Update |
-v1.2.3 | 11.2.0.5510 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Q2 2024 Bug Fix Update |
-v1.3.0 | 11.3.0.5814 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.3 or upgrading 11.2 to 11.3 | *
+Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description                                                             |
+--- |---------------------------| --- |---------------------------------------------| --- |-------------------------------------------------------------------------|
+v1.5.0 | 11.5.0.6745 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.5 or upgrading 11.4 to 11.5 |
+v1.5.1 | 11.5.0.6805 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Help Language Pack and Base Operating System Image Update |
+v1.5.2 | 11.5.0.6815 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q3 Bug Fix and Base Operating System Image Update |
+v1.5.3 | 11.5.0.6820 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Feature Services Security Update |
+v1.5.4 | 11.5.0.6825 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q4 Bug Fix and Base Operating System Image Update |
+v1.5.5 | 11.5.0.6835 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q4 2025 December Bug Fix and Base Operating System Image Update |
+v1.6.0 | 12.0.0.7286 | Supported     | Supported      | Not applicable | Helm chart for deploying 12.0 or upgrading 11.5 to 12.0 |
 
 The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
-For ArcGIS Enterprise versions 11.2 and newer the module also creates an S3 bucket for the organization object store, registers it with the deployment,
+The module also creates an S3 bucket for the organization object store, registers it with the deployment,
 and registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
 
-The deployment's Monitoring Subsystem consists of:
-
-* An SNS topic with a subscription for the primary site administrator.
-* A CloudWatch alarm that monitors the ingress ALB target group and post to the SNS topic if the number of unhealthy instances in nonzero.
-* A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and container logs of the deployment.
+The deployment's CloudWatch dashboard displays the CloudWatch metrics and container logs of the deployment.
 
 ## Requirements
 
@@ -34,6 +32,15 @@ On the machine where Terraform is executed:
 
 * AWS credentials must be configured.
 * EKS cluster configuration information must be provided in ~/.kube/config file.
+
+## SSM Parameters
+
+The module reads the following SSM parameters:
+
+| SSM parameter name | Description |
+|--------------------|-------------|
+| /arcgis/${var.site_id}/s3/backup | Backups S3 bucket name |
+| /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
 
 ## Providers
 
@@ -57,7 +64,6 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [aws_s3_bucket.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket) | resource |
-| [aws_sns_topic_subscription.infrastructure_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [helm_release.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/helm/latest/docs/resources/release) | resource |
 | [kubernetes_pod.enterprise_admin_cli](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/pod) | resource |
 | [kubernetes_secret.admin_cli_credentials](https://registry.terraform.io/providers/hashicorp/kubernetes/latest/docs/resources/secret) | resource |
@@ -65,6 +71,7 @@ On the machine where Terraform is executed:
 | [local_sensitive_file.license_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
+| [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.s3_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
@@ -84,7 +91,6 @@ On the machine where Terraform is executed:
 | common_verbose | Enable verbose install logging | `bool` | `false` | no |
 | configure_enterprise_org | Configure ArcGIS Enterprise on Kubernetes organization | `bool` | `true` | no |
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
-| deployment_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.4.0"` | no |
 | helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.6.0"` | no |

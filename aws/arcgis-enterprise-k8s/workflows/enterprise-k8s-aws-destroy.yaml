@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -27,6 +27,7 @@ env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
+  TF_VAR_admin_email: ${{ secrets.ENTERPRISE_ADMIN_EMAIL }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}  
   AWS_MAX_ATTEMPTS: 400
   ORGANIZATION_CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/organization.tfvars.json

@@ -140,8 +140,6 @@
                 "elasticloadbalancing:AddListenerCertificates",
                 "elasticloadbalancing:AddTags",
                 "elasticloadbalancing:AddTrustStoreRevocations",
-                "elasticloadbalancing:CreateListener",
-                "elasticloadbalancing:CreateLoadBalancer",
                 "elasticloadbalancing:CreateRule",
                 "elasticloadbalancing:CreateTargetGroup",
                 "elasticloadbalancing:CreateTrustStore",

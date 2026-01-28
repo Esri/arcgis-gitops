@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -29,29 +29,6 @@ variable "backup_retention" {
   default     = 14
 }
 
-variable "client_cidr_blocks" {
-  description = "Client CIDR blocks"
-  type        = list(string)
-  default     = ["0.0.0.0/0"]
-
-  validation {
-    condition = alltrue([
-      for b in var.client_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
-    ])
-    error_message = "All elements in vpc_cidr_block list must be in IPv4 CIDR block format."
-  }
-}
-
-variable "deployment_fqdn" {
-  description = "Fully qualified domain name of the base ArcGIS Enterprise deployment"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
-  }
-}
-
 variable "deployment_id" {
   description = "ArcGIS Enterprise deployment Id"
   type        = string
@@ -63,16 +40,21 @@ variable "deployment_id" {
   }
 }
 
+variable "ingress_deployment_id" {
+  description = "ArcGIS Enterprise ingress deployment Id"
+  type        = string
+  default     = "enterprise-ingress"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,25}$", var.ingress_deployment_id))
+    error_message = "The ingress_deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
   default     = "m7i.2xlarge"
-}
-
-variable "internal_load_balancer" {
-  description = "If true, the load balancer scheme is set to 'internal'"
-  type        = bool
-  default     = false
 }
 
 variable "is_ha" {
@@ -140,22 +122,6 @@ variable "site_id" {
     condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
     error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
-}
-
-variable "ssl_certificate_arn" {
-  description = "SSL certificate ARN for HTTPS listeners of the load balancer"
-  type        = string
-
-  validation {
-    condition     = can(regex("^arn:.+:acm:.+:\\d+:certificate\\/.+$", var.ssl_certificate_arn))
-    error_message = "The ssl_certificate_arn value must be an ACM certificate ARN."
-  }
-}
-
-variable "ssl_policy" {
-  description = "Security Policy that should be assigned to the ALB to control the SSL protocol and ciphers"
-  type        = string
-  default     = "ELBSecurityPolicy-TLS13-1-2-2021-06"
 }
 
 variable "subnet_ids" {

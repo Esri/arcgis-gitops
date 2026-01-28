@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -162,19 +162,11 @@ variable "portal_password" {
   description = "Portal for ArcGIS user password"
   type        = string
   sensitive   = true
-  default     = null
-}
-
-variable "portal_url" {
-  description = "Portal for ArcGIS URL"
-  type        = string
-  default     = null
 }
 
 variable "portal_username" {
   description = "Portal for ArcGIS user name"
   type        = string
-  default     = null
 }
 
 variable "root_cert_file_path" {

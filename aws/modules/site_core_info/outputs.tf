@@ -43,17 +43,17 @@ output "hosted_zone_id" {
 }
 
 output "s3_repository" {
-  description = "S3 repository"
+  description = "Private repository S3 bucket name"
   value       = nonsensitive(data.aws_ssm_parameter.s3_repository.value)
 }
 
 output "s3_backup" {
-  description = "S3 backup"
+  description = "Backups S3 bucket name"
   value       = nonsensitive(data.aws_ssm_parameter.s3_backup.value)
 }
 
 output "s3_logs" {
-  description = "S3 logs"
+  description = "Logs S3 bucket name"
   value       = nonsensitive(data.aws_ssm_parameter.s3_logs.value)
 }
 

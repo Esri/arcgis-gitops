@@ -56,7 +56,6 @@
  * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |  
- * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
  * | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
  * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
@@ -65,7 +64,7 @@
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -128,10 +127,6 @@ data "aws_ssm_parameter" "s3_content" {
 
 data "aws_ssm_parameter" "object_store" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket"
-}
-
-data "aws_ssm_parameter" "sns_topic" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
 }
 
 # Retrieve attributes of the primary EC2 instance
@@ -929,16 +924,6 @@ module "clean_up" {
   uninstall_chef_client = false
   depends_on = [
     module.arcgis_enterprise_primary,
-    module.arcgis_enterprise_standby
-  ]
-}
-
-resource "aws_sns_topic_subscription" "infrastructure_alarms" {
-  topic_arn = data.aws_ssm_parameter.sns_topic.value
-  protocol  = "email"
-  endpoint  = var.admin_email
-  depends_on = [
-    module.arcgis_enterprise_primary, 
     module.arcgis_enterprise_standby
   ]
 }

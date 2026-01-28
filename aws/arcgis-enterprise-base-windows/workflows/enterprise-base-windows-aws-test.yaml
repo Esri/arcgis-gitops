@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,9 @@ on:
   workflow_dispatch:
  
 env:
+  AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
   ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
   ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
   CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/infrastructure.tfvars.json
@@ -40,6 +43,7 @@ jobs:
         docker build -t enterprise-admin-cli .
     - name: Run Tests
       run: |
-        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
-        PORTAL_WEB_CONTEXT=$(jq -r '.portal_web_context' $CONFIG_FILE)
-        docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-publish-csv --url https://$DEPLOYMENT_FQDN/$PORTAL_WEB_CONTEXT
+        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+        DEPLOYMENT_URL=$(aws ssm get-parameter --name "/arcgis/${SITE_ID}/${DEPLOYMENT_ID}/deployment-url" --query "Parameter.Value" --output text)
+        docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-publish-csv --url $DEPLOYMENT_URL

@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -126,12 +126,6 @@ variable "portal_password" {
   description = "Portal for ArcGIS user password"
   type        = string
   sensitive   = true
-  default     = null
-}
-
-variable "portal_url" {
-  description = "Portal for ArcGIS URL"
-  type        = string
   default     = null
 }
 

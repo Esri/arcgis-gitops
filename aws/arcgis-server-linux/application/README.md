@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for ArcGIS Server on Linux
 
-The Terraform module configures or upgrades applications of highly available ArcGIS Server deployment on Linux platforms.
+The Terraform module configures or upgrades applications of ArcGIS Server deployment on the Linux platforms.
 
 ![ArcGIS Server on Linux](arcgis-server-linux-application.png "ArcGIS Server on Linux")
 
@@ -51,11 +51,16 @@ The module reads the following SSM parameters:
 |--------------------|-------------|
 | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
-| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified and portal_url is not specified) |
+| /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified) |
 | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
-| /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
 | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+| /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
+| /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
 | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
+| /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+| /arcgis/${var.site_id}/vpc/id | VPC ID |
+| /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
 
 ## Providers
 
@@ -94,14 +99,12 @@ The module reads the following SSM parameters:
 
 | Name | Type |
 |------|------|
-| [aws_sns_topic_subscription.infrastructure_alarms](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/sns_topic_subscription) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.sns_topic](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 
@@ -122,7 +125,6 @@ The module reads the following SSM parameters:
 | os | Operating system id (rhel8\|rhel9) | `string` | `"rhel9"` | no |
 | portal_org_id | ArcGIS Enterprise organization Id | `string` | `null` | no |
 | portal_password | Portal for ArcGIS user password | `string` | `null` | no |
-| portal_url | Portal for ArcGIS URL | `string` | `null` | no |
 | portal_username | Portal for ArcGIS user name | `string` | `null` | no |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server | `string` | `null` | no |
 | run_as_user | User name for the account used to run ArcGIS Server. | `string` | `"arcgis"` | no |

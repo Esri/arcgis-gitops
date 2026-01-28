@@ -16,7 +16,7 @@ Supported Operating Systems:
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
-2. Create core AWS resources and Chef automation resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
+2. Create the core AWS resources, Chef automation resources, and Application Load Balancer for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 
@@ -26,8 +26,6 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of base ArcGIS Enterprise includes building images, provisioning AWS resources, configuring the applications, and testing the deployment web services.
 
-![Base ArcGIS Enterprise on Windows Configuration Flow](./arcgis-enterprise-base-windows-flowchart.png)
-
 ### 1. Set GitHub Actions Secrets for the Site
 
 Set the primary ArcGIS Enterprise site administrator credentials in the GitHub Actions secrets of the repository settings.
@@ -36,7 +34,6 @@ Set the primary ArcGIS Enterprise site administrator credentials in the GitHub A
 |---------------------------|------------------------------------------------|
 | ENTERPRISE_ADMIN_USERNAME | ArcGIS Enterprise administrator user name      |
 | ENTERPRISE_ADMIN_PASSWORD | ArcGIS Enterprise administrator user password  |
-| ENTERPRISE_ADMIN_EMAIL    | ArcGIS Enterprise administrator e-mail address |
 | RUN_AS_PASSWORD           | Password of the 'arcgis' Windows user account  |
 
 > The ArcGIS Enterprise administrator user name must be between 6 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
@@ -85,14 +82,9 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
-2. Provision or import SSL certificate for the base ArcGIS Enterprise domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property to the certificate ARN.
-3. Set "deployment_fqdn" property to the base ArcGIS Enterprise deployment fully qualified domain name.
-4. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
-5. Commit the changes to the Git branch and push the branch to GitHub.
-6. Run the enterprise-base-windows-aws-infrastructure workflow using the branch.
-7. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
-
-> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
+2. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+3. Commit the changes to the Git branch and push the branch to GitHub.
+4. Run the enterprise-base-windows-aws-infrastructure workflow using the branch.
 
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 
@@ -125,7 +117,7 @@ Instructions:
 
 GitHub Actions workflow **enterprise-base-windows-aws-test** tests base ArcGIS Enterprise deployment.
 
-The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to publish a CSV file to the Portal for ArcGIS URL. The portal domain name and web context are retrieved from infrastructure.tfvars.json properties file.
+The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to publish a CSV file to the Portal for ArcGIS URL retrieved from /arcgis/${SITE_ID}/${DEPLOYMENT_ID}/deployment-url SSM parameter.
 
 Instructions:
 

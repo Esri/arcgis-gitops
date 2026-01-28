@@ -30,7 +30,7 @@ concurrency:
   
 jobs:
   ingress:
-    name: Ingress Controller
+    name: Ingress
     runs-on: ubuntu-24.04
     outputs:
       alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}

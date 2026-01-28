@@ -34,7 +34,6 @@ Set the primary ArcGIS Enterprise site administrator, run as user, and VM admini
 |---------------------------|------------------------------------------------|
 | ENTERPRISE_ADMIN_USERNAME | ArcGIS Enterprise administrator user name      |
 | ENTERPRISE_ADMIN_PASSWORD | ArcGIS Enterprise administrator user password  |
-| ENTERPRISE_ADMIN_EMAIL    | ArcGIS Enterprise administrator e-mail address |
 | RUN_AS_PASSWORD           | Password of 'arcgis' Windows user account      |
 | VM_ADMIN_USERNAME         | Windows VM administrator user name             |
 | VM_ADMIN_PASSWORD         | Windows VM administrator user password         |

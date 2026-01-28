@@ -5,28 +5,26 @@
  *
  * ![ArcGIS Enterprise on Kubernetes](arcgis-enterprise-k8s-organization.png "ArcGIS Enterprise on Kubernetes")  
  *
- * The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.2.0/deploy-guide) distributed separately from the module.
+ * The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.6.0/deploy-guide) distributed separately from the module.
  * The Helm charts package for the version used by the deployment must be extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
  *
  * The following table explains the compatibility of chart versions and ArcGIS Enterprise on Kubernetes.
  * 
- * Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description |
- * --- | --- | --- | --- | --- | --- |
- * v1.2.0 | 11.2.0.5207 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.2 or upgrading 11.1 to 11.2 |
- * v1.2.1 | 11.2.0.5500 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Help Language Pack Update |
- * v1.2.2 | 11.2.0.5505 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Q2 2024 Base Operating System Image Update |
- * v1.2.3 | 11.2.0.5510 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.2 Q2 2024 Bug Fix Update | 
- * v1.3.0 | 11.3.0.5814 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.3 or upgrading 11.2 to 11.3 | *
+ * Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description                                                             |
+ * --- |---------------------------| --- |---------------------------------------------| --- |-------------------------------------------------------------------------|
+ * v1.5.0 | 11.5.0.6745 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.5 or upgrading 11.4 to 11.5 |
+ * v1.5.1 | 11.5.0.6805 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Help Language Pack and Base Operating System Image Update |
+ * v1.5.2 | 11.5.0.6815 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q3 Bug Fix and Base Operating System Image Update |
+ * v1.5.3 | 11.5.0.6820 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Feature Services Security Update |
+ * v1.5.4 | 11.5.0.6825 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q4 Bug Fix and Base Operating System Image Update |
+ * v1.5.5 | 11.5.0.6835 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q4 2025 December Bug Fix and Base Operating System Image Update |
+ * v1.6.0 | 12.0.0.7286 | Supported     | Supported      | Not applicable | Helm chart for deploying 12.0 or upgrading 11.5 to 12.0 |
  *
  * The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
- * For ArcGIS Enterprise versions 11.2 and newer the module also creates an S3 bucket for the organization object store, registers it with the deployment, 
+ * The module also creates an S3 bucket for the organization object store, registers it with the deployment, 
  * and registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
  *
- * The deployment's Monitoring Subsystem consists of:
- *
- * * An SNS topic with a subscription for the primary site administrator.
- * * A CloudWatch alarm that monitors the ingress ALB target group and post to the SNS topic if the number of unhealthy instances in nonzero. 
- * * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and container logs of the deployment.
+ * The deployment's CloudWatch dashboard displays the CloudWatch metrics and container logs of the deployment.
  *
  * ## Requirements
  * 
@@ -34,9 +32,18 @@
  * 
  * * AWS credentials must be configured.
  * * EKS cluster configuration information must be provided in ~/.kube/config file.
+ *
+ * ## SSM Parameters
+ *
+ * The module reads the following SSM parameters: 
+ *
+ * | SSM parameter name | Description |
+ * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/s3/backup | Backups S3 bucket name |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -103,6 +110,10 @@ data "aws_ssm_parameter" "s3_backup" {
   name = "/arcgis/${var.site_id}/s3/backup"
 }
 
+data "aws_ssm_parameter" "deployment_fqdn" {
+  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+}
+
 locals {
   # Currently only ECR with IAM authentication is supported by the modified Helm chart
   container_registry         = "${data.aws_caller_identity.current.account_id}.dkr.ecr.${data.aws_region.current.region}.amazonaws.com"
@@ -114,6 +125,8 @@ locals {
   backup_store_suffix = replace(local.app_version, ".", "-")
   backup_store = "s3-backup-store-${local.backup_store_suffix}"
   backup_root_dir = "${var.deployment_id}/${local.app_version}"
+
+  deployment_fqdn = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
 }
 
 resource "kubernetes_secret" "admin_cli_credentials" {
@@ -141,7 +154,7 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
       image = local.enterprise_admin_cli_image
       env {
         name  = "ARCGIS_ENTERPRISE_URL"
-        value = "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}"
+        value = "https://${local.deployment_fqdn}/${var.arcgis_enterprise_context}"
       }
       env {
         name = "ARCGIS_ENTERPRISE_USER"
@@ -263,13 +276,13 @@ resource "helm_release" "arcgis_enterprise" {
         authenticationType = "integrated"
       }
       install = {
-        enterpriseFQDN              = var.deployment_fqdn
+        enterpriseFQDN              = local.deployment_fqdn
         context                     = var.arcgis_enterprise_context
         allowedPrivilegedContainers = true
         configureWaitTimeMin        = var.configure_wait_time_min
         ingress = {
           tls = {
-            selfSignCN = var.deployment_fqdn
+            selfSignCN = local.deployment_fqdn
           }
         }
         k8sClusterDomain = var.k8s_cluster_domain
@@ -367,8 +380,3 @@ module "monitoring" {
   namespace     = var.deployment_id
 }
 
-resource "aws_sns_topic_subscription" "infrastructure_alarms" {
-  topic_arn = module.monitoring.sns_topic_arn
-  protocol  = "email"
-  endpoint  = var.admin_email
-}

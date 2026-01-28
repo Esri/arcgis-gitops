@@ -11,7 +11,7 @@
  *
  * * Copies the installation media for the ArcGIS Enterprise version specified by arcgis_version input variable to the private repository S3 bucket
  * * Downloads the installation media from the private repository S3 bucket to primary and node EC2 instances
- * * Installs/upgrades  ArcGIS Enterprise software on primary and node EC2 instances
+ * * Installs/upgrades ArcGIS Enterprise software on primary and node EC2 instances
  * * Installs the software patches on primary and node EC2 instances
  *
  * Then the module:
@@ -22,9 +22,10 @@
  * * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and node EC2 instances
  * * Creates the required directories in the NFS mount
  * * Configures ArcGIS Notebook Server on primary EC2 instance
- * * Configures ArcGIS Notebook Server on node EC2 instance
+ * * Configures ArcGIS Notebook Server on node EC2 instances if any
+ * * Federates ArcGIS Notebook Server with Portal for ArcGIS
+ * * If config_store_type input variable is set to "AMAZON", configures system-level backups of the config store using AWS Backup service
  * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and node EC2 instances
- * * Subscribes the primary ArcGIS Notebook Server administrator e-mail address to the SNS topic of the monitoring subsystem
  *
  * ## Requirements
  *
@@ -46,20 +47,23 @@
  * | SSM parameter name | Description |
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if portal_url is not specified) | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn | SNS topic ARN of the monitoring subsystem |
+ * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL | 
  * | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
  * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
+ * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+ * | /arcgis/${var.site_id}/vpc/id | VPC ID |
+ * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+ *
+ * > The module also writes multiple “attributes” SSM parameters used to run Chef.
  */
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -104,10 +108,6 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "sns_topic" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/sns-topic-arn"
-}
-
 data "aws_ssm_parameter" "deployment_fqdn" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
 }
@@ -117,7 +117,6 @@ data "aws_ssm_parameter" "notebook_server_web_context" {
 }
 
 data "aws_ssm_parameter" "portal_url" {
-  count = var.portal_url == null ? 1 : 0
   name  = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
 }
 
@@ -184,8 +183,8 @@ locals {
 
   mount_point             = "/mnt/efs"
   deployment_fqdn         = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
-  notebook_server_web_context      = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
-  portal_url              = var.portal_url == null ? nonsensitive(data.aws_ssm_parameter.portal_url[0].value) : var.portal_url
+  notebook_server_web_context = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
+  portal_url              = nonsensitive(data.aws_ssm_parameter.portal_url.value)
   primary_hostname        = data.aws_instance.primary.private_ip
   software_dir            = "/opt/software/setups/*"
   authorization_files_dir = "/opt/software/authorization"
@@ -673,14 +672,3 @@ module "clean_up" {
     module.arcgis_notebook_server_federation
   ]
 }
-
-resource "aws_sns_topic_subscription" "infrastructure_alarms" {
-  topic_arn = data.aws_ssm_parameter.sns_topic.value
-  protocol  = "email"
-  endpoint  = var.admin_email
-  depends_on = [
-    module.arcgis_notebook_server_primary,
-    module.arcgis_notebook_server_node
-  ]
-}
-

@@ -96,10 +96,11 @@ Configure secrets and variables for GitHub Actions in the repository settings.
 
 #### Secrets
 
-| Name                   | Description                 |
-|------------------------|-----------------------------|
-| AWS_ACCESS_KEY_ID      | AWS access key Id           |
-| AWS_SECRET_ACCESS_KEY  | AWS secret access key       |
+| Name                   | Description                       |
+|------------------------|-----------------------------------|
+| AWS_ACCESS_KEY_ID      | AWS access key Id                 |
+| AWS_SECRET_ACCESS_KEY  | AWS secret access key             |
+| ENTERPRISE_ADMIN_EMAIL | Site administrator e-mail address |
 
 For ArcGIS Enterprise on Windows and Linux:
 

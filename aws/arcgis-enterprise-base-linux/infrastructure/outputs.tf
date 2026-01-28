@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,12 +17,7 @@ output "security_group_id" {
   value       = module.security_group.id
 }
 
-output "alb_dns_name" {
-  description = "DNS name of the application load balancer"
-  value       = module.alb.alb_dns_name
-}
-
 output "deployment_url" {
   description = "Portal for ArcGIS URL of the deployment"
-  value       = "https://${var.deployment_fqdn}/${var.portal_web_context}"
+  value       = "https://${nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)}/${var.portal_web_context}"
 }

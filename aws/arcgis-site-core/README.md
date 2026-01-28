@@ -53,6 +53,28 @@ Instructions:
 2. Commit the changes to the `main` branch and push the branch to GitHub.
 3. Run site-automation-chef-aws workflow using the `main` branch.
 
+## Create Application Load Balancer for Windows and Linux Deployments
+
+GitHub Actions workflow **site-ingress-aws** creates an Application Load Balancer for Windows and Linux ArcGIS Enterprise deployments.
+
+The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/aws/arcgis-site-core/ingress.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISSiteCore
+
+Instructions:
+
+1. Provision or import SSL certificate for the base ArcGIS Enterprise domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property to the certificate ARN.
+2. Set "deployment_fqdn" property to the ArcGIS Enterprise site domain name.
+3. (Optional) Update "https_ports" array in the config file to specify the ports of the load balancer's HTTPS listeners  required for the site.
+4. Commit the changes to the `main` branch and push the branch to GitHub.
+5. Run site-ingress-aws workflow using the `main` branch.
+6. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
+
+> By default "waf_mode" property is set to "detect", that configures the Web Application Firewall (WAF) rules assigned to the Application Load Balancer to count and log suspicious requests instead of blocking them. It is strongly recommended that all deployments start out running in “detect” mode to avoid breaking workflows unexpectedly. Once the rules are fully tuned and WAF logs no longer reveal false positives, the WAF can be shifted into “protect” mode.
+
 ## Deploy K8s Cluster
 
 GitHub Actions workflow **site-k8s-cluster-aws** deploys an Amazon EKS cluster that meets the ArcGIS Enterprise on Kubernetes system requirements.

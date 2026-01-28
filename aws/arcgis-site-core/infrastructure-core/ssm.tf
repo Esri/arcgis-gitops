@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -98,4 +98,9 @@ resource "aws_ssm_parameter" "images_parameters" {
   description = each.value.description
 }
 
-
+resource "aws_ssm_parameter" "sns_topic" {
+  name        = "/arcgis/${var.site_id}/sns-topics/site-alarms"
+  type        = "String"
+  value       = aws_sns_topic.site_alarms.arn
+  description = "Site alarms SNS topic ARN"
+}

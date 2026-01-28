@@ -12,7 +12,17 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
  
+output "alb_arn" {
+  description = "Application Load Balancer ARN"
+  value = data.aws_lb.arcgis_enterprise_ingress.arn
+}
+
 output "alb_dns_name" {
-  description = "DNS name of the deployment's ingress load balancer"
-  value = kubernetes_ingress_v1.arcgis_enterprise.status.0.load_balancer.0.ingress.0.hostname
+  description = "Application Load Balancer DNS name"
+  value = data.aws_lb.arcgis_enterprise_ingress.dns_name
+}
+
+output "alb_zone_id" {
+  description = "Application Load Balancer zone ID"
+  value = data.aws_lb.arcgis_enterprise_ingress.zone_id
 }

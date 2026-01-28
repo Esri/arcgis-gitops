@@ -4,6 +4,14 @@
         {
             "Effect": "Allow",
             "Action": [
+                "wafv2:*",
+                "logs:*"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
                 "ecr:BatchCheckLayerAvailability",
                 "ecr:BatchGetImage",
                 "ecr:CompleteLayerUpload",
@@ -40,7 +48,7 @@
         },
         {
             "Effect": "Allow",
-            "Action":[
+            "Action": [
                 "elasticloadbalancing:DescribeLoadBalancerAttributes",
                 "elasticloadbalancing:DescribeLoadBalancers",
                 "elasticloadbalancing:DescribeTags",
@@ -64,7 +72,7 @@
         },
         {
             "Effect": "Allow",
-            "Action":[
+            "Action": [
                 "sns:CreateTopic",
                 "sns:DeleteTopic",
                 "sns:GetSubscriptionAttributes",
@@ -121,7 +129,7 @@
         },
         {
             "Effect": "Allow",
-            "Action":[
+            "Action": [
                 "cloudwatch:DeleteAlarms",
                 "cloudwatch:DeleteDashboards",
                 "cloudwatch:DescribeAlarms",
@@ -131,6 +139,28 @@
                 "cloudwatch:PutDashboard",
                 "cloudwatch:PutMetricAlarm",
                 "cloudwatch:TagResource"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "route53:AssociateVPCWithHostedZone",
+                "route53:ChangeResourceRecordSets",
+                "route53:ChangeTagsForResource",
+                "route53:CreateHostedZone",
+                "route53:DeleteHostedZone",
+                "route53:GetChange",
+                "route53:GetHostedZone",
+                "route53:ListResourceRecordSets",
+                "route53:ListTagsForResource"
+            ],
+            "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ec2:DescribeVpcs"
             ],
             "Resource": "*"
         }

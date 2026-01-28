@@ -58,9 +58,10 @@ jobs:
         id: terraform-init
         run: |
           SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
           terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                         -backend-config="key=$SITE_ID/azure/ingress.tfstate"
+                         -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/ingress.tfstate"
       - name: Terraform Apply
         id: terraform-apply
         if: github.event.inputs.terraform_command != 'plan'

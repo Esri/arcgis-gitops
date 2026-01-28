@@ -64,16 +64,6 @@ variable "image_repository_prefix" {
   default     = "docker-hub/esridocker"
 }
 
-variable "deployment_fqdn" {
-  description = "The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
-  }
-}
-
 variable "arcgis_enterprise_context" {
   description = "Context path to be used in the URL for ArcGIS Enterprise on Kubernetes"
   type        = string

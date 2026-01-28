@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+variable "admin_email" {
+  description = "ArcGIS Enterprise site administrator e-mail address"
+  type        = string
+  default     = null
+}
+
 variable "availability_zones" {
   description = "AWS availability zones (if the list contains less that two elements, the first two available availability zones in the AWS region will be used.)"
   type        = list(string)
@@ -21,6 +27,7 @@ variable "availability_zones" {
 variable "aws_region" {
   description = "AWS region Id"
   type        = string
+  default     = "us-east-1"
 }
 
 variable "gateway_vpc_endpoints" {

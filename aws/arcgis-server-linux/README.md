@@ -27,8 +27,6 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of ArcGIS Server includes building images, provisioning AWS resources, configuring the applications, and testing the deployment web services.
 
-![ArcGIS Server on Linux Configuration Flow](./arcgis-server-linux-flowchart.png)
-
 ### 1. Set GitHub Actions Secrets for the Site
 
 If ArcGIS Server is deployed as a standalone server or federated with ArcGIS Enterprise on Kubernetes, set the primary ArcGIS Server site administrator credentials in the GitHub Actions secrets of the repository settings.
@@ -37,7 +35,6 @@ If ArcGIS Server is deployed as a standalone server or federated with ArcGIS Ent
 |---------------------------|--------------------------------------------|
 | ENTERPRISE_ADMIN_USERNAME | ArcGIS Server administrator user name      |
 | ENTERPRISE_ADMIN_PASSWORD | ArcGIS Server administrator user password  |
-| ENTERPRISE_ADMIN_EMAIL    | ArcGIS Server administrator e-mail address |
 
 > The ArcGIS Server administrator user name must be between 6 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
 
@@ -80,19 +77,16 @@ Workflow Inputs:
 
 Workflow Outputs:
 
-* alb_dns_name - DNS name of the application load balancer
+* deployment_url - ArcGIS Server URL
 
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
-2. To add the deployment to the load balancer of a base ArcGIS Enterprise deployment, set "alb_deployment_id" property to the base deployment ID. Otherwise, set "deployment_fqdn" property to the ArcGIS Server deployment fully qualified domain name, provision or import an SSL certificate for the domain name into AWS Certificate Manager service in the selected AWS region, and set "ssl_certificate_arn" property to the certificate ARN.
-3. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
-4. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
+2. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+3. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
+4. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "portal_deployment_id" to ID of the Portal for ArcGIS deployment.
 5. Commit the changes to the Git branch and push the branch to GitHub.
 6. Run server-linux-aws-infrastructure workflow using the branch.
-7. If "alb_deployment_id" is not set, retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Server domain name.
-
-> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
 
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 
@@ -115,7 +109,7 @@ Instructions:
 
 1. Add ArcGIS Server authorization file for the ArcGIS Server version to `config/authorization/<ArcGIS version>` directory of the repository and set "server_authorization_file_path" property to the file path.
 2. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true`.
-3. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "server_role" and "server_functions" properties to the required server role and function. If the server does not share the load balancer with the base ArcGIS Enterprise deployment, set "portal_url" property to the Portal for ArcGIS URL. To federate the server with ArcGIS Enterprise on Kubernetes organization, set "portal_org_id" property to "0123456789ABCDEF", which is the default organization ID.
+3. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "server_role" and "server_functions" properties to the required server role and function. To federate the server with ArcGIS Enterprise on Kubernetes organization, set "portal_org_id" property to "0123456789ABCDEF", which is the default organization ID.
 4. To configure ArcGIS Server and Apache Tomcat with specific SSL certificates, set "keystore_file_path" and "keystore_file_password" properties to the certificate file path and password.
 5. Commit the changes to the Git branch and push the branch to GitHub.
 6. Run server-linux-aws-application workflow using the branch.
@@ -128,7 +122,7 @@ Instructions:
 
 GitHub Actions workflow **server-linux-aws-test** tests ArcGIS Server deployment.
 
-The workflow uses test-server-admin script from ArcGIS Enterprise Admin CLI to test accessibility of the ArcGIS Server admin URL. The server domain name and web context are retrieved from infrastructure.tfvars.json properties file and from SSM parameters.
+The workflow uses test-server-admin script from ArcGIS Enterprise Admin CLI to test accessibility of the ArcGIS Server admin URL. The deployment URL is retrieved from SSM parameters.
 
 Instructions:
 
@@ -155,9 +149,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "admin_username" and "admin_password" properties in backup.tfvars.json file to the server administrator user name and password respectively.
-2. Commit the changes to the Git branch and push the branch to GitHub.
-3. Run server-linux-aws-backup workflow using the branch.
+1. Run server-linux-aws-backup workflow using the branch.
 
 > To meet the required recovery point objective (RPO), schedule runs of server-linux-aws-backup workflow by configuring 'schedule' event in server-linux-aws-backup.yaml file.
 
@@ -174,9 +166,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Set "admin_username" and "admin_password" properties in restore.tfvars.json file to the server administrator user name and password respectively.
-2. Commit the changes to the Git branch and push the branch to GitHub.
-3. Run server-linux-aws-restore workflow using the branch.
+1. Run server-linux-aws-restore workflow using the branch.
 
 ### System-level backups
 
@@ -228,7 +218,7 @@ Instructions:
 
 ## Destroying Deployments
 
-GitHub Actions workflow **server-linux-aws-destroy** destroys AWS resources created by server-linux-aws-image, server-linux-aws-snapshot, server-linux-aws-infrastructure and server-linux-aws-application workflows.
+GitHub Actions workflow **server-linux-aws-destroy** destroys AWS resources created by server-linux-aws-image, server-linux-aws-infrastructure and server-linux-aws-application workflows.
 
 The workflow uses [infrastructure](infrastructure/README.md) and [application](application/README.md) Terraform templates with [infrastructure.tfvars.json](../../config/aws/arcgis-server-linux/infrastructure.tfvars.json) and [application.tfvars.json](../../config/aws/arcgis-server-linux/application.tfvars.json) config files.
 

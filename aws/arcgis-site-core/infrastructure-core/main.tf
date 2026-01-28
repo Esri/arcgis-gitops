@@ -1,7 +1,7 @@
 /**
  * # Terraform module infrastructure-core
  *
- * Terraform module creates the networking, storage, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise site.
+ * Terraform module creates the networking, storage, monitoring, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise site.
  * 
  * The module also looks up the latest public AMIs for the specified operating systems and stores the AMI IDs in SSM parameters.
  *
@@ -21,6 +21,7 @@
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket used by deployments to store logs |
  * | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket of private repository |
+ * | /arcgis/${var.site_id}/sns-topic-arn/site-alarms | ARN of SNS topic for site alarms |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | Private hosted zone Id of ArcGIS Enterprise site |
  * | /arcgis/${var.site_id}/vpc/id | VPC Id of ArcGIS Enterprise site |
  * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
@@ -33,7 +34,7 @@
  * * AWS region must be specified by AWS_DEFAULT_REGION environment variable.
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.

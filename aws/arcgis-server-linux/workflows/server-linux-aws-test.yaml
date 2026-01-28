@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,10 +45,5 @@ jobs:
       run: |
         SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn // empty' $CONFIG_FILE)
-        if [ -z "$DEPLOYMENT_FQDN" ]; then
-          DEPLOYMENT_FQDN=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/deployment-fqdn" --query "Parameter.Value" --output text)
-        fi
-        SERVER_WEB_CONTEXT=$(jq -r '.server_web_context' $CONFIG_FILE)
-        DEPLOYMENT_URL=https://$DEPLOYMENT_FQDN/$SERVER_WEB_CONTEXT
+        DEPLOYMENT_URL=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/deployment-url" --query "Parameter.Value" --output text)
         docker run -e ARCGIS_SERVER_USER=$ADMIN_USERNAME -e ARCGIS_SERVER_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-server-admin --url $DEPLOYMENT_URL

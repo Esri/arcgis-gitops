@@ -27,7 +27,6 @@ variable "availability_zones" {
 variable "aws_region" {
   description = "AWS region Id"
   type        = string
-  default     = "us-east-1"
 }
 
 variable "gateway_vpc_endpoints" {

@@ -7,7 +7,7 @@ This template provides workflows for provisioning:
 
 Before running the template workflows, configure the GitHub repository settings as described in the general [Instructions](../README.md#instructions) section.
 
-To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in the `main` branch, commit the changes, and push the branch to GitHub.
+To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in the Git branch, commit the changes, and push the branch to GitHub.
 
 > To prevent accidental destruction of the resources, don't enable *-destroy workflows until needed.
 
@@ -28,8 +28,8 @@ Required service principal roles:
 Instructions:
 
 1. (Optional) Update CIDR blocks of the subnets to match the required network topology.
-2. Commit the changes to the `main` branch and push the branch to GitHub.
-3. Run site-core-azure workflow using the `main` branch.
+2. Commit the changes to the Git branch and push the branch to GitHub.
+3. Run site-core-azure workflow using the Git branch.
 
 ## Create Chef Automation Resources
 
@@ -44,8 +44,8 @@ Required service principal roles:
 Instructions:
 
 1. (Optional) Update "chef_client_paths" map in the config file. Remove entries for operating systems that will not be used.
-2. Commit the changes to the `main` branch and push the branch to GitHub.
-3. Run site-automation-chef-azure workflow using the `main` branch.
+2. Commit the changes to the Git branch and push the branch to GitHub.
+3. Run site-automation-chef-azure workflow using the Git branch.
 
 ## Create Application Gateway for Windows and Linux Deployments
 
@@ -64,8 +64,8 @@ Instructions:
     > It is recommended to use a secret identifier that does not specify a version, enabling automatic certificate rotation by Application Gateway when a newer version is available in Key Vault.
 3. Set "deployment_fqdn" property to the ArcGIS Enterprise site domain name.
 4. (Optional) Update "routing_rules" array in the config file to specify routing rules required for the site. Remove rules that are not required.
-5. Commit the changes to the `main` branch and push the branch to GitHub.
-6. Run site-ingress-azure workflow using the `main` branch.
+5. Commit the changes to the Git branch and push the branch to GitHub.
+6. Run site-ingress-azure workflow using the Git branch.
 7. Create DNS A record for the site domain name pointing to the Application Gateway public IP address.
 
 ## Deploy K8s Cluster
@@ -89,8 +89,8 @@ Instructions:
 
 1. (Optional) Set "default_node_pool" properties to the required node pool configuration.
 2. (Optional) Set "subnet_id" property to the subnet ID from the site's VNet. By default, the first private subnet is used.
-3. Commit the changes to the `main` branch and push the branch to GitHub.
-4. Run site-k8s-cluster-azure workflow using the `main` branch.
+3. Commit the changes to the Git branch and push the branch to GitHub.
+4. Run site-k8s-cluster-azure workflow using the Git branch.
 
 ## Destroy K8s Cluster
 
@@ -104,7 +104,7 @@ Required service principal roles:
 
 Instructions:
 
-1. Run site-k8s-cluster-azure-destroy workflow using the `main` branch.
+1. Run site-k8s-cluster-azure-destroy workflow using the Git branch.
 
 ## Destroy Application Gateway for Windows and Linux Deployments
 
@@ -118,7 +118,7 @@ Required service principal roles:
 
 Instructions:
 
-1. Run site-ingress-azure-destroy workflow using the `main` branch.
+1. Run site-ingress-azure-destroy workflow using the Git branch.
 
 ## Destroy Chef Automation Resources
 
@@ -132,7 +132,7 @@ Required service principal roles:
 
 Instructions:
 
-1. Run site-automation-chef-azure-destroy workflow using the `main` branch.
+1. Run site-automation-chef-azure-destroy workflow using the Git branch.
 
 ## Destroy Core Azure Resources
 
@@ -146,6 +146,6 @@ Required service principal roles:
 
 Instructions:
 
-1. Run site-core-azure-destroy workflow using the `main` branch.
+1. Run site-core-azure-destroy workflow using the Git branch.
 
 > Along with all other resources, site-core-azure-destroy workflow destroys backups of all deployments.

@@ -3,12 +3,13 @@
 This template provides workflows for provisioning:
 
 * Networking, storage, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise site,
-* Chef Automation resources required for ArcGIS Enterprise site configuration management using [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/), and
+* Chef Automation resources required for ArcGIS Enterprise site configuration management using [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/),
+* Application Load Balancer for Windows and Linux Deployments, and
 * Amazon Elastic Kubernetes Service (EKS) cluster that meets ArcGIS Enterprise on Kubernetes system requirements.
 
 Before running the template workflows, configure the GitHub repository settings as described in the general [Instructions](../README.md#instructions) section.
 
-To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in the `main` branch, commit the changes, and push the branch to GitHub.
+To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory, commit the changes to the Git branch, and push the branch to GitHub.
 
 > To prevent accidental destruction of the resources, don't enable *-destroy workflows until it is necessary.
 
@@ -33,8 +34,8 @@ Instructions:
    > Note that the AWS account IDs specified by "owner" property in the "images" map may be different in different AWS regions.
 2. (Optional) Change "availability_zones" property in the config file to the list of availability zones of the AWS region. If "availability_zones" list contains less than two elements, the first two available availability zones in the AWS region will be used. If you need to use specific availability zones or more than two availability zones, specify them in the "availability_zones" list.
 3. (Optional) Update the list of interface VPC endpoints specified by "interface_vpc_endpoints" property. Remove all the endpoints if the site will not use the internal subnets.
-4. Commit the changes to the `main` branch and push the branch to GitHub.
-5. Run site-core-aws workflow using the `main` branch.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run site-core-aws workflow using the Git branch.
 
 ## Create Chef Automation Resources
 
@@ -50,8 +51,8 @@ Required IAM policies:
 Instructions:
 
 1. (Optional) Update "chef_client_paths" map in the config file. Remove entries for operating systems that will not be used.
-2. Commit the changes to the `main` branch and push the branch to GitHub.
-3. Run site-automation-chef-aws workflow using the `main` branch.
+2. Commit the changes to the Git branch and push the branch to GitHub.
+3. Run site-automation-chef-aws workflow using the Git branch.
 
 ## Create Application Load Balancer for Windows and Linux Deployments
 
@@ -69,8 +70,8 @@ Instructions:
 1. Provision or import SSL certificate for the base ArcGIS Enterprise domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property to the certificate ARN.
 2. Set "deployment_fqdn" property to the ArcGIS Enterprise site domain name.
 3. (Optional) Update "https_ports" array in the config file to specify the ports of the load balancer's HTTPS listeners  required for the site.
-4. Commit the changes to the `main` branch and push the branch to GitHub.
-5. Run site-ingress-aws workflow using the `main` branch.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run site-ingress-aws workflow using the Git branch.
 6. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
 
 > By default "waf_mode" property is set to "detect", that configures the Web Application Firewall (WAF) rules assigned to the Application Load Balancer to count and log suspicious requests instead of blocking them. It is strongly recommended that all deployments start out running in “detect” mode to avoid breaking workflows unexpectedly. Once the rules are fully tuned and WAF logs no longer reveal false positives, the WAF can be shifted into “protect” mode.
@@ -93,8 +94,8 @@ Instructions:
 3. If specific subnets, or more than two subnets of each type are required for the EKS cluster, set "subnet_ids" property to the list of subnet IDs in the selected AWS region. By default, the first two subnets of each type (public, private, and internal) specified by the SSM parameters are used.
 4. Set "node_groups" property to the required node groups configuration.
 5. If the AWS region does not support [ECR pull through cache](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html), change "pull_through_cache" property value to `false`.
-6. Commit the changes to the `main` branch and push the branch to GitHub.
-7. Run site-k8s-cluster-aws workflow using the `main` branch.
+6. Commit the changes to the Git branch and push the branch to GitHub.
+7. Run site-k8s-cluster-aws workflow using the Git branch.
 
 To run the EKS nodes in "internal" subnets:
 
@@ -114,7 +115,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Run site-k8s-cluster-aws-destroy workflow using the `main` branch.
+1. Run site-k8s-cluster-aws-destroy workflow using the Git branch.
 
 ## Destroy Chef Automation Resources
 
@@ -129,7 +130,7 @@ Required IAM policies:
 
 Instructions:
 
-1. Run site-automation-chef-aws-destroy workflow using the `main` branch.
+1. Run site-automation-chef-aws-destroy workflow using the Git branch.
 
 ## Destroy Core AWS Resources
 
@@ -144,6 +145,6 @@ Required IAM policies:
 
 Instructions:
 
-1. Run site-core-aws-destroy workflow using the `main` branch.
+1. Run site-core-aws-destroy workflow using the Git branch.
 
 > Along with all other resources, site-core-aws-destroy workflow destroys backups of all deployments.

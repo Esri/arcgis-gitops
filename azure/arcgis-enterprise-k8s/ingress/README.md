@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Ingress Terraform Module for Base ArcGIS Enterprise on Kubernetes
 
-This Terraform module creates an manages an Application Gateway for Containers (AGC) that
+This Terraform module creates and manages an Application Gateway for Containers (AGC) that
 routes traffic to ArcGIS Enterprise on Kubernetes ingress service.
 
 ![ArcGIS Enterprise on Kubernetes Ingress](arcgis-enterprise-k8s-ingress-azure.png "ArcGIS Enterprise on Kubernetes Ingress")  

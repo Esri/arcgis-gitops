@@ -430,7 +430,8 @@ resource "azurerm_private_dns_a_record" "deployment_fqdn" {
 # Create a record in the public DNS zone that points the deployment's FQDN
 resource "azurerm_dns_a_record" "public_dns_entry" {
   count = var.dns_zone_name != null && var.dns_zone_resource_group_name != null ? 1 : 0
-  name                = trimsuffix(var.deployment_fqdn, ".${var.dns_zone_name}")
+  # Use "@" for apex/root records; otherwise, strip the zone suffix to get a relative name
+  name                = var.deployment_fqdn == var.dns_zone_name ? "@" : trimsuffix(var.deployment_fqdn, ".${var.dns_zone_name}")
   zone_name           = var.dns_zone_name
   resource_group_name = var.dns_zone_resource_group_name
   ttl                 = 3600

@@ -1,7 +1,7 @@
 /**
  * # Ingress Terraform Module for Base ArcGIS Enterprise on Kubernetes
  * 
- * This Terraform module creates an manages an Application Gateway for Containers (AGC) that
+ * This Terraform module creates and manages an Application Gateway for Containers (AGC) that
  * routes traffic to ArcGIS Enterprise on Kubernetes ingress service.
  * 
  * ![ArcGIS Enterprise on Kubernetes Ingress](arcgis-enterprise-k8s-ingress-azure.png "ArcGIS Enterprise on Kubernetes Ingress")  
@@ -417,7 +417,7 @@ resource "azurerm_private_dns_cname_record" "private_cname" {
 # Create a CNAME record in the public DNS zone that points the deployment's FQDN 
 # to the Application Gateway's frontend FQDN if var.dns_zone_name is set.
 resource "azurerm_dns_cname_record" "public_cname" {
-  count               = var.dns_zone_name != null ? 1 : 0
+  count               = var.dns_zone_name != null && var.dns_zone_resource_group_name != null ? 1 : 0
   name                = trimsuffix(var.deployment_fqdn, ".${var.dns_zone_name}")
   zone_name           = var.dns_zone_name
   resource_group_name = var.dns_zone_resource_group_name

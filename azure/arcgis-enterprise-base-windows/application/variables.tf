@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -99,16 +99,6 @@ variable "config_store_type" {
   validation {
     condition     = contains(["FILESYSTEM", "AZURE"], var.config_store_type)
     error_message = "Valid values for the config_store_type variable are FILESYSTEM and AZURE"
-  }
-}
-
-variable "deployment_fqdn" {
-  description = "Fully qualified domain name of the ArcGIS Enterprise site"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
   }
 }
 

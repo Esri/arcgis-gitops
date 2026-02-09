@@ -30,7 +30,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | Secret Name                                      | Description                                      |
 |--------------------------------------------------|--------------------------------------------------|
 | ${var.ingress_deployment_id}-backend-address-pools| Application Gateway backend address pools         |
-| ${var.ingress_deployment_id}-deployment-fqdn      | Ingress deployment FQDN                          |
+| ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN                          |
 | storage-account-key                              | Storage account key                              |
 | storage-account-name                             | Storage account name                             |
 | subnets                                          | VNet subnet IDs                                  |
@@ -43,6 +43,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 ### Secrets Written by the Module
 | Secret Name                        | Description                        |
 |------------------------------------|------------------------------------|
+| ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
 
 ## Providers
@@ -66,6 +67,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | [azurerm_cosmosdb_sql_database.config_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_database) | resource |
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
+| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_network_interface.nics](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
 | [azurerm_network_interface_application_gateway_backend_address_pool_association.targets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface_application_gateway_backend_address_pool_association) | resource |
@@ -89,6 +91,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_cosmosdb_sql_role_definition.data_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_sql_role_definition) | data source |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_principal_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_image_ids](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |

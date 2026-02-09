@@ -6,7 +6,6 @@
  * 1. Creates a user managed identity for ALB controller and federates the identity as Workload Identity to use in the AKS cluster.
  * 2. Assigns required roles to the identity.
  * 2. Installs ALB Controller using Helm.
- * 3. Creates an Application Gateway for Containers and associates it with a subnet.
  *
  * See: https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/quickstart-deploy-application-gateway-for-containers-alb-controller
  *
@@ -15,7 +14,7 @@
  * Helm must be installed on the machine where terraform is executed.
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -127,18 +126,4 @@ resource "null_resource" "helm_install" {
   depends_on = [
     azurerm_federated_identity_credential.azure_alb_identity
   ]
-}
-
-# Create an Application Gateway for Containers
-resource "azurerm_application_load_balancer" "alb" {
-  name                = var.cluster_name
-  location            = var.azure_region
-  resource_group_name = var.resource_group_name
-}
-
-# Associate the Application Gateway with app-gateway-subnet-1 subnet
-resource "azurerm_application_load_balancer_subnet_association" "alb" {
-  name                         = var.cluster_name
-  application_load_balancer_id = azurerm_application_load_balancer.alb.id
-  subnet_id                    = var.alb_subnet_id
 }

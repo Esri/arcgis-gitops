@@ -20,6 +20,7 @@ The module retrieves the following secrets from the site's Key Vault:
 
 | Secret Name | Description |
 | --- | --- |
+| deployment-fqdn | Fully qualified domain name used for the ArcGIS Enterprise deployment |
 | acr-login-server | Azure Container Registry login server |
 | aks-identity-principal-id | AKS cluster managed identity principal ID |
 | aks-identity-client-id | AKS cluster managed identity client ID |
@@ -37,7 +38,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 4.16 |
+| azurerm | ~> 4.58 |
 | helm | ~> 2.12 |
 | kubernetes | ~> 2.26 |
 | local | n/a |
@@ -64,6 +65,7 @@ On the machine where Terraform is executed:
 | [azurerm_key_vault_secret.acr_login_server](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.aks_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.aks_identity_principal_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_storage_account.site_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
 
 ## Inputs
@@ -83,7 +85,6 @@ On the machine where Terraform is executed:
 | common_verbose | Enable verbose install logging | `bool` | `false` | no |
 | configure_enterprise_org | Configure ArcGIS Enterprise on Kubernetes organization | `bool` | `true` | no |
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
-| deployment_fqdn | The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.4.0"` | no |
 | helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.6.0"` | no |

@@ -30,7 +30,7 @@
  * * Azure CLI, Helm and kubectl must be installed.
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -52,7 +52,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.16"
+      version = "~> 4.58"
     }
   }
 }
@@ -219,12 +219,6 @@ module "alb_controller" {
   depends_on = [
     azurerm_kubernetes_cluster.site_cluster
   ]
-}
-
-resource "azurerm_key_vault_secret" "alb_id" {
-  name         = "alb-id"
-  value        = module.alb_controller.alb_id
-  key_vault_id = module.site_core_info.vault_id
 }
 
 module "monitoring" {

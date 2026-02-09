@@ -9,23 +9,27 @@ multiple deployments of an ArcGIS Enterprise site.
 The module creates a virtual network with app gateway, private and internal subnets.
 The app gateway and private subnets are routed to a NAT Gateway to allow outbound access to the Internet.
 Internal subnets allow access only to specific service endpoints.
-For private and internal subnets the module creates network security groups with default rules.
+For private and internal subnets, the module creates network security groups with default rules.
 
 Optionally, the module creates and configures an Azure Bastion host in a dedicated
 AzureBastionSubnet subnet to allow secure RDP/SSH connections to virtual machines of the site.
 
-The module also creates a storage account for the site with blob containers
+The module creates a storage account for the site with blob containers
 for repository, logs, and backups.
+
+The module also creates an Azure Monitor action group for site alerts and
+subscribes the site administrator email to the action group's notifications.
 
 Attributes of the resources are stored as secrets in the Azure Key Vault created by the module.
 
 | Key vault secret name | Description |
 | --- | --- |
-| vnet-id | ArcGIS Enterprise site VNet id |
-| app-gateway-subnet-N | Id of Application Gateway subnet N |
-| internal-subnet-N | Id of internal subnet N |
-| private-subnet-N | Id of private subnet N |
+| vnet-id | ArcGIS Enterprise site VNet ID |
+| app-gateway-subnet-N | ID of Application Gateway subnet N |
+| internal-subnet-N | ID of internal subnet N |
+| private-subnet-N | ID of private subnet N |
 | storage-account-name | Storage account name |
+| site-alerts-action-group-id | Monitor action group ID for site alerts |
 
 ## Requirements
 
@@ -38,7 +42,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 4.16 |
+| azurerm | ~> 4.58 |
 | random | n/a |
 | time | n/a |
 
@@ -49,6 +53,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | [azurerm_bastion_host.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/bastion_host) | resource |
 | [azurerm_key_vault.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) | resource |
 | [azurerm_key_vault_secret.images](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.site_alerts_action_group_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.subnets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
@@ -56,6 +61,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | [azurerm_key_vault_secret.vm_identity_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.vm_identity_principal_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.vnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_monitor_action_group.site_alerts](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_action_group) | resource |
 | [azurerm_nat_gateway.nat](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/nat_gateway) | resource |
 | [azurerm_nat_gateway_public_ip_association.nat](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/nat_gateway_public_ip_association) | resource |
 | [azurerm_network_security_group.bastion_nsg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_group) | resource |
@@ -109,6 +115,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| admin_email | ArcGIS Enterprise site administrator e-mail address | `string` | n/a | yes |
 | app_gateway_subnets | CIDR blocks of Application Gateway subnets | `list(any)` | ```[ { "cidr_block": "10.4.0.0/16", "delegations": [ "Microsoft.ServiceNetworking/trafficControllers" ] }, { "cidr_block": "10.5.0.0/16", "delegations": [ "Microsoft.Network/applicationGateways" ] } ]``` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | bastion_enabled | Enable Azure Bastion host | `bool` | `true` | no |

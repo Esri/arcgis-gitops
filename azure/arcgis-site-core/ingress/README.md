@@ -1,11 +1,11 @@
 <!-- BEGIN_TF_DOCS -->
 # Ingress Terraform Module
 
-This module deploys an Azure Application Gateway for ArcGIS Enterprise site.
+This module deploys an Azure Application Gateway for an ArcGIS Enterprise site.
 
 ![ArcGIS Enterprise site ingress](arcgis-enterprise-ingress-azure.png "ArcGIS Enterprise site ingress")
 
-The Application Gateway is deployed into subnet specified by the "subnet_id" variable or,
+The Application Gateway is deployed into the subnet specified by the "subnet_id" variable or,
 if the variable is not set, "app-gateway-subnet-2" subnet of the site's VNet.
 
 The Application Gateway is configured with both public and private frontend IP configurations.
@@ -15,22 +15,28 @@ the "ingress_private_ip" variable.
 
 The module creates a Private DNS Zone for the deployment's FQDN and links it to the
 virtual network, allowing internal resolution of the FQDN to the Application Gateway's
-private IP address
+private IP address.
+
+If "dns_zone_name" and "dns_zone_resource_group_name" variables are set, a public DNS A record
+is also created in the specified DNS zone, pointing the deployment's FQDN to the
+public IP address of the Application Gateway.  
 
 The Application Gateway's listeners, backend pools, health probes, and routing rules are
 dynamically configured from the settings defined by the "routing_rules" variable.
-By default the routing rules are set to route traffic to ports 443, 6443, and 7443 of
+By default, the routing rules are set to route traffic to ports 443, 6443, and 7443 of
 "enterprise-base" backend pool.
 
 All the HTTPS listeners use the SSL certificate stored in the site's Key Vault. The certificate's
-secret ID must be specified by "ssl_certificate_secret_id" variable.
+secret ID must be specified by the "ssl_certificate_secret_id" variable.
 
 Requests to port 80 on both the public and private frontend IPs are redirected to port 443.
 
 The Application Gateway's monitoring subsystem consists of:
 
-* A Log Analytics workspace "{var.site_id}-{var.deployment_id}" that collects the access logs.
-* An Azure Monitor dashboard "{var.site_id}-{var.deployment_id}" that visualizes key metrics of the Application Gateway.
+* An Azure Monitor metric alert that notifies the site's alert action group when
+  the Application Gateway's unhealthy host count exceeds 0.
+* A Log Analytics workspace that collects the Application Gateway's logs.
+* An Azure Monitor dashboard "{var.site_id}-{var.deployment_id}" that visualizes the key metrics and logs of the Application Gateway.
 
 ## Key Vault Secrets
 
@@ -38,11 +44,12 @@ The Application Gateway's monitoring subsystem consists of:
 
 | Key Vault secret name | Description |
 |--------------------|-------------|
-| subnets | VNet subnets IDs |
-| vnet-id | VNet ID |
+| site-alerts-action-group-id | Site's alert action group ID |
 | storage-account-key | Site's storage account key |
 | storage-account-name | Site's storage account name |
+| subnets | VNet subnet IDs |
 | vm-identity-id | VM identity ID |
+| vnet-id | VNet ID |
 
 ### Secrets Written by the Module
 
@@ -55,7 +62,7 @@ The Application Gateway's monitoring subsystem consists of:
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 4.46 |
+| azurerm | ~> 4.58 |
 
 ## Modules
 
@@ -68,26 +75,32 @@ The Application Gateway's monitoring subsystem consists of:
 | Name | Type |
 |------|------|
 | [azurerm_application_gateway.ingress](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_gateway) | resource |
+| [azurerm_dns_a_record.public_dns_entry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_a_record) | resource |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_log_analytics_workspace.ingress](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) | resource |
 | [azurerm_monitor_diagnostic_setting.app_gateway_logs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) | resource |
+| [azurerm_monitor_metric_alert.unhealthy_host_count](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_metric_alert) | resource |
 | [azurerm_portal_dashboard.ingress](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/portal_dashboard) | resource |
 | [azurerm_private_dns_a_record.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_a_record) | resource |
 | [azurerm_private_dns_zone.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) | resource |
 | [azurerm_private_dns_zone_virtual_network_link.dns_vnet_link](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) | resource |
 | [azurerm_public_ip.ingress](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
 | [azurerm_resource_group.deployment_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
+| [azurerm_web_application_firewall_policy.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_application_firewall_policy) | resource |
+| [azurerm_key_vault_secret.site_alerts_action_group_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| app_gateway_sku | SKU of the Application Gateway | `string` | `"Standard_v2"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | deployment_fqdn | Fully qualified domain name of the ArcGIS Enterprise site | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise site ingress deployment Id | `string` | `"enterprise-ingress"` | no |
+| dns_zone_name | The public DNS zone name for the domain | `string` | `null` | no |
+| dns_zone_resource_group_name | The resource group name of the public DNS zone | `string` | `null` | no |
+| enabled_log_categories | List of log categories to enable for the Application Gateway | `list(string)` | ```[ "ApplicationGatewayAccessLog", "ApplicationGatewayFirewallLog", "ApplicationGatewayPerformanceLog" ]``` | no |
 | ingress_private_ip | IP address of the Application Gateway private frontend configuration. The IP address must be in the Application Gateway subnet. | `string` | `"10.5.255.254"` | no |
 | log_retention | Retention period in days for logs | `number` | `90` | no |
 | request_timeout | Request timeout in seconds for the Application Gateway | `number` | `60` | no |
@@ -96,6 +109,7 @@ The Application Gateway's monitoring subsystem consists of:
 | ssl_certificate_secret_id | Key Vault secret ID of SSL certificate for the Application Gateway HTTPS listeners | `string` | n/a | yes |
 | ssl_policy | Predefined SSL policy that should be assigned to the Application Gateway to control the SSL protocol and ciphers | `string` | `"AppGwSslPolicy20220101"` | no |
 | subnet_id | Application Gateway subnet ID (by default, the second app gateway subnet is used) | `string` | `null` | no |
+| waf_mode | Specifies the mode of the Web Application Firewall (WAF). Valid values are 'detect' and 'protect'. | `string` | `"detect"` | no |
 | zones | List of availability zones for the Application Gateway | `list(string)` | ```[ "1", "2" ]``` | no |
 
 ## Outputs

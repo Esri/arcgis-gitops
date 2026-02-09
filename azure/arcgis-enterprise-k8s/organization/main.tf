@@ -20,6 +20,7 @@
  * 
  * | Secret Name | Description |
  * | --- | --- |
+ * | deployment-fqdn | Fully qualified domain name used for the ArcGIS Enterprise deployment |
  * | acr-login-server | Azure Container Registry login server |
  * | aks-identity-principal-id | AKS cluster managed identity principal ID |
  * | aks-identity-client-id | AKS cluster managed identity client ID |
@@ -34,7 +35,7 @@
  * * AKS cluster configuration information must be provided in ~/.kube/config file.
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,7 +57,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.16"
+      version = "~> 4.58"
     }
     helm = {
       source  = "hashicorp/helm"
@@ -93,6 +94,11 @@ data "azurerm_key_vault_secret" "acr_login_server" {
   key_vault_id = module.site_core_info.vault_id
 }
 
+data "azurerm_key_vault_secret" "deployment_fqdn" {
+  name         = "${var.deployment_id}-deployment-fqdn"
+  key_vault_id = module.site_core_info.vault_id
+}
+
 data "azurerm_key_vault_secret" "aks_identity_principal_id" {
   name         = "aks-identity-principal-id"
   key_vault_id = module.site_core_info.vault_id
@@ -109,7 +115,8 @@ data "azurerm_storage_account" "site_storage" {
 }
 
 locals {
-  container_registry         = data.azurerm_key_vault_secret.acr_login_server.value
+  deployment_fqdn            = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  container_registry         = nonsensitive(data.azurerm_key_vault_secret.acr_login_server.value)
   enterprise_admin_cli_image = "${local.container_registry}/enterprise-admin-cli:${var.enterprise_admin_cli_version}"
 
   configure_cloud_stores = true
@@ -153,7 +160,7 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
       image = local.enterprise_admin_cli_image
       env {
         name  = "ARCGIS_ENTERPRISE_URL"
-        value = "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}"
+        value = "https://${local.deployment_fqdn}/${var.arcgis_enterprise_context}"
       }
       env {
         name = "ARCGIS_ENTERPRISE_USER"
@@ -258,19 +265,19 @@ resource "helm_release" "arcgis_enterprise" {
         repository = var.image_repository_prefix
         # The AKS cluster uses managed identity authentication for ACR access, 
         # while the Helm charts before 1.5.0 required setting container registry credentials.
-        username   = "Azure"
-        password   = "Azure"
+        username           = "Azure"
+        password           = "Azure"
         authenticationType = "integrated"
       }
       install = {
-        enterpriseFQDN              = var.deployment_fqdn
+        enterpriseFQDN              = local.deployment_fqdn
         context                     = var.arcgis_enterprise_context
         allowedPrivilegedContainers = true
         configureWaitTimeMin        = var.configure_wait_time_min
         ingress = {
           ingressServiceUseClusterIP = true
           tls = {
-            # selfSignCN = var.deployment_fqdn
+            # selfSignCN = local.deployment_fqdn
             secretName = "listener-tls-secret"
           }
         }

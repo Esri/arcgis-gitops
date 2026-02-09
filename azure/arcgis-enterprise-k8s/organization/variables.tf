@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -62,16 +62,6 @@ variable "image_repository_prefix" {
   description = "Prefix of images in ACR repositories"
   type        = string
   default     = "docker-hub/esridocker"
-}
-
-variable "deployment_fqdn" {
-  description = "The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
-  }
 }
 
 variable "arcgis_enterprise_context" {

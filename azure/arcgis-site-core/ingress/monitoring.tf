@@ -1,84 +1,40 @@
-# resource "random_uuid" "workbook_id" {}
+# Copyright 2025-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
 
-# resource "azurerm_application_insights_workbook" "example" {
-#   name                = random_uuid.workbook_id.result
-#   resource_group_name = azurerm_resource_group.deployment_rg.name
-#   location            = azurerm_resource_group.deployment_rg.location
-#   display_name        = "${var.site_id}-${var.deployment_id}"
+resource "azurerm_monitor_metric_alert" "unhealthy_host_count" {
+  name                = "UnhealthyHostCountAlert"
+  resource_group_name = azurerm_resource_group.deployment_rg.name
+  scopes              = [azurerm_application_gateway.ingress.id]
+  description         = "Action will be triggered when Unhealthy Host Count is greater than 0."
 
-#   data_json = jsonencode({
-#     version = "Notebook/1.0"
-#     items = [{
-#       type = 10
-#       name = "Unhealthy Hosts"
-#       content = {
-#         chartId      = "UnhealthyHosts"
-#         version      = "MetricsItem/2.0"
-#         size         = 0
-#         chartType    = 2
-#         resourceType = "microsoft.network/applicationgateways"
-#         metricScope  = 0
-#         resourceIds = [
-#           azurerm_application_gateway.ingress.id
-#         ]
-#         timeContext = {
-#           durationMs = 3600000
-#         }
-#         metrics = [{
-#           namespace   = "microsoft.network/applicationgateways",
-#           metric      = "microsoft.network/applicationgateways--UnhealthyHostCount"
-#           aggregation = 4
-#           }, {
-#           namespace   = "microsoft.network/applicationgateways",
-#           metric      = "microsoft.network/applicationgateways--FailedRequests"
-#           aggregation = 1
-#         }]
-#         gridSettings = {
-#           rowLimit = 10000
-#         }
-#       }
-#     }]
-#     fallbackResourceIds = [
-#       "azure monitor"
-#     ]
-#   })
+  criteria {
+    metric_namespace = "microsoft.network/applicationgateways"
+    metric_name      = "UnhealthyHostCount"
+    aggregation      = "Average"
+    operator         = "GreaterThan"
+    threshold        = 0
+  }
 
-#   tags = {
-#     ArcGISSiteId       = var.site_id
-#     ArcGISDeploymentId = var.deployment_id
-#   }
-# }
+  action {
+    action_group_id = data.azurerm_key_vault_secret.site_alerts_action_group_id.value
+  }
 
-# resource "azurerm_monitor_action_group" "critical_alerts" {
-#   name                = "CriticalAlertsAction"
-#   resource_group_name = azurerm_resource_group.deployment_rg.name
-#   short_name          = "p0action"
-
-
-#   email_receiver {
-#     name          = "sendtoadmin"
-#     email_address = "<email@example.com>"
-#   }
-# }
-
-# resource "azurerm_monitor_metric_alert" "unhealthy_host_count" {
-#   name                = "UnhealthyHostCountAlert"
-#   resource_group_name = azurerm_resource_group.deployment_rg.name
-#   scopes              = [azurerm_application_gateway.ingress.id]
-#   description         = "Action will be triggered when Unhealthy Host Count is greater than 0."
-
-#   criteria {
-#     metric_namespace = "microsoft.network/applicationgateways"
-#     metric_name      = "UnhealthyHostCount"
-#     aggregation      = "Average"
-#     operator         = "GreaterThan"
-#     threshold        = 0
-#   }
-
-#   action {
-#     action_group_id = azurerm_monitor_action_group.critical_alerts.id
-#   }
-# }
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+}
 
 resource "azurerm_log_analytics_workspace" "ingress" {
   name                = azurerm_application_gateway.ingress.name
@@ -98,16 +54,12 @@ resource "azurerm_monitor_diagnostic_setting" "app_gateway_logs" {
   target_resource_id         = azurerm_application_gateway.ingress.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.ingress.id
 
-  enabled_log {
-    category = "ApplicationGatewayAccessLog"
-  }
+  dynamic "enabled_log" {
+    for_each = var.enabled_log_categories
 
-  enabled_log {
-    category = "ApplicationGatewayPerformanceLog"
-  }
-
-  enabled_log {
-    category = "ApplicationGatewayFirewallLog"
+    content {
+      category = enabled_log.value
+    }
   }
 
   enabled_metric {
@@ -717,7 +669,7 @@ resource "azurerm_portal_dashboard" "ingress" {
               y       = 8
             }
           },
-          "6" = { // Log Analytics Failed Requests
+          "6" = { // Log Analytics Requests flagged by WAF
             metadata = {
               inputs = [
                 {
@@ -756,7 +708,7 @@ resource "azurerm_portal_dashboard" "ingress" {
                 {
                   isOptional = true
                   name       = "Query"
-                  value      = "AzureDiagnostics | where ResourceType == \"APPLICATIONGATEWAYS\" and OperationName == \"ApplicationGatewayAccess\" and httpStatus_d > 399 | project timeStamp_t, clientIP_s, listenerName_s, httpMethod_s, requestUri_s, httpStatus_d | project-rename Time=timeStamp_t, ClientIP=clientIP_s, Listener=listenerName_s, Method=httpMethod_s, Path=requestUri_s, HttpStatus=httpStatus_d | sort by Time | take 100"
+                  value      = "AzureDiagnostics | where Category == 'ApplicationGatewayFirewallLog' and ResourceId == '${upper(azurerm_application_gateway.ingress.id)}' | project Timestamp = timeStamp_t, Action = action_s, ClientIp = clientIp_s, Path = requestUri_s, RuleGroup = ruleGroup_s, RuleId = ruleId_s, Message | sort by Timestamp | take 100"
                 },
                 {
                   isOptional = true
@@ -770,7 +722,7 @@ resource "azurerm_portal_dashboard" "ingress" {
                 {
                   isOptional = true
                   name       = "PartTitle"
-                  value      = "Analytics"
+                  value      = "Requests flagged by WAF"
                 },
                 {
                   isOptional = true
@@ -798,7 +750,7 @@ resource "azurerm_portal_dashboard" "ingress" {
                     Method   = "100px"
                     Path     = "400px"
                   }
-                  PartTitle = "Failed Requests"
+                  PartTitle = "Requests flagged by WAF"
                 }
               }
               type = "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart"
@@ -810,6 +762,99 @@ resource "azurerm_portal_dashboard" "ingress" {
               y       = 12
             }
           }
+          # "6" = { // Log Analytics Failed Requests
+          #   metadata = {
+          #     inputs = [
+          #       {
+          #         isOptional = true
+          #         name       = "resourceTypeMode"
+          #         }, {
+          #         isOptional = true
+          #         name       = "ComponentId"
+          #         }, {
+          #         isOptional = true
+          #         name       = "Scope"
+          #         value = {
+          #           resourceIds = [
+          #             azurerm_log_analytics_workspace.ingress.id
+          #           ]
+          #         }
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "Version"
+          #         value      = "2.0"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "TimeRange"
+          #         value      = "P1D"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "DashboardId"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "DraftRequestParameters"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "Query"
+          #         value      = "AzureDiagnostics | where ResourceType == \"APPLICATIONGATEWAYS\" and OperationName == \"ApplicationGatewayAccess\" and httpStatus_d > 399 | project timeStamp_t, clientIP_s, listenerName_s, httpMethod_s, requestUri_s, httpStatus_d | project-rename Time=timeStamp_t, ClientIP=clientIP_s, Listener=listenerName_s, Method=httpMethod_s, Path=requestUri_s, HttpStatus=httpStatus_d | sort by Time | take 100"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "ControlType"
+          #         value      = "AnalyticsGrid"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "SpecificChart"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "PartTitle"
+          #         value      = "Analytics"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "PartSubTitle"
+          #         value      = azurerm_application_gateway.ingress.name
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "Dimensions"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "LegendOptions"
+          #       },
+          #       {
+          #         isOptional = true
+          #         name       = "IsQueryContainTimeRange"
+          #         value      = false
+          #       }
+          #     ]
+          #     settings = {
+          #       content = {
+          #         GridColumnsWidth = {
+          #           Listener = "100px"
+          #           Method   = "100px"
+          #           Path     = "400px"
+          #         }
+          #         PartTitle = "Failed Requests"
+          #       }
+          #     }
+          #     type = "Extension/Microsoft_OperationsManagementSuite_Workspace/PartType/LogsDashboardPart"
+          #   }
+          #   position = {
+          #     colSpan = 12
+          #     rowSpan = 8
+          #     x       = 0
+          #     y       = 12
+          #   }
+          # }
         }
       }
     }

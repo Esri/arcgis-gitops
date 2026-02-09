@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,6 +20,10 @@ on:
 env:
   ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
   ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
+  AZURE_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
+  AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
   CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-windows/application.tfvars.json
 
 jobs:
@@ -40,6 +44,10 @@ jobs:
         docker build -t enterprise-admin-cli .
     - name: Run Tests
       run: |
-        DEPLOYMENT_FQDN=$(jq -r '.deployment_fqdn' $CONFIG_FILE)
-        PORTAL_WEB_CONTEXT=$(jq -r '.portal_web_context' $CONFIG_FILE)
-        docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-publish-csv --url https://$DEPLOYMENT_FQDN/$PORTAL_WEB_CONTEXT
+        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+        az login --service-principal --username $AZURE_CLIENT_ID --password $AZURE_CLIENT_SECRET --tenant $AZURE_TENANT_ID
+        az account set --subscription $AZURE_SUBSCRIPTION_ID
+        VAULT_NAME=$(az keyvault list --query "[?tags.ArcGISSiteId=='$SITE_ID' && tags.ArcGISRole=='site-vault'].name" -o tsv)
+        DEPLOYMENT_URL=$(az keyvault secret show --name "$DEPLOYMENT_ID-deployment-url" --vault-name "$VAULT_NAME" --query "value" -o tsv)
+        docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-publish-csv --url $DEPLOYMENT_URL

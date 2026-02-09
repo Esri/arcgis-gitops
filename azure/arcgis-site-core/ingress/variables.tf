@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,20 +12,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-variable "app_gateway_sku" {
-  description = "SKU of the Application Gateway"
-  type        = string
-  default     = "Standard_v2"
-
-  validation {
-    condition     = contains(["Standard_v2", "WAF_v2"], var.app_gateway_sku)
-    error_message = "The app_gateway_sku value must be either 'Standard_v2' or 'WAF_v2'."
-  }  
-}
-
 variable "azure_region" {
   description = "Azure region display name"
   type        = string
+}
+
+variable "enabled_log_categories" {
+  description = "List of log categories to enable for the Application Gateway"
+  type        = list(string)
+  default     = [
+    "ApplicationGatewayAccessLog",
+    "ApplicationGatewayFirewallLog",
+    "ApplicationGatewayPerformanceLog"
+  ]
 }
 
 variable "deployment_fqdn" {
@@ -47,6 +46,28 @@ variable "deployment_id" {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }  
+}
+
+variable "dns_zone_name" {
+  description = "The public DNS zone name for the domain"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.dns_zone_name)) || var.dns_zone_name == null
+    error_message = "The dns_zone_name value must be a valid DNS zone name."
+  }
+}
+
+variable "dns_zone_resource_group_name" {
+  description = "The resource group name of the public DNS zone"
+  type        = string
+  default     = null
+
+  validation {
+    condition = can(regex("^[a-zA-Z0-9_\\-\\.()]{1,90}$", var.dns_zone_resource_group_name)) || var.dns_zone_resource_group_name == null
+    error_message = "The dns_zone_resource_group_name value must be valid resource group name."
+  }
 }
 
 variable "ingress_private_ip" {
@@ -156,4 +177,14 @@ variable "routing_rules" {
       paths  = ["/arcgis/*"]
     }]
   }]
+}
+
+variable "waf_mode" {
+  description = "Specifies the mode of the Web Application Firewall (WAF). Valid values are 'detect' and 'protect'."
+  type        = string
+  default     = "detect"
+  validation {
+    condition     = var.waf_mode == "detect" || var.waf_mode == "protect"
+    error_message = "The waf_mode value must be either 'detect' or 'protect'."
+  }
 }

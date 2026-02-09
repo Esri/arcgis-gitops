@@ -425,7 +425,7 @@ resource "azurerm_dns_cname_record" "public_cname" {
   record = azurerm_application_load_balancer_frontend.public_frontend.fully_qualified_domain_name
 }
 
-# Store the deployment FQDN and web contexts in Key Vault
+# Store the deployment FQDN in Key Vault
 resource "azurerm_key_vault_secret" "deployment_fqdn" {
   name         = "${var.deployment_id}-deployment-fqdn"
   value        = var.deployment_fqdn

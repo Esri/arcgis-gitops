@@ -100,8 +100,9 @@ Instructions:
 
 1. Add Portal for ArcGIS and ArcGIS Server authorization files for the ArcGIS Enterprise version to `config/authorization/<ArcGIS version>` directory of the repository and set "portal_authorization_file_path" and "server_authorization_file_path" properties to the file paths.
 2. Set "admin_full_name", "admin_description", "security_question_index", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
-3. Commit the changes to the Git branch and push the branch to GitHub.
-4. Run the enterprise-base-windows-azure-application workflow using the branch.
+3. Add SSL certificates for the base ArcGIS Enterprise domain name and (optionally) trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run the enterprise-base-windows-azure-application workflow using the branch.
 
 > Starting with ArcGIS Enterprise 12.0, for highly-available deployments, "config_store_type" property can be set to "AZURE" to configure the ArcGIS Server site to use Azure Cosmos DB as the configuration store, Azure Blob Storage as the object store and server directories, and Azure Service Bus for GeoProcessing service queues, instead of relying on the network file shares.
 

@@ -86,7 +86,7 @@ On the machine where Terraform is executed:
 | configure_enterprise_org | Configure ArcGIS Enterprise on Kubernetes organization | `bool` | `true` | no |
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
-| enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.4.0"` | no |
+| enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.5.0"` | no |
 | helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.6.0"` | no |
 | image_repository_prefix | Prefix of images in ACR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |

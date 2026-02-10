@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,8 @@ import urllib.parse
 import urllib.request
 import json
 import ssl
+
+CLI_VERSION = '0.5.0'
 
 # The EnterpriseAdminClient class provides a Python client for the ArcGIS Enterprise Administrator API.
 # See https://developers.arcgis.com/rest/enterprise-administration/enterprise/overview-of-the-arcgis-enterprise-admin-api.htm
@@ -146,14 +148,15 @@ class EnterpriseAdminClient:
     
     # Updates a backup store.
     # https://developers.arcgis.com/rest/enterprise-administration/enterprise/update-backup-store.htm
-    def update_disaster_recovery_store(self, store: str, is_default: bool):
+    def update_disaster_recovery_store(self, store: str, is_default: bool, support_bds_backups: bool = False):
         if store is None:
             raise ValueError('Store name is not specified.')
 
         token = self.generate_token()
 
         settings = {
-            'default': is_default
+            'default': is_default,
+            'supportBDSBackup': support_bds_backups
         }
 
         data = {
@@ -271,8 +274,13 @@ class EnterpriseAdminClient:
             
             request.method = method
 
+            request.add_header('User-Agent', 'ArcGISEnterpriseAdminCLI/' + CLI_VERSION)
+
             if data is not None:
-                request.data = urllib.parse.urlencode(data).encode('utf-8')
+                if method == 'GET':
+                    request.full_url += '?' + urllib.parse.urlencode(data)
+                else:
+                    request.data = urllib.parse.urlencode(data).encode('utf-8')
 
             if token is not None:
                 request.add_header('Authorization', 'Bearer ' + token)

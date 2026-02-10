@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -240,7 +240,7 @@ variable "backup_job_timeout" {
 variable "enterprise_admin_cli_version" {
   description = "ArcGIS Enterprise Admin CLI image tag"
   type        = string
-  default     = "0.4.0"
+  default     = "0.5.0"
 }
 
 variable "storage" {

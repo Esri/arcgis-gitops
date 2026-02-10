@@ -152,6 +152,7 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
     container {
       name  = "enterprise-admin-cli"
       image = local.enterprise_admin_cli_image
+      image_pull_policy = "Always"
       env {
         name  = "ARCGIS_ENTERPRISE_URL"
         value = "https://${local.deployment_fqdn}/${var.arcgis_enterprise_context}"

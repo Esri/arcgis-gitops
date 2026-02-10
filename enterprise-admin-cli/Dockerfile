@@ -1,4 +1,4 @@
-FROM ghcr.io/esri/arcgis-python-api-notebook:2.4.0
+FROM ghcr.io/esri/arcgis-python-api-notebook:2.4.2
 
 ARG cli_home="/usr/local/enterprise-admin-cli"
 

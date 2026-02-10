@@ -1,5 +1,5 @@
 {
-    "version": "0.4.0",
-    "arcgis_python_api_version": "2.4.0",
-    "arcgis_rest_api_version": "11.1"
+    "version": "0.5.0",
+    "arcgis_python_api_version": "2.4.2",
+    "arcgis_rest_api_version": "12.0"
 }

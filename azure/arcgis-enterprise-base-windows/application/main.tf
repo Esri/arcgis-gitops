@@ -53,14 +53,20 @@
  * | vnet-id | VNet ID |
  * | storage-account-key | Site's storage account key |
  * | storage-account-name | Site's storage account name |
+ * | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
  * | vm-identity-client-id | VM identity client ID |
+ *
+ * The module creates the following Key Vault secrets:
+ * | Key Vault secret name | Description |
+ * |--------------------|-------------|
+ * | ${var.deployment_id}-deployment-url | Deployment's URL |
  *
  * > Note that the module also uses Key Vault secrets to pass JSON attributes
  *   for Chef Client runs to the VMs. These secrets are deleted at the end of the runs.
  */
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -98,6 +104,11 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
+data "azurerm_key_vault_secret" "deployment_fqdn" {
+  name         = "${var.deployment_id}-deployment-fqdn"
+  key_vault_id = module.site_core_info.vault_id
+}
+
 data "azurerm_key_vault_secret" "storage_account_name" {
   name         = "${var.deployment_id}-storage-account-name"
   key_vault_id = module.site_core_info.vault_id
@@ -134,7 +145,7 @@ locals {
   authorization_files_prefix = "software/authorization/${var.deployment_id}/${var.arcgis_version}"
   certificates_prefix        = "software/certificates/${var.deployment_id}"
 
-  # deployment_fqdn  = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  deployment_fqdn  = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
   primary_hostname = "primary.${var.deployment_id}.${var.site_id}.internal"
   standby_hostname = "standby.${var.deployment_id}.${var.site_id}.internal"
 
@@ -616,7 +627,7 @@ module "arcgis_enterprise_primary" {
         setups   = "C:\\Software\\Setups"
       }
       iis = {
-        domain_name           = var.deployment_fqdn
+        domain_name           = local.deployment_fqdn
         keystore_file         = local.keystore_file
         keystore_password     = var.keystore_file_password
         replace_https_binding = true
@@ -626,8 +637,8 @@ module "arcgis_enterprise_primary" {
         wa_url                      = "https://${local.primary_hostname}/${var.server_web_context}"
         install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements = true
-        private_url                 = "https://${var.deployment_fqdn}/${var.server_web_context}"
-        web_context_url             = "https://${var.deployment_fqdn}/${var.server_web_context}"
+        private_url                 = "https://${local.deployment_fqdn}/${var.server_web_context}"
+        web_context_url             = "https://${local.deployment_fqdn}/${var.server_web_context}"
         hostname                    = local.primary_hostname
         admin_username              = var.admin_username
         admin_password              = var.admin_password
@@ -648,7 +659,7 @@ module "arcgis_enterprise_primary" {
         services_dir_enabled        = true
         callback_functions_enabled  = true
         system_properties = {
-          WebContextURL = "https://${var.deployment_fqdn}/${var.server_web_context}"
+          WebContextURL = "https://${local.deployment_fqdn}/${var.server_web_context}"
         }
         # Configure the managed object store in blob container
         data_items = local.data_items
@@ -680,7 +691,7 @@ module "arcgis_enterprise_primary" {
         hostidentifier              = local.primary_hostname
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
         install_system_requirements = true
-        private_url                 = "https://${var.deployment_fqdn}/${var.portal_web_context}"
+        private_url                 = "https://${local.deployment_fqdn}/${var.portal_web_context}"
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         admin_email                 = var.admin_email
@@ -711,8 +722,8 @@ module "arcgis_enterprise_primary" {
         root_cert_alias      = "rootcert"
         wa_name              = var.portal_web_context
         system_properties = {
-          privatePortalURL = "https://${var.deployment_fqdn}:7443/arcgis"
-          WebContextURL    = "https://${var.deployment_fqdn}/${var.portal_web_context}"
+          privatePortalURL = "https://${local.deployment_fqdn}:7443/arcgis"
+          WebContextURL    = "https://${local.deployment_fqdn}/${var.portal_web_context}"
         }
       }
       web_adaptor = {
@@ -769,7 +780,7 @@ module "arcgis_enterprise_standby" {
         setups   = "C:\\Software\\Setups"
       }
       iis = {
-        domain_name           = var.deployment_fqdn
+        domain_name           = local.deployment_fqdn
         keystore_file         = local.keystore_file
         keystore_password     = var.keystore_file_password
         replace_https_binding = true
@@ -846,6 +857,17 @@ module "arcgis_enterprise_standby" {
   depends_on = [
     module.arcgis_enterprise_primary
   ]
+}
+
+resource "azurerm_key_vault_secret" "deployment_url" {
+  name         = "${var.deployment_id}-deployment-url"
+  value        = "https://${data.azurerm_key_vault_secret.deployment_fqdn.value}/${var.portal_web_context}"
+  key_vault_id = module.site_core_info.vault_id
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
 }
 
 # Delete the downloaded setup archives, the extracted setups, and other 

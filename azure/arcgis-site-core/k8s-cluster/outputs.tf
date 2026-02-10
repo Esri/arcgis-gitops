@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,11 +30,6 @@ output "cluster_resource_group" {
 output "acr_login_server" {
   value       = module.container_registry.acr_login_server
   description = "Private container registry login server"
-}
-
-output "alb_id" {
-  description = "The ID of the Azure Application Load Balancer"
-  value       = module.alb_controller.alb_id
 }
 
 output "prometheus_query_endpoint" {

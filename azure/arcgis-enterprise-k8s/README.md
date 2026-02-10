@@ -55,17 +55,17 @@ Required user roles:
 
 Workflow Outputs:
 
-* alb_dns_name - DNS name of the load balancer
+* public_frontend_fqdn - FQDN of the application gateway public frontend
 
 Instructions:
 
 1. Add TLS certificate for the deployment's frontend HTTPS listener and the certificate's private key files in PEM format to `/config/certificates/` directory of the repository and set "tls_certificate_path" and "tls_private_key_path" config properties to the files' paths.
 2. Add CA certificate file for backend TLS certificate validation in PEM format to `/config/certificates/` directory of the repository and set "ca_certificate_path" config property to the file's path.
 3. Set "deployment_fqdn" property to the ArcGIS Enterprise deployment domain name.
-4. If Azure DNS is used, set "hosted_zone_name" and "hosted_zone_resource_group" properties to the hosted zone name and resource group name of the ArcGIS Enterprise domain name DNS.
+4. If Azure DNS is used, set "dns_zone_name" and "dns_zone_resource_group_name" properties to the hosted zone name and resource group name of the ArcGIS Enterprise domain name DNS zone.
 5. Commit the changes to a Git branch and push the branch to GitHub.
 6. Run enterprise-k8s-azure-ingress workflow using the branch.
-7. If Azure DNS is not used, retrieve DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
+7. If Azure DNS is not used, retrieve FQDN of the application gateway public frontend created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
 > Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "${var.deployment_id}-alb-dns-name" secret of the site's key vault.
 
@@ -92,11 +92,10 @@ Instructions:
 2. Download the ArcGIS Enterprise on Kubernetes Helm Charts package archive for the charts version from [My Esri](https://www.esri.com/en-us/my-esri-login) and extract the archive to `azure/arcgis-enterprise-k8s/organization/helm-charts/arcgis-enterprise/<Helm Charts version>` folder in the repository.
 3. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file path.
 4. Set "system_arch_profile" property to the required ArcGIS Enterprise on Kubernetes architecture profile.
-5. Set "deployment_fqdn" property to the ArcGIS Enterprise deployment fully qualified domain name.
-6. Set "admin_username", "admin_password", "admin_first_name", "admin_last_name", "admin_email", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
-7. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
-8. Commit the changes to the Git branch and push the branch to GitHub.
-9. Run enterprise-k8s-azure-organization workflow using the branch.
+5. Set "admin_username", "admin_password", "admin_first_name", "admin_last_name", "security_question", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
+6. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
+7. Commit the changes to the Git branch and push the branch to GitHub.
+8. Run enterprise-k8s-azure-organization workflow using the branch.
 
 > '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 

@@ -9,23 +9,27 @@
  * The module creates a virtual network with app gateway, private and internal subnets. 
  * The app gateway and private subnets are routed to a NAT Gateway to allow outbound access to the Internet.
  * Internal subnets allow access only to specific service endpoints.
- * For private and internal subnets the module creates network security groups with default rules.
+ * For private and internal subnets, the module creates network security groups with default rules.
  *
  * Optionally, the module creates and configures an Azure Bastion host in a dedicated 
  * AzureBastionSubnet subnet to allow secure RDP/SSH connections to virtual machines of the site.
  *
- * The module also creates a storage account for the site with blob containers 
+ * The module creates a storage account for the site with blob containers 
  * for repository, logs, and backups.
+ * 
+ * The module also creates an Azure Monitor action group for site alerts and 
+ * subscribes the site administrator email to the action group's notifications.
  * 
  * Attributes of the resources are stored as secrets in the Azure Key Vault created by the module.
  *
  * | Key vault secret name | Description |
  * | --- | --- |
- * | vnet-id | ArcGIS Enterprise site VNet id |
- * | app-gateway-subnet-N | Id of Application Gateway subnet N |
- * | internal-subnet-N | Id of internal subnet N |
- * | private-subnet-N | Id of private subnet N |
+ * | vnet-id | ArcGIS Enterprise site VNet ID |
+ * | app-gateway-subnet-N | ID of Application Gateway subnet N |
+ * | internal-subnet-N | ID of internal subnet N |
+ * | private-subnet-N | ID of private subnet N |
  * | storage-account-name | Storage account name |
+ * | site-alerts-action-group-id | Monitor action group ID for site alerts |
  *
  * ## Requirements
  * 
@@ -35,7 +39,7 @@
  * * Azure service principal credentials must be configured by ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -57,7 +61,7 @@ terraform {
   required_providers {
     azurerm = {
       source  = "hashicorp/azurerm"
-      version = "~> 4.16"
+      version = "~> 4.58"
     }
   }
 }
@@ -105,6 +109,32 @@ resource "azurerm_key_vault" "site_vault" {
     ArcGISSiteId = var.site_id
     ArcGISRole   = "site-vault"
   }
+}
+
+# Site monitoring resources
+resource "azurerm_monitor_action_group" "site_alerts" {
+  name                = "${var.site_id}-site-alerts"
+  resource_group_name = azurerm_resource_group.site_rg.name
+  short_name          = "${var.site_id}-alert"
+
+  email_receiver {
+    name          = "sendtoadmin"
+    email_address = var.admin_email
+  }
+
+  tags = { 
+    ArcGISSiteId       = var.site_id
+  }
+}
+
+resource "azurerm_key_vault_secret" "site_alerts_action_group_id" {
+  name         = "site-alerts-action-group-id"
+  value        = azurerm_monitor_action_group.site_alerts.id
+  key_vault_id = azurerm_key_vault.site_vault.id
+
+  depends_on = [
+    time_sleep.key_vault_ready
+  ]
 }
 
 # VNet of ArcGIS Enterprise site

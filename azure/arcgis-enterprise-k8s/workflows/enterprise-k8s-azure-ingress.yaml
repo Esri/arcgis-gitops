@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -33,10 +33,10 @@ concurrency:
   
 jobs:
   ingress:
-    name: Ingress Controller
+    name: ArcGIS Enterprise on Kubernetes Ingress
     runs-on: ubuntu-24.04
     outputs:
-      alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
+      public_frontend_fqdn: ${{ steps.output.outputs.public_frontend_fqdn }}
     defaults:
       run:
         working-directory: azure/arcgis-enterprise-k8s/ingress
@@ -68,5 +68,5 @@ jobs:
       - name: Terraform Output
         id: output  
         run: |
-          echo alb_dns_name=$(terraform output alb_dns_name) >> $GITHUB_OUTPUT
+          echo public_frontend_fqdn=$(terraform output public_frontend_fqdn) >> $GITHUB_OUTPUT
          

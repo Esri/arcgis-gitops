@@ -66,7 +66,7 @@ Instructions:
 4. (Optional) Update "routing_rules" array in the config file to specify routing rules required for the site. Remove rules that are not required.
 5. Commit the changes to the Git branch and push the branch to GitHub.
 6. Run site-ingress-azure workflow using the Git branch.
-7. Create DNS A record for the site domain name pointing to the Application Gateway public IP address.
+7. Create a DNS A record for the site domain name pointing to the Application Gateway public IP address.
 
 ## Deploy K8s Cluster
 

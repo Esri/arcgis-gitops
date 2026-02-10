@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -25,6 +25,7 @@ on:
           - plan
 
 env:
+  TF_VAR_admin_email: ${{ secrets.ENTERPRISE_ADMIN_EMAIL }}
   TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}

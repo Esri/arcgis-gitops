@@ -6,7 +6,6 @@ The module deploys Application Gateway for Containers ALB Controller to AKS clus
 1. Creates a user managed identity for ALB controller and federates the identity as Workload Identity to use in the AKS cluster.
 2. Assigns required roles to the identity.
 2. Installs ALB Controller using Helm.
-3. Creates an Application Gateway for Containers and associates it with a subnet.
 
 See: https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/quickstart-deploy-application-gateway-for-containers-alb-controller
 
@@ -26,8 +25,6 @@ Helm must be installed on the machine where terraform is executed.
 
 | Name | Type |
 |------|------|
-| [azurerm_application_load_balancer.alb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_load_balancer) | resource |
-| [azurerm_application_load_balancer_subnet_association.alb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_load_balancer_subnet_association) | resource |
 | [azurerm_federated_identity_credential.azure_alb_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/federated_identity_credential) | resource |
 | [azurerm_role_assignment.aks_cluster_reader](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_role_assignment.appgw_configuration_manager](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
@@ -45,12 +42,6 @@ Helm must be installed on the machine where terraform is executed.
 | alb_subnet_id | Subnet Id for the ALB | `string` | n/a | yes |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | cluster_name | Name of the AKS cluster | `string` | n/a | yes |
-| controller_version | Version of the ALB Controller | `string` | `"1.8.12"` | no |
+| controller_version | Version of the ALB Controller | `string` | `"1.9.11"` | no |
 | resource_group_name | AKS cluster resource group name | `string` | n/a | yes |
-
-## Outputs
-
-| Name | Description |
-|------|-------------|
-| alb_id | The ID of the Azure Application Load Balancer |
 <!-- END_TF_DOCS -->

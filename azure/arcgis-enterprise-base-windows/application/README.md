@@ -53,8 +53,14 @@ The module reads the following Key Vault secrets:
 | vnet-id | VNet ID |
 | storage-account-key | Site's storage account key |
 | storage-account-name | Site's storage account name |
+| ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
 | vm-identity-client-id | VM identity client ID |
+
+The module creates the following Key Vault secrets:
+| Key Vault secret name | Description |
+|--------------------|-------------|
+| ${var.deployment_id}-deployment-url | Deployment's URL |
 
 > Note that the module also uses Key Vault secrets to pass JSON attributes
   for Chef Client runs to the VMs. These secrets are deleted at the end of the runs.
@@ -88,11 +94,13 @@ The module reads the following Key Vault secrets:
 
 | Name | Type |
 |------|------|
+| [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_storage_blob.keystore_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.portal_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.root_cert_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.server_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
+| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_resources.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
@@ -114,7 +122,6 @@ The module reads the following Key Vault secrets:
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
-| deployment_fqdn | Fully qualified domain name of the ArcGIS Enterprise site | `string` | n/a | yes |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |

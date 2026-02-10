@@ -27,7 +27,7 @@ Before using the module, the repository blob container must be created by infras
 
 | Name | Version |
 |------|---------|
-| azurerm | ~> 4.16 |
+| azurerm | ~> 4.58 |
 
 ## Modules
 

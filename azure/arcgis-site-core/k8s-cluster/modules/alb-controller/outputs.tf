@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,7 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-output "alb_id" {
-  description = "The ID of the Azure Application Load Balancer"
-  value       = azurerm_application_load_balancer.alb.id
-}
+# This module does not have any outputs.

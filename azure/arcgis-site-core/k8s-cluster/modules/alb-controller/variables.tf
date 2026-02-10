@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,7 +30,7 @@ variable "cluster_name" {
 variable "controller_version" {
   description = "Version of the ALB Controller"
   type        = string
-  default     = "1.8.12"
+  default     = "1.9.11"
 }
 
 variable "alb_subnet_id" {

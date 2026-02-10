@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-output "alb_dns_name" {
+output "public_frontend_fqdn" {
   description = "FQDN of the Application Gateway frontend"
-  value       = azurerm_application_load_balancer_frontend.deployment_frontend.fully_qualified_domain_name
+  value       = azurerm_application_load_balancer_frontend.public_frontend.fully_qualified_domain_name
 }
 
 output "deployment_url" {

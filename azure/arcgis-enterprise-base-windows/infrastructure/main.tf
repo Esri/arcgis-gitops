@@ -30,7 +30,7 @@
  * | Secret Name                                      | Description                                      |
  * |--------------------------------------------------|--------------------------------------------------|
  * | ${var.ingress_deployment_id}-backend-address-pools| Application Gateway backend address pools         |
- * | ${var.ingress_deployment_id}-deployment-fqdn      | Ingress deployment FQDN                          |
+ * | ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN                          |
  * | storage-account-key                              | Storage account key                              |
  * | storage-account-name                             | Storage account name                             |
  * | subnets                                          | VNet subnet IDs                                  |
@@ -43,10 +43,11 @@
  * ### Secrets Written by the Module
  * | Secret Name                        | Description                        |
  * |------------------------------------|------------------------------------|
+ * | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
  */
  
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -102,6 +103,11 @@ data "azurerm_key_vault_secret" "vm_image_ids" {
 
 data "azurerm_key_vault_secret" "backend_address_pools" {
   name         = "${var.ingress_deployment_id}-backend-address-pools"
+  key_vault_id = module.site_core_info.vault_id
+}
+
+data "azurerm_key_vault_secret" "deployment_fqdn" {
+  name         = "${var.ingress_deployment_id}-deployment-fqdn"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -176,6 +182,18 @@ resource "azurerm_windows_virtual_machine" "vms" {
     ArcGISSiteId       = var.site_id
     ArcGISDeploymentId = var.deployment_id
     ArcGISRole         = local.vm_roles[count.index]
+  }
+}
+
+# Copy the ingress deployment FQDN from the ingress deployment Key Vault secret
+resource "azurerm_key_vault_secret" "deployment_fqdn" {
+  name         = "${var.deployment_id}-deployment-fqdn"
+  value        = data.azurerm_key_vault_secret.deployment_fqdn.value
+  key_vault_id = module.site_core_info.vault_id
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
   }
 }
 

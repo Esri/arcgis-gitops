@@ -1,4 +1,4 @@
-# Copyright 2025-2026 Esri
+# Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,32 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-resource "azurerm_monitor_metric_alert" "unhealthy_host_count" {
-  name                = "UnhealthyHostCountAlert"
-  resource_group_name = azurerm_resource_group.deployment_rg.name
-  scopes              = [azurerm_application_gateway.ingress.id]
-  description         = "Action will be triggered when Unhealthy Host Count is greater than 0."
-
-  criteria {
-    metric_namespace = "microsoft.network/applicationgateways"
-    metric_name      = "UnhealthyHostCount"
-    aggregation      = "Average"
-    operator         = "GreaterThan"
-    threshold        = 0
-  }
-
-  action {
-    action_group_id = data.azurerm_key_vault_secret.site_alerts_action_group_id.value
-  }
-
-  tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
-  }
+data "azurerm_key_vault_secret" "site_alerts_action_group_id" {
+  name         = "site-alerts-action-group-id"
+  key_vault_id = module.site_core_info.vault_id
 }
 
 resource "azurerm_log_analytics_workspace" "ingress" {
-  name                = azurerm_application_gateway.ingress.name
+  name                = azurerm_application_load_balancer.ingress.name
   location            = azurerm_resource_group.deployment_rg.location
   resource_group_name = azurerm_resource_group.deployment_rg.name
   sku                 = "PerGB2018"
@@ -50,8 +31,8 @@ resource "azurerm_log_analytics_workspace" "ingress" {
 }
 
 resource "azurerm_monitor_diagnostic_setting" "app_gateway_logs" {
-  name                       = "${azurerm_application_gateway.ingress.name}-diagnostic-settings"
-  target_resource_id         = azurerm_application_gateway.ingress.id
+  name                       = "${azurerm_application_load_balancer.ingress.name}-diagnostic-settings"
+  target_resource_id         = azurerm_application_load_balancer.ingress.id
   log_analytics_workspace_id = azurerm_log_analytics_workspace.ingress.id
 
   dynamic "enabled_log" {
@@ -67,9 +48,34 @@ resource "azurerm_monitor_diagnostic_setting" "app_gateway_logs" {
   }
 }
 
+resource "azurerm_monitor_metric_alert" "backend_healthy_targets" {
+  name                = "BackendHealthyTargetsAlert"
+  resource_group_name = azurerm_resource_group.deployment_rg.name
+  scopes              = [azurerm_application_load_balancer.ingress.id]
+  description         = "Action will be triggered when Application Gateway for Containers BackendHealthyTargets metric is equal to 0."
+  severity            = 0 # Critical
+
+  criteria {
+    metric_namespace = "microsoft.servicenetworking/trafficcontrollers"
+    metric_name      = "BackendHealthyTargets"
+    aggregation      = "Average"
+    operator         = "Equals"
+    threshold        = 0
+  }
+
+  action {
+    action_group_id = data.azurerm_key_vault_secret.site_alerts_action_group_id.value
+  }
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+}
+
 # Ingress Dashboard
 resource "azurerm_portal_dashboard" "ingress" {
-  name                = azurerm_application_gateway.ingress.name
+  name                = "${azurerm_application_load_balancer.ingress.name}-ingress"
   resource_group_name = azurerm_resource_group.deployment_rg.name
   location            = azurerm_resource_group.deployment_rg.location
   dashboard_properties = jsonencode({
@@ -84,20 +90,16 @@ resource "azurerm_portal_dashboard" "ingress" {
                 name       = "options"
                 value = {
                   chart = {
-                    grouping = {
-                      dimension = "BackendSettingsPool"
-                      sort      = 2
-                      top       = 10
-                    }
                     metrics = [{
-                      aggregationType = 4
+                      aggregationType = 1
                       metricVisualization = {
                         displayName = "Total Requests"
+                        color = "#5e7af2"
                       }
                       name      = "TotalRequests"
-                      namespace = "microsoft.network/applicationgateways"
+                      namespace = "microsoft.servicenetworking/trafficcontrollers"
                       resourceMetadata = {
-                        id = azurerm_application_gateway.ingress.id
+                        id = azurerm_application_load_balancer.ingress.id
                       }
                     }]
                     timespan = {
@@ -107,7 +109,7 @@ resource "azurerm_portal_dashboard" "ingress" {
                       }
                       showUTCTime = false
                     }
-                    title     = "Avg Total Requests by Endpoint"
+                    title     = "Total Requests Count"
                     titleKind = 1
                     visualization = {
                       axisVisualization = {
@@ -140,23 +142,19 @@ resource "azurerm_portal_dashboard" "ingress" {
                 content = {
                   options = {
                     chart = {
-                      grouping = {
-                        dimension = "BackendSettingsPool"
-                        sort      = 2
-                        top       = 10
-                      }
                       metrics = [{
-                        aggregationType = 4
+                        aggregationType = 1
                         metricVisualization = {
                           displayName = "Total Requests"
+                          color = "#5e7af2"
                         }
                         name      = "TotalRequests"
-                        namespace = "microsoft.network/applicationgateways"
+                        namespace = "microsoft.servicenetworking/trafficcontrollers"
                         resourceMetadata = {
-                          id = azurerm_application_gateway.ingress.id
+                          id = azurerm_application_load_balancer.ingress.id
                         }
                       }]
-                      title     = "Avg Total Requests Count by Endpoint"
+                      title     = "Total Requests Count"
                       titleKind = 1
                       visualization = {
                         axisVisualization = {
@@ -198,22 +196,29 @@ resource "azurerm_portal_dashboard" "ingress" {
                 name       = "options"
                 value = {
                   chart = {
-                    grouping = {
-                      dimension = "BackendSettingsPool"
-                      sort      = 2
-                      top       = 10
-                    }
                     metrics = [{
-                      aggregationType = 4
+                      aggregationType = 1
                       metricVisualization = {
                         displayName = "Failed Requests"
+                        color = "#f06298"
                       }
-                      name      = "FailedRequests"
-                      namespace = "microsoft.network/applicationgateways"
+                      name      = "HTTPResponseStatus"
+                      namespace = "microsoft.servicenetworking/trafficcontrollers"
                       resourceMetadata = {
-                        id = azurerm_application_gateway.ingress.id
+                        id = azurerm_application_load_balancer.ingress.id
                       }
                     }]
+                    filterCollection = {
+                      filters = [
+                        {
+                          key      = "HttpResponseCode"
+                          operator = 0
+                          values = [
+                            "5xx"
+                          ]
+                        }
+                      ]
+                    }
                     timespan = {
                       grain = 1
                       relative = {
@@ -221,7 +226,7 @@ resource "azurerm_portal_dashboard" "ingress" {
                       }
                       showUTCTime = false
                     }
-                    title     = "Avg Failed Requests Count by Endpoint"
+                    title     = "Failed Requests Count"
                     titleKind = 1
                     visualization = {
                       axisVisualization = {
@@ -254,23 +259,19 @@ resource "azurerm_portal_dashboard" "ingress" {
                 content = {
                   options = {
                     chart = {
-                      grouping = {
-                        dimension = "BackendSettingsPool"
-                        sort      = 2
-                        top       = 10
-                      }
                       metrics = [{
-                        aggregationType = 4
+                        aggregationType = 1
                         metricVisualization = {
                           displayName = "Failed Requests"
+                          color = "#f06298"
                         }
-                        name      = "FailedRequests"
-                        namespace = "microsoft.network/applicationgateways"
+                        name      = "HTTPResponseStatus"
+                        namespace = "microsoft.servicenetworking/trafficcontrollers"
                         resourceMetadata = {
-                          id = azurerm_application_gateway.ingress.id
+                          id = azurerm_application_load_balancer.ingress.id
                         }
                       }]
-                      title     = "Avg Failed Requests by Endpoint"
+                      title     = "Failed Requests Count"
                       titleKind = 1
                       visualization = {
                         axisVisualization = {
@@ -292,6 +293,17 @@ resource "azurerm_portal_dashboard" "ingress" {
                           position       = 2
                         }
                       }
+                      filterCollection = {
+                        filters = [
+                          {
+                            key      = "HttpResponseCode"
+                            operator = 0
+                            values = [
+                              "5xx"
+                            ]
+                          }
+                        ]
+                      }
                     }
                   }
                 }
@@ -305,86 +317,32 @@ resource "azurerm_portal_dashboard" "ingress" {
               y       = 0
             }
           }
-          "2" = { // Backend First Byte Response Time
+          "2" = { // Backend Healthy Targets
             metadata = {
               inputs = [{
                 isOptional = true
                 name       = "options"
-                value = {
-                  chart = {
-                    grouping = {
-                      dimension = "BackendHttpSetting"
-                      sort      = 2
-                      top       = 10
-                    }
-                    metrics = [{
-                      aggregationType = 4
-                      metricVisualization = {
-                        displayName = "Backend First Byte Response Time"
-                      }
-                      name      = "BackendFirstByteResponseTime"
-                      namespace = "microsoft.network/applicationgateways"
-                      resourceMetadata = {
-                        id = azurerm_application_gateway.ingress.id
-                      }
-                    }]
-                    timespan = {
-                      grain = 1
-                      relative = {
-                        duration = 86400000
-                      }
-                      showUTCTime = false
-                    }
-                    title     = "Avg First Byte Response Time by Endpoint"
-                    titleKind = 1
-                    visualization = {
-                      axisVisualization = {
-                        x = {
-                          axisType  = 2
-                          isVisible = true
-                        }
-                        y = {
-                          axisType  = 1
-                          isVisible = true
-                        }
-                      }
-                      chartType = 2
-                      legendVisualization = {
-                        hideHoverCard  = false
-                        hideLabelNames = true
-                        isVisible      = true
-                        position       = 2
-                      }
-                    }
-                  }
-                }
-                },
-                {
-                  isOptional = true
-                  name       = "sharedTimeRange"
-                }
-              ]
+                }, {
+                isOptional = true
+                name       = "sharedTimeRange"
+              }]
               settings = {
                 content = {
                   options = {
                     chart = {
-                      grouping = {
-                        dimension = "BackendHttpSetting"
-                        sort      = 2
-                        top       = 10
-                      }
                       metrics = [{
                         aggregationType = 4
                         metricVisualization = {
-                          displayName = "Backend First Byte Response Time"
+                          displayName = "Backend Healthy Targets"
+                          color = "#5e7af2"
                         }
-                        name      = "BackendFirstByteResponseTime"
-                        namespace = "microsoft.network/applicationgateways"
+                        name      = "BackendHealthyTargets"
+                        namespace = "microsoft.servicenetworking/trafficcontrollers"
                         resourceMetadata = {
-                          id = azurerm_application_gateway.ingress.id
+                          id = azurerm_application_load_balancer.ingress.id
                         }
                       }]
-                      title     = "Avg Backend First Byte Response Time by Endpoint"
+                      title     = "Backend Healthy Targets"
                       titleKind = 1
                       visualization = {
                         axisVisualization = {
@@ -424,6 +382,50 @@ resource "azurerm_portal_dashboard" "ingress" {
               inputs = [{
                 isOptional = true
                 name       = "options"
+                value = {
+                  chart = {
+                    metrics = [{
+                      aggregationType = 1
+                      metricVisualization = {
+                        displayName = "WAF Managed Rule Matches"
+                        color = "#f06298"
+                      }
+                      name      = "AzwafSecRule"
+                      namespace = "microsoft.servicenetworking/trafficcontrollers"
+                      resourceMetadata = {
+                        id = azurerm_application_load_balancer.ingress.id
+                      }
+                    }]
+                    timespan = {
+                      grain = 1
+                      relative = {
+                        duration = 86400000
+                      }
+                      showUTCTime = false
+                    }
+                    title     = "WAF Managed Rule Matches"
+                    titleKind = 1
+                    visualization = {
+                      axisVisualization = {
+                        x = {
+                          axisType  = 2
+                          isVisible = true
+                        }
+                        y = {
+                          axisType  = 1
+                          isVisible = true
+                        }
+                      }
+                      chartType = 2
+                      legendVisualization = {
+                        hideHoverCard  = false
+                        hideLabelNames = true
+                        isVisible      = true
+                        position       = 2
+                      }
+                    }
+                  }
+                }
                 }, {
                 isOptional = true
                 name       = "sharedTimeRange"
@@ -432,33 +434,19 @@ resource "azurerm_portal_dashboard" "ingress" {
                 content = {
                   options = {
                     chart = {
-                      grouping = {
-                        dimension = "BackendHttpSetting"
-                        sort      = 2
-                        top       = 10
-                      }
                       metrics = [{
-                        aggregationType = 4
+                        aggregationType = 1
                         metricVisualization = {
-                          displayName = "Backend Error Responses"
+                          displayName = "WAF Managed Rule Matches"
+                          color = "#f06298"
                         }
-                        name      = "BackendResponseStatus"
-                        namespace = "microsoft.network/applicationgateways"
+                        name      = "AzwafSecRule"
+                        namespace = "microsoft.servicenetworking/trafficcontrollers"
                         resourceMetadata = {
-                          id = azurerm_application_gateway.ingress.id
+                          id = azurerm_application_load_balancer.ingress.id
                         }
                       }]
-                      filterCollection = {
-                        filters = [{
-                          key      = "HttpStatusGroup",
-                          operator = 0,
-                          values = [
-                            "5xx",
-                            "4xx"
-                          ]
-                        }]
-                      },
-                      title     = "Backend Avg Error Responses Count by Endpoint"
+                      title     = "WAF Managed Rule Matches"
                       titleKind = 1
                       visualization = {
                         axisVisualization = {
@@ -492,184 +480,8 @@ resource "azurerm_portal_dashboard" "ingress" {
               x       = 6
               y       = 4
             }
-          }
-          "4" = {
-            metadata = {
-              inputs = [{
-                isOptional = true
-                name       = "options"
-                }, {
-                isOptional = true
-                name       = "sharedTimeRange"
-              }]
-              settings = {
-                content = {
-                  options = {
-                    chart = {
-                      grouping = {
-                        dimension = "BackendSettingsPool"
-                        sort      = 2
-                        top       = 10
-                      }
-                      metrics = [{
-                        aggregationType = 4
-                        metricVisualization = {
-                          displayName = "Healthy Host Count"
-                        }
-                        name      = "HealthyHostCount"
-                        namespace = "microsoft.network/applicationgateways"
-                        resourceMetadata = {
-                          id = azurerm_application_gateway.ingress.id
-                        }
-                      }]
-                      title     = "Avg Healthy Host Count by Endpoint"
-                      titleKind = 1
-                      visualization = {
-                        axisVisualization = {
-                          x = {
-                            axisType  = 2
-                            isVisible = true
-                          }
-                          y = {
-                            axisType  = 1
-                            isVisible = true
-                          }
-                        }
-                        chartType      = 2
-                        disablePinning = true
-                        legendVisualization = {
-                          hideHoverCard  = false
-                          hideLabelNames = true
-                          isVisible      = true
-                          position       = 2
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              type = "Extension/HubsExtension/PartType/MonitorChartPart"
-            }
-            position = {
-              colSpan = 6
-              rowSpan = 4
-              x       = 0
-              y       = 8
-            }
-          }
-          "5" = {
-            metadata = {
-              inputs = [{
-                isOptional = true
-                name       = "options"
-                value = {
-                  chart = {
-                    grouping = {
-                      dimension = "BackendSettingsPool"
-                      sort      = 2
-                      top       = 10
-                    }
-                    metrics = [{
-                      aggregationType = 4
-                      metricVisualization = {
-                        displayName = "Unhealthy Host Count"
-                      }
-                      name      = "UnhealthyHostCount"
-                      namespace = "microsoft.network/applicationgateways"
-                      resourceMetadata = {
-                        id = azurerm_application_gateway.ingress.id
-                      }
-                    }]
-                    timespan = {
-                      grain = 1
-                      relative = {
-                        duration = 86400000
-                      }
-                      showUTCTime = false
-                    }
-                    title     = "Avg Unhealthy Host Count by Endpoint"
-                    titleKind = 1
-                    visualization = {
-                      axisVisualization = {
-                        x = {
-                          axisType  = 2
-                          isVisible = true
-                        }
-                        y = {
-                          axisType  = 1
-                          isVisible = true
-                        }
-                      }
-                      chartType = 2
-                      legendVisualization = {
-                        hideHoverCard  = false
-                        hideLabelNames = true
-                        isVisible      = true
-                        position       = 2
-                      }
-                    }
-                  }
-                }
-                }, {
-                isOptional = true
-                name       = "sharedTimeRange"
-              }]
-              settings = {
-                content = {
-                  options = {
-                    chart = {
-                      grouping = {
-                        dimension = "BackendSettingsPool"
-                        sort      = 2
-                        top       = 10
-                      }
-                      metrics = [{
-                        aggregationType = 4
-                        metricVisualization = {
-                          displayName = "Unhealthy Host Count"
-                        }
-                        name      = "UnhealthyHostCount"
-                        namespace = "microsoft.network/applicationgateways"
-                        resourceMetadata = {
-                          id = azurerm_application_gateway.ingress.id
-                        }
-                      }]
-                      title     = "Avg Unhealthy Host Count by Endpoint"
-                      titleKind = 1
-                      visualization = {
-                        axisVisualization = {
-                          x = {
-                            axisType  = 2
-                            isVisible = true
-                          }
-                          y = {
-                            axisType  = 1
-                            isVisible = true
-                          }
-                        }
-                        chartType      = 2
-                        disablePinning = true
-                        legendVisualization = {
-                          hideHoverCard  = false
-                          hideLabelNames = true
-                          isVisible      = true
-                          position       = 2
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-              type = "Extension/HubsExtension/PartType/MonitorChartPart"
-            }
-            position = {
-              colSpan = 6
-              rowSpan = 4
-              x       = 6
-              y       = 8
-            }
           },
-          "6" = { // Log Analytics Requests flagged by WAF
+          "4" = { // Requests flagged by WAF
             metadata = {
               inputs = [
                 {
@@ -683,7 +495,7 @@ resource "azurerm_portal_dashboard" "ingress" {
                   name       = "Scope"
                   value = {
                     resourceIds = [
-                      azurerm_log_analytics_workspace.ingress.id
+                      azurerm_application_load_balancer.ingress.id
                     ]
                   }
                 },
@@ -708,7 +520,7 @@ resource "azurerm_portal_dashboard" "ingress" {
                 {
                   isOptional = true
                   name       = "Query"
-                  value      = "AzureDiagnostics | where Category == 'ApplicationGatewayFirewallLog' and ResourceId == '${upper(azurerm_application_gateway.ingress.id)}' | project Timestamp = timeStamp_t, Action = action_s, ClientIp = clientIp_s, Path = requestUri_s, RuleGroup = ruleGroup_s, RuleId = ruleId_s, Message | sort by Timestamp | take 100"
+                  value      = "AGCFirewallLogs | project TimeGenerated, Action, ClientIp, RequestUri, RuleSetType, RuleId, Message | sort by TimeGenerated | take 100"
                 },
                 {
                   isOptional = true
@@ -727,7 +539,7 @@ resource "azurerm_portal_dashboard" "ingress" {
                 {
                   isOptional = true
                   name       = "PartSubTitle"
-                  value      = azurerm_application_gateway.ingress.name
+                  value      = azurerm_application_load_balancer.ingress.name
                 },
                 {
                   isOptional = true
@@ -759,7 +571,7 @@ resource "azurerm_portal_dashboard" "ingress" {
               colSpan = 12
               rowSpan = 8
               x       = 0
-              y       = 12
+              y       = 8
             }
           }
         }

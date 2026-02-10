@@ -240,7 +240,7 @@ variable "backup_job_timeout" {
 variable "enterprise_admin_cli_version" {
   description = "ArcGIS Enterprise Admin CLI image tag"
   type        = string
-  default     = "0.4.0"
+  default     = "0.5.0"
 }
 
 variable "storage" {

@@ -20,11 +20,10 @@ import json
 import os
 import sys
 import urllib
+import urllib.request
 
 from downloads_api import DownloadsAPIClient
 from token_service_client import TokenServiceClient
-
-MAX_CONCURRENCY = 8
 
 def download_file(url: str, filename: str, download_directory: str, sha256=None):
     filepath = os.path.join(download_directory, filename)
@@ -125,7 +124,7 @@ if __name__ == '__main__':
 
     if 'arcgis' not in data or 'repository' not in data['arcgis']:
         print('JSON file format is invalid.')
-        sys.exit(0)
+        sys.exit(1)
 
     if args.download_directory:
         download_directory = args.download_directory

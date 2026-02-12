@@ -1,20 +1,23 @@
 <!-- BEGIN_TF_DOCS -->
 # Organization Terraform Module for ArcGIS Enterprise on Kubernetes
 
-The module deploys ArcGIS Enterprise on Kubernetes in Azure AKS cluster and creates an ArcGIS Enterprise organization.
+The module deploys ArcGIS Enterprise on Kubernetes in an Azure AKS cluster and creates an ArcGIS Enterprise organization.
 
 ![ArcGIS Enterprise on Kubernetes](arcgis-enterprise-k8s-organization.png "ArcGIS Enterprise on Kubernetes")  
 
-The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.2.0/deploy-guide) distributed separately from the module.
-The Helm charts package for the version used by the deployment must be extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
+The module uses the Helm Charts for ArcGIS Enterprise on Kubernetes.
+The Helm charts package for the ArcGIS Enterprise version used by the deployment
+is downloaded from My Esri and extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
 
 The module:
 
-1. Creates a Kubernetes pod to execute Enterprise Admin CLI commands,
-2. Creates an Azure storage account with private endpoint for the blob store and a blob container for the organization object store,
-3. Create Helm release to deploy ArcGIS Enterprise on Kubernetes,
-4. Updates the DR settings to use the specified storage class and size for staging volume,
-5. Registers backup store using blob container in azure storage account specified by "storage-account-name" Key Vault secret.
+* Creates a Kubernetes pod to execute Enterprise Admin CLI commands
+* Creates an Azure storage account with private endpoint for the blob store and a blob container for the organization object store
+* Installs Helm Charts for ArcGIS Enterprise on Kubernetes
+* Copies ArcGIS Enterprise license file and cloud-config.json file to the Helm chart's user-inputs directory
+* Create a Helm release to deploy ArcGIS Enterprise on Kubernetes
+* Updates the DR settings to use the specified storage class and size for staging volume
+* Registers backup store using blob container in Azure storage account specified by "storage-account-name" Key Vault secret
 
 The module retrieves the following secrets from the site's Key Vault:
 
@@ -32,7 +35,9 @@ On the machine where Terraform is executed:
 
 * Azure service principal credentials must be configured by ARM_CLIENT_ID, ARM_TENANT_ID,
   and ARM_CLIENT_SECRET environment variables.
+* ArcGIS Online credentials must be set by ARCGIS_ONLINE_PASSWORD and ARCGIS_ONLINE_USERNAME environment variables.
 * AKS cluster configuration information must be provided in ~/.kube/config file.
+* Path to azure/scripts directory must be added to PYTHONPATH.
 
 ## Providers
 
@@ -48,6 +53,7 @@ On the machine where Terraform is executed:
 | Name | Source | Version |
 |------|--------|---------|
 | azure_storage | ./modules/storage | n/a |
+| helm_charts | ./modules/helm-charts | n/a |
 | register_azure_backup_store | ./modules/cli-command | n/a |
 | site_core_info | ../../modules/site_core_info | n/a |
 | update_dr_settings | ./modules/cli-command | n/a |
@@ -78,6 +84,7 @@ On the machine where Terraform is executed:
 | admin_password | ArcGIS Enterprise on Kubernetes organization administrator account password | `string` | n/a | yes |
 | admin_username | ArcGIS Enterprise on Kubernetes organization administrator account username | `string` | `"siteadmin"` | no |
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | authorization_file_path | ArcGIS Enterprise on Kubernetes authorization file path | `string` | n/a | yes |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | backup_job_timeout | Backup job timeout in seconds | `number` | `7200` | no |
@@ -87,7 +94,6 @@ On the machine where Terraform is executed:
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.5.0"` | no |
-| helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.6.0"` | no |
 | image_repository_prefix | Prefix of images in ACR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |
 | license_type_id | User type ID for the primary administrator account | `string` | `"creatorUT"` | no |

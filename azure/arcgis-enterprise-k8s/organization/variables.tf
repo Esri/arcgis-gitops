@@ -39,12 +39,6 @@ variable "deployment_id" {
   }
 }
 
-variable "helm_charts_version" {
-  description = "Helm Charts for ArcGIS Enterprise on Kubernetes version"
-  type        = string
-  default     = "1.6.0"
-}
-
 variable "upgrade_token" {
   description = "ArcGIS Enterprise organization administrator account token"
   type        = string
@@ -73,6 +67,17 @@ variable "arcgis_enterprise_context" {
     condition     = can(regex("^[a-z0-9]{1,}$", var.arcgis_enterprise_context))
     error_message = "The arcgis_enterprise_context value must be an alphanumeric string."
   }  
+}
+
+variable "arcgis_version" {
+  description = "ArcGIS Enterprise version"
+  type        = string
+  default     = "12.0"
+
+  validation {
+    condition     = contains(["11.4", "11.5", "12.0"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.4, 11.5, and 12.0."
+  }
 }
 
 variable "k8s_cluster_domain" {

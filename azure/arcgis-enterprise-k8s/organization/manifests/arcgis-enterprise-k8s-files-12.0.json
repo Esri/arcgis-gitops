@@ -1,0 +1,22 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "./helm-charts/arcgis-enterprise",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken"
+      },
+      "patch_notification": {},
+      "metadata": {
+        "helm_charts_tarball": "ArcGIS_Enterprise_on_Kubernetes_Helm_Charts_1.6.1_199174.tgz",
+        "helm_charts_version": "1.6.1"
+      },
+      "files": {
+        "ArcGIS_Enterprise_on_Kubernetes_Helm_Charts_1.6.1_199174.tgz": {
+          "subfolder": "software/arcgis/12.0",
+          "sha256": "3E0D47866BCB6199B057B8980D0EBE67CE3C8DD9C7D4D56574F06AC0C2386B81"
+        }
+      }
+    }
+  }
+}

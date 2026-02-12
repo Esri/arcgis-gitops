@@ -5,20 +5,9 @@ The module deploys ArcGIS Enterprise on Kubernetes in Amazon EKS cluster and cre
 
 ![ArcGIS Enterprise on Kubernetes](arcgis-enterprise-k8s-organization.png "ArcGIS Enterprise on Kubernetes")  
 
-The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.6.0/deploy-guide) distributed separately from the module.
-The Helm charts package for the version used by the deployment must be extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
-
-The following table explains the compatibility of chart versions and ArcGIS Enterprise on Kubernetes.
-
-Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description                                                             |
---- |---------------------------| --- |---------------------------------------------| --- |-------------------------------------------------------------------------|
-v1.5.0 | 11.5.0.6745 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.5 or upgrading 11.4 to 11.5 |
-v1.5.1 | 11.5.0.6805 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Help Language Pack and Base Operating System Image Update |
-v1.5.2 | 11.5.0.6815 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q3 Bug Fix and Base Operating System Image Update |
-v1.5.3 | 11.5.0.6820 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Feature Services Security Update |
-v1.5.4 | 11.5.0.6825 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q4 Bug Fix and Base Operating System Image Update |
-v1.5.5 | 11.5.0.6835 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q4 2025 December Bug Fix and Base Operating System Image Update |
-v1.6.0 | 12.0.0.7286 | Supported     | Supported      | Not applicable | Helm chart for deploying 12.0 or upgrading 11.5 to 12.0 |
+The module uses the Helm Charts for ArcGIS Enterprise on Kubernetes.
+The Helm charts package for the ArcGIS Enterprise version used by the deployment
+is downloaded from My Esri and extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
 
 The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
 The module also creates an S3 bucket for the organization object store, registers it with the deployment,
@@ -31,7 +20,9 @@ The deployment's CloudWatch dashboard displays the CloudWatch metrics and contai
 On the machine where Terraform is executed:
 
 * AWS credentials must be configured.
+* ArcGIS Online credentials must be set by ARCGIS_ONLINE_PASSWORD and ARCGIS_ONLINE_USERNAME environment variables.
 * EKS cluster configuration information must be provided in ~/.kube/config file.
+* Path to aws/scripts directory must be added to PYTHONPATH.
 
 ## SSM Parameters
 
@@ -39,7 +30,7 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/s3/backup | Backups S3 bucket name |
+| /arcgis/${var.site_id}/s3/backup | Backup S3 bucket name |
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
 
 ## Providers
@@ -55,6 +46,7 @@ The module reads the following SSM parameters:
 
 | Name | Source | Version |
 |------|--------|---------|
+| helm_charts | ./modules/helm-charts | n/a |
 | monitoring | ./modules/monitoring | n/a |
 | register_s3_backup_store | ./modules/cli-command | n/a |
 | update_dr_settings | ./modules/cli-command | n/a |
@@ -84,6 +76,7 @@ The module reads the following SSM parameters:
 | admin_password | ArcGIS Enterprise on Kubernetes organization administrator account password | `string` | n/a | yes |
 | admin_username | ArcGIS Enterprise on Kubernetes organization administrator account username | `string` | `"siteadmin"` | no |
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | authorization_file_path | ArcGIS Enterprise on Kubernetes authorization file path | `string` | n/a | yes |
 | aws_region | AWS region Id | `string` | n/a | yes |
 | backup_job_timeout | Backup job timeout in seconds | `number` | `7200` | no |
@@ -93,7 +86,6 @@ The module reads the following SSM parameters:
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.5.0"` | no |
-| helm_charts_version | Helm Charts for ArcGIS Enterprise on Kubernetes version | `string` | `"1.6.0"` | no |
 | image_repository_prefix | Prefix of images in ECR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |
 | license_type_id | User type ID for the primary administrator account | `string` | `"creatorUT"` | no |

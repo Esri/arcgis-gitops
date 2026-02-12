@@ -19,7 +19,11 @@ on:
 
 env:
   TF_VAR_azure_region: ${{ vars.AZURE_DEFAULT_REGION }}
-  TF_VAR_admin_email: ${{ secrets.ENTERPRISE_ADMIN_EMAIL }}  
+  TF_VAR_admin_email: ${{ secrets.ENTERPRISE_ADMIN_EMAIL }}
+  TF_VAR_admin_username: ${{ secrets.ENTERPRISE_K8S_ADMIN_USERNAME }}
+  TF_VAR_admin_password: ${{ secrets.ENTERPRISE_K8S_ADMIN_PASSWORD }}
+  ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
+  ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
   ARM_SUBSCRIPTION_ID: ${{ vars.AZURE_SUBSCRIPTION_ID }}
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
@@ -28,6 +32,7 @@ env:
   TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
   TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
   MAX_UPGRADE_TIME: 720 # 12 hours
+  PYTHONPATH: ${{ github.workspace }}/azure/scripts
   CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-k8s/organization.tfvars.json
   ADMIN_CLI_METADATA_FILE: ${{ github.workspace }}/enterprise-admin-cli/metadata.json  
 

@@ -6,7 +6,7 @@ The workflows require:
 
 * GitHub.com user account or GitHub Enterprise Server with GitHub Actions enabled
 * Amazon Web Services (AWS) account
-* (For Windows and Linux platforms) ArcGIS Online user account to download ArcGIS Enterprise installation media from [MyEsri](https://my.esri.com)
+* ArcGIS Online user account to download ArcGIS Enterprise installation media from [MyEsri](https://my.esri.com)
 * (For Kubernetes platform) Docker Hub account that has access to private repositories with ArcGIS Enterprise on Kubernetes container images
 * Authorization files for ArcGIS Enterprise software
 * SSL certificates for the ArcGIS Enterprise site domain names
@@ -101,13 +101,9 @@ Configure secrets and variables for GitHub Actions in the repository settings.
 | AWS_ACCESS_KEY_ID      | AWS access key Id                 |
 | AWS_SECRET_ACCESS_KEY  | AWS secret access key             |
 | ENTERPRISE_ADMIN_EMAIL | Site administrator e-mail address |
-
-For ArcGIS Enterprise on Windows and Linux:
-
-| Name                   | Description                 |
-|------------------------|-----------------------------|
-| ARCGIS_ONLINE_USERNAME | ArcGIS Online user name     |
-| ARCGIS_ONLINE_PASSWORD | ArcGIS Online user password |
+| Name                   | Description                       |
+| ARCGIS_ONLINE_USERNAME | ArcGIS Online user name           |
+| ARCGIS_ONLINE_PASSWORD | ArcGIS Online user password       |
 
 For ArcGIS Enterprise on Kubernetes:
 

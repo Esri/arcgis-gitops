@@ -23,7 +23,20 @@ Initial deployment of ArcGIS Enterprise on Kubernetes includes provisioning cont
 
 > The IAM principal used by the template's workflows must have EKS cluster administrator permissions. The IAM principal used to create the EKS cluster is granted the required permissions by the site-k8s-cluster-aws workflow.
 
-### 1. Provisioning Container Images
+### 1. Set GitHub Actions Secrets for the Site
+
+Set the primary ArcGIS Enterprise site administrator credentials in the GitHub Actions secrets of the repository settings.
+
+| Name                      | Description                                    |
+|---------------------------|------------------------------------------------|
+| ENTERPRISE_K8S_ADMIN_USERNAME | ArcGIS Enterprise on Kubernetes administrator user name      |
+| ENTERPRISE_K8S_ADMIN_PASSWORD | ArcGIS Enterprise on Kubernetes administrator user password  |
+
+> The ArcGIS Enterprise on Kubernetes administrator user name must be at least six characters. The only special characters allowed are the at sign (@), dash (-), dot (.), and underscore (_).
+
+> The ArcGIS Enterprise on Kubernetes administrator user password must be at least eight characters. It must contain at least one alphabet letter (uppercase or lowercase), one digit, and one special character. All special characters are allowed.
+
+### 2. Provisioning Container Images
 
 GitHub Actions workflow **enterprise-k8s-aws-image** builds a container image for [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) and pushes it to a private AWS Elastic Container Registry (ECR) repository. If "pull_through_cache" property is set to `false`, the workflow also copies container images of the ArcGIS Enterprise on Kubernetes version from DockerHub to the private ECR repositories.
 
@@ -41,7 +54,7 @@ Instructions:
 
 > Copying the container images may take several hours.
 
-### 2. Create Application Load Balancer Ingress
+### 3. Create Application Load Balancer Ingress
 
 GitHub Actions workflow **enterprise-k8s-aws-ingress** creates a Kubernetes namespace for ArcGIS Enterprise on Kubernetes deployment in Amazon EKS cluster and an Application Load Balancer (ALB) ingress that routes traffic to the deployment.
 
@@ -73,7 +86,7 @@ Instructions:
 
 > By default "waf_mode" property is set to "detect", that configures the Web Application Firewall (WAF) rules assigned to the Application Load Balancer to count and log suspicious requests instead of blocking them. It is strongly recommended that all deployments start out running in “detect” mode to avoid breaking workflows unexpectedly. Once the rules are fully tuned and WAF logs no longer reveal false positives, the WAF can be shifted into “protect” mode.
 
-### 3. Create ArcGIS Enterprise Organization
+### 4. Create ArcGIS Enterprise Organization
 
 GitHub Actions workflow **enterprise-k8s-aws-organization** deploys ArcGIS Enterprise on Kubernetes in Amazon EKS cluster and creates an ArcGIS Enterprise organization.
 
@@ -91,18 +104,16 @@ Outputs:
 
 Instructions:
 
-1. Set "helm_charts_version" property to the Helm Charts version corresponding to the ArcGIS Enterprise on Kubernetes version.
-2. Download the ArcGIS Enterprise on Kubernetes Helm Charts package archive for the charts version from [My Esri](https://www.esri.com/en-us/my-esri-login) and extract the archive to `aws/arcgis-enterprise-k8s/organization/helm-charts/arcgis-enterprise/<Helm Charts version>` folder in the repository.
-3. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file path.
-4. Set "system_arch_profile" property to the required ArcGIS Enterprise on Kubernetes architecture profile.
-5. Set "admin_username", "admin_password", "admin_first_name", "admin_last_name", "security_question_index", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
-6. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
-7. Commit the changes to the Git branch and push the branch to GitHub.
-8. Run enterprise-k8s-aws-organization workflow using the branch.
+1. Add ArcGIS Enterprise on Kubernetes authorization file for the ArcGIS Enterprise version to `/config/authorization/<ArcGIS version>` directory of the repository and set "authorization_file_path" property to the file path.
+2. Set "system_arch_profile" property to the required ArcGIS Enterprise on Kubernetes architecture profile.
+3. Set "admin_first_name", "admin_last_name", "security_question_index", and "security_question_answer" to the initial ArcGIS Enterprise administrator account properties.
+4. (Optional) Update "storage" property to configure the required storage classes, sizes, and types of the ArcGIS Enterprise deployment data stores.
+5. Commit the changes to the Git branch and push the branch to GitHub.
+6. Run enterprise-k8s-aws-organization workflow using the branch.
 
 > '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
-### 4. Test ArcGIS Enterprise Deployment
+### 5. Test ArcGIS Enterprise Deployment
 
 GitHub Actions workflow **enterprise-k8s-aws-test** tests the ArcGIS Enterprise deployment.
 

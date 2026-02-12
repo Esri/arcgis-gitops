@@ -28,8 +28,13 @@ env:
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
   TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
   TF_VAR_admin_email: ${{ secrets.ENTERPRISE_ADMIN_EMAIL }}
+  TF_VAR_admin_username: ${{ secrets.ENTERPRISE_K8S_ADMIN_USERNAME }}
+  TF_VAR_admin_password: ${{ secrets.ENTERPRISE_K8S_ADMIN_PASSWORD }}
+  ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}
+  ARCGIS_ONLINE_PASSWORD: ${{ secrets.ARCGIS_ONLINE_PASSWORD }}
   TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}  
   AWS_MAX_ATTEMPTS: 400
+  PYTHONPATH: ${{ github.workspace }}/aws/scripts
   ORGANIZATION_CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/organization.tfvars.json
   INGRESS_CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-k8s/ingress.tfvars.json
 

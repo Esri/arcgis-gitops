@@ -5,20 +5,9 @@
  *
  * ![ArcGIS Enterprise on Kubernetes](arcgis-enterprise-k8s-organization.png "ArcGIS Enterprise on Kubernetes")  
  *
- * The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.6.0/deploy-guide) distributed separately from the module.
- * The Helm charts package for the version used by the deployment must be extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
- *
- * The following table explains the compatibility of chart versions and ArcGIS Enterprise on Kubernetes.
- * 
- * Helm Chart Version | ArcGIS Enterprise version | Initial deployment using `helm install` command | Release upgrade using `helm upgrade` command | Patch update using `helm upgrade` command | Description                                                             |
- * --- |---------------------------| --- |---------------------------------------------| --- |-------------------------------------------------------------------------|
- * v1.5.0 | 11.5.0.6745 | Supported     | Supported      | Not applicable | Helm chart for deploying 11.5 or upgrading 11.4 to 11.5 |
- * v1.5.1 | 11.5.0.6805 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Help Language Pack and Base Operating System Image Update |
- * v1.5.2 | 11.5.0.6815 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q3 Bug Fix and Base Operating System Image Update |
- * v1.5.3 | 11.5.0.6820 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Feature Services Security Update |
- * v1.5.4 | 11.5.0.6825 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q4 Bug Fix and Base Operating System Image Update |
- * v1.5.5 | 11.5.0.6835 | Not supported | Not applicable | Supported      | Helm chart to apply the 11.5 Q4 2025 December Bug Fix and Base Operating System Image Update |
- * v1.6.0 | 12.0.0.7286 | Supported     | Supported      | Not applicable | Helm chart for deploying 12.0 or upgrading 11.5 to 12.0 |
+ * The module uses the Helm Charts for ArcGIS Enterprise on Kubernetes.
+ * The Helm charts package for the ArcGIS Enterprise version used by the deployment 
+ * is downloaded from My Esri and extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
  *
  * The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
  * The module also creates an S3 bucket for the organization object store, registers it with the deployment, 
@@ -31,7 +20,9 @@
  * On the machine where Terraform is executed:
  * 
  * * AWS credentials must be configured.
+ * * ArcGIS Online credentials must be set by ARCGIS_ONLINE_PASSWORD and ARCGIS_ONLINE_USERNAME environment variables.
  * * EKS cluster configuration information must be provided in ~/.kube/config file.
+ * * Path to aws/scripts directory must be added to PYTHONPATH.
  *
  * ## SSM Parameters
  *
@@ -39,7 +30,7 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/s3/backup | Backups S3 bucket name |
+ * | /arcgis/${var.site_id}/s3/backup | Backup S3 bucket name |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  */
 
@@ -121,12 +112,13 @@ locals {
 
   configure_cloud_stores = true
 
-  app_version = yamldecode(file("./helm-charts/arcgis-enterprise/${var.helm_charts_version}/Chart.yaml")).appVersion
-  backup_store_suffix = replace(local.app_version, ".", "-")
+  backup_store_suffix = replace(var.arcgis_version, ".", "-")
   backup_store = "s3-backup-store-${local.backup_store_suffix}"
-  backup_root_dir = "${var.deployment_id}/${local.app_version}"
+  backup_root_dir = "${var.deployment_id}/${var.arcgis_version}"
 
   deployment_fqdn = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  
+  manifest_file_path = "./manifests/arcgis-enterprise-k8s-files-${var.arcgis_version}.json"
 }
 
 resource "kubernetes_secret" "admin_cli_credentials" {
@@ -211,12 +203,23 @@ resource "aws_s3_bucket" "object_store" {
   force_destroy = true
 }
 
-resource "local_sensitive_file" "license_file" {
-  content  = file(var.authorization_file_path)
-  filename = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/license.json"
+# Install Helm charts for ArcGIS Enterprise on Kubernetes.
+module "helm_charts" {
+  source = "./modules/helm-charts"
+  index_file = local.manifest_file_path
+  install_dir = "./helm-charts/arcgis-enterprise"
 }
 
-# Create cloud-config.json file for cloud stores in the Helm chart's user-input diectory
+resource "local_sensitive_file" "license_file" {
+  content  = file(var.authorization_file_path)
+  filename = "${module.helm_charts.helm_charts_path}/user-inputs/license.json"
+
+  depends_on = [ 
+    module.helm_charts 
+  ]
+}
+
+# Create cloud-config.json file for cloud stores in the Helm chart's user-input directory
 # if the file path is specified either by cloud_config_json_file_path input variable
 # or configured with the default setings.
 resource "local_sensitive_file" "cloud_config_json_file" {
@@ -240,12 +243,16 @@ resource "local_sensitive_file" "cloud_config_json_file" {
         category = "storage"
       }]
   }]))
-  filename = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/cloud-config.json"
+  filename = "${module.helm_charts.helm_charts_path}/user-inputs/cloud-config.json"
+
+  depends_on = [ 
+    module.helm_charts
+  ]
 }
 
 resource "helm_release" "arcgis_enterprise" {
   name      = "arcgis"
-  chart     = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}"
+  chart     = module.helm_charts.helm_charts_path
   namespace = var.deployment_id
   timeout   = 21600 # 6 hours
 
@@ -265,7 +272,7 @@ resource "helm_release" "arcgis_enterprise" {
   }
 
   values = [
-    "${file("./helm-charts/arcgis-enterprise/${var.helm_charts_version}/configure.yaml")}",
+    module.helm_charts.configure_yaml_content,
     yamlencode({
       image = {
         registry   = local.container_registry

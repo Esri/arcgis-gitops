@@ -1,20 +1,23 @@
 /**
  * # Organization Terraform Module for ArcGIS Enterprise on Kubernetes
  *
- * The module deploys ArcGIS Enterprise on Kubernetes in Azure AKS cluster and creates an ArcGIS Enterprise organization.
+ * The module deploys ArcGIS Enterprise on Kubernetes in an Azure AKS cluster and creates an ArcGIS Enterprise organization.
  *
  * ![ArcGIS Enterprise on Kubernetes](arcgis-enterprise-k8s-organization.png "ArcGIS Enterprise on Kubernetes")  
  *
- * The module uses [Helm Charts for ArcGIS Enterprise on Kubernetes](https://links.esri.com/enterprisekuberneteshelmcharts/1.2.0/deploy-guide) distributed separately from the module.
- * The Helm charts package for the version used by the deployment must be extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
+ * The module uses the Helm Charts for ArcGIS Enterprise on Kubernetes.
+ * The Helm charts package for the ArcGIS Enterprise version used by the deployment 
+ * is downloaded from My Esri and extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
  *
  * The module:
  * 
- * 1. Creates a Kubernetes pod to execute Enterprise Admin CLI commands,
- * 2. Creates an Azure storage account with private endpoint for the blob store and a blob container for the organization object store, 
- * 3. Create Helm release to deploy ArcGIS Enterprise on Kubernetes,
- * 4. Updates the DR settings to use the specified storage class and size for staging volume,
- * 5. Registers backup store using blob container in azure storage account specified by "storage-account-name" Key Vault secret.
+ * * Creates a Kubernetes pod to execute Enterprise Admin CLI commands
+ * * Creates an Azure storage account with private endpoint for the blob store and a blob container for the organization object store
+ * * Installs Helm Charts for ArcGIS Enterprise on Kubernetes
+ * * Copies ArcGIS Enterprise license file and cloud-config.json file to the Helm chart's user-inputs directory
+ * * Create a Helm release to deploy ArcGIS Enterprise on Kubernetes
+ * * Updates the DR settings to use the specified storage class and size for staging volume
+ * * Registers backup store using blob container in Azure storage account specified by "storage-account-name" Key Vault secret
  *
  * The module retrieves the following secrets from the site's Key Vault:
  * 
@@ -32,7 +35,9 @@
  * 
  * * Azure service principal credentials must be configured by ARM_CLIENT_ID, ARM_TENANT_ID,
  *   and ARM_CLIENT_SECRET environment variables.
+ * * ArcGIS Online credentials must be set by ARCGIS_ONLINE_PASSWORD and ARCGIS_ONLINE_USERNAME environment variables.
  * * AKS cluster configuration information must be provided in ~/.kube/config file.
+ * * Path to azure/scripts directory must be added to PYTHONPATH.
  */
 
 # Copyright 2024-2026 Esri
@@ -121,11 +126,11 @@ locals {
 
   configure_cloud_stores = true
 
-  app_version         = yamldecode(file("./helm-charts/arcgis-enterprise/${var.helm_charts_version}/Chart.yaml")).appVersion
-  backup_store_suffix = replace(local.app_version, ".", "-")
+  backup_store_suffix = replace(var.arcgis_version, ".", "-")
   backup_store        = "azure-backup-store-${local.backup_store_suffix}"
+  backup_root_dir     = "${var.deployment_id}/${var.arcgis_version}"
 
-  backup_root_dir = "${var.deployment_id}/${local.app_version}"
+  manifest_file_path = "./manifests/arcgis-enterprise-k8s-files-${var.arcgis_version}.json"
 }
 
 # Module to retrieve site core information from the Key Vault.
@@ -209,17 +214,32 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
   ]
 }
 
+# Install Helm charts for ArcGIS Enterprise on Kubernetes.
+module "helm_charts" {
+  source = "./modules/helm-charts"
+  index_file = local.manifest_file_path
+  install_dir = "./helm-charts/arcgis-enterprise"
+}
+
 # ArcGIS Enterprise license file must be placed in the Helm chart's user-inputs directory.
 resource "local_sensitive_file" "license_file" {
   content  = file(var.authorization_file_path)
-  filename = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/license.json"
+  filename = "${module.helm_charts.helm_charts_path}/user-inputs/license.json"
+  
+  depends_on = [
+    module.helm_charts
+  ]
 }
 
 # Copy cloud-config.json file to the Helm chart's user-inputs directory if the file path is specified.
 resource "local_sensitive_file" "cloud_config_json_file" {
   count    = var.cloud_config_json_file_path != null ? 1 : 0
   content  = file(var.cloud_config_json_file_path)
-  filename = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/cloud-config.json"
+  filename = "${module.helm_charts.helm_charts_path}/user-inputs/cloud-config.json"
+
+  depends_on = [
+    module.helm_charts
+  ]
 }
 
 # Create Azure storage account and blob container for the organization object store.
@@ -230,7 +250,7 @@ module "azure_storage" {
   site_id                     = var.site_id
   deployment_id               = var.deployment_id
   subnet_id                   = module.site_core_info.internal_subnets[0]
-  cloud_config_json_file_path = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}/user-inputs/cloud-config.json"
+  cloud_config_json_file_path = "${module.helm_charts.helm_charts_path}/user-inputs/cloud-config.json"
   client_id                   = data.azurerm_key_vault_secret.aks_identity_client_id.value
   principal_id                = data.azurerm_key_vault_secret.aks_identity_principal_id.value
 }
@@ -238,7 +258,7 @@ module "azure_storage" {
 # Deploy ArcGIS Enterprise on Kubernetes using Helm chart.
 resource "helm_release" "arcgis_enterprise" {
   name      = "arcgis"
-  chart     = "./helm-charts/arcgis-enterprise/${var.helm_charts_version}"
+  chart     = module.helm_charts.helm_charts_path
   namespace = var.deployment_id
   # timeout   = 21600 # 6 hours
   timeout = 3600 # 1 hour
@@ -259,7 +279,7 @@ resource "helm_release" "arcgis_enterprise" {
   }
 
   values = [
-    "${file("./helm-charts/arcgis-enterprise/${var.helm_charts_version}/configure.yaml")}",
+    module.helm_charts.configure_yaml_content,
     yamlencode({
       image = {
         registry   = local.container_registry
@@ -312,6 +332,7 @@ resource "helm_release" "arcgis_enterprise" {
   ]
 
   depends_on = [
+    module.helm_charts,
     local_sensitive_file.license_file,
     local_sensitive_file.cloud_config_json_file,
     kubernetes_pod.enterprise_admin_cli,

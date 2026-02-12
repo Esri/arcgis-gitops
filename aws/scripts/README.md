@@ -28,6 +28,28 @@ options:
   -d DEPLOYMENT_ID      ArcGIS Enterprise deployment Id
 ```
 
+## download_files
+
+Downloads files from public URLs and My Esri to local filesystem.
+
+Usage:
+
+```shell
+python -m download_files [-h] [-u USERNAME] [-p PASSWORD] -f FILES [-d DOWNLOAD_DIRECTORY]
+```
+
+Options:
+
+```shell
+  -h, --help            show this help message and exit
+  -u USERNAME           My Esri user name
+  -p PASSWORD           My Esri user password
+  -f FILES              Index JSON file path
+  -d DOWNLOAD_DIRECTORY Directory to download files to
+```
+
+> Alternatively, the My Esri credentials can be set using ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD environment variables.
+
 ## downloads_api
 
 My Esri Downloads API repository client.

@@ -50,7 +50,7 @@ locals {
 
 # Download Helm charts tarball from the repository specified in the index file and save it to the installation directory.
 resource "null_resource" "download_files" {
-  count = fileexists(local.helm_charts_tarball) ? 0 : 1
+  count = fileexists(local.configure_yaml_path) ? 0 : 1
 
   triggers = {
     always_run = "${timestamp()}"
@@ -63,7 +63,7 @@ resource "null_resource" "download_files" {
 
 # Extract the downloaded Helm charts tarball
 resource "null_resource" "extract_files" {
-  count = fileexists(local.helm_charts_tarball) ? 0 : 1
+  count = fileexists(local.configure_yaml_path) ? 0 : 1
 
   triggers = {
     always_run = "${timestamp()}"
@@ -81,7 +81,7 @@ resource "null_resource" "extract_files" {
 
 # Rename the extracted directory to the Helm charts version for easier reference in the Helm release resource.
 resource "null_resource" "rename_files" {
-  count = fileexists(local.helm_charts_tarball) ? 0 : 1
+  count = fileexists(local.configure_yaml_path) ? 0 : 1
 
   triggers = {
     always_run = "${timestamp()}"

@@ -68,7 +68,7 @@ jobs:
         run: |
           # az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
           # az account set --subscription $ARM_SUBSCRIPTION_ID
-          terraform apply -var-file $CONFIG_FILE -auto-approve
+          terraform apply -var-file $CONFIG_FILE -auto-approve -input=false
       - name: Terraform Plan
         if: github.event.inputs.terraform_command == 'plan'
-        run: terraform plan -var-file $CONFIG_FILE
+        run: terraform plan -var-file $CONFIG_FILE -input=false

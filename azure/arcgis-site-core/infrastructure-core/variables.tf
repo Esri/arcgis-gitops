@@ -124,10 +124,23 @@ variable "internal_subnets_cidr_blocks" {
   }
 }
 
+variable "private_dns_zones" {
+  description = "List of private DNS zones to link to the site virtual network for name resolution of private endpoints"
+  type        = list(string)
+  default     = [
+    "privatelink.blob.core.windows.net",
+    "privatelink.documents.azure.com", 
+    "privatelink.file.core.windows.net", 
+    "privatelink.queue.core.windows.net", 
+    "privatelink.servicebus.windows.net",
+    "privatelink.table.core.windows.net" 
+  ]
+}
+
 variable "service_endpoints" {
   description = "Service endpoints of internal subnets"
   type        = list(string)
-  default     = []
+  default     = ["Microsoft.Storage"]
 }
 
 variable "images" {

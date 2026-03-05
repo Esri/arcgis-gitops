@@ -8,8 +8,10 @@
  *
  * The module creates a virtual network with app gateway, private and internal subnets. 
  * The app gateway and private subnets are routed to a NAT Gateway to allow outbound access to the Internet.
- * Internal subnets allow access only to specific service endpoints.
+ * The internal subnets allow access only to specific service endpoints.
  * For private and internal subnets, the module creates network security groups with default rules.
+ * The module also creates private DNS zones and links them to the virtual network. 
+ * The private DNS zones are used for name resolution of VMs and private endpoints of the site.
  *
  * Optionally, the module creates and configures an Azure Bastion host in a dedicated 
  * AzureBastionSubnet subnet to allow secure RDP/SSH connections to virtual machines of the site.
@@ -22,7 +24,7 @@
  * 
  * Attributes of the resources are stored as secrets in the Azure Key Vault created by the module.
  *
- * | Key vault secret name | Description |
+ * | Key Vault secret name | Description |
  * | --- | --- |
  * | vnet-id | ArcGIS Enterprise site VNet ID |
  * | app-gateway-subnet-N | ID of Application Gateway subnet N |
@@ -35,8 +37,8 @@
  * 
  *  On the machine where Terraform is executed:
  *
- * * Azure subscription Id must be specified by ARM_SUBSCRIPTION_ID environment variable.
- * * Azure service principal credentials must be configured by ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
+ * * Azure subscription ID must be specified by ARM_SUBSCRIPTION_ID environment variable.
+ * * Azure service principal credentials must be configured with ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
  */
 
 # Copyright 2024-2026 Esri
@@ -122,8 +124,8 @@ resource "azurerm_monitor_action_group" "site_alerts" {
     email_address = var.admin_email
   }
 
-  tags = { 
-    ArcGISSiteId       = var.site_id
+  tags = {
+    ArcGISSiteId = var.site_id
   }
 }
 
@@ -160,7 +162,7 @@ resource "azurerm_key_vault_secret" "vnet" {
   ]
 }
 
-# Create Private DNS Zones and link the to the Virtual network.
+# Create Private DNS Zones for VMs and link them to the Virtual network.
 
 resource "azurerm_private_dns_zone" "internal" {
   name                = "${var.site_id}.internal"
@@ -171,19 +173,25 @@ resource "azurerm_private_dns_zone" "internal" {
   }
 }
 
-# Random String for unique naming
-resource "random_string" "name" {
-  length  = 8
-  special = false
-  upper   = false
-  lower   = true
-  numeric = false
-}
-
 resource "azurerm_private_dns_zone_virtual_network_link" "internal" {
-  name                  = "dns-vnet-link-${random_string.name.result}"
+  name                  = "${azurerm_private_dns_zone.internal.name}-vnet-link"
   resource_group_name   = azurerm_resource_group.site_rg.name
   private_dns_zone_name = azurerm_private_dns_zone.internal.name
+  virtual_network_id    = azurerm_virtual_network.site_vnet.id
+}
+
+# Private DNS zones for private endpoints
+resource "azurerm_private_dns_zone" "private_dns_zones" {
+  count               = length(var.private_dns_zones)
+  name                = var.private_dns_zones[count.index]
+  resource_group_name = azurerm_resource_group.site_rg.name
+}
+
+resource "azurerm_private_dns_zone_virtual_network_link" "private_dns_zones" {
+  count                 = length(var.private_dns_zones)
+  name                  = "${var.private_dns_zones[count.index]}-vnet-link"
+  private_dns_zone_name = azurerm_private_dns_zone.private_dns_zones[count.index].name
+  resource_group_name   = azurerm_resource_group.site_rg.name
   virtual_network_id    = azurerm_virtual_network.site_vnet.id
 }
 
@@ -295,6 +303,9 @@ resource "azurerm_subnet" "private_subnets" {
   default_outbound_access_enabled = false
   address_prefixes = [
     var.private_subnets_cidr_blocks[count.index]
+  ]
+  service_endpoints = [
+    "Microsoft.Storage"
   ]
 }
 
@@ -412,6 +423,7 @@ resource "azurerm_key_vault_secret" "vm_identity_id" {
   ]
 }
 
+# Assign permissions to the VM user assigned identity to allow it to access storage account.
 resource "azurerm_role_assignment" "storage_account_vm_identity" {
   principal_id                     = azurerm_user_assigned_identity.vm_identity.principal_id
   role_definition_name             = "Storage Blob Data Owner"
@@ -419,6 +431,8 @@ resource "azurerm_role_assignment" "storage_account_vm_identity" {
   skip_service_principal_aad_check = true
 }
 
+# Grant the creator of the Key Vault permissions to manage secrets in the vault. 
+# This allows Terraform to create and update secrets in the vault.
 resource "azurerm_role_assignment" "key_vault_current_user" {
   principal_id                     = data.azurerm_client_config.current.object_id
   role_definition_name             = "Key Vault Administrator"
@@ -426,6 +440,7 @@ resource "azurerm_role_assignment" "key_vault_current_user" {
   skip_service_principal_aad_check = true
 }
 
+# Grant the VM user assigned identity permissions to get secrets from the vault.
 resource "azurerm_role_assignment" "key_vault_vm_identity" {
   principal_id                     = azurerm_user_assigned_identity.vm_identity.principal_id
   role_definition_name             = "Key Vault Secrets User"

@@ -74,7 +74,7 @@ jobs:
                        -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/application.tfstate"
         az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
         az account set --subscription $ARM_SUBSCRIPTION_ID
-        terraform apply -var-file $CONFIG_FILE -auto-approve
+        terraform apply -var-file $CONFIG_FILE -auto-approve -input=false
     - name: Terraform Output
       id: output  
       run: echo arcgis_portal_url=$(terraform output arcgis_portal_url) >> $GITHUB_OUTPUT

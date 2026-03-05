@@ -14,6 +14,9 @@
 
 # Storage account and blob containers for ArcGIS Enterprise site
 
+locals {
+  blob_private_dns_zone_index = try(index(var.private_dns_zones, "privatelink.blob.core.windows.net"), -1)
+}
 
 # Create storage account for the site's repository, backups, and logs.
 # Public network access is enabled for the storage account because it is required
@@ -114,25 +117,14 @@ resource "azurerm_key_vault_secret" "storage_account_key" {
 #   key_vault_id = azurerm_key_vault.site_vault.id
 # }
 
-# Create azure private endpoint for the blob store
-
-resource "azurerm_private_dns_zone" "blob_private_dns_zone" {
-  name                = "privatelink.blob.core.windows.net"
-  resource_group_name = azurerm_resource_group.site_rg.name
-}
-
-resource "azurerm_private_dns_zone_virtual_network_link" "blob_private_dns_zone_virtual_network_link" {
-  name                  = "blob-private-dns-zone-vnet-link"
-  private_dns_zone_name = azurerm_private_dns_zone.blob_private_dns_zone.name
-  resource_group_name   = azurerm_resource_group.site_rg.name
-  virtual_network_id    = azurerm_virtual_network.site_vnet.id
-}
+# Create azure private endpoint for the site storage account and link it to the blob private DNS zone
 
 resource "azurerm_private_endpoint" "site_store_private_endpoint" {
+  count               = local.blob_private_dns_zone_index >= 0 ? 1 : 0
   name                = "${azurerm_storage_account.site_storage.name}-private-endpoint"
   resource_group_name = azurerm_resource_group.site_rg.name
   location            = var.azure_region
-  subnet_id           = azurerm_subnet.internal_subnets[0].id
+  subnet_id           = azurerm_subnet.private_subnets[0].id
 
   private_service_connection {
     name                           = "${azurerm_storage_account.site_storage.name}-service-connection"
@@ -147,7 +139,7 @@ resource "azurerm_private_endpoint" "site_store_private_endpoint" {
     name = "${azurerm_storage_account.site_storage.name}-private-dns-zone-group"
 
     private_dns_zone_ids = [
-      azurerm_private_dns_zone.blob_private_dns_zone.id
+      azurerm_private_dns_zone.private_dns_zones[local.blob_private_dns_zone_index].id
     ]
   }
 

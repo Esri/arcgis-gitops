@@ -106,7 +106,6 @@ The module reads the following SSM parameters:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| admin_email | ArcGIS Notebook Server administrator e-mail address | `string` | n/a | yes |
 | admin_password | Primary ArcGIS Notebook Server administrator user password | `string` | n/a | yes |
 | admin_username | Primary ArcGIS Notebook Server administrator user name | `string` | `"siteadmin"` | no |
 | arcgis_notebook_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |

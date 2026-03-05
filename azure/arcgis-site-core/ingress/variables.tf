@@ -151,6 +151,11 @@ variable "routing_rules" {
       pool   = "enterprise-base"
       probe  = "/portal/portaladmin/healthCheck"
       paths  = ["/portal/*"]
+    }, {
+      name   = "notebooks"
+      pool   = "notebook-server"
+      probe  = "/notebooks/rest/info/healthcheck"
+      paths  = ["/notebooks/*"]
     }]
   }, {
     name     = "server"
@@ -174,6 +179,18 @@ variable "routing_rules" {
       name   = "arcgis-7443"
       pool   = "enterprise-base"
       probe  = "/arcgis/portaladmin/healthCheck"
+      paths  = ["/arcgis/*"]
+    }]
+  }, {
+    name     = "notebook-server"
+    frontend_port = 11443
+    backend_port  = 11443
+    protocol = "Https"
+    priority = 13
+    rules    = [{
+      name   = "arcgis-11443"
+      pool   = "notebook-server"
+      probe  = "/arcgis/rest/info/healthcheck"
       paths  = ["/arcgis/*"]
     }]
   }]

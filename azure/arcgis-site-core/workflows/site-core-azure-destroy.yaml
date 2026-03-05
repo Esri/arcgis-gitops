@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -54,4 +54,4 @@ jobs:
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
                          -backend-config="key=$SITE_ID/azure/infrastructure-core.tfstate"
       - name: Terraform Destroy
-        run: terraform destroy -var-file $CONFIG_FILE -auto-approve
+        run: terraform destroy -var-file $CONFIG_FILE -auto-approve -input=false

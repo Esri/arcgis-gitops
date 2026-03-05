@@ -57,11 +57,6 @@ The module reads the following Key Vault secrets:
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
 | vm-identity-client-id | VM identity client ID |
 
-The module creates the following Key Vault secrets:
-| Key Vault secret name | Description |
-|--------------------|-------------|
-| ${var.deployment_id}-deployment-url | Deployment's URL |
-
 > Note that the module also uses Key Vault secrets to pass JSON attributes
   for Chef Client runs to the VMs. These secrets are deleted at the end of the runs.
 
@@ -94,13 +89,14 @@ The module creates the following Key Vault secrets:
 
 | Name | Type |
 |------|------|
-| [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_storage_blob.keystore_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.portal_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.root_cert_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.server_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.portal_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.server_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_resources.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
@@ -124,13 +120,12 @@ The module creates the following Key Vault secrets:
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
-| keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
-| keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |
+| keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | n/a | yes |
+| keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | n/a | yes |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
 | os | Operating system id (windows2022\|windows2025) | `string` | `"windows2025"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |
 | portal_user_license_type_id | Portal for ArcGIS administrator user license type Id | `string` | `""` | no |
-| portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
 | run_as_password | Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | n/a | yes |
 | run_as_user | User name for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
@@ -138,7 +133,6 @@ The module creates the following Key Vault secrets:
 | security_question_index | Primary ArcGIS Enterprise administrator security question index | `number` | `1` | no |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
 | server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
-| server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 
 ## Outputs

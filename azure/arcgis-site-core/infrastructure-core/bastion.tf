@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -201,6 +201,14 @@ resource "azurerm_bastion_host" "bastion" {
   name                = "${var.site_id}-bastion"
   location            = azurerm_resource_group.site_rg.location
   resource_group_name = azurerm_resource_group.site_rg.name
+
+  sku = "Standard"
+
+  copy_paste_enabled     = true
+  file_copy_enabled      = true # Useful for small log files
+  ip_connect_enabled     = true
+  shareable_link_enabled = false
+  tunneling_enabled      = true # This is the "Native Client" backend feature
 
   ip_configuration {
     name                 = "configuration"

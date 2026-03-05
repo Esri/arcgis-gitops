@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -67,10 +67,10 @@ jobs:
         run: |
           az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
           az account set --subscription $ARM_SUBSCRIPTION_ID
-          terraform apply -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve
+          terraform apply -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve -input=false
       - name: Terraform Plan
         if: github.event.inputs.terraform_command == 'plan'
-        run: terraform plan -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD
+        run: terraform plan -var-file $CONFIG_FILE -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -input=false
       - name: Test AKS cluster access
         if: github.event.inputs.terraform_command != 'plan'
         run: |

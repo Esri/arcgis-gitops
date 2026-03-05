@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,9 +19,11 @@
 import argparse
 import az_utils
 
+from azure.mgmt.compute.models import RunCommandInputParameter
+
 EXECUTION_TIMEOUT = 600  # seconds
 
-script = """
+windows_script = """
 param (
     [string] $Directories,
     [string] $UninstallChefClient,
@@ -50,6 +52,57 @@ if ($Sysprep -eq "True") {
 Write-Output "Cleanup script completed successfully."
 """
 
+linux_script = """
+#!/bin/bash
+
+function is_debian() {
+  grep -E -i -c 'Debian|Ubuntu' /etc/issue 2>&1 &>/dev/null
+  [ $? -eq 0 ] && echo "true" || echo "false"
+}
+
+function is_redhat() {
+  if [ -f "/etc/system-release" ] || [ -f "/etc/redhat-release" ]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+function is_suse() {
+  if type zypper > /dev/null; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+function uninstall_cinc() {
+  if [ "$(is_debian)" == "true" ]; then
+    dpkg -P cinc
+  elif [ "$(is_redhat)" == "true" ]; then
+    rpm -e cinc
+  elif [ "$(is_suse)" == "true" ]; then
+    rpm -e cinc
+  else
+    echo "Unknown distribution"
+  fi
+}
+
+function main() { 
+  IFS=',' read -ra ADDR <<< "$Directories"
+  for i in "${ADDR[@]}"; do
+    rm -r $i
+  done
+  if [ "$UninstallChefClient" == "true" ]; then
+    uninstall_cinc
+    rm -r ~/.cinc
+    rm -r /var/chef
+  fi
+  exit 0
+}
+
+main "$@"
+"""
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -68,9 +121,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     parameters = [
-        {"name": "Directories", "value": args.directories},
-        {"name": "UninstallChefClient", "value": str(args.uninstall_chef_client)},
-        {"name": "Sysprep", "value": str(args.sysprep)}
+        RunCommandInputParameter(name="Directories", value=args.directories),
+        RunCommandInputParameter(name="UninstallChefClient", value=str(args.uninstall_chef_client)),
+        RunCommandInputParameter(name="Sysprep", value=str(args.sysprep))
     ]
 
     ret = az_utils.run_command(
@@ -78,7 +131,8 @@ if __name__ == "__main__":
         args.deployment_id,
         args.machine_roles,
         "clean_up",
-        script,
+        windows_script,
+        linux_script,
         parameters,
         args.vault_name,
         EXECUTION_TIMEOUT

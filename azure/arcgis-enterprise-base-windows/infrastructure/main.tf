@@ -215,11 +215,12 @@ resource "azurerm_windows_virtual_machine" "vms" {
     ArcGISRole         = local.vm_roles[count.index]
   }
 
-  # Ignore changes to admin username and password to prevent VM replacement when these values are updated
+  # Ignore changes to admin username, password, and zone to prevent VM replacement when these values are updated
   lifecycle {
     ignore_changes = [
       admin_username,
-      admin_password
+      admin_password,
+      zone
     ]
   }
 }

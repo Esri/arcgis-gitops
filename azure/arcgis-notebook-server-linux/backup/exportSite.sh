@@ -33,13 +33,16 @@ set -e
 
 # Deployment-specific variables
 ADMIN_URL="https://localhost:11443/arcgis/admin"
-STAGING_LOCATION="/tmp"
+STAGING_LOCATION="/opt/tmp"
 WORKSPACE_DIRECTORY="/mnt/fileserver/gisdata/notebookserver/directories/arcgisworkspace"
 
 if ! command -v jq &> /dev/null; then
   echo "Error: jq is not installed. Please install jq and try again."
   exit 1
 fi
+
+mkdir -p $STAGING_LOCATION
+chmod 777 $STAGING_LOCATION
 
 # Generate a token for the admin user and export the site
 TOKEN_JSON=$(curl -ksS --request POST --data "username=$admin_username&password=$admin_password&client=referer&referer=referer&f=json" $ADMIN_URL/generateToken)

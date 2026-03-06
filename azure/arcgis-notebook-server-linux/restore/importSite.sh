@@ -33,13 +33,16 @@
 set -e
 
 ADMIN_URL="https://localhost:11443/arcgis/admin"
-STAGING_LOCATION="/tmp"
+STAGING_LOCATION="/opt/tmp"
 WORKSPACE_DIRECTORY="/mnt/fileserver/gisdata/notebookserver/directories/arcgisworkspace"
 
 if ! command -v jq &> /dev/null; then
   echo "Error: jq is not installed. Please install jq and try again."
   exit 1
 fi
+
+mkdir -p $STAGING_LOCATION
+chmod 777 $STAGING_LOCATION
 
 az login --identity --client-id $vm_identity_client_id --output none
 
@@ -99,15 +102,33 @@ fi
 
 echo "Restoring the workspace directory from backup blob container..."
 
-az storage blob download-batch --account-name $storage_account_name --source $blob_container --pattern "arcgisworkspace/$BACKUP_FILE/*" --destination $WORKSPACE_DIRECTORY --overwrite true --auth-mode login --output none --no-progress
+WORKSPACE_RESTORE_STAGING="$STAGING_LOCATION/workspace-restore-$BACKUP_FILE"
+rm -rf "$WORKSPACE_RESTORE_STAGING"
+mkdir -p "$WORKSPACE_RESTORE_STAGING"
+chmod 777 "$WORKSPACE_RESTORE_STAGING"
+
+az storage blob download-batch --account-name $storage_account_name --source $blob_container --pattern "arcgisworkspace/$BACKUP_FILE/*" --destination "$WORKSPACE_RESTORE_STAGING" --overwrite true --auth-mode login --output none --no-progress
 if [ $? -eq 0 ]; then
-  echo "Successfully restored workspace directory."
+  RESTORED_WORKSPACE_CONTENT="$WORKSPACE_RESTORE_STAGING/arcgisworkspace/$BACKUP_FILE"
+  if [ -d "$RESTORED_WORKSPACE_CONTENT" ]; then
+    mkdir -p "$WORKSPACE_DIRECTORY"
+    cp -a "$RESTORED_WORKSPACE_CONTENT/." "$WORKSPACE_DIRECTORY/"
+    rm -rf "$WORKSPACE_RESTORE_STAGING"
+    ls -la "$WORKSPACE_DIRECTORY"
+    echo "Successfully restored workspace directory."
+  else
+    echo "Failed to restore workspace directory: expected path '$RESTORED_WORKSPACE_CONTENT' not found in downloaded backup."
+    rm -rf "$WORKSPACE_RESTORE_STAGING"
+    exit 1
+  fi
 else
   echo "Failed to restore workspace directory."
+  rm -rf "$WORKSPACE_RESTORE_STAGING"
   exit 1
 fi
 
 # Set the ownership of the restored directory to the arcgis user and group
 chown -R $run_as_user:$run_as_user $WORKSPACE_DIRECTORY
+chmod -R 777 $WORKSPACE_DIRECTORY
 
 echo "Site restoration completed successfully."

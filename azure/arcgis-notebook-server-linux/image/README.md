@@ -18,8 +18,8 @@ The template uses python scripts to run Azure Managed Run Command on the source 
 5. Install patches for the ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
 6. Delete temporary files and uninstall Cinc Client
 
-IDs of the images are saved in "vm-image-${var.site_id}-${var.deployment_id}-primary" 
-and "vm-image-${var.site_id}-${var.deployment_id}-node" Key Vault secrets.
+IDs of the images are saved in "vm-image-${var.deployment_id}-primary" 
+and "vm-image-${var.deployment_id}-node" Key Vault secrets.
 
 ## Requirements
 
@@ -49,8 +49,8 @@ The template writes the following Key Vault secrets:
 
 | Key Vault secret name | Description |
 |-----------------------|-------------|
-| vm-image-${var.site_id}-${var.deployment_id}-primary | Built image Id for primary node |
-| vm-image-${var.site_id}-${var.deployment_id}-node | Built image Id for additional nodes |
+| vm-image-${var.deployment_id}-primary | Built image Id for primary node |
+| vm-image-${var.deployment_id}-node | Built image Id for additional nodes |
 
 ## Inputs
 
@@ -66,10 +66,10 @@ The template writes the following Key Vault secrets:
 | gpu_ready | If true, the image is built with GPU support | `bool` | `false` | no |
 | license_level | ArcGIS Notebook Server license level | `string` | `"standard"` | no |
 | notebook_server_web_context | ArcGIS Notebook Server web context | `string` | `"notebooks"` | no |
-| os | Operating system Id (rhel9\|ubuntu22\|ubuntu24) | `string` | `"rhel9"` | no |
+| os | Operating system Id (rhel9\|ubuntu24) | `string` | `"rhel9"` | no |
 | os_disk_size | OS disk size in GB | `number` | `128` | no |
 | run_as_user | User account used to run ArcGIS Notebook Server | `string` | `"arcgis"` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
-| skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |
+| skip_create_image | If true, Packer will not create the image | `bool` | `false` | no |
 | vault_name | Name of the Azure Key Vault | `string` | n/a | yes |
 | vm_size | Size of the source VM used to build the image | `string` | `"Standard_D8s_v5"` | no |

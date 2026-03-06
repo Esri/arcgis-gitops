@@ -283,7 +283,8 @@ resource "azurerm_linux_virtual_machine" "primary" {
   lifecycle {
     ignore_changes = [
       admin_username,
-      admin_password
+      admin_password,
+      zone
     ]
   }
 }
@@ -345,7 +346,8 @@ resource "azurerm_linux_virtual_machine" "nodes" {
   lifecycle {
     ignore_changes = [
       admin_username,
-      admin_password
+      admin_password,
+      zone
     ]
   }
 }

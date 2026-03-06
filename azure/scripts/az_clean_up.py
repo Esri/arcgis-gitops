@@ -91,9 +91,9 @@ function uninstall_cinc() {
 function main() { 
   IFS=',' read -ra ADDR <<< "$Directories"
   for i in "${ADDR[@]}"; do
-    rm -r $i
+    rm -rf -- "$i"
   done
-  if [ "$UninstallChefClient" == "true" ]; then
+  if [ "$UninstallChefClient" == "True" ]; then
     uninstall_cinc
     rm -r ~/.cinc
     rm -r /var/chef

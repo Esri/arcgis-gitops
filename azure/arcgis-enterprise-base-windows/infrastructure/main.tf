@@ -520,6 +520,7 @@ resource "azurerm_servicebus_namespace" "deployment_servicebus" {
 }
 
 resource "azurerm_private_endpoint" "servicebus_pe" {
+  count               = var.is_ha ? 1 : 0
   name                = "servicebus-pe"
   location            = azurerm_servicebus_namespace.deployment_servicebus[0].location
   resource_group_name = azurerm_servicebus_namespace.deployment_servicebus[0].resource_group_name

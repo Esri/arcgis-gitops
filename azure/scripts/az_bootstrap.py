@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -21,10 +21,12 @@
 import argparse
 import az_utils
 
+from azure.mgmt.compute.models import RunCommandInputParameter
+
 # Timeouts in seconds
 EXECUTION_TIMEOUT = 1800
 
-script = """
+windows_script = """
 param(
     [string]$ChefClientUrl,
     [string]$ChefCookbooksUrl,
@@ -73,6 +75,106 @@ try {
 }
 """
 
+linux_script = """
+#!/bin/bash
+
+set -e
+
+function die() {
+  echo "$@" >&2
+  exit 1
+}
+
+function get_contents() {
+  url=$1
+  path=$2
+  az storage blob download --blob-url $url --file $path --auth-mode login --no-progress --output none
+  if [ $? -ne 0 ]; then
+    die "Error downloading from $url"
+  fi
+}
+
+function exec_cmd() {
+  echo "Invoking $@"
+  eval "$@"
+  if [ $? -ne 0 ]; then
+    die "Error occurred while executing command: $@"
+  fi
+}
+
+function update_cookbook() {
+  cookbooks_url=$ChefCookbooksUrl
+  echo "Downloading Chef Cookbooks for ArcGIS from $cookbooks_url"
+  get_contents $cookbooks_url "/tmp/cookbook.tar.gz"
+  exec_cmd "sudo mkdir -p /var/chef"          
+  echo "Extracting cookbooks from the archive..."          
+  exec_cmd "sudo tar -xf /tmp/cookbook.tar.gz -C /var/chef"
+  exec_cmd "sudo rm /tmp/cookbook.tar.gz"
+}
+
+function update_chefclient() {
+  chef_client_url=$ChefClientUrl
+  filename=$(basename $chef_client_url)
+  echo "Downloading Chef/Cinc client from $chef_client_url..."
+  get_contents $chef_client_url /tmp/$filename
+  echo "Installing Chef/Cinc client..."
+  extension="${filename##*.}"
+  if [ "$extension" == "deb" ]; then
+    exec_cmd "sudo dpkg -i /tmp/$filename"
+  elif [ "$extension" == "rpm" ]; then         
+    exec_cmd "sudo rpm -i --force /tmp/$filename"
+  else
+    die "Unsupported package type."
+  fi
+  rm /tmp/$filename
+}
+
+function is_debian() {
+  grep -E -i -c 'Debian|Ubuntu' /etc/issue 2>&1 &>/dev/null
+  [ $? -eq 0 ] && echo "true" || echo "false"
+}
+
+function is_redhat() {
+  if [ -f "/etc/system-release" ] || [ -f "/etc/redhat-release" ]; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+function is_suse() {
+  if type zypper > /dev/null; then
+    echo "true"
+  else
+    echo "false"
+  fi
+}
+
+function get_dist() {
+  if [ "$(is_debian)" == "true" ]; then
+    echo "debian"
+  elif [ "$(is_redhat)" == "true" ]; then
+    echo "redhat"
+  elif [ "$(is_suse)" == "true" ]; then
+    echo "suse"
+  else
+    die "Unknown distribution"
+  fi
+}
+
+function main() {
+  az login --identity --client-id $ManagedIdentityClientId --output none
+  if [ $? -ne 0 ]; then
+    die "Error logging in to Azure."
+  fi
+  update_chefclient
+  update_cookbook
+  echo "Bootstrapping completed."
+  exit 0
+}
+
+main "$@"
+"""
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -90,9 +192,9 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     parameters = [
-        {"name": "ChefClientUrl", "value": args.chef_client_url},
-        {"name": "ChefCookbooksUrl", "value": args.chef_cookbooks_url},
-        {"name": "ManagedIdentityClientId", "value": "secret:vm-identity-client-id"},
+      RunCommandInputParameter(name="ChefClientUrl", value=args.chef_client_url),
+      RunCommandInputParameter(name="ChefCookbooksUrl", value=args.chef_cookbooks_url),
+      RunCommandInputParameter(name="ManagedIdentityClientId", value="secret:vm-identity-client-id")
     ]
 
     ret = az_utils.run_command(
@@ -100,7 +202,8 @@ if __name__ == "__main__":
         args.deployment_id,
         args.machine_roles,
         "bootstrap",
-        script,
+        windows_script,
+        linux_script,
         parameters,
         args.vault_name,
         EXECUTION_TIMEOUT,

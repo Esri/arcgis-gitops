@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,9 +22,10 @@ import os
 import az_utils
 from azure.identity import DefaultAzureCredential
 from azure.keyvault.secrets import SecretClient
+from azure.mgmt.compute.models import RunCommandInputParameter
 
 
-script = """
+windows_script = """
 param(
     [string]$VaultName,
     [string]$JsonAttributesSecret,
@@ -46,6 +47,24 @@ if (! $ret) { exit 1 }
 Remove-Item attributes.json
 """
 
+linux_script = """
+#!/bin/bash
+export HOME=/root
+cd /var/chef
+az login --identity --client-id $ManagedIdentityClientId --output none
+az keyvault secret show --name $JsonAttributesSecret --vault-name $VaultName --query "value" --output tsv > attributes.json
+ret=$?
+if [ $ret -ne 0 ]; then
+  echo "Failed to get attributes from Key Vault secret. Exit code: $ret"
+  exit $ret
+fi
+set -o pipefail
+sudo cinc-client -z -j attributes.json -l $LogLevel | tee /var/log/chef-run.log
+ret=$?
+rm -r /var/chef/nodes
+rm attributes.json
+exit $ret
+"""
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
@@ -76,10 +95,10 @@ if __name__ == "__main__":
     vault_client.set_secret(args.json_attributes_secret, jsonAttributes)
 
     parameters = [
-        {"name": "VaultName", "value": args.vault_name},
-        {"name": "JsonAttributesSecret", "value": args.json_attributes_secret},
-        {"name": "ManagedIdentityClientId", "value": "secret:vm-identity-client-id"},
-        {"name": "LogLevel", "value": args.log_level},
+        RunCommandInputParameter(name="VaultName", value=args.vault_name),
+        RunCommandInputParameter(name="JsonAttributesSecret", value=args.json_attributes_secret),
+        RunCommandInputParameter(name="ManagedIdentityClientId", value="secret:vm-identity-client-id"),
+        RunCommandInputParameter(name="LogLevel", value=args.log_level)
     ]
 
     ret = az_utils.run_command(
@@ -87,7 +106,8 @@ if __name__ == "__main__":
         args.deployment_id,
         args.machine_roles,
         "run_chef",
-        script,
+        windows_script,
+        linux_script,
         parameters,
         args.vault_name,
         int(args.execution_timeout)

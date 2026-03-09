@@ -8,7 +8,7 @@
  * ## Features
  *
  * - Launches one or two VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
- * - VM images are retrieved from Key Vault secrets named "vm-image-${var.site_id}-${var.deployment_id}-${vm_role}".
+ * - VM images are retrieved from Key Vault secrets named "vm-image-${var.deployment_id}-${vm_role}".
  *   These images must be built using the Packer template for ArcGIS Enterprise on Windows.
  * - Creates "A" records in the VNet's private hosted DNS zone, enabling permanent DNS names for the VMs.
  *   VMs can be addressed as primary.<deployment_id>.<site_id>.internal and standby.<deployment_id>.<site_id>.internal.
@@ -36,17 +36,20 @@
  * | subnets                                          | VNet subnet IDs                                  |
  * | vm-identity-id                                   | User-assigned VM identity object ID              |
  * | vm-identity-principal-id                         | User-assigned VM identity principal ID           |
- * | vm-image-${var.site_id}-${var.deployment_id}-primary | Primary VM image ID                         |
- * | vm-image-${var.site_id}-${var.deployment_id}-standby | Standby VM image ID                         |
+ * | vm-image-${var.deployment_id}-primary            | Primary VM image ID                         |
+ * | vm-image-${var.deployment_id}-standby            | Standby VM image ID                         |
  * | vnet-id                                          | VNet ID                                          |
  *
  * ### Secrets Written by the Module
  * | Secret Name                        | Description                        |
  * |------------------------------------|------------------------------------|
  * | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
+ * | ${var.deployment_id}-deployment-url | Portal for ArcGIS URL of the deployment |
+ * | ${var.deployment_id}-portal-web-context | Portal for ArcGIS web context |
+ * | ${var.deployment_id}-server-web-context | ArcGIS Server web context |
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
  */
- 
+
 # Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
@@ -97,7 +100,7 @@ data "azurerm_key_vault_secret" "vm_identity_principal_id" {
 
 data "azurerm_key_vault_secret" "vm_image_ids" {
   count        = length(local.vm_roles)
-  name         = "vm-image-${var.site_id}-${var.deployment_id}-${local.vm_roles[count.index]}"
+  name         = "vm-image-${var.deployment_id}-${local.vm_roles[count.index]}"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -109,6 +112,23 @@ data "azurerm_key_vault_secret" "backend_address_pools" {
 data "azurerm_key_vault_secret" "deployment_fqdn" {
   name         = "${var.ingress_deployment_id}-deployment-fqdn"
   key_vault_id = module.site_core_info.vault_id
+}
+
+data "azurerm_private_dns_zone" "privatelink_blob" {
+  name                = "privatelink.blob.core.windows.net"
+  resource_group_name = "${var.site_id}-infrastructure-core"
+}
+
+data "azurerm_private_dns_zone" "cosmos_private_dns_zone" {
+  count               = var.is_ha ? 1 : 0
+  name                = "privatelink.documents.azure.com"
+  resource_group_name = "${var.site_id}-infrastructure-core"
+}
+
+data "azurerm_private_dns_zone" "servicebus_private_dns_zone" {
+  count               = var.is_ha ? 1 : 0
+  name                = "privatelink.servicebus.windows.net"
+  resource_group_name = "${var.site_id}-infrastructure-core"
 }
 
 locals {
@@ -149,15 +169,26 @@ resource "azurerm_network_interface" "nics" {
   }
 }
 
-resource "azurerm_windows_virtual_machine" "vms" {
-  count               = length(local.vm_roles)
-  name                = local.vm_roles[count.index]
-  resource_group_name = azurerm_resource_group.deployment_rg.name
+resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
+  name                = var.deployment_id
   location            = azurerm_resource_group.deployment_rg.location
-  zone                = local.zones[count.index]
-  size                = var.vm_size
-  admin_username      = var.vm_admin_username
-  admin_password      = var.vm_admin_password
+  resource_group_name = azurerm_resource_group.deployment_rg.name
+
+  platform_fault_domain_count = 1
+  zones                       = local.zones
+}
+
+resource "azurerm_windows_virtual_machine" "vms" {
+  count                        = length(local.vm_roles)
+  name                         = local.vm_roles[count.index]
+  resource_group_name          = azurerm_resource_group.deployment_rg.name
+  location                     = azurerm_resource_group.deployment_rg.location
+  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+
+  size           = var.vm_size
+  
+  admin_username = var.vm_admin_username
+  admin_password = var.vm_admin_password
 
   source_image_id = data.azurerm_key_vault_secret.vm_image_ids[count.index].value
 
@@ -183,12 +214,54 @@ resource "azurerm_windows_virtual_machine" "vms" {
     ArcGISDeploymentId = var.deployment_id
     ArcGISRole         = local.vm_roles[count.index]
   }
+
+  # Ignore changes to admin username, password, and zone to prevent VM replacement when these values are updated
+  lifecycle {
+    ignore_changes = [
+      admin_username,
+      admin_password,
+      zone
+    ]
+  }
 }
 
 # Copy the ingress deployment FQDN from the ingress deployment Key Vault secret
 resource "azurerm_key_vault_secret" "deployment_fqdn" {
   name         = "${var.deployment_id}-deployment-fqdn"
-  value        = data.azurerm_key_vault_secret.deployment_fqdn.value
+  value        = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  key_vault_id = module.site_core_info.vault_id
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+}
+
+resource "azurerm_key_vault_secret" "deployment_url" {
+  name         = "${var.deployment_id}-deployment-url"
+  value        = "https://${nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)}/${var.portal_web_context}"
+  key_vault_id = module.site_core_info.vault_id
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+}
+
+resource "azurerm_key_vault_secret" "portal_web_context" {
+  name         = "${var.deployment_id}-portal-web-context"
+  value        = var.portal_web_context
+  key_vault_id = module.site_core_info.vault_id
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+}
+
+resource "azurerm_key_vault_secret" "server_web_context" {
+  name         = "${var.deployment_id}-server-web-context"
+  value        = var.server_web_context
   key_vault_id = module.site_core_info.vault_id
 
   tags = {
@@ -234,17 +307,43 @@ resource "azurerm_storage_account" "deployment_storage" {
   resource_group_name      = azurerm_resource_group.deployment_rg.name
   location                 = azurerm_resource_group.deployment_rg.location
   account_tier             = var.storage_account_tier
+  account_kind             = var.storage_account_tier == "Premium" ? "BlockBlobStorage" : "StorageV2"
   account_replication_type = var.storage_account_replication_type
   # Public network access is enabled for the storage account because it is required
   # just to create the blob containers.
-  public_network_access_enabled     = true
+  # public_network_access_enabled     = true
   shared_access_key_enabled         = false
   allow_nested_items_to_be_public   = false
   infrastructure_encryption_enabled = true
 
+  network_rules {
+    default_action             = "Deny"
+    virtual_network_subnet_ids = [local.subnet_id]
+  }
+
   tags = {
     ArcGISSiteId       = var.site_id
     ArcGISDeploymentId = var.deployment_id
+  }
+}
+
+# Create a private endpoint for the storage account to enable secure, private connectivity from the VMs to the storage account.
+resource "azurerm_private_endpoint" "blob_storage_pe" {
+  name                = "blob-storage-pe"
+  location            = azurerm_resource_group.deployment_rg.location
+  resource_group_name = azurerm_resource_group.deployment_rg.name
+  subnet_id           = local.subnet_id
+
+  private_service_connection {
+    name                           = "storage-connection"
+    private_connection_resource_id = azurerm_storage_account.deployment_storage.id
+    subresource_names              = ["blob"]
+    is_manual_connection           = false
+  }
+
+  private_dns_zone_group {
+    name                 = "storage-dns-group"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.privatelink_blob.id]
   }
 }
 
@@ -332,6 +431,26 @@ resource "azurerm_cosmosdb_account" "deployment_cosmosdb" {
   }
 }
 
+resource "azurerm_private_endpoint" "cosmos_pe" {
+  count               = var.is_ha ? 1 : 0
+  name                = "cosmos-pe"
+  location            = azurerm_cosmosdb_account.deployment_cosmosdb[0].location
+  resource_group_name = azurerm_cosmosdb_account.deployment_cosmosdb[0].resource_group_name
+  subnet_id           = local.subnet_id
+
+  private_service_connection {
+    name                           = "psc-cosmos-sql"
+    private_connection_resource_id = azurerm_cosmosdb_account.deployment_cosmosdb[0].id
+    is_manual_connection           = false
+    subresource_names              = ["Sql"] # Case sensitive!
+  }
+
+  private_dns_zone_group {
+    name                 = "cosmos-dns-group"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.cosmos_private_dns_zone[0].id]
+  }
+}
+
 resource "azurerm_cosmosdb_sql_database" "config_store" {
   count               = var.is_ha ? 1 : 0
   name                = "config-store"
@@ -386,17 +505,37 @@ resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_vm_identity" {
 
 # Service Bus namespace for ArcGIS Server configuration store
 resource "azurerm_servicebus_namespace" "deployment_servicebus" {
-  count               = var.is_ha ? 1 : 0
-  name                = "gis${random_id.unique_name_suffix.hex}"
-  location            = azurerm_resource_group.deployment_rg.location
-  resource_group_name = azurerm_resource_group.deployment_rg.name
-  sku                 = "Premium"
-  capacity            = 1
+  count                        = var.is_ha ? 1 : 0
+  name                         = "gis${random_id.unique_name_suffix.hex}"
+  location                     = azurerm_resource_group.deployment_rg.location
+  resource_group_name          = azurerm_resource_group.deployment_rg.name
+  sku                          = "Premium"
+  capacity                     = 1
   premium_messaging_partitions = 1
 
   tags = {
     ArcGISSiteId       = var.site_id
     ArcGISDeploymentId = var.deployment_id
+  }
+}
+
+resource "azurerm_private_endpoint" "servicebus_pe" {
+  count               = var.is_ha ? 1 : 0
+  name                = "servicebus-pe"
+  location            = azurerm_servicebus_namespace.deployment_servicebus[0].location
+  resource_group_name = azurerm_servicebus_namespace.deployment_servicebus[0].resource_group_name
+  subnet_id           = local.subnet_id
+
+  private_service_connection {
+    name                           = "psc-servicebus"
+    private_connection_resource_id = azurerm_servicebus_namespace.deployment_servicebus[0].id
+    is_manual_connection           = false
+    subresource_names              = ["namespace"] # Required for Service Bus
+  }
+
+  private_dns_zone_group {
+    name                 = "sb-dns-group"
+    private_dns_zone_ids = [data.azurerm_private_dns_zone.servicebus_private_dns_zone[0].id]
   }
 }
 

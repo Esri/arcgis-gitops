@@ -502,6 +502,145 @@ resource "azurerm_portal_dashboard" "deployment" {
               y       = 4
             }
           }
+          "4" = { // Storage account metrics
+            position = {
+              x       = 0
+              y       = 8
+              colSpan = 6
+              rowSpan = 4
+            },
+            metadata = {
+              inputs = [
+                {
+                  name       = "options"
+                  isOptional = true
+                },
+                {
+                  name       = "sharedTimeRange"
+                  isOptional = true
+                }
+              ],
+              type = "Extension/HubsExtension/PartType/MonitorChartPart"
+              settings = {
+                content = {
+                  options = {
+                    chart = {
+                      metrics = [
+                        {
+                          resourceMetadata = {
+                            id = azurerm_storage_account.deployment_storage.id
+                          }
+                          name = "Ingress"
+                          aggregationType = 1
+                          namespace = "microsoft.storage/storageaccounts"
+                          metricVisualization = {
+                            displayName = "Ingress"
+                          }
+                        },
+                        {
+                          resourceMetadata = {
+                            id = azurerm_storage_account.deployment_storage.id
+                          }
+                          name = "Egress"
+                          aggregationType = 1
+                          namespace = "microsoft.storage/storageaccounts"
+                          metricVisualization = {
+                            displayName = "Egress"
+                          }
+                        }
+                      ]
+                      title = "Deployment Storage Account Ingress and Egress"
+                      titleKind = 1
+                      visualization = {
+                        chartType = 2
+                        legendVisualization = {
+                          isVisible = true
+                          position = 2
+                          hideHoverCard = false
+                          hideLabelNames = true
+                        }
+                        axisVisualization = {
+                          x = {
+                            isVisible = true
+                            axisType = 2
+                          }
+                          y = {
+                            isVisible = true
+                            axisType = 1
+                          }
+                        }
+                        disablePinning = true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "5" = { // Storage account Used Capacity metric
+            position = {
+              x = 6
+              y = 8
+              colSpan = 6
+              rowSpan = 4
+            },
+            metadata = {
+              inputs = [
+                {
+                  name       = "options"
+                  isOptional = true
+                },
+                {
+                  name       = "sharedTimeRange"
+                  isOptional = true
+                }
+              ]
+              type = "Extension/HubsExtension/PartType/MonitorChartPart",
+              settings = {
+                content = {
+                  options = {
+                    chart = {
+                      metrics = [
+                        {
+                          resourceMetadata = {
+                            id = azurerm_storage_account.deployment_storage.id
+                          }
+                          name = "UsedCapacity",
+                          aggregationType = 4,
+                          namespace = "microsoft.storage/storageaccounts",
+                          metricVisualization = {
+                            displayName = "Used capacity"
+                          }
+                        }
+                      ],
+                      title = "Deployment Storage Account Used Capacity",
+                      titleKind = 1,
+                      visualization = {
+                        chartType = 2,
+                        legendVisualization = {
+                          isVisible = true,
+                          position = 2,
+                          hideHoverCard = false,
+                          hideLabelNames = true
+                        },
+                        axisVisualization = {
+                          x = {
+                            isVisible = true,
+                            axisType = 2
+                          },
+                          y = {
+                            isVisible = true,
+                            axisType = 1
+                          }
+                        },
+                        disablePinning = true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

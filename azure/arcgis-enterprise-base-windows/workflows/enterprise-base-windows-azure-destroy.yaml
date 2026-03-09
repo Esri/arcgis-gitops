@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -66,7 +66,7 @@ jobs:
           terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
                          -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/application.tfstate"
-          terraform destroy -var-file $APPLICATION_CONFIG_FILE -auto-approve
+          terraform destroy -var-file $APPLICATION_CONFIG_FILE -auto-approve -input=false
       - name: Destroy Infrastructure
         working-directory: azure/arcgis-enterprise-base-windows/infrastructure
         run: |
@@ -75,7 +75,7 @@ jobs:
           terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
                          -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/infrastructure.tfstate"
-          terraform destroy -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve
+          terraform destroy -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve -input=false
       - name: Delete VM Images
         id: delete-images
         run: |

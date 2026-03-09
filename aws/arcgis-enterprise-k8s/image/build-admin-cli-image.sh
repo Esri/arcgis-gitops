@@ -19,7 +19,7 @@
 #
 # On the machine where the script is executed:
 #
-# * AWS CLI and Docker must be installed
+# * AWS CLI must be installed
 # * AWS credentials must be configured for AWS CLI
 # * AWS region must be specified by AWS_DEFAULT_REGION environment variable
 

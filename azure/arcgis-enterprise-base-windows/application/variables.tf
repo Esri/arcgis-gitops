@@ -123,13 +123,16 @@ variable "keystore_file_password" {
   description = "Password for keystore file with SSL certificate used by HTTPS listeners"
   type        = string
   sensitive   = true
-  default     = ""
 }
 
 variable "keystore_file_path" {
   description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
   type        = string
-  default     = null
+
+  validation {
+    condition     = fileexists(var.keystore_file_path)
+    error_message = "The keystore_file_path value must be a valid file path."
+  }
 }
 
 variable "log_level" {
@@ -157,6 +160,11 @@ variable "os" {
 variable "portal_authorization_file_path" {
   description = "Local path of Portal for ArcGIS authorization file"
   type        = string
+
+  validation {
+    condition = fileexists(var.portal_authorization_file_path)
+    error_message = "The portal_authorization_file_path value must be a valid file path."
+  }
 }
 
 variable "portal_user_license_type_id" {
@@ -165,16 +173,15 @@ variable "portal_user_license_type_id" {
   default     = ""
 }
 
-variable "portal_web_context" {
-  description = "Portal for ArcGIS web context"
-  type        = string
-  default     = "portal"  
-}
-
 variable "root_cert_file_path" {
   description = "Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.root_cert_file_path == null || try(fileexists(var.root_cert_file_path), false)
+    error_message = "The root_cert_file_path value must be a valid file path."
+  }
 }
 
 variable "run_as_password" {
@@ -209,6 +216,11 @@ variable "security_question_index" {
 variable "server_authorization_file_path" {
   description = "Local path of ArcGIS Server authorization file"
   type        = string
+  
+  validation {
+    condition = fileexists(var.server_authorization_file_path)
+    error_message = "The server_authorization_file_path value must be a valid file path."
+  }
 }
 
 variable "server_authorization_options" {
@@ -216,12 +228,6 @@ variable "server_authorization_options" {
   type        = string
   sensitive   = true
   default     = ""
-}
-
-variable "server_web_context" {
-  description = "ArcGIS Server web context"
-  type        = string
-  default     = "server"  
 }
 
 variable "site_id" {

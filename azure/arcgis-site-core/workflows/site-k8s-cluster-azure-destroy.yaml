@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -56,4 +56,4 @@ jobs:
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
                          -backend-config="key=$SITE_ID/azure/k8s-cluster.tfstate"
       - name: Terraform Destroy
-        run: terraform destroy -var-file $CONFIG_FILE  -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve
+        run: terraform destroy -var-file $CONFIG_FILE  -var=container_registry_user=$CONTAINER_REGISTRY_USER -var=container_registry_password=$CONTAINER_REGISTRY_PASSWORD -auto-approve -input=false

@@ -16,7 +16,7 @@
 * 5. Install patches for the base ArcGIS Enterprise applications
 * 6. Delete unused files, uninstall Cinc Client, run sysprep
 *
-* IDs of the images are saved in "vm-image-${var.site_id}-${var.deployment_id}-primary" and "vm-image-${var.site_id}-${var.deployment_id}-standby" Key Vault secrets.
+* IDs of the images are saved in "vm-image-${var.deployment_id}-primary" and "vm-image-${var.deployment_id}-standby" Key Vault secrets.
 *
 * ## Requirements
 *
@@ -40,9 +40,16 @@
 * | vm-identity-client-id | Managed identity client Id |
 * | vm-identity-id | Managed identity resource Id |
 * | vm-image-${var.os} | Source VM Image Id |
+*
+* The template saves the built image Id in the following Key Vault secrets:
+*
+* | Key Vault secret name | Description |
+* |-----------------------|-------------|
+* | vm-image-${var.deployment_id}-primary | Built image Id for primary node |
+* | vm-image-${var.deployment_id}-standby | Built image Id for standby node |
 */
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -314,10 +321,10 @@ build {
 
   # Retrieve the image Id from main-packer-manifest.json manifest file and save it in a key vault secret.
   post-processor "shell-local" {
-    command = "python -m publish_artifact -v ${var.vault_name} -s vm-image-${var.site_id}-${var.deployment_id}-primary -f main-packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -v ${var.vault_name} -s vm-image-${var.deployment_id}-primary -f main-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 
   post-processor "shell-local" {
-    command = "python -m publish_artifact -v ${var.vault_name} -s vm-image-${var.site_id}-${var.deployment_id}-standby -f main-packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -v ${var.vault_name} -s vm-image-${var.deployment_id}-standby -f main-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }

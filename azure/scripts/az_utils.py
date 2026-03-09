@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,10 +19,13 @@ from datetime import datetime, timezone
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import VirtualMachineRunCommand
+from azure.mgmt.compute.models import VirtualMachineRunCommandScriptSource
+from azure.mgmt.compute.models import RunCommandInputParameter
 from azure.keyvault.secrets import SecretClient
 from azure.storage.blob import BlobClient
 from azure.core.exceptions import ResourceExistsError
 
+SLEEP_TIME = 10
 
 # Runs a PowerShell script on VMs of the specified site Id, deployment Id, and machine roles
 # using Azure Managed Run Command. Waits for the script to complete on all targeted VMs.
@@ -32,8 +35,9 @@ def run_command(
     deployment_id: str, # ArcGIS Enterprise deployment Id
     machine_roles: str, # comma-separated list of machine roles to target
     command_name: str,  # Command name
-    script: str,        # PowerShell script to execute
-    parameters: list,   # Script parameters
+    windows_script: str,        # PowerShell script to execute
+    linux_script: str,        # Shell script to execute
+    parameters: list[RunCommandInputParameter], # Script parameters
     vault_name: str,    # Azure Key Vault name
     timeout: int        # Execution timeout in seconds
 ): 
@@ -53,12 +57,16 @@ def run_command(
         print("Command name parameter is required.")
         return False
 
-    if not script:
-        print("Script parameter is required.")
+    if not windows_script and not linux_script:
+        print("windows_script or linux_script parameter is required.")
         return False
 
     if not vault_name:
         print("Vault name parameter is required.")
+        return False
+    
+    if "ARM_SUBSCRIPTION_ID" not in os.environ:
+        print("ARM_SUBSCRIPTION_ID environment variable is required.")
         return False
 
     credential = DefaultAzureCredential()
@@ -71,24 +79,28 @@ def run_command(
     storage_account_name = vault_client.get_secret("storage-account-name").value
 
     managed_identity = {
-        "object_id": vault_client.get_secret("vm-identity-principal-id").value
+        "client_id": vault_client.get_secret("vm-identity-client-id").value
     }
 
-    # If a parameter name starts with 'secret:', replace it with the corresponding secret value
-    for param in parameters:
-        if isinstance(param.get("value"), str) and param.get("value").startswith("secret:"):
-            param["value"] = vault_client.get_secret(param["value"][7:]).value
+    # If a parameter value starts with 'secret:', replace it with the corresponding secret value
+    if parameters:
+        for param in parameters:
+            if isinstance(param.value, str) and param.value.startswith("secret:"):
+                param.value = vault_client.get_secret(param.value[7:]).value
 
     # Find all VMs with the specified tags
     vms = compute_client.virtual_machines.list_all()
 
     filtered_vms = []
+
+    roles = [role.strip() for role in machine_roles.split(",")]
+    
     for vm in vms:
         if (
             vm.tags
             and vm.tags.get("ArcGISSiteId") == site_id
             and vm.tags.get("ArcGISDeploymentId") == deployment_id
-            and vm.tags.get("ArcGISRole") in machine_roles.split(",")
+            and vm.tags.get("ArcGISRole") in roles
         ):
             print(f"Found '{deployment_id}' deployment's '{vm.name}' VM in '{vm.provisioning_state}' state.")
             filtered_vms.append(vm)
@@ -100,19 +112,26 @@ def run_command(
     # Wait up to 10 minutes for VMs to be in 'Succeeded' provisioning state
     for vm in filtered_vms:
         resource_group = vm.id.split("/")[4]
+        provisioned = False
+        
         for _ in range(60):
             vm_instance = compute_client.virtual_machines.get(
                 resource_group_name=resource_group,
                 vm_name=vm.name,
                 expand="instanceView"
             )
-            
+
             if vm_instance.provisioning_state == "Succeeded":
+                provisioned = True
                 # print(f"VM '{vm.name}' is in 'Succeeded' provisioning state.")
                 break
             
             print(f"Waiting for VM '{vm.name}' to be in 'Succeeded' provisioning state...")
-            time.sleep(10)
+            time.sleep(SLEEP_TIME)
+        
+        if not provisioned:
+            print(f"VM '{vm.name}' is not in 'Succeeded' provisioning state. Current state: '{vm_instance.provisioning_state}'.")
+            return False
     
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
     # Start timer
@@ -121,13 +140,19 @@ def run_command(
     for vm in filtered_vms:
         resource_group = vm.id.split("/")[4]
 
+        vm_instance = compute_client.virtual_machines.get(
+            resource_group_name=resource_group,
+            vm_name=vm.name,
+            expand="instanceView"
+        )
+
+        os_type = vm_instance.storage_profile.os_disk.os_type
+
         command_log = f"https://{storage_account_name}.blob.core.windows.net/logs/{site_id}/{deployment_id}/{vm.name}/{command_name}/{timestamp}"
         
         run_command = VirtualMachineRunCommand(
             location = vm.location,
-            source = {
-                "script": script
-            },
+            source = VirtualMachineRunCommandScriptSource(script=windows_script if os_type == "Windows" else linux_script),
             parameters = parameters,
             error_blob_uri = f"{command_log}/error",
             output_blob_uri = f"{command_log}/output",
@@ -193,18 +218,22 @@ def run_command(
 
                     print(f"Command '{command_name}' on '{vm.name}' VM completed with status '{instance_view.execution_state}' ({instance_view.exit_code}) in {elapsed_time:.1f} seconds.")
 
-                    blob = BlobClient.from_blob_url(status.output_blob_uri, credential=credential)
-                    output = blob.download_blob().readall().decode("utf-8")
-                    if output:
-                        print(f"Command '{command_name}' output from '{vm.name}' VM:")
-                        print(output)
+                    if status.output_blob_uri:
+                        blob = BlobClient.from_blob_url(status.output_blob_uri, credential=credential)
+                        if blob.exists():
+                            output = blob.download_blob().readall().decode("utf-8")
+                            if output:
+                                print(f"Command '{command_name}' stdout from '{vm.name}' VM:")
+                                print(output)
 
-                    blob = BlobClient.from_blob_url(status.error_blob_uri, credential=credential)
-                    errors = blob.download_blob().readall().decode("utf-8")
-                    if errors:
-                        # write errors to stderr
-                        print(f"Command '{command_name}' errors from '{vm.name}' VM:", file=sys.stderr)
-                        print(errors, file=sys.stderr)
+                    if status.error_blob_uri:
+                        blob = BlobClient.from_blob_url(status.error_blob_uri, credential=credential)
+                        if blob.exists():
+                            errors = blob.download_blob().readall().decode("utf-8")
+                            if errors:
+                                # write errors to stderr
+                                print(f"Command '{command_name}' stderr from '{vm.name}' VM:", file=sys.stderr)
+                                print(errors, file=sys.stderr)
 
                     break
 

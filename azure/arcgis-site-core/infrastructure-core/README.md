@@ -8,8 +8,10 @@ multiple deployments of an ArcGIS Enterprise site.
 
 The module creates a virtual network with app gateway, private and internal subnets.
 The app gateway and private subnets are routed to a NAT Gateway to allow outbound access to the Internet.
-Internal subnets allow access only to specific service endpoints.
+The internal subnets allow access only to specific service endpoints.
 For private and internal subnets, the module creates network security groups with default rules.
+The module also creates private DNS zones and links them to the virtual network.
+The private DNS zones are used for name resolution of VMs and private endpoints of the site.
 
 Optionally, the module creates and configures an Azure Bastion host in a dedicated
 AzureBastionSubnet subnet to allow secure RDP/SSH connections to virtual machines of the site.
@@ -22,7 +24,7 @@ subscribes the site administrator email to the action group's notifications.
 
 Attributes of the resources are stored as secrets in the Azure Key Vault created by the module.
 
-| Key vault secret name | Description |
+| Key Vault secret name | Description |
 | --- | --- |
 | vnet-id | ArcGIS Enterprise site VNet ID |
 | app-gateway-subnet-N | ID of Application Gateway subnet N |
@@ -35,8 +37,8 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 
  On the machine where Terraform is executed:
 
-* Azure subscription Id must be specified by ARM_SUBSCRIPTION_ID environment variable.
-* Azure service principal credentials must be configured by ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
+* Azure subscription ID must be specified by ARM_SUBSCRIPTION_ID environment variable.
+* Azure service principal credentials must be configured with ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
 
 ## Providers
 
@@ -75,10 +77,10 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | [azurerm_network_security_rule.allow_http_outbound](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule) | resource |
 | [azurerm_network_security_rule.allow_https_inbound](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule) | resource |
 | [azurerm_network_security_rule.allow_ssh_rdp_outbound](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_security_rule) | resource |
-| [azurerm_private_dns_zone.blob_private_dns_zone](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) | resource |
 | [azurerm_private_dns_zone.internal](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) | resource |
-| [azurerm_private_dns_zone_virtual_network_link.blob_private_dns_zone_virtual_network_link](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) | resource |
+| [azurerm_private_dns_zone.private_dns_zones](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone) | resource |
 | [azurerm_private_dns_zone_virtual_network_link.internal](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) | resource |
+| [azurerm_private_dns_zone_virtual_network_link.private_dns_zones](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_zone_virtual_network_link) | resource |
 | [azurerm_private_endpoint.site_store_private_endpoint](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_public_ip.bastion](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
 | [azurerm_public_ip.nat](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
@@ -106,7 +108,6 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | [azurerm_user_assigned_identity.vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/user_assigned_identity) | resource |
 | [azurerm_virtual_network.site_vnet](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/virtual_network) | resource |
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
-| [random_string.name](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/string) | resource |
 | [time_sleep.key_vault_ready](https://registry.terraform.io/providers/hashicorp/time/latest/docs/resources/sleep) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_platform_image.images](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/platform_image) | data source |
@@ -123,8 +124,9 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | bastion_subnet_cidr_block | CIDR block of bastion subnet | `string` | `"10.1.0.0/24"` | no |
 | images | Azure VM images | `map(any)` | ```{ "rhel9": { "offer": "RHEL", "publisher": "RedHat", "sku": "9_5", "version": null }, "ubuntu24": { "offer": "ubuntu-24_04-lts", "publisher": "Canonical", "sku": "server", "version": null }, "windows2022": { "offer": "WindowsServer", "publisher": "MicrosoftWindowsServer", "sku": "2022-datacenter-g2", "version": null }, "windows2025": { "offer": "WindowsServer", "publisher": "MicrosoftWindowsServer", "sku": "2025-datacenter-azure-edition", "version": null } }``` | no |
 | internal_subnets_cidr_blocks | CIDR blocks of internal subnets | `list(string)` | ```[ "10.2.0.0/16" ]``` | no |
+| private_dns_zones | List of private DNS zones to link to the site virtual network for name resolution of private endpoints | `list(string)` | ```[ "privatelink.blob.core.windows.net", "privatelink.documents.azure.com", "privatelink.file.core.windows.net", "privatelink.queue.core.windows.net", "privatelink.servicebus.windows.net", "privatelink.table.core.windows.net" ]``` | no |
 | private_subnets_cidr_blocks | CIDR blocks of private subnets | `list(string)` | ```[ "10.3.0.0/16" ]``` | no |
-| service_endpoints | Service endpoints of internal subnets | `list(string)` | `[]` | no |
+| service_endpoints | Service endpoints of internal subnets | `list(string)` | ```[ "Microsoft.Storage" ]``` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | vnet_cidr_block | CIDR block for the site's virtual network | `string` | `"10.0.0.0/8"` | no |
 

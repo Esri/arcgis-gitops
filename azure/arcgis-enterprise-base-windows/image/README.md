@@ -15,7 +15,7 @@ Then the template uses python scripts to run Azure Managed Run Command on the so
 5. Install patches for the base ArcGIS Enterprise applications
 6. Delete unused files, uninstall Cinc Client, run sysprep
 
-IDs of the images are saved in "vm-image-${var.site_id}-${var.deployment_id}-primary" and "vm-image-${var.site_id}-${var.deployment_id}-standby" Key Vault secrets.
+IDs of the images are saved in "vm-image-${var.deployment_id}-primary" and "vm-image-${var.deployment_id}-standby" Key Vault secrets.
 
 ## Requirements
 
@@ -39,6 +39,13 @@ The template reads the following Key Vault secrets:
 | vm-identity-client-id | Managed identity client Id |
 | vm-image-${var.os} | Source VM Image Id |
 | storage-account-name | Private repository storage account name |
+
+The template saves the built image Id in the following Key Vault secrets:
+
+| Key Vault secret name | Description |
+|-----------------------|-------------|
+| vm-image-${var.deployment_id}-primary | Built image Id for primary node |
+| vm-image-${var.deployment_id}-standby | Built image Id for standby node |
 
 ## Inputs
 

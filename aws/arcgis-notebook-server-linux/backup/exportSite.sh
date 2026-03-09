@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -19,7 +19,7 @@
 #
 # On the machine where the script is executed:
 #
-# * AWS CLI and Docker must be installed
+# * AWS CLI must be installed
 # * AWS credentials must be configured for AWS CLI
 # * AWS region must be specified by AWS_DEFAULT_REGION environment variable
 

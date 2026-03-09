@@ -24,7 +24,6 @@ env:
   TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
   TF_VAR_admin_username: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
   TF_VAR_admin_password: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
-  TF_VAR_admin_email: ${{ secrets.ENTERPRISE_ADMIN_EMAIL }}
   TF_VAR_portal_username: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
   TF_VAR_portal_password: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
   ARCGIS_ONLINE_USERNAME: ${{ secrets.ARCGIS_ONLINE_USERNAME }}

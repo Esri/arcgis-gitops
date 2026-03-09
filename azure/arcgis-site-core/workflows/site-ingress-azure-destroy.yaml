@@ -57,4 +57,4 @@ jobs:
                          -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/ingress.tfstate"
       - name: Terraform Destroy
         id: terraform-destroy
-        run: terraform destroy -var-file $CONFIG_FILE -auto-approve
+        run: terraform destroy -var-file $CONFIG_FILE -auto-approve -input=false

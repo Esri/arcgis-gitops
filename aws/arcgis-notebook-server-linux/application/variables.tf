@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-variable "admin_email" {
-  description = "ArcGIS Notebook Server administrator e-mail address"
-  type        = string
-}
-
 variable "admin_password" {
   description = "Primary ArcGIS Notebook Server administrator user password"
   type        = string

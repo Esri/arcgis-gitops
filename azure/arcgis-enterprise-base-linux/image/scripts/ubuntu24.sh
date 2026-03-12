@@ -14,7 +14,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# The script initializes an Ubuntu 24.04 instance for ArcGIS Notebook Server.
+# The script initializes an Ubuntu 24.04 instance for base ArcGIS Enterprise on Linux image.
 
 set -e
 set -x  # This will print every single command to the log before running it

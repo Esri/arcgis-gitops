@@ -78,7 +78,7 @@ variable "execution_timeout" {
 
   validation {
     condition     = var.execution_timeout > 0 && var.execution_timeout <= 172800
-    error_message = "The execution_timeout value must be greater than 0 and less then or equal to 172800."
+    error_message = "The execution_timeout value must be greater than 0 and less than or equal to 172800."
   }
 }
 

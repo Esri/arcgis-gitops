@@ -209,7 +209,7 @@ variable "security_question_index" {
 
   validation {
     condition = var.security_question_index > 0 &&  var.security_question_index < 15
-    error_message = "The security_question_index value must be an number between 1 and 14."
+    error_message = "The security_question_index value must be a number between 1 and 14."
   }
 }
 

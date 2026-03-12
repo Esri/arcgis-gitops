@@ -75,8 +75,6 @@ provider "azurerm" {
   }
 }
 
-data "azurerm_client_config" "current" {}
-
 data "azurerm_key_vault_secret" "vm_identity_client_id" {
   name         = "vm-identity-client-id"
   key_vault_id = module.site_core_info.vault_id

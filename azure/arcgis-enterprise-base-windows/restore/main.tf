@@ -79,8 +79,6 @@ module "backup_site_core_info" {
   site_id = var.backup_site_id
 }
 
-data "azurerm_client_config" "current" {}
-
 data "azurerm_key_vault_secret" "vm_identity_client_id" {
   name         = "vm-identity-client-id"
   key_vault_id = module.backup_site_core_info.vault_id

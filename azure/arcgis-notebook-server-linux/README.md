@@ -17,7 +17,7 @@ Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
 2. Create core Azure resources and Chef automation resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
-3. Create a base ArcGIS Enterprise deployment using [arcgis-enterprise-base-windows](../arcgis-enterprise-base-windows/README.md) template.
+3. Create a base ArcGIS Enterprise deployment using [arcgis-enterprise-base-linux](../arcgis-enterprise-base-linux/README.md) or [arcgis-enterprise-base-windows](../arcgis-enterprise-base-windows/README.md) templates.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 

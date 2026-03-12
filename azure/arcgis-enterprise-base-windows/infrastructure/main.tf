@@ -296,7 +296,8 @@ resource "azurerm_network_interface_application_gateway_backend_address_pool_ass
 resource "random_id" "unique_name_suffix" {
   keepers = {
     # Generate a new id each time we switch to a new site id
-    site_id = var.site_id
+    site_id       = var.site_id
+    deployment_id = var.deployment_id
   }
 
   byte_length = 8

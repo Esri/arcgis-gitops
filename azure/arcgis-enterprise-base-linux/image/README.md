@@ -1,6 +1,6 @@
 # Packer Template for Base ArcGIS Enterprise on Linux Images
 
-The Packer templates builds VM images for a specific base ArcGIS Enterprise on Linux deployment.
+The Packer template builds VM images for a specific base ArcGIS Enterprise on Linux deployment.
 
 The images are built from a Linux OS base image specified by Key Vault secret "vm-image-${var.os}".
 

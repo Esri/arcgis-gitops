@@ -335,7 +335,8 @@ resource "azurerm_linux_virtual_machine" "standby" {
 
 resource "random_id" "unique_name_suffix" {
   keepers = {
-    site_id = var.site_id
+    site_id       = var.site_id
+    deployment_id = var.deployment_id
   }
 
   byte_length = 8

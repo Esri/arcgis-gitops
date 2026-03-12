@@ -1,6 +1,6 @@
 # Packer Template for Base ArcGIS Enterprise on Windows Images
 
-The Packer templates builds VM images for a specific base ArcGIS Enterprise deployment.
+The Packer template builds VM images for a specific base ArcGIS Enterprise deployment.
 
 The images are built from a Windows OS base image specified by Key Vault secret "vm-image-${var.os}".
 

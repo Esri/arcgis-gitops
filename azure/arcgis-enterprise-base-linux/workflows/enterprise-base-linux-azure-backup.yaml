@@ -74,4 +74,8 @@ jobs:
                        -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/backup.tfstate"
         az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
         az account set --subscription $ARM_SUBSCRIPTION_ID
-        terraform apply -var-file $CONFIG_FILE -auto-approve -input=false
+        if [ ${{ github.event.inputs.backup_restore_mode }} != "" ]; then
+          terraform apply -var-file $CONFIG_FILE -var "backup_restore_mode=${{ github.event.inputs.backup_restore_mode }}" -auto-approve -input=false
+        else 
+          terraform apply -var-file $CONFIG_FILE -auto-approve -input=false
+        fi

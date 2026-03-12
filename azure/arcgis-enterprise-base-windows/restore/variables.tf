@@ -40,7 +40,7 @@ variable "admin_username" {
 }
 
 variable "backup_restore_mode" {
-  description = "Type of backup"
+  description = "Restore mode: specifies the type of backup to restore (backup, full, incremental)"
   type        = string
   default     = "backup"
   validation {

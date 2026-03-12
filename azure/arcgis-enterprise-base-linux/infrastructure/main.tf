@@ -130,11 +130,6 @@ data "azurerm_private_dns_zone" "privatelink_blob" {
   resource_group_name = "${var.site_id}-infrastructure-core"
 }
 
-data "azurerm_private_dns_zone" "privatelink_table" {
-  name                = "privatelink.table.core.windows.net"
-  resource_group_name = "${var.site_id}-infrastructure-core"
-}
-
 data "azurerm_private_dns_zone" "privatelink_file" {
   name                = "privatelink.file.core.windows.net"
   resource_group_name = "${var.site_id}-infrastructure-core"

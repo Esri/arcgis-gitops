@@ -46,7 +46,7 @@ On the machine where Terraform is executed:
 | admin_password | Portal for ArcGIS administrator user password | `string` | n/a | yes |
 | admin_username | Portal for ArcGIS administrator user name | `string` | `"siteadmin"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
-| backup_restore_mode | Type of backup | `string` | `"backup"` | no |
+| backup_restore_mode | Restore mode: specifies the type of backup to restore (backup, full, incremental) | `string` | `"backup"` | no |
 | backup_site_id | ArcGIS site Id of the backup to restore from | `string` | `"arcgis"` | no |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-linux"` | no |
 | execution_timeout | Execution timeout in seconds | `number` | `36000` | no |

@@ -45,7 +45,7 @@ jobs:
       - name: Azure SDK for Python
         id: install-azure-sdk
         run: pip install azure-identity azure-keyvault-secrets azure-mgmt-compute azure-storage-blob
-      - uses: hashicorp/setup-packer@main
+      - uses: hashicorp/setup-packer@v3
         with:
           version: "1.14.1"
       - name: Run Packer

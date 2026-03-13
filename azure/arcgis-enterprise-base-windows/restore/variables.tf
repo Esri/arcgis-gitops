@@ -40,7 +40,7 @@ variable "admin_username" {
 }
 
 variable "backup_restore_mode" {
-  description = "Type of backup"
+  description = "Restore mode: specifies the type of backup to restore (backup, full, incremental)"
   type        = string
   default     = "backup"
   validation {
@@ -78,7 +78,7 @@ variable "execution_timeout" {
 
   validation {
     condition     = var.execution_timeout > 0 && var.execution_timeout <= 172800
-    error_message = "The execution_timeout value must be greater than 0 and less then or equal to 172800."
+    error_message = "The execution_timeout value must be greater than 0 and less than or equal to 172800."
   }
 }
 

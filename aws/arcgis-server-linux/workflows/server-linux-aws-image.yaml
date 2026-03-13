@@ -48,7 +48,7 @@ jobs:
       - name: Install Ansible Collections
         id: install-collections
         run: ansible-galaxy collection install ${{ github.workspace }}/ansible_collections/arcgis -p /usr/share/ansible/collections
-      - uses: hashicorp/setup-packer@main
+      - uses: hashicorp/setup-packer@v3
         with:
           version: "1.11.2"
       - name: Run Packer

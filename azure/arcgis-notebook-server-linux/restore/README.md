@@ -17,3 +17,9 @@ On the machine where the script is executed:
 
 * Azure CLI must be installed and available in the PATH.
 * jq command-line JSON processor must be installed.
+
+The deployment VMs must have access to the storage account of the backup site specified by the `backup_site_id` input variable:
+
+* The deployment VMs must have network-level access to the storage account endpoint of the backup site.
+* The user-assigned managed identity attached to the deployment virtual machines must have read access
+  to the storage account of the backup site.

@@ -43,7 +43,7 @@ jobs:
       - name: Install Boto3
         id: install-boto3
         run: pip install boto3
-      - uses: hashicorp/setup-packer@main
+      - uses: hashicorp/setup-packer@v3
         with:
           version: "1.11.2"
       - name: Run Packer

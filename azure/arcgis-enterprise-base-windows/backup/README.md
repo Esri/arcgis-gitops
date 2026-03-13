@@ -19,7 +19,7 @@ the site's storage account used for storing backups.
 On the machine where Terraform is executed:
 
 * Python 3.9 or later must be installed
-* azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python SDK packages must be installed
+* azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
 * Path to azure/scripts directory must be added to PYTHONPATH
 * Azure credentials must be configured using "az login" CLI command
 
@@ -55,7 +55,6 @@ The module reads the following Key Vault secrets:
 
 | Name | Type |
 |------|------|
-| [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault_secret.vm_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 
 ## Inputs

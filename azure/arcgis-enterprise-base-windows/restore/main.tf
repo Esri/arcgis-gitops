@@ -14,13 +14,19 @@
  *
  * The user assigned managed identity assigned to the VMs must have Storage Blob Data Owner role on
  * the backup site's storage account.
-
  * On the machine where Terraform is executed:
  * 
  * * Python 3.9 or later must be installed
  * * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
  * * Path to azure/scripts directory must be added to PYTHONPATH
  * * Azure credentials must be configured using "az login" CLI command
+ *
+ * The deployment VMs must have access to the storage account of the backup site specified by the `backup_site_id` input variable, 
+ * so that WebGISDR import can retrieve backups from the `webgisdr-backups` and `content-backups` containers:
+ *
+ * * The deployment VMs must have network-level access to the storage account endpoint of the backup site.
+ * * The user-assigned managed identity attached to the deployment virtual machines must have read access 
+ *   to the storage account of the backup site.
  *
  * ## Key Vault Secrets
  *
@@ -79,11 +85,14 @@ module "backup_site_core_info" {
   site_id = var.backup_site_id
 }
 
-data "azurerm_client_config" "current" {}
+module "target_site_core_info" {
+  source  = "../../modules/site_core_info"
+  site_id = var.site_id
+}
 
 data "azurerm_key_vault_secret" "vm_identity_client_id" {
   name         = "vm-identity-client-id"
-  key_vault_id = module.backup_site_core_info.vault_id
+  key_vault_id = module.target_site_core_info.vault_id
 }
 
 locals {

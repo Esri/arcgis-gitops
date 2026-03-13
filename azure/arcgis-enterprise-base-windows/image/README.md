@@ -1,6 +1,6 @@
 # Packer Template for Base ArcGIS Enterprise on Windows Images
 
-The Packer templates builds VM images for a specific base ArcGIS Enterprise deployment.
+The Packer template builds VM images for a specific base ArcGIS Enterprise deployment.
 
 The images are built from a Windows OS base image specified by Key Vault secret "vm-image-${var.os}".
 
@@ -22,10 +22,10 @@ IDs of the images are saved in "vm-image-${var.deployment_id}-primary" and "vm-i
 On the machine where Packer is executed:
 
 * Python 3.9 or later must be installed
-* azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python SDK packages must be installed
+* azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
 * Path to azure/scripts directory must be added to PYTHONPATH
-* Azure credentials must be configured.
-* My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+* Azure credentials must be configured
+* My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables
 
 ## Key Vault Secrets
 
@@ -52,11 +52,11 @@ The template saves the built image Id in the following Key Vault secrets:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
-| arcgis_data_store_patches | File names of ArcGIS Data Store patches to install | `string` | `[]` | no |
-| arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `string` | `[]` | no |
-| arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |
+| arcgis_data_store_patches | File names of ArcGIS Data Store patches to install | `list(string)` | `[]` | no |
+| arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `list(string)` | `[]` | no |
+| arcgis_server_patches | File names of ArcGIS Server patches to install | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
-| arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
+| arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `list(string)` | `[]` | no |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
 | vm_size | Azure VM size | `string` | `"Standard_D8s_v5"` | no |
 | os | Operating system Id | `string` | `"windows2025"` | no |

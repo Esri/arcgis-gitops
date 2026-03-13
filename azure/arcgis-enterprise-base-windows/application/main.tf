@@ -164,8 +164,6 @@ locals {
   keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}\\${basename(var.keystore_file_path)}" : "C:\\chef\\keystore.pfx"
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}\\${basename(var.root_cert_file_path)}" : ""
 
-  timestamp = formatdate("YYYYMMDDHHmmss", timestamp())
-
   storage_account_name          = data.azurerm_key_vault_secret.storage_account_name.value
   storage_account_blob_endpoint = "https://${data.azurerm_key_vault_secret.storage_account_name.value}.blob.core.windows.net"
   cosmos_db_account_name        = local.storage_account_name

@@ -18,9 +18,13 @@ On the machine where Terraform is executed:
 * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
 * Path to azure/scripts directory must be added to PYTHONPATH
 * Azure credentials must be configured using "az login" CLI command
+
+The deployment VMs must have access to the storage account of the backup site specified by the `backup_site_id` input variable,
+so that WebGISDR import can retrieve backups from the `webgisdr-backups` and `content-backups` containers:
+
+* The deployment VMs must have network-level access to the storage account endpoint of the backup site.
 * The user-assigned managed identity attached to the deployment virtual machines must have read access
-  (for example, the **Storage Blob Data Reader** or **Storage Blob Data Owner** role) to the storage account of the backup site
-  specified by the `backup_site_id` input variable, so that WebGISDR import can retrieve backups from the `webgisdr-backups` and `content-backups` containers.
+  to the storage account of the backup site.
 
 ## Providers
 

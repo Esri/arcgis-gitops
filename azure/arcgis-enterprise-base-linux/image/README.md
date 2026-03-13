@@ -22,10 +22,10 @@ IDs of the images are saved in "vm-image-${var.deployment_id}-primary" and "vm-i
 On the machine where Packer is executed:
 
 * Python 3.9 or later must be installed
-* azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python SDK packages must be installed
+* azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
 * Path to azure/scripts directory must be added to PYTHONPATH
-* Azure credentials must be configured.
-* My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+* Azure credentials must be configured
+* My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables
 
 ## Key Vault Secrets
 

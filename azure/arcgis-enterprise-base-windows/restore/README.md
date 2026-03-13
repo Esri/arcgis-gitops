@@ -27,6 +27,7 @@ the backup site's storage account.
 |------|--------|---------|
 | arcgis_enterprise_webgisdr_import | ../../modules/run_chef | n/a |
 | backup_site_core_info | ../../modules/site_core_info | n/a |
+| target_site_core_info | ../../modules/site_core_info | n/a |
 
 ## Resources
 

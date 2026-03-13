@@ -19,7 +19,7 @@
  * On the machine where Terraform is executed:
  * 
  * * Python 3.9 or later must be installed
- * * azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python SDK packages must be installed
+ * * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
  * * Path to azure/scripts directory must be added to PYTHONPATH
  * * Azure credentials must be configured using "az login" CLI command
  *

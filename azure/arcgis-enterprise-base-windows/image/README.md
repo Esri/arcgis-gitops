@@ -52,11 +52,11 @@ The template saves the built image Id in the following Key Vault secrets:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
-| arcgis_data_store_patches | File names of ArcGIS Data Store patches to install | `string` | `[]` | no |
-| arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `string` | `[]` | no |
-| arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |
+| arcgis_data_store_patches | File names of ArcGIS Data Store patches to install | `list(string)` | `[]` | no |
+| arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `list(string)` | `[]` | no |
+| arcgis_server_patches | File names of ArcGIS Server patches to install | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
-| arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
+| arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `list(string)` | `[]` | no |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
 | vm_size | Azure VM size | `string` | `"Standard_D8s_v5"` | no |
 | os | Operating system Id | `string` | `"windows2025"` | no |

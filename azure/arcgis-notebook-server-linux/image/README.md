@@ -1,6 +1,6 @@
 # Packer Template for ArcGIS Notebook Server on Linux
 
-The Packer templates builds VM images for a specific ArcGIS Notebook Server deployment and
+The Packer template builds VM images for a specific ArcGIS Notebook Server deployment and
 publishes it to the site Image Gallery.
 
 The VM image is built from the operating system's base image specified by Key Vault secret "vm-image-${var.os}".

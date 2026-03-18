@@ -33,12 +33,12 @@ Before running Terraform, configure Azure credentials using "az login" command.
 |--------------------------------------------------|-------------|
 | ${var.deployment_id}-os                          | Operating system ID |
 | ${var.deployment_id}-portal-web-context          | Portal for ArcGIS web context |
-| ${var.deployment_id}-storage-account-key         | Site storage account key |
-| ${var.deployment_id}-storage-account-name        | Site storage account name |
 | ${var.deployment_id}-vm-image-primary            | Primary VM image ID |
 | ${var.deployment_id}-vm-image-standby            | Standby VM image ID |
 | ${var.ingress_deployment_id}-backend-address-pools | Application Gateway backend address pools |
 | ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN |
+| storage-account-key                              | Site storage account key |
+| storage-account-name                             | Site storage account name |
 | subnets                                          | VNet subnet IDs |
 | vm-identity-id                                   | User-assigned VM identity resource ID |
 | vm-identity-principal-id                         | User-assigned VM identity principal ID |

@@ -31,7 +31,6 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | Secret Name                                      | Description                                      |
 |--------------------------------------------------|--------------------------------------------------|
 | ${var.deployment_id}-portal-web-context          | Portal for ArcGIS web context |
-| ${var.deployment_id}-server-web-context          | ArcGIS Server web context |
 | ${var.deployment_id}-vm-image-primary            | Primary VM image ID                         |
 | ${var.deployment_id}-vm-image-standby            | Standby VM image ID                         |
 | ${var.ingress_deployment_id}-backend-address-pools| Application Gateway backend address pools         |
@@ -39,7 +38,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | storage-account-key                              | Storage account key                              |
 | storage-account-name                             | Storage account name                             |
 | subnets                                          | VNet subnet IDs                                  |
-| vm-identity-id                                   | User-assigned VM identity object ID              |
+| vm-identity-id                                   | User-assigned VM identity resource ID            |
 | vm-identity-principal-id                         | User-assigned VM identity principal ID           |
 | vnet-id                                          | VNet ID                                          |
 

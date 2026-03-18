@@ -55,7 +55,7 @@
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
  * | storage-account-key                       | Site's storage account key |
  * | storage-account-name                      | Site's storage account name |
- * | subnets                                   | Net subnet IDs |
+ * | subnets                                   | VNet subnet IDs |
  * | vm-identity-client-id                     | VM identity client ID |
  * | vnet-id                                   | VNet ID |
  *

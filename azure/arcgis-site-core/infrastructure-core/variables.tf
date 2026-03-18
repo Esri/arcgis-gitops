@@ -168,7 +168,7 @@ variable "images" {
     rhel9 = {
       publisher = "RedHat"
       offer     = "RHEL"
-      sku       = "9_5"
+      sku       = "95_gen2"
       version   = null
     }
   }

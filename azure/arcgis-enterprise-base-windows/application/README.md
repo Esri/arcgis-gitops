@@ -39,23 +39,25 @@ On the machine where Terraform is executed:
 * Python 3.9 or later must be installed
 * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
 * Path to azure/scripts directory must be added to PYTHONPATH
-* Azure credentials must be configured using "az login" CLI command
+* Azure credentials must be configured using "az login" command
 
-My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
 
 ## Key Vault Secrets
 
 The module reads the following Key Vault secrets:
 
-| Key Vault secret name | Description |
-|--------------------|-------------|
-| subnets | VNet subnets IDs |
-| vnet-id | VNet ID |
-| storage-account-key | Site's storage account key |
-| storage-account-name | Site's storage account name |
-| ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
+| Key Vault secret name                     | Description |
+|-------------------------------------------|-------------|
+| ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
+| ${var.deployment_id}-portal-web-context   | Portal for ArcGIS Web Adaptor web context |
+| ${var.deployment_id}-server-web-context   | ArcGIS Server Web Adaptor web context |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
-| vm-identity-client-id | VM identity client ID |
+| storage-account-key                       | Site's storage account key |
+| storage-account-name                      | Site's storage account name |
+| subnets                                   | Net subnet IDs |
+| vm-identity-client-id                     | VM identity client ID |
+| vnet-id                                   | VNet ID |
 
 > Note that the module also uses Key Vault secrets to pass JSON attributes
   for Chef Client runs to the VMs. These secrets are deleted at the end of the runs.

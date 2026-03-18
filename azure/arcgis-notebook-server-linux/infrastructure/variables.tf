@@ -61,12 +61,6 @@ variable "node_count" {
   }
 }
 
-variable "notebook_server_web_context" {
-  description = "ArcGIS Notebook Server web context"
-  type        = string
-  default     = "notebooks"
-}
-
 variable "os_disk_size" {
   description = "OS disk size in GB"
   type        = number

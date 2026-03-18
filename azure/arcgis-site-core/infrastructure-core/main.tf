@@ -1,13 +1,13 @@
 /**
  * # Terraform module infrastructure-core
  *
- * Terraform module creates networking and storage Azure resources shared across
+ * The Terraform module creates networking and storage Azure resources shared across
  * multiple deployments of an ArcGIS Enterprise site.
  * 
  * ![Core Infrastructure Resources](infrastructure-core.png "Core Infrastructure Resources")
  *
- * The module creates a virtual network with app gateway, private and internal subnets. 
- * The app gateway and private subnets are routed to a NAT Gateway to allow outbound access to the Internet.
+ * The module creates a virtual network with Application Gateway, private and internal subnets. 
+ * The Application Gateway and private subnets are routed to a NAT Gateway to allow outbound access to the Internet.
  * The internal subnets allow access only to specific service endpoints.
  * For private and internal subnets, the module creates network security groups with default rules.
  * The module also creates private DNS zones and links them to the virtual network. 
@@ -18,26 +18,29 @@
  *
  * The module creates a storage account for the site with blob containers 
  * for repository, logs, and backups.
+ *
+ * The module creates a compute gallery for the site images.
  * 
  * The module also creates an Azure Monitor action group for site alerts and 
  * subscribes the site administrator email to the action group's notifications.
  * 
  * Attributes of the resources are stored as secrets in the Azure Key Vault created by the module.
  *
- * | Key Vault secret name | Description |
- * | --- | --- |
- * | vnet-id | ArcGIS Enterprise site VNet ID |
- * | app-gateway-subnet-N | ID of Application Gateway subnet N |
- * | internal-subnet-N | ID of internal subnet N |
- * | private-subnet-N | ID of private subnet N |
- * | storage-account-name | Storage account name |
+ * | Key Vault secret name       | Description |
+ * | --------------------------- | ----------- |
+ * | vnet-id                     | ArcGIS Enterprise site VNet ID |
+ * | app-gateway-subnet-N        | ID of Application Gateway subnet N |
+ * | image-gallery-name          | Name of the image gallery created for the site |
+ * | internal-subnet-N           | ID of internal subnet N |
+ * | private-subnet-N            | ID of private subnet N |
+ * | storage-account-name        | Storage account name |
  * | site-alerts-action-group-id | Monitor action group ID for site alerts |
  *
  * ## Requirements
  * 
  *  On the machine where Terraform is executed:
  *
- * * Azure subscription ID must be specified by ARM_SUBSCRIPTION_ID environment variable.
+ * * Azure subscription ID must be specified in the ARM_SUBSCRIPTION_ID environment variable.
  * * Azure service principal credentials must be configured with ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
  */
 
@@ -162,7 +165,7 @@ resource "azurerm_key_vault_secret" "vnet" {
   ]
 }
 
-# Create Private DNS Zones for VMs and link them to the Virtual network.
+# Create private DNS zones for VMs and link them to the virtual network.
 
 resource "azurerm_private_dns_zone" "internal" {
   name                = "${var.site_id}.internal"
@@ -423,7 +426,7 @@ resource "azurerm_key_vault_secret" "vm_identity_id" {
   ]
 }
 
-# Assign permissions to the VM user assigned identity to allow it to access storage account.
+# Assign permissions to the VM user assigned identity to allow it to access the storage account.
 resource "azurerm_role_assignment" "storage_account_vm_identity" {
   principal_id                     = azurerm_user_assigned_identity.vm_identity.principal_id
   role_definition_name             = "Storage Blob Data Owner"

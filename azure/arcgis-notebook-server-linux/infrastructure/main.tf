@@ -11,11 +11,11 @@
  * The images must be created by the Packer Template for ArcGIS Notebook Server on Linux. 
  *  
  * The network interfaces are associated with the backend address pool "notebook-server" of the Application Gateway created by the ingress 
- * terraform module to make the VMs accessible from the Application Gateway.
+ * Terraform module to make the VMs accessible from the Application Gateway.
  *
  * For the VMs the module creates "A" records in the internal private DNS zone to make them addressable using the permanent DNS names.
  *
- * > Note that the VMs will be terminated and recreated if the infrastructure terraform module
+ * > Note that the VMs will be terminated and recreated if the infrastructure Terraform module
  *   is applied again after the image IDs in the Key Vault secrets were modified by a new image build.
  *
  * The module creates two storage accounts: one for ArcGIS Notebook Server config store and another for file store with "fileserver" NFS file share.
@@ -35,7 +35,7 @@
  * * Python 3.9 or later must be installed
  * * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
  * * Path to azure/scripts directory must be added to PYTHONPATH
- * * Azure credentials must be configured using "az login" CLI command
+ * * Azure credentials must be configured using "az login" command
  *
  * ## Key Vault Secrets
  *
@@ -43,27 +43,26 @@
  *
  * | Secret Name                                        | Description |
  * |----------------------------------------------------|-------------|
+ * | ${var.deployment_id}-os                            | Operating system ID |
+ * | ${var.deployment_id}-vm-image-node                 | Node VM image ID |
+ * | ${var.deployment_id}-vm-image-primary              | Primary VM image ID |
  * | ${var.ingress_deployment_id}-backend-address-pools | Application Gateway backend address pools |
  * | ${var.ingress_deployment_id}-deployment-fqdn       | Ingress deployment FQDN |
  * | ${var.portal_deployment_id}-deployment-url         | Portal deployment URL |
- * | storage-account-key                                | Storage account key |
- * | storage-account-name                               | Storage account name |
+ * | storage-account-key                                | Site storage account key |
+ * | storage-account-name                               | Site storage account name |
  * | subnets                                            | VNet subnet IDs |
- * | vm-identity-id                                     | User-assigned VM identity object ID |
+ * | vm-identity-id                                     | User-assigned VM identity resource ID |
  * | vm-identity-principal-id                           | User-assigned VM identity principal ID |
- * | vm-image-${var.deployment_id}-primary              | Primary VM image ID |
- * | vm-image-${var.deployment_id}-node                 | Node VM image ID |
- * | vm-image-${var.deployment_id}-os                   | Operating system ID |
  * | vnet-id                                            | VNet ID |
  *
  * ### Secrets Written by the Module
  *
- * | Secret Name | Description |
- * |-------------|-------------|
- * | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
- * | ${var.deployment_id}-notebook-server-web-context | Web context for the notebook server |
- * | ${var.deployment_id}-deployment-url | Deployment URL |
- * | ${var.deployment_id}-portal-url | Portal URL |
+ * | Secret Name                               | Description |
+ * |-------------------------------------------|-------------|
+ * | ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
+ * | ${var.deployment_id}-deployment-url       | Deployment URL |
+ * | ${var.deployment_id}-portal-url           | Portal URL |
  * | ${var.deployment_id}-storage-account-name | Config Store's storage account name |
  */
 
@@ -116,12 +115,12 @@ data "azurerm_key_vault_secret" "vm_identity_principal_id" {
 }
 
 data "azurerm_key_vault_secret" "primary_vm_image_id" {
-  name         = "vm-image-${var.deployment_id}-primary"
+  name         = "${var.deployment_id}-vm-image-primary"
   key_vault_id = module.site_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "node_vm_image_id" {
-  name         = "vm-image-${var.deployment_id}-node"
+  name         = "${var.deployment_id}-vm-image-node"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -141,7 +140,12 @@ data "azurerm_key_vault_secret" "portal_deployment_url" {
 }
 
 data "azurerm_key_vault_secret" "vm_image_os" {
-  name         = "vm-image-${var.deployment_id}-os"
+  name         = "${var.deployment_id}-os"
+  key_vault_id = module.site_core_info.vault_id
+}
+
+data "azurerm_key_vault_secret" "notebook_server_web_context" {
+  name         = "${var.deployment_id}-notebook-server-web-context"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -161,7 +165,9 @@ data "azurerm_private_dns_zone" "privatelink_file" {
 }
 
 locals {
-  deployment_fqdn         = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  deployment_fqdn             = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  notebook_server_web_context = nonsensitive(data.azurerm_key_vault_secret.notebook_server_web_context.value)
+
   vm_roles                = ["primary", "node"]
   zones                   = ["1", "2"]
   subnet_id               = var.subnet_id != null ? var.subnet_id : element(module.site_core_info.private_subnets, 0)
@@ -183,6 +189,8 @@ resource "azurerm_network_interface" "primary" {
   location            = var.azure_region
   resource_group_name = azurerm_resource_group.deployment_rg.name
 
+  accelerated_networking_enabled = true
+
   ip_configuration {
     name                          = "internal"
     primary                       = true
@@ -202,6 +210,8 @@ resource "azurerm_network_interface" "nodes" {
   name                = "node-nic-${count.index}"
   location            = var.azure_region
   resource_group_name = azurerm_resource_group.deployment_rg.name
+
+  accelerated_networking_enabled = true
 
   ip_configuration {
     name                          = "internal"
@@ -238,8 +248,10 @@ resource "azurerm_linux_virtual_machine" "primary" {
   admin_username                  = var.vm_admin_username
   admin_password                  = var.vm_admin_password
   disable_password_authentication = var.vm_admin_public_ssh_key_path != null
-  
-  encryption_at_host_enabled      = true
+
+  encryption_at_host_enabled = true
+  secure_boot_enabled        = true
+  vtpm_enabled               = true
 
   patch_assessment_mode = "AutomaticByPlatform"
   patch_mode            = "ImageDefault"
@@ -302,8 +314,10 @@ resource "azurerm_linux_virtual_machine" "nodes" {
   admin_username                  = var.vm_admin_username
   admin_password                  = var.vm_admin_password
   disable_password_authentication = var.vm_admin_public_ssh_key_path != null
-  
-  encryption_at_host_enabled      = true
+
+  encryption_at_host_enabled = true
+  secure_boot_enabled        = true
+  vtpm_enabled               = true
 
   patch_assessment_mode = "AutomaticByPlatform"
   patch_mode            = "ImageDefault"
@@ -580,20 +594,9 @@ resource "azurerm_key_vault_secret" "deployment_fqdn" {
   }
 }
 
-resource "azurerm_key_vault_secret" "notebook_server_web_context" {
-  name         = "${var.deployment_id}-notebook-server-web-context"
-  value        = var.notebook_server_web_context
-  key_vault_id = module.site_core_info.vault_id
-
-  tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
-  }
-}
-
 resource "azurerm_key_vault_secret" "deployment_url" {
   name         = "${var.deployment_id}-deployment-url"
-  value        = "https://${local.deployment_fqdn}/${var.notebook_server_web_context}"
+  value        = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
   key_vault_id = module.site_core_info.vault_id
 
   tags = {

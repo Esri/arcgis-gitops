@@ -37,6 +37,7 @@ env:
   PYTHONPATH: ${{ github.workspace }}/azure/scripts
   APPLICATION_CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-linux/application.tfvars.json
   INFRASTRUCTURE_CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-linux/infrastructure.tfvars.json
+  IMAGE_CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-linux/image.vars.json
 
 concurrency:
   group: ${{ github.ref_name }}
@@ -80,11 +81,34 @@ jobs:
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
                          -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/infrastructure.tfstate"
           terraform destroy -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve -input=false
-      - name: Delete VM Images
-        id: delete-images
+      - name: Delete VM Image Definition
         run: |
-          az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+          az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
           az account set --subscription $ARM_SUBSCRIPTION_ID
-          SITE_ID=$(jq -r '.site_id' $INFRASTRUCTURE_CONFIG_FILE)
-          DEPLOYMENT_ID=$(jq -r '.deployment_id' $INFRASTRUCTURE_CONFIG_FILE)
-          python -m delete_deployment_images -s $SITE_ID -d $DEPLOYMENT_ID -u $ARM_SUBSCRIPTION_ID
+          SITE_ID=$(jq -r '.site_id' $IMAGE_CONFIG_FILE)
+          DEPLOYMENT_ID=$(jq -r '.deployment_id' $IMAGE_CONFIG_FILE)
+          ARCGIS_VERSION=$(jq -r '.arcgis_version' $IMAGE_CONFIG_FILE)
+          OS=$(jq -r '.os' $IMAGE_CONFIG_FILE)
+          VAULT_NAME=$(az keyvault list --query "[?tags.ArcGISSiteId=='$SITE_ID' && tags.ArcGISRole=='site-vault'].name" -o tsv)
+          IMAGE_GALLERY_NAME=$(az keyvault secret show --name "image-gallery-name" --vault-name "$VAULT_NAME" --query "value" -o tsv)
+          DEFINITION_NAME="$DEPLOYMENT_ID-$ARCGIS_VERSION-$OS"
+          RESOURCE_GROUP="$SITE_ID-infrastructure-core"
+          echo "Checking for existing versions in $DEFINITION_NAME..."
+          VERSIONS=$(az sig image-version list \
+            --resource-group "$RESOURCE_GROUP" \
+            --gallery-name "$IMAGE_GALLERY_NAME" \
+            --gallery-image-definition "$DEFINITION_NAME" \
+            --query "[].name" -o tsv)
+          for VERSION in $VERSIONS; do
+            echo "Deleting image version: $VERSION"
+            az sig image-version delete \
+              --resource-group "$RESOURCE_GROUP" \
+              --gallery-name "$IMAGE_GALLERY_NAME" \
+              --gallery-image-definition "$DEFINITION_NAME" \
+              --gallery-image-version "$VERSION"
+          done
+          echo "Deleting image definition: $DEFINITION_NAME"
+          az sig image-definition delete \
+            --resource-group "$RESOURCE_GROUP" \
+            --gallery-name "$IMAGE_GALLERY_NAME" \
+            --gallery-image-definition "$DEFINITION_NAME"

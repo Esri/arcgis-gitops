@@ -1,7 +1,8 @@
 /**
  * # Packer Template for ArcGIS Notebook Server on Linux
  * 
- * The Packer templates builds VM images for a specific ArcGIS Notebook Server deployment.
+ * The Packer templates builds VM images for a specific ArcGIS Notebook Server deployment and
+ * publishes it to the site Image Gallery.
  * 
  * The VM image is built from the operating system's base image specified by Key Vault secret "vm-image-${var.os}".
  * 
@@ -19,40 +20,46 @@
  * 5. Install patches for the ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
  * 6. Delete temporary files and uninstall Cinc Client
  * 
- * IDs of the images are saved in "vm-image-${var.deployment_id}-primary" 
- * and "vm-image-${var.deployment_id}-node" Key Vault secrets.
+ * IDs of the images are saved in "${var.deployment_id}-vm-image-primary" 
+ * and "${var.deployment_id}-vm-image-node" Key Vault secrets.
  * 
-* ## Requirements
-*
-* On the machine where Packer is executed:
-*
-* * Python 3.9 or later must be installed
-* * azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python SDK packages must be installed
-* * Path to azure/scripts directory must be added to PYTHONPATH
-* * Azure CLI must be installed and configured
-* * Azure credentials must be configured using "az login" CLI command
-* * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
-*
-* ## Key Vault Secrets
-*
-* The template reads the following Key Vault secrets:
-*
-* | Key Vault secret name | Description |
-* |-----------------------|-------------|
-* | chef-client-url-${var.os} | Chef Client URL |
-* | cookbooks-url | Chef Cookbooks for ArcGIS archive URL |
-* | storage-account-name | Private repository storage account name |
-* | vm-identity-client-id | Managed identity client Id |
-* | vm-identity-id | Managed identity resource Id |
-* | vm-image-${var.os} | Source VM Image Id |
-* 
-* The template writes the following Key Vault secrets:
-*
-* | Key Vault secret name | Description |
-* |-----------------------|-------------|
-* | vm-image-${var.deployment_id}-primary | Built image Id for primary node |
-* | vm-image-${var.deployment_id}-node | Built image Id for additional nodes |
-*/
+ * ## Requirements
+ *
+ * VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" 
+ * must be created in the site Image Gallery before running the template.
+ *
+ * On the machine where Packer is executed:
+ *
+ * * Python 3.9 or later must be installed
+ * * azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python SDK packages must be installed
+ * * Path to azure/scripts directory must be added to PYTHONPATH
+ * * Azure CLI must be installed and configured
+ * * Azure credentials must be configured using "az login" CLI command
+ * * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
+ *
+ * ## Key Vault Secrets
+ *
+ * The template reads the following Key Vault secrets:
+ *
+ * | Key Vault secret name     | Description |
+ * |---------------------------|-------------|
+ * | chef-client-url-${var.os} | Chef Client URL |
+ * | cookbooks-url             | Chef Cookbooks for ArcGIS archive URL |
+ * | image-gallery-name        | Site Image Gallery name | 
+ * | storage-account-name      | Private repository storage account name |
+ * | vm-identity-client-id     | Managed identity client Id |
+ * | vm-identity-id            | Managed identity resource Id |
+ * | vm-image-${var.os}        | Source VM Image Id |
+ * 
+ * The template writes the following Key Vault secrets:
+ *
+ * | Key Vault secret name                            | Description |
+ * |--------------------------------------------------|-------------|
+ * | ${var.deployment_id}-notebook-server-web-context | ArcGIS Notebook Server web context |
+ * | ${var.deployment_id}-os                          | Operating system ID |
+ * | ${var.deployment_id}-vm-image-node               | Built image Id for additional nodes |
+ * | ${var.deployment_id}-vm-image-primary            | Built image Id for primary node |
+ */
 
 # Copyright 2026 Esri
 #
@@ -75,6 +82,12 @@ packer {
       version = "~> 2"
     }
   }
+}
+
+data "azure-keyvaultsecret" "site_ig" {
+  vault_name         = var.vault_name
+  secret_name        = "image-gallery-name"
+  use_azure_cli_auth = true
 }
 
 data "azure-keyvaultsecret" "vm_image" {
@@ -133,8 +146,6 @@ locals {
   src_image_sku = local.src_image_tokens[14]
   src_image_version = local.src_image_tokens[16]
 
-  timestamp = formatdate("YYYYMMDDhhmm", timestamp())
-  dst_image_name = "${var.site_id}-${var.deployment_id}-${var.arcgis_version}-${var.os}-${local.timestamp}"
   machine_role = "packer-main"
 }
 
@@ -142,22 +153,39 @@ source "azure-arm" "main" {
   communicator = "ssh"
   ssh_username = "packer"
   ssh_timeout = "5m"
-  
-  image_offer = local.src_image_offer
-  image_publisher = local.src_image_publisher
-  image_sku = local.src_image_sku
-  image_version = local.src_image_version
-  location = var.azure_region
+
+  location        = var.azure_region
+  vm_size         = var.vm_size
   os_disk_size_gb = var.os_disk_size
-  os_type = "Linux"
+  os_type         = "Linux"
+
   managed_image_storage_account_type = "Premium_LRS"
-  managed_image_name = local.dst_image_name
-  managed_image_resource_group_name = "${var.site_id}-infrastructure-core"
+  
+  security_type       = "TrustedLaunch"
+  encryption_at_host  = true  
+  secure_boot_enabled = true
+  vtpm_enabled        = true
+
+  # Source Image
+  image_offer     = local.src_image_offer
+  image_publisher = local.src_image_publisher
+  image_sku       = local.src_image_sku
+  image_version   = local.src_image_version
+  
+  # Destination Image
+  shared_image_gallery_destination {
+    resource_group = "${var.site_id}-infrastructure-core"
+    gallery_name   = data.azure-keyvaultsecret.site_ig.value
+    image_name     = "${var.deployment_id}-${var.arcgis_version}-${var.os}"
+    image_version  = formatdate("YYYY.MMDD.HHMM", timestamp())
+    # replication_regions = ["East US"]
+  }
+  
   user_assigned_managed_identities = [
     data.azure-keyvaultsecret.vm_identity_id.value
   ]
   use_azure_cli_auth = true
-  vm_size = var.vm_size
+
   skip_create_image = var.skip_create_image
   
   # Use cloud-init to run an OS-specific script on the VM. 
@@ -336,15 +364,19 @@ build {
 
   # Retrieve the image Id from main-packer-manifest.json manifest file and save it in key vault secrets.
   post-processor "shell-local" {
-    command = "python -m publish_artifact -v ${var.vault_name} -s vm-image-${var.deployment_id}-primary -f main-packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -v ${var.vault_name} -s ${var.deployment_id}-vm-image-primary -f main-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 
   post-processor "shell-local" {
-    command = "python -m publish_artifact -v ${var.vault_name} -s vm-image-${var.deployment_id}-node -f main-packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -v ${var.vault_name} -s ${var.deployment_id}-vm-image-node -f main-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 
   # Save the source image information in key vault secret.
   post-processor "shell-local" {
-    command = "az keyvault secret set --vault-name '${var.vault_name}' --name 'vm-image-${var.deployment_id}-os' --value '${var.os}'"
+    command = "az keyvault secret set --vault-name '${var.vault_name}' --name '${var.deployment_id}-os' --value '${var.os}'"
+  }
+
+  post-processor "shell-local" {
+    command = "az keyvault secret set --vault-name '${var.vault_name}' --name '${var.deployment_id}-notebook-server-web-context' --value '${var.notebook_server_web_context}'"
   }
 }

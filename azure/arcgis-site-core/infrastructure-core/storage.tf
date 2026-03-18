@@ -104,18 +104,22 @@ resource "azurerm_key_vault_secret" "storage_account_key" {
 
 # Create image gallery for the site's VM images
 
-# resource "azurerm_shared_image_gallery" "site_ig" {
-#   name                = "site${random_id.unique_name_suffix.hex}"
-#   resource_group_name = azurerm_resource_group.site_rg.name
-#   location            = azurerm_resource_group.site_rg.location
-#   description         = "ArcGIS Enterprise site image gallery"
-# }
+resource "azurerm_shared_image_gallery" "site_ig" {
+  name                = "site${random_id.unique_name_suffix.hex}"
+  resource_group_name = azurerm_resource_group.site_rg.name
+  location            = azurerm_resource_group.site_rg.location
+  description         = "ArcGIS Enterprise site image gallery"
+  
+  tags = {
+    ArcGISSiteId = var.site_id
+  }
+}
 
-# resource "azurerm_key_vault_secret" "site_ig" {
-#   name         = "image-gallery-name"
-#   value        = azurerm_shared_image_gallery.site_ig.name
-#   key_vault_id = azurerm_key_vault.site_vault.id
-# }
+resource "azurerm_key_vault_secret" "site_ig" {
+  name         = "image-gallery-name"
+  value        = azurerm_shared_image_gallery.site_ig.name
+  key_vault_id = azurerm_key_vault.site_vault.id
+}
 
 # Create azure private endpoint for the site storage account and link it to the blob private DNS zone
 

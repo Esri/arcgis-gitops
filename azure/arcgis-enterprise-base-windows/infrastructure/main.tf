@@ -8,7 +8,7 @@
  * ## Features
  *
  * - Launches one or two VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
- * - VM images are retrieved from Key Vault secrets named "vm-image-${var.deployment_id}-${vm_role}".
+ * - VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-${vm_role}".
  *   These images must be built using the Packer template for ArcGIS Enterprise on Windows.
  * - Creates "A" records in the VNet's private hosted DNS zone, enabling permanent DNS names for the VMs.
  *   VMs can be addressed as primary.<deployment_id>.<site_id>.internal and standby.<deployment_id>.<site_id>.internal.
@@ -27,8 +27,13 @@
  * ## Key Vault Secrets
  *
  * ### Secrets Read by the Module
+ *
  * | Secret Name                                      | Description                                      |
  * |--------------------------------------------------|--------------------------------------------------|
+ * | ${var.deployment_id}-portal-web-context          | Portal for ArcGIS web context |
+ * | ${var.deployment_id}-server-web-context          | ArcGIS Server web context |
+ * | ${var.deployment_id}-vm-image-primary            | Primary VM image ID                         |
+ * | ${var.deployment_id}-vm-image-standby            | Standby VM image ID                         |
  * | ${var.ingress_deployment_id}-backend-address-pools| Application Gateway backend address pools         |
  * | ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN                          |
  * | storage-account-key                              | Storage account key                              |
@@ -36,17 +41,14 @@
  * | subnets                                          | VNet subnet IDs                                  |
  * | vm-identity-id                                   | User-assigned VM identity object ID              |
  * | vm-identity-principal-id                         | User-assigned VM identity principal ID           |
- * | vm-image-${var.deployment_id}-primary            | Primary VM image ID                         |
- * | vm-image-${var.deployment_id}-standby            | Standby VM image ID                         |
  * | vnet-id                                          | VNet ID                                          |
  *
  * ### Secrets Written by the Module
+ *
  * | Secret Name                        | Description                        |
  * |------------------------------------|------------------------------------|
  * | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
  * | ${var.deployment_id}-deployment-url | Portal for ArcGIS URL of the deployment |
- * | ${var.deployment_id}-portal-web-context | Portal for ArcGIS web context |
- * | ${var.deployment_id}-server-web-context | ArcGIS Server web context |
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
  */
 
@@ -100,7 +102,12 @@ data "azurerm_key_vault_secret" "vm_identity_principal_id" {
 
 data "azurerm_key_vault_secret" "vm_image_ids" {
   count        = length(local.vm_roles)
-  name         = "vm-image-${var.deployment_id}-${local.vm_roles[count.index]}"
+  name         = "${var.deployment_id}-vm-image-${local.vm_roles[count.index]}"
+  key_vault_id = module.site_core_info.vault_id
+}
+
+data "azurerm_key_vault_secret" "portal_web_context" {
+  name         = "${var.deployment_id}-portal-web-context"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -132,10 +139,11 @@ data "azurerm_private_dns_zone" "servicebus_private_dns_zone" {
 }
 
 locals {
-  vm_roles  = var.is_ha ? ["primary", "standby"] : ["primary"]
-  zones     = var.is_ha ? ["1", "2"] : ["1"]
-  subnet_id = var.subnet_id != null ? var.subnet_id : element(module.site_core_info.private_subnets, 0)
-  # app_gateway_subnet_id   = element(module.site_core_info.app_gateway_subnets, 1)
+  deployment_fqdn    = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  portal_web_context = nonsensitive(data.azurerm_key_vault_secret.portal_web_context.value)
+  vm_roles           = var.is_ha ? ["primary", "standby"] : ["primary"]
+  zones              = var.is_ha ? ["1", "2"] : ["1"]
+  subnet_id          = var.subnet_id != null ? var.subnet_id : element(module.site_core_info.private_subnets, 0)
   backend_address_pool_id = jsondecode(data.azurerm_key_vault_secret.backend_address_pools.value)["enterprise-base"]
 }
 
@@ -154,6 +162,8 @@ resource "azurerm_network_interface" "nics" {
   name                = "${local.vm_roles[count.index]}-nic"
   location            = var.azure_region
   resource_group_name = azurerm_resource_group.deployment_rg.name
+
+  accelerated_networking_enabled = true
 
   ip_configuration {
     name                          = "internal"
@@ -185,12 +195,16 @@ resource "azurerm_windows_virtual_machine" "vms" {
   location                     = azurerm_resource_group.deployment_rg.location
   virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
 
-  size           = var.vm_size
-  
+  size = var.vm_size
+
   admin_username = var.vm_admin_username
   admin_password = var.vm_admin_password
 
   source_image_id = data.azurerm_key_vault_secret.vm_image_ids[count.index].value
+
+  encryption_at_host_enabled = true
+  secure_boot_enabled        = true
+  vtpm_enabled               = true
 
   network_interface_ids = [
     azurerm_network_interface.nics[count.index].id
@@ -228,7 +242,7 @@ resource "azurerm_windows_virtual_machine" "vms" {
 # Copy the ingress deployment FQDN from the ingress deployment Key Vault secret
 resource "azurerm_key_vault_secret" "deployment_fqdn" {
   name         = "${var.deployment_id}-deployment-fqdn"
-  value        = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  value        = local.deployment_fqdn
   key_vault_id = module.site_core_info.vault_id
 
   tags = {
@@ -239,29 +253,7 @@ resource "azurerm_key_vault_secret" "deployment_fqdn" {
 
 resource "azurerm_key_vault_secret" "deployment_url" {
   name         = "${var.deployment_id}-deployment-url"
-  value        = "https://${nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)}/${var.portal_web_context}"
-  key_vault_id = module.site_core_info.vault_id
-
-  tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
-  }
-}
-
-resource "azurerm_key_vault_secret" "portal_web_context" {
-  name         = "${var.deployment_id}-portal-web-context"
-  value        = var.portal_web_context
-  key_vault_id = module.site_core_info.vault_id
-
-  tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
-  }
-}
-
-resource "azurerm_key_vault_secret" "server_web_context" {
-  name         = "${var.deployment_id}-server-web-context"
-  value        = var.server_web_context
+  value        = "https://${local.deployment_fqdn}/${local.portal_web_context}"
   key_vault_id = module.site_core_info.vault_id
 
   tags = {

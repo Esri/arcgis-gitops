@@ -1,6 +1,7 @@
 # Packer Template for ArcGIS Notebook Server on Linux
 
-The Packer templates builds VM images for a specific ArcGIS Notebook Server deployment.
+The Packer templates builds VM images for a specific ArcGIS Notebook Server deployment and
+publishes it to the site Image Gallery.
 
 The VM image is built from the operating system's base image specified by Key Vault secret "vm-image-${var.os}".
 
@@ -18,15 +19,18 @@ The template uses python scripts to run Azure Managed Run Command on the source 
 5. Install patches for the ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
 6. Delete temporary files and uninstall Cinc Client
 
-IDs of the images are saved in "vm-image-${var.deployment_id}-primary" 
-and "vm-image-${var.deployment_id}-node" Key Vault secrets.
+IDs of the images are saved in "${var.deployment_id}-vm-image-primary" 
+and "${var.deployment_id}-vm-image-node" Key Vault secrets.
 
 ## Requirements
+
+VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" 
+must be created in the site Image Gallery before running the template.
 
 On the machine where Packer is executed:
 
 * Python 3.9 or later must be installed
-* azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python  SDK packages must be installed 
+* azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python SDK packages must be installed
 * Path to azure/scripts directory must be added to PYTHONPATH
 * Azure CLI must be installed and configured
 * Azure credentials must be configured using "az login" CLI command
@@ -36,21 +40,24 @@ On the machine where Packer is executed:
 
 The template reads the following Key Vault secrets:
 
-| Key Vault secret name | Description |
-|-----------------------|-------------|
+| Key Vault secret name     | Description |
+|---------------------------|-------------|
 | chef-client-url-${var.os} | Chef Client URL |
-| cookbooks-url | Chef Cookbooks for ArcGIS archive URL |
-| storage-account-name | Private repository storage account name |
-| vm-identity-client-id | Managed identity client Id |
-| vm-identity-id | Managed identity resource Id |
-| vm-image-${var.os} | Source VM Image Id |
+| cookbooks-url             | Chef Cookbooks for ArcGIS archive URL |
+| image-gallery-name        | Site Image Gallery name | 
+| storage-account-name      | Private repository storage account name |
+| vm-identity-client-id     | Managed identity client Id |
+| vm-identity-id            | Managed identity resource Id |
+| vm-image-${var.os}        | Source VM Image Id |
 
 The template writes the following Key Vault secrets:
 
-| Key Vault secret name | Description |
-|-----------------------|-------------|
-| vm-image-${var.deployment_id}-primary | Built image Id for primary node |
-| vm-image-${var.deployment_id}-node | Built image Id for additional nodes |
+| Key Vault secret name                            | Description |
+|--------------------------------------------------|-------------|
+| ${var.deployment_id}-notebook-server-web-context | ArcGIS Notebook Server web context |
+| ${var.deployment_id}-os                          | Operating system ID |
+| ${var.deployment_id}-vm-image-node               | Built image Id for additional nodes |
+| ${var.deployment_id}-vm-image-primary            | Built image Id for primary node |
 
 ## Inputs
 

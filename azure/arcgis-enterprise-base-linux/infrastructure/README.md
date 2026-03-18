@@ -8,9 +8,9 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 ## Features
 
 - Launches one or two Linux VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
-- VM images are retrieved from Key Vault secrets named "vm-image-${var.deployment_id}-primary" and "vm-image-${var.deployment_id}-standby".
+- VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-standby".
   These images must be built using the Packer template for ArcGIS Enterprise on Linux.
-- Creates "A" records in the VNet's private hosted DNS zone, enabling permanent DNS names for the VMs.
+- Creates "A" records in the VNet's private DNS zone, enabling permanent DNS names for the VMs.
   VMs can be addressed as primary.<deployment_id>.<site_id>.internal and standby.<deployment_id>.<site_id>.internal.
   > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
 - Provisions an Azure Storage Account with blob containers for portal content and object store.
@@ -23,32 +23,33 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 
 ## Requirements
 
-Before running Terraform, configure Azure credentials using "az login" CLI command.
+Before running Terraform, configure Azure credentials using "az login" command.
 
 ## Key Vault Secrets
 
 ### Secrets Read by the Module
-| Secret Name                                      | Description                                      |
-|--------------------------------------------------|--------------------------------------------------|
-| ${var.ingress_deployment_id}-backend-address-pools| Application Gateway backend address pools         |
-| ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN                          |
-| storage-account-key                              | Storage account key                              |
-| storage-account-name                             | Storage account name                             |
-| subnets                                          | VNet subnet IDs                                  |
-| vm-identity-id                                   | User-assigned VM identity object ID              |
-| vm-identity-principal-id                         | User-assigned VM identity principal ID           |
-| vm-image-${var.deployment_id}-primary            | Primary VM image ID                              |
-| vm-image-${var.deployment_id}-standby            | Standby VM image ID                              |
-| vm-image-${var.deployment_id}-os                 | Operating system ID                              |
-| vnet-id                                          | VNet ID                                          |
+
+| Secret Name                                      | Description |
+|--------------------------------------------------|-------------|
+| ${var.deployment_id}-os                          | Operating system ID |
+| ${var.deployment_id}-portal-web-context          | Portal for ArcGIS web context |
+| ${var.deployment_id}-storage-account-key         | Site storage account key |
+| ${var.deployment_id}-storage-account-name        | Site storage account name |
+| ${var.deployment_id}-vm-image-primary            | Primary VM image ID |
+| ${var.deployment_id}-vm-image-standby            | Standby VM image ID |
+| ${var.ingress_deployment_id}-backend-address-pools | Application Gateway backend address pools |
+| ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN |
+| subnets                                          | VNet subnet IDs |
+| vm-identity-id                                   | User-assigned VM identity resource ID |
+| vm-identity-principal-id                         | User-assigned VM identity principal ID |
+| vnet-id                                          | VNet ID |
 
 ### Secrets Written by the Module
-| Secret Name                        | Description                        |
-|------------------------------------|------------------------------------|
-| ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
-| ${var.deployment_id}-deployment-url | Portal for ArcGIS URL of the deployment |
-| ${var.deployment_id}-portal-web-context | Portal for ArcGIS web context |
-| ${var.deployment_id}-server-web-context | ArcGIS Server web context |
+
+| Secret Name                               | Description |
+|-------------------------------------------|-------------|
+| ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
+| ${var.deployment_id}-deployment-url       | Portal for ArcGIS URL of the deployment |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
 
 ## Providers
@@ -76,8 +77,6 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.portal_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.server_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_linux_virtual_machine.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
 | [azurerm_linux_virtual_machine.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
@@ -113,6 +112,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | [azurerm_cosmosdb_sql_role_definition.data_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_sql_role_definition) | data source |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.portal_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.primary_vm_image_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.standby_vm_image_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -133,8 +133,6 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | ingress_deployment_id | ArcGIS Enterprise ingress deployment Id | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
-| portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
-| server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 | storage_replication_type | The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage). | `string` | `"ZRS"` | no |
 | subnet_id | VMs subnet ID (by default, the first private subnet is used) | `string` | `null` | no |

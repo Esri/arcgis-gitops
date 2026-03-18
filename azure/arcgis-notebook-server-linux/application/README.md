@@ -44,19 +44,19 @@ My Esri user name and password must be specified either using environment variab
 
 The module reads the following Key Vault secrets:
 
-| Secret Name | Description |
-|-------------|-------------|
+| Secret Name                                      | Description |
+|--------------------------------------------------|-------------|
 | ${var.deployment_id}-deployment-fqdn             | Fully qualified domain name of the deployment |
 | ${var.deployment_id}-notebook-server-web-context | ArcGIS Notebook Server web context |
+| ${var.deployment_id}-os                          | Operating system ID |
 | ${var.deployment_id}-portal-url                  | Portal for ArcGIS URL |
 | ${var.deployment_id}-storage-account-name        | Config store storage account name |
 | chef-client-url-${os}                            | Chef Client URL      |
 | cookbooks-url                                    | Chef cookbooks URL |
-| storage-account-key                              | Storage account key |
-| storage-account-name                             | Storage account name |
+| storage-account-key                              | Site storage account key |
+| storage-account-name                             | Site storage account name |
 | subnets                                          | VNet subnet IDs |
 | vm-identity-client-id                            | VM identity client ID |
-| vm-image-${var.deployment_id}-os                 | Operating system ID |
 | vnet-id                                          | VNet ID |
 
 > The module also writes multiple “attributes” Key Vault secrets used to run Chef.

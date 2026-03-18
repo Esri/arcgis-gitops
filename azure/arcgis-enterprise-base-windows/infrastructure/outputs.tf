@@ -12,5 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# The module does not have any outputs.
+output "deployment_url" {
+  description = "Portal for ArcGIS URL"
+  value       = "https://${local.deployment_fqdn}/${local.portal_web_context}"
+}
+
 

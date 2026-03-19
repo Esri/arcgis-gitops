@@ -44,16 +44,18 @@ On the machine where Terraform is executed:
 
 The module reads the following Key Vault secrets:
 
-| Key Vault secret name | Description |
-|--------------------|-------------|
-| subnets | VNet subnets IDs |
-| vnet-id | VNet ID |
-| storage-account-key | Site's storage account key |
-| storage-account-name | Site's storage account name |
-| ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
+| Key Vault secret name                     | Description |
+|-------------------------------------------|-------------|
+| subnets                                   | VNet subnets IDs |
+| vnet-id                                   | VNet ID |
+| storage-account-key                       | Site's storage account key |
+| storage-account-name                      | Site's storage account name |
+| vm-identity-client-id                     | VM identity client ID |
+| ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
+| ${var.deployment_id}-portal-web-context   | Portal for ArcGIS web context |
+| ${var.deployment_id}-server-web-context   | ArcGIS Server web context |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
-| vm-identity-client-id | VM identity client ID |
-| vm-image-${var.deployment_id}-os | Operating system ID |
+| ${var.deployment_id}-os                   | Operating system ID |
 
 ## Providers
 

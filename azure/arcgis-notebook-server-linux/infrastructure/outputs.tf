@@ -14,5 +14,5 @@
 
 output "deployment_url" {
   description = "ArcGIS Notebook Server URL"
-  value       = "https://${local.deployment_fqdn}/${var.notebook_server_web_context}"
+  value       = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
 }

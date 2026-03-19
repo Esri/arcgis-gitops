@@ -8,7 +8,7 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 ## Features
 
 - Launches one or two VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
-- VM images are retrieved from Key Vault secrets named "vm-image-${var.deployment_id}-${vm_role}".
+- VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-${vm_role}".
   These images must be built using the Packer template for ArcGIS Enterprise on Windows.
 - Creates "A" records in the VNet's private hosted DNS zone, enabling permanent DNS names for the VMs.
   VMs can be addressed as primary.<deployment_id>.<site_id>.internal and standby.<deployment_id>.<site_id>.internal.
@@ -27,26 +27,27 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 ## Key Vault Secrets
 
 ### Secrets Read by the Module
+
 | Secret Name                                      | Description                                      |
 |--------------------------------------------------|--------------------------------------------------|
+| ${var.deployment_id}-portal-web-context          | Portal for ArcGIS web context |
+| ${var.deployment_id}-vm-image-primary            | Primary VM image ID                         |
+| ${var.deployment_id}-vm-image-standby            | Standby VM image ID                         |
 | ${var.ingress_deployment_id}-backend-address-pools| Application Gateway backend address pools         |
 | ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN                          |
 | storage-account-key                              | Storage account key                              |
 | storage-account-name                             | Storage account name                             |
 | subnets                                          | VNet subnet IDs                                  |
-| vm-identity-id                                   | User-assigned VM identity object ID              |
+| vm-identity-id                                   | User-assigned VM identity resource ID            |
 | vm-identity-principal-id                         | User-assigned VM identity principal ID           |
-| vm-image-${var.deployment_id}-primary            | Primary VM image ID                         |
-| vm-image-${var.deployment_id}-standby            | Standby VM image ID                         |
 | vnet-id                                          | VNet ID                                          |
 
 ### Secrets Written by the Module
+
 | Secret Name                        | Description                        |
 |------------------------------------|------------------------------------|
 | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
 | ${var.deployment_id}-deployment-url | Portal for ArcGIS URL of the deployment |
-| ${var.deployment_id}-portal-web-context | Portal for ArcGIS web context |
-| ${var.deployment_id}-server-web-context | ArcGIS Server web context |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
 
 ## Providers
@@ -72,8 +73,6 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.portal_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [azurerm_key_vault_secret.server_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_network_interface.nics](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
 | [azurerm_network_interface_application_gateway_backend_address_pool_association.targets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface_application_gateway_backend_address_pool_association) | resource |
@@ -102,6 +101,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | [azurerm_cosmosdb_sql_role_definition.data_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_sql_role_definition) | data source |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.portal_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_principal_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_image_ids](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -118,8 +118,6 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | ingress_deployment_id | ArcGIS Enterprise ingress deployment Id | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | os_disk_size | OS disk size in GB | `number` | `1024` | no |
-| portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
-| server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 | storage_account_replication_type | Deployment storage account replication type | `string` | `"ZRS"` | no |
 | storage_account_tier | Deployment storage account tier | `string` | `"Premium"` | no |
@@ -127,4 +125,10 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | vm_admin_password | VM administrator password | `string` | n/a | yes |
 | vm_admin_username | VM administrator username | `string` | `"vmadmin"` | no |
 | vm_size | Azure VM size | `string` | `"Standard_D8s_v5"` | no |
+
+## Outputs
+
+| Name | Description |
+|------|-------------|
+| deployment_url | Portal for ArcGIS URL |
 <!-- END_TF_DOCS -->

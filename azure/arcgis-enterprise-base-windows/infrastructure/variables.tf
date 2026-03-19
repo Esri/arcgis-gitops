@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -60,18 +60,6 @@ variable "os_disk_size" {
     condition     = var.os_disk_size >= 100   && var.os_disk_size <= 4095
     error_message = "The os_disk_size value must be between 100 and 4095."
   }
-}
-
-variable "portal_web_context" {
-  description = "Portal for ArcGIS web context"
-  type        = string
-  default     = "portal"
-}
-
-variable "server_web_context" {
-  description = "ArcGIS Server web context"
-  type        = string
-  default     = "server"
 }
 
 variable "site_id" {

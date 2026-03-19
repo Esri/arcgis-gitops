@@ -35,9 +35,15 @@ sudo growpart /dev/sda 4
 echo "Resizing LVM Physical Volume..."
 sudo pvresize /dev/sda4
 echo "Extending Logical Volume..."
+
+# Extend the /usr logical volume first 
+sudo lvextend -L +40G /dev/mapper/rootvg-usrlv
+sudo xfs_growfs /usr
+
+# Then extend the root logical volume with the remaining free space
 sudo lvextend -l +100%FREE /dev/mapper/rootvg-rootlv
-echo "Expanding XFS Filesystem..."
 sudo xfs_growfs /
+
 echo "Final Disk Space:"
 df -h /
 

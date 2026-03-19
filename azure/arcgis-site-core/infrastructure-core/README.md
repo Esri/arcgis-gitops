@@ -1,13 +1,13 @@
 <!-- BEGIN_TF_DOCS -->
 # Terraform module infrastructure-core
 
-Terraform module creates networking and storage Azure resources shared across
+The Terraform module creates networking and storage Azure resources shared across
 multiple deployments of an ArcGIS Enterprise site.
 
 ![Core Infrastructure Resources](infrastructure-core.png "Core Infrastructure Resources")
 
-The module creates a virtual network with app gateway, private and internal subnets.
-The app gateway and private subnets are routed to a NAT Gateway to allow outbound access to the Internet.
+The module creates a virtual network with Application Gateway, private and internal subnets.
+The Application Gateway and private subnets are routed to a NAT Gateway to allow outbound access to the Internet.
 The internal subnets allow access only to specific service endpoints.
 For private and internal subnets, the module creates network security groups with default rules.
 The module also creates private DNS zones and links them to the virtual network.
@@ -19,25 +19,28 @@ AzureBastionSubnet subnet to allow secure RDP/SSH connections to virtual machine
 The module creates a storage account for the site with blob containers
 for repository, logs, and backups.
 
+The module creates a compute gallery for the site images.
+
 The module also creates an Azure Monitor action group for site alerts and
 subscribes the site administrator email to the action group's notifications.
 
 Attributes of the resources are stored as secrets in the Azure Key Vault created by the module.
 
-| Key Vault secret name | Description |
-| --- | --- |
-| vnet-id | ArcGIS Enterprise site VNet ID |
-| app-gateway-subnet-N | ID of Application Gateway subnet N |
-| internal-subnet-N | ID of internal subnet N |
-| private-subnet-N | ID of private subnet N |
-| storage-account-name | Storage account name |
+| Key Vault secret name       | Description |
+| --------------------------- | ----------- |
+| vnet-id                     | ArcGIS Enterprise site VNet ID |
+| app-gateway-subnet-N        | ID of Application Gateway subnet N |
+| image-gallery-name          | Name of the image gallery created for the site |
+| internal-subnet-N           | ID of internal subnet N |
+| private-subnet-N            | ID of private subnet N |
+| storage-account-name        | Storage account name |
 | site-alerts-action-group-id | Monitor action group ID for site alerts |
 
 ## Requirements
 
  On the machine where Terraform is executed:
 
-* Azure subscription ID must be specified by ARM_SUBSCRIPTION_ID environment variable.
+* Azure subscription ID must be specified in the ARM_SUBSCRIPTION_ID environment variable.
 * Azure service principal credentials must be configured with ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
 
 ## Providers
@@ -56,6 +59,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | [azurerm_key_vault.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault) | resource |
 | [azurerm_key_vault_secret.images](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.site_alerts_action_group_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.site_ig](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.subnets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
@@ -89,6 +93,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | [azurerm_role_assignment.key_vault_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_role_assignment.storage_account_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_role_assignment.storage_account_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
+| [azurerm_shared_image_gallery.site_ig](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/shared_image_gallery) | resource |
 | [azurerm_storage_account.site_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
 | [azurerm_storage_container.content_backups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) | resource |
 | [azurerm_storage_container.datastore_backups](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) | resource |
@@ -122,7 +127,7 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | bastion_enabled | Enable Azure Bastion host | `bool` | `true` | no |
 | bastion_source_cidr_blocks | CIDR blocks of bastion source traffic | `list(string)` | ```[ "0.0.0.0/0" ]``` | no |
 | bastion_subnet_cidr_block | CIDR block of bastion subnet | `string` | `"10.1.0.0/24"` | no |
-| images | Azure VM images | `map(any)` | ```{ "rhel9": { "offer": "RHEL", "publisher": "RedHat", "sku": "9_5", "version": null }, "ubuntu24": { "offer": "ubuntu-24_04-lts", "publisher": "Canonical", "sku": "server", "version": null }, "windows2022": { "offer": "WindowsServer", "publisher": "MicrosoftWindowsServer", "sku": "2022-datacenter-g2", "version": null }, "windows2025": { "offer": "WindowsServer", "publisher": "MicrosoftWindowsServer", "sku": "2025-datacenter-azure-edition", "version": null } }``` | no |
+| images | Azure VM images | `map(any)` | ```{ "rhel9": { "offer": "RHEL", "publisher": "RedHat", "sku": "95_gen2", "version": null }, "ubuntu24": { "offer": "ubuntu-24_04-lts", "publisher": "Canonical", "sku": "server", "version": null }, "windows2022": { "offer": "WindowsServer", "publisher": "MicrosoftWindowsServer", "sku": "2022-datacenter-g2", "version": null }, "windows2025": { "offer": "WindowsServer", "publisher": "MicrosoftWindowsServer", "sku": "2025-datacenter-azure-edition", "version": null } }``` | no |
 | internal_subnets_cidr_blocks | CIDR blocks of internal subnets | `list(string)` | ```[ "10.2.0.0/16" ]``` | no |
 | private_dns_zones | List of private DNS zones to link to the site virtual network for name resolution of private endpoints | `list(string)` | ```[ "privatelink.blob.core.windows.net", "privatelink.documents.azure.com", "privatelink.file.core.windows.net", "privatelink.queue.core.windows.net", "privatelink.servicebus.windows.net", "privatelink.table.core.windows.net" ]``` | no |
 | private_subnets_cidr_blocks | CIDR blocks of private subnets | `list(string)` | ```[ "10.3.0.0/16" ]``` | no |

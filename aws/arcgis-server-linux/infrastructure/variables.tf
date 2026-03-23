@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -130,7 +130,7 @@ variable "subnet_ids" {
 }
 
 variable "use_webadaptor" {
-  description = "If true, port 443 is used as the instance HTTPS port, otherwise 6443 bis used."
+  description = "If true, port 443 is used as the instance HTTPS port, otherwise 6443 is used."
   type        = bool
   default     = false
 }

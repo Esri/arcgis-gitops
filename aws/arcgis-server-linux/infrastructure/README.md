@@ -54,7 +54,6 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn | ALB ARN |
 | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id | ALB security group ID |
 | /arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
@@ -64,6 +63,7 @@ The module reads the following SSM parameters:
 | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
 | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -151,7 +151,7 @@ The module writes the following SSM parameters:
 | root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |
-| use_webadaptor | If true, port 443 is used as the instance HTTPS port, otherwise 6443 bis used. | `bool` | `false` | no |
+| use_webadaptor | If true, port 443 is used as the instance HTTPS port, otherwise 6443 is used. | `bool` | `false` | no |
 
 ## Outputs
 

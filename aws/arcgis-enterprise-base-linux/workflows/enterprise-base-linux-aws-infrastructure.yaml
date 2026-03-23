@@ -65,11 +65,11 @@ jobs:
     - name: Terraform Apply
       id: apply
       if: github.event.inputs.terraform_command != 'plan'
-      run: terraform apply -var-file $CONFIG_FILE -auto-approve
+      run: terraform apply -var-file $CONFIG_FILE -auto-approve -input=false
     - name: Terraform Plan
       id: plan
       if: github.event.inputs.terraform_command == 'plan'
-      run: terraform plan -var-file $CONFIG_FILE 
+      run: terraform plan -var-file $CONFIG_FILE -input=false
     - name: Terraform Output
       id: output  
       run: echo deployment_url=$(terraform output deployment_url) >> $GITHUB_OUTPUT

@@ -58,8 +58,6 @@ Instructions:
 2. Commit the changes to a Git branch and push the branch to GitHub.
 3. Run the enterprise-base-windows-aws-image workflow using the branch.
 
-> In the configuration files, "os" and "arcgis_version" property values for the same deployment must match across all the configuration files of the deployment.
-
 ### 3. Provision AWS Resources
 
 GitHub Actions workflow **enterprise-base-windows-aws-infrastructure** creates AWS resources for base ArcGIS Enterprise deployment.

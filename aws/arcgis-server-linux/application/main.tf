@@ -1,7 +1,7 @@
 /**
  * # Application Terraform Module for ArcGIS Server on Linux
  *
- * The Terraform module configures or upgrades applications of ArcGIS Server deployment on the Linux platforms.
+ * The Terraform module configures or upgrades applications for an ArcGIS Server deployment on the Linux platforms.
  *
  * ![ArcGIS Server on Linux](arcgis-server-linux-application.png "ArcGIS Server on Linux")
  *
@@ -37,8 +37,8 @@
  * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
  * * Path to aws/scripts directory must be added to PYTHONPATH
  * * Ansible 2.16 or later must be installed
- * * arcgis.common, arcgis.server, and arcgis.portal Ansible collections must be installed
- * * The working directury must be set to the arcgis-server-linux/application module path
+ * * arcgis.common, arcgis.server, arcgis.portal, and arcgis.webadaptor Ansible collections must be installed
+ * * The working directory must be set to the arcgis-server-linux/application module path
  * * AWS credentials must be configured
  *
  * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
@@ -53,8 +53,8 @@
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified) | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -113,7 +113,7 @@ data "aws_ssm_parameter" "deployment_fqdn" {
 }
 
 data "aws_ssm_parameter" "server_web_context" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context"
 }
 
 data "aws_ssm_parameter" "portal_url" {

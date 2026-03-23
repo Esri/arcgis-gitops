@@ -13,26 +13,31 @@
 # limitations under the License.
 
 data "aws_ssm_parameter" "alb_deployment_fqdn" {
-  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn"
+  name = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn"
 }
 
 data "aws_ssm_parameter" "alb_security_group_id" {
-  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id"
+  name = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id"
 }
 
 data "aws_ssm_parameter" "alb_arn" {
-  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn"
+  name = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn"
+}
+
+data "aws_ssm_parameter" "notebook_server_web_context" {
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context"
 }
 
 data "aws_lb" "alb" {
-  arn   = data.aws_ssm_parameter.alb_arn.value
+  arn = data.aws_ssm_parameter.alb_arn.value
 }
 
 locals {
-  alb_security_group_id = nonsensitive(data.aws_ssm_parameter.alb_security_group_id.value)
-  alb_arn               = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
-  alb_dns_name          = nonsensitive(data.aws_lb.alb.dns_name)
-  deployment_fqdn       = nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)
+  alb_security_group_id       = nonsensitive(data.aws_ssm_parameter.alb_security_group_id.value)
+  alb_arn                     = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
+  alb_dns_name                = nonsensitive(data.aws_lb.alb.dns_name)
+  deployment_fqdn             = nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)
+  notebook_server_web_context = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
 }
 
 # Create Application Load Balancer target group for HTTPS port 443, attach 
@@ -40,31 +45,14 @@ locals {
 # Configure the target group to forward requests to the HTTP web context.
 module "notebook_server_https_alb_target" {
   source            = "../../modules/alb_target_group"
-  name              = substr(var.notebook_server_web_context, 0, 6)
+  name              = substr(local.notebook_server_web_context, 0, 6)
   vpc_id            = module.site_core_info.vpc_id
   alb_arn           = local.alb_arn
   protocol          = "HTTPS"
   alb_port          = 443
   instance_port     = 443
-  health_check_path = "/${var.notebook_server_web_context}/rest/info/healthcheck"
-  path_patterns     = ["/${var.notebook_server_web_context}", "/${var.notebook_server_web_context}/*"]
-  priority          = 120
-  target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.nodes : n.id])
-}
-
-# Create Application Load Balancer target group for ArcGIS Notebook Server HTTPS port 11443, attach 
-# primary and node instances to it, and add the target group to the load balancer. 
-# Configure the target group to forward requests to /arcgis HTTP contexts.
-module "private_server_https_alb_target" {
-  source            = "../../modules/alb_target_group"
-  name              = "arcgis"
-  vpc_id            = module.site_core_info.vpc_id
-  alb_arn           = local.alb_arn
-  protocol          = "HTTPS"
-  alb_port          = 11443
-  instance_port     = 11443
-  health_check_path = "/arcgis/rest/info/healthcheck"
-  path_patterns     = ["/arcgis", "/arcgis/*"]
+  health_check_path = "/${local.notebook_server_web_context}/rest/info/healthcheck"
+  web_context       = local.notebook_server_web_context
   priority          = 120
   target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.nodes : n.id])
 }

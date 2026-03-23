@@ -48,9 +48,10 @@
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system of the deployment |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL | 
- * | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
+ * | /arcgis/${var.site_id}/chef-client-url/${os} | Chef Client URL for the operating system |
  * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
@@ -108,16 +109,20 @@ provider "aws" {
   }
 }
 
+data "aws_ssm_parameter" "os" {
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/os"
+}
+
+data "aws_ssm_parameter" "notebook_server_web_context" {
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context"
+}
+
 data "aws_ssm_parameter" "deployment_fqdn" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
 }
 
-data "aws_ssm_parameter" "notebook_server_web_context" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context"
-}
-
 data "aws_ssm_parameter" "portal_url" {
-  name  = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
+  name = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
 }
 
 # Retrieve attributes of the primary EC2 instance
@@ -181,14 +186,15 @@ locals {
   authorization_files_s3_prefix = "software/authorization/${var.arcgis_version}"
   certificates_s3_prefix        = "software/certificates"
 
-  mount_point             = "/mnt/efs"
-  deployment_fqdn         = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  mount_point                 = "/mnt/efs"
+  deployment_fqdn             = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  os                          = nonsensitive(data.aws_ssm_parameter.os.value)
   notebook_server_web_context = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
-  portal_url              = nonsensitive(data.aws_ssm_parameter.portal_url.value)
-  primary_hostname        = data.aws_instance.primary.private_ip
-  software_dir            = "/opt/software/setups/*"
-  authorization_files_dir = "/opt/software/authorization"
-  certificates_dir        = "/opt/software/certificates"
+  portal_url                  = nonsensitive(data.aws_ssm_parameter.portal_url.value)
+  primary_hostname            = data.aws_instance.primary.private_ip
+  software_dir                = "/opt/software/setups/*"
+  authorization_files_dir     = "/opt/software/authorization"
+  certificates_dir            = "/opt/software/certificates"
 
   keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}/${basename(var.keystore_file_path)}" : ""
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
@@ -212,7 +218,7 @@ module "s3_copy_files" {
 # Install Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment
 module "bootstrap_deployment" {
   source           = "../../modules/bootstrap"
-  os               = var.os
+  os               = local.os
   site_id          = var.site_id
   deployment_id    = var.deployment_id
   machine_roles    = ["primary", "node"]
@@ -557,7 +563,7 @@ module "arcgis_notebook_server_primary" {
 
 # Configure ArcGIS Notebook Server on node EC2 instances if any
 module "arcgis_notebook_server_node" {
-  count = length(data.aws_instances.nodes.ids) > 0 ? 1 : 0
+  count          = length(data.aws_instances.nodes.ids) > 0 ? 1 : 0
   source         = "../../modules/run_chef"
   parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/node"
   site_id        = var.site_id
@@ -627,7 +633,7 @@ module "arcgis_notebook_server_federation" {
       }
       notebook_server = {
         web_context_url = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
-        private_url     = "https://${local.deployment_fqdn}:11443/arcgis"
+        private_url     = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
         admin_username  = var.admin_username
         admin_password  = var.admin_password
       }

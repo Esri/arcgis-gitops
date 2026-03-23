@@ -89,6 +89,11 @@ variable "arcgis_version" {
 variable "authorization_file_path" {
   description = "ArcGIS Enterprise on Kubernetes authorization file path"
   type        = string
+
+  validation {
+    condition     = fileexists(var.authorization_file_path)
+    error_message = "The authorization_file_path value must be a valid file path."
+  }  
 }
 
 variable "aws_region" {

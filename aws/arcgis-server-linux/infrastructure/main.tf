@@ -5,7 +5,7 @@
  *
  * ![Infrastructure for ArcGIS Server on Linux](arcgis-server-linux-infrastructure.png "Infrastructure for ArcGIS Server on Linux")  
  *
- * The module launches one primary SSM-managed EC2 instance and node_count node instances 
+ * The module launches one primary SSM-managed EC2 instance and node_count additional instances 
  * in the private VPC subnets or subnets specified by the subnet_ids input variable.
  * The instances are launched from images retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
  * The images must be created by the Packer Template for ArcGIS Server on Linux AMI. 
@@ -57,12 +57,13 @@
  * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn | ALB ARN |
  * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id | ALB security group ID |
  * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
- * | /arcgis/${var.site_id}/${var.portal_deployment_id}/deployment-url | Deployment ID of Portal for ArcGIS (if portal_deployment_id is set) |
+ * | /arcgis/${var.site_id}/${var.portal_deployment_id}/deployment-url | Deployment URL of Portal for ArcGIS (if portal_deployment_id is set) |
  * | /arcgis/${var.site_id}/backup/vault-name | Name of the AWS Backup vault |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -74,13 +75,12 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/backup-plan-id | Backup plan ID for the deployment | 
+ * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment | 
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
  * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
  * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
- * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
  */
 
 # Copyright 2024-2026 Esri
@@ -139,6 +139,10 @@ data "aws_ssm_parameter" "portal_deployment_url" {
   name = "/arcgis/${var.site_id}/${var.portal_deployment_id}/deployment-url"
 }
 
+data "aws_ssm_parameter" "server_web_context" {
+  name  = "/arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context"
+}
+
 data "aws_ami" "ami" {
   filter {
     name   = "image-id"
@@ -172,6 +176,7 @@ locals {
   alb_arn               = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
   alb_dns_name          = data.aws_lb.alb.dns_name
   deployment_fqdn       = nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)
+  server_web_context    = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
 }
 
 module "site_core_info" {
@@ -320,14 +325,14 @@ resource "aws_instance" "nodes" {
 # Configure the target group to forward requests to the HTTP web context.
 module "server_https_alb_target" {
   source            = "../../modules/alb_target_group"
-  name              = substr(var.server_web_context, 0, 6)
+  name              = substr(local.server_web_context, 0, 6)
   vpc_id            = module.site_core_info.vpc_id
   alb_arn           = local.alb_arn
   protocol          = "HTTPS"
   alb_port          = 443
   instance_port     = var.use_webadaptor ? 443 : 6443
-  health_check_path = "/${var.server_web_context}/rest/info/healthcheck"
-  path_patterns     = ["/${var.server_web_context}", "/${var.server_web_context}/*"]
+  health_check_path = "/${local.server_web_context}/rest/info/healthcheck"
+  web_context       = local.server_web_context
   priority          = 110
   target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.nodes : n.id])
 }
@@ -425,17 +430,10 @@ resource "aws_ssm_parameter" "deployment_fqdn" {
   description = "Fully qualified domain name of the deployment"
 }
 
-resource "aws_ssm_parameter" "server_web_context" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
-  type        = "String"
-  value       = var.server_web_context
-  description = "ArcGIS Server web context"
-}
-
 resource "aws_ssm_parameter" "deployment_url" {
   name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-url"
   type        = "String"
-  value       = "https://${local.deployment_fqdn}/${var.server_web_context}"
+  value       = "https://${local.deployment_fqdn}/${local.server_web_context}"
   description = "URL of the deployment"
 }
 

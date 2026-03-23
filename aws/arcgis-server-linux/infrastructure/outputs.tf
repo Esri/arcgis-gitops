@@ -19,5 +19,5 @@ output "security_group_id" {
 
 output "deployment_url" {
   description = "ArcGIS Server URL"
-  value       = "https://${local.deployment_fqdn}/${var.server_web_context}"
+  value       = "https://${local.deployment_fqdn}/${local.server_web_context}"
 }

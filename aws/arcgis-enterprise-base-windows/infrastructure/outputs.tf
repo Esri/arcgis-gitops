@@ -19,5 +19,5 @@ output "security_group_id" {
 
 output "deployment_url" {
   description = "Portal for ArcGIS URL of the deployment"
-  value       = "https://${nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)}/${var.portal_web_context}"
+  value       = "https://${nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)}/${local.portal_web_context}"
 }

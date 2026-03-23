@@ -1,7 +1,7 @@
 /**
  * # Packer Template for ArcGIS Server AMI
  * 
- * The Packer templates builds EC2 AMI for a specific ArcGIS Server deployment.
+ * The Packer template builds EC2 AMI for a specific ArcGIS Server deployment.
  * 
  * The AMI is built from the operating system's base image specified by SSM parameter "/arcgis/${var.site_id}/images/${var.os}".
  * 
@@ -12,7 +12,7 @@
  * to the private repository S3 bucket. The files to be copied are specified in 
  * ../manifests/arcgis-server-s3files-${var.arcgis_version}.json index file.
  * 
- * Then the template uses python scripts to run SSM commands on the source EC2 instance to:
+ * Then the template uses Python scripts to run SSM commands on the source EC2 instance to:
  * 
  * 1. Install CloudWatch Agent
  * 2. Download setups from the private repository S3 bucket.
@@ -32,12 +32,15 @@
  * ## Requirements
  * 
  * On the machine where Packer is executed:
- * 
+ *
  * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
  * * Path to aws/scripts directory must be added to PYTHONPATH
- * * AWS credentials must be configured.
- * * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
- * 
+ * * Ansible 2.16 or later must be installed
+ * * arcgis.common, arcgis.server, and arcgis.webadaptor Ansible collections must be installed
+ * * AWS CLI must be installed and configured
+ * * AWS credentials must be configured
+ * * My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
+ *
  * ## SSM Parameters
  * 
  * The template uses the following SSM parameters:
@@ -45,14 +48,23 @@
  * | SSM parameter name | Description |
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name|
- * | /arcgis/${var.site_id}/images/${var.os} | Source AMI Id|
+ * | /arcgis/${var.site_id}/images/${var.os} | Source AMI ID|
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
  * | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
  * | /arcgis/${var.site_id}/s3/repository | Private repository S3 bucket |
- * | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
+ * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+ *
+ * The template writes the following SSM parameters:
+ *
+ * | SSM parameter name | Description |
+ * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node AMI ID |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context name |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system identifier |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary AMI ID |
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -264,7 +276,7 @@ build {
     ]
   }
 
-  # Download setups from private S3 repository and install ArcGIS Web Aaptor
+  # Download setups from private S3 repository and install ArcGIS Web Adaptor
   provisioner "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
@@ -310,5 +322,14 @@ build {
     }
 
     command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/node -f packer-manifest.json -r ${build.PackerRunUUID}"
+  }
+
+  # Save os and server_web_context in SSM parameters for later use in deployment.
+  post-processor "shell-local" {
+    command = "aws ssm put-parameter --name /arcgis/${var.site_id}/images/${var.deployment_id}/os --value ${var.os} --type String --region ${var.aws_region}"
+  }
+
+  post-processor "shell-local" {
+    command = "aws ssm put-parameter --name /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context --value ${var.server_web_context} --type String --region ${var.aws_region}"
   }
 }

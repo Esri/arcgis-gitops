@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,6 +45,8 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Link Config Directory
+        run: ln -s ${{ github.workspace }}/config ~/config
       - name: Install boto3
         id: install-boto3
         run: pip install boto3
@@ -58,7 +60,7 @@ jobs:
           SITE_ID=$(jq -r '.site_id' $APPLICATION_CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $APPLICATION_CONFIG_FILE)
           terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/application.tfstate" -backend-config="region=$TF_VAR_aws_region"
-          terraform destroy -var-file $APPLICATION_CONFIG_FILE -auto-approve
+          terraform destroy -var-file $APPLICATION_CONFIG_FILE -auto-approve -input=false
       - name: Destroy Infrastructure
         id: infrastructure-destroy
         working-directory: aws/arcgis-enterprise-base-linux/infrastructure
@@ -66,7 +68,7 @@ jobs:
           SITE_ID=$(jq -r '.site_id' $INFRASTRUCTURE_CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $INFRASTRUCTURE_CONFIG_FILE)
           terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$TF_VAR_aws_region" 
-          terraform destroy -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve
+          terraform destroy -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve -input=false
       - name: Delete AMIs
         id: delete-amis
         run: |

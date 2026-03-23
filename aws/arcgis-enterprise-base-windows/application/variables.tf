@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,17 +15,6 @@
 variable "aws_region" {
   description = "AWS region Id"
   type        = string
-}
-
-variable "os" {
-  description = "Operating system id (windows2022|windows2025)"
-  type        = string
-  default     = "windows2025"
-
-  validation {
-    condition     = contains(["windows2022", "windows2025"], var.os)
-    error_message = "Valid values for os variable are windows2022 and windows2025."
-  }
 }
 
 variable "site_id" {
@@ -82,6 +71,11 @@ variable "run_as_password" {
 variable "server_authorization_file_path" {
   description = "Local path of ArcGIS Server authorization file"
   type        = string
+
+  validation {
+    condition     = fileexists(var.server_authorization_file_path)
+    error_message = "The server_authorization_file_path value must be a valid file path."
+  }
 }
 
 variable "server_authorization_options" {
@@ -94,6 +88,11 @@ variable "server_authorization_options" {
 variable "portal_authorization_file_path" {
   description = "Local path of Portal for ArcGIS authorization file"
   type        = string
+
+  validation {
+    condition     = fileexists(var.portal_authorization_file_path)
+    error_message = "The portal_authorization_file_path value must be a valid file path."
+  }
 }
 
 variable "portal_user_license_type_id" {
@@ -106,6 +105,11 @@ variable "keystore_file_path" {
   description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.keystore_file_path == null || try(fileexists(var.keystore_file_path), false)
+    error_message = "The keystore_file_path value must be a valid file path."
+  }
 }
 
 variable "keystore_file_password" {
@@ -119,6 +123,11 @@ variable "root_cert_file_path" {
   description = "Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.root_cert_file_path == null || try(fileexists(var.root_cert_file_path), false)
+    error_message = "The root_cert_file_path value must be a valid file path."
+  }    
 }
 
 variable "admin_username" {

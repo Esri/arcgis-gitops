@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -13,7 +13,7 @@
 # limitations under the License.
  
 variable "aws_region" {
-  description = "AWS region Id"
+  description = "AWS region ID"
   type        = string
   default     = env("AWS_DEFAULT_REGION")
 }
@@ -36,7 +36,7 @@ variable "arcgis_version" {
 }
 
 variable "deployment_id" {
-  description = "Deployment Id"
+  description = "Deployment ID"
   type        = string
   default     = "server-linux"
 
@@ -53,7 +53,7 @@ variable "instance_type" {
 }
 
 variable "os" {
-  description = "Operating system Id (rhel9)"
+  description = "Operating system ID (rhel9)"
   type        = string
   default     = "rhel9"
 
@@ -81,7 +81,7 @@ variable "run_as_user" {
 }
 
 variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
+  description = "ArcGIS Enterprise site ID"
   type        = string
   default     = "arcgis"
 

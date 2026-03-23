@@ -101,6 +101,11 @@ variable "keystore_file_path" {
   description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.keystore_file_path == null || try(fileexists(var.keystore_file_path), false)
+    error_message = "The keystore_file_path value must be a valid file path."
+  }  
 }
 
 variable "license_level" {
@@ -127,6 +132,11 @@ variable "log_level" {
 variable "notebook_server_authorization_file_path" {
   description = "Local path of ArcGIS Notebook Server authorization file"
   type        = string
+
+  validation {
+    condition     = fileexists(var.notebook_server_authorization_file_path)
+    error_message = "The notebook_server_authorization_file_path value must be a valid file path."
+  }
 }
 
 variable "notebook_server_authorization_options" {
@@ -134,17 +144,6 @@ variable "notebook_server_authorization_options" {
   type        = string
   sensitive   = true
   default     = ""
-}
-
-variable "os" {
-  description = "Operating system id (rhel9|ubuntu22|ubuntu24)"
-  type        = string
-  default     = "rhel9"
-
-  validation {
-    condition     = contains(["rhel9", "ubuntu22", "ubuntu24"], var.os)
-    error_message = "Valid values for os variable are rhel9, ubuntu22, and ubuntu24."
-  }
 }
 
 variable "portal_org_id" {
@@ -168,6 +167,11 @@ variable "root_cert_file_path" {
   description = "Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.root_cert_file_path == null || try(fileexists(var.root_cert_file_path), false)
+    error_message = "The root_cert_file_path value must be a valid file path."
+  }  
 }
 
 variable "run_as_user" {

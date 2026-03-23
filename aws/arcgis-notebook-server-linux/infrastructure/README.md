@@ -60,6 +60,7 @@ The module reads the following SSM parameters:
 | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
 | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
 | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -73,7 +74,6 @@ The module writes the following SSM parameters:
 |--------------------|-------------|
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | ArcGIS Notebook Server URL |
-| /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
 | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
 | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
 
@@ -91,7 +91,6 @@ The module writes the following SSM parameters:
 | dashboard | ../../modules/dashboard | n/a |
 | efs_mount | ../../modules/efs_mount | n/a |
 | notebook_server_https_alb_target | ../../modules/alb_target_group | n/a |
-| private_server_https_alb_target | ../../modules/alb_target_group | n/a |
 | security_group | ../../modules/security_group | n/a |
 | site_core_info | ../../modules/site_core_info | n/a |
 
@@ -111,7 +110,6 @@ The module writes the following SSM parameters:
 | [aws_ssm_parameter.backup_plan_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.deployment_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
-| [aws_ssm_parameter.notebook_server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
@@ -122,6 +120,7 @@ The module writes the following SSM parameters:
 | [aws_ssm_parameter.backup_role_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.backup_vault_name](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.node_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.notebook_server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_deployment_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.primary_ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
@@ -137,7 +136,6 @@ The module writes the following SSM parameters:
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | node_count | Number of node EC2 instances | `number` | `1` | no |
-| notebook_server_web_context | ArcGIS Notebook Server web context | `string` | `"notebooks"` | no |
 | portal_deployment_id | Portal for ArcGIS deployment Id | `string` | `"enterprise-base-linux"` | no |
 | root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `16000` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |

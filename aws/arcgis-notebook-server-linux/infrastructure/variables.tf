@@ -73,12 +73,6 @@ variable "node_count" {
   }
 }
 
-variable "notebook_server_web_context" {
-  description = "ArcGIS Notebook Server web context"
-  type        = string
-  default     = "notebooks"
-}
-
 variable "portal_deployment_id" {
   description = "Portal for ArcGIS deployment Id"
   type        = string

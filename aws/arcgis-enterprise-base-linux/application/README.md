@@ -54,11 +54,12 @@ The module reads the following SSM parameters:
 | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
 | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
-| /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
-| /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
-| /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
+| /arcgis/${var.site_id}/chef-client-url/${os} | Chef Client URL for the operating system |
 | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
 | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system of the deployment |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
 | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
 | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -106,6 +107,7 @@ The module reads the following SSM parameters:
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.os](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.s3_content](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -131,7 +133,6 @@ The module reads the following SSM parameters:
 | keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
 | keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
-| os | Operating system id (rhel9\|ubuntu22\|ubuntu24) | `string` | `"rhel9"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |
 | portal_user_license_type_id | Portal for ArcGIS administrator user license type Id | `string` | `""` | no |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |

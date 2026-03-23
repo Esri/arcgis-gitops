@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -129,19 +129,8 @@ variable "subnet_ids" {
   default     = []
 }
 
-variable "server_web_context" {
-  description = "ArcGIS Server web context"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition = var.use_webadaptor == true || var.server_web_context == "arcgis"
-    error_message = "The server_web_context value must be 'arcgis' if use_webadaptor is set to false."
-  }
-}
-
 variable "use_webadaptor" {
-  description = "If true, port 443 is used as the instance HTTPS port, otherwise 6443 bis used."
+  description = "If true, port 443 is used as the instance HTTPS port, otherwise 6443 is used."
   type        = bool
   default     = false
 }

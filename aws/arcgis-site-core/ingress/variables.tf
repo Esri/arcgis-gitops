@@ -77,7 +77,7 @@ variable "http_ports" {
 variable "https_ports" {
   description = "List of HTTPS ports for the load balancer"
   type        = list(number)
-  default     = [443, 6443, 7443, 11443]
+  default     = [443]
 }
 
 variable "internal_load_balancer" {

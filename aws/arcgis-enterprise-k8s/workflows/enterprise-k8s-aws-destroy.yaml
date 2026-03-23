@@ -71,7 +71,7 @@ jobs:
           SITE_ID=$(jq -r '.site_id' $ORGANIZATION_CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $ORGANIZATION_CONFIG_FILE)
           terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$TF_VAR_aws_region" 
-          terraform destroy -var-file $ORGANIZATION_CONFIG_FILE -auto-approve
+          terraform destroy -var-file $ORGANIZATION_CONFIG_FILE -auto-approve -input=false
       - name: Destroy Ingress
         id: destroy-ingress
         if: ${{ inputs.delete_namespace != false }}
@@ -80,6 +80,6 @@ jobs:
           SITE_ID=$(jq -r '.site_id' $INGRESS_CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $INGRESS_CONFIG_FILE)
           terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/ingress.tfstate" -backend-config="region=$TF_VAR_aws_region" 
-          terraform destroy -var-file $INGRESS_CONFIG_FILE -auto-approve
+          terraform destroy -var-file $INGRESS_CONFIG_FILE -auto-approve -input=false
 
 

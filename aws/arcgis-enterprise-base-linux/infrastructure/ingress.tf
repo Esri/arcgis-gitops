@@ -20,6 +20,19 @@ data "aws_ssm_parameter" "alb_arn" {
   name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn"
 }
 
+data "aws_ssm_parameter" "portal_web_context" {
+  name  = "/arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context"
+}
+
+data "aws_ssm_parameter" "server_web_context" {
+  name  = "/arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context"
+}
+
+locals {
+  portal_web_context = nonsensitive(data.aws_ssm_parameter.portal_web_context.value)
+  server_web_context = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
+}
+
 # Create Application Load Balancer target group for HTTPS port 443, attach 
 # primary and standby instances to it, and add the target group to the load balancer. 
 # Configure the target group to forward requests to /portal and /server HTTP contexts.
@@ -31,8 +44,8 @@ module "server_https_alb_target" {
   protocol          = "HTTPS"
   alb_port          = 443
   instance_port     = 443
-  health_check_path = "/${var.server_web_context}/rest/info/healthcheck"
-  path_patterns     = ["/${var.server_web_context}", "/${var.server_web_context}/*"]
+  health_check_path = "/${local.server_web_context}/rest/info/healthcheck"
+  web_context       = local.server_web_context
   priority          = 100
   target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.standby : n.id])
 }
@@ -48,8 +61,8 @@ module "portal_https_alb_target" {
   protocol          = "HTTPS"
   alb_port          = 443
   instance_port     = 443
-  health_check_path = "/${var.portal_web_context}/portaladmin/healthCheck"
-  path_patterns     = ["/${var.portal_web_context}", "/${var.portal_web_context}/*"]
+  health_check_path = "/${local.portal_web_context}/portaladmin/healthCheck"
+  web_context       = local.portal_web_context
   priority          = 101
   target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.standby : n.id])
 }
@@ -61,23 +74,9 @@ resource "aws_ssm_parameter" "deployment_fqdn" {
   description = "Fully qualified domain name of the deployment"
 }
 
-resource "aws_ssm_parameter" "portal_web_context" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/portal-web-context"
-  type        = "String"
-  value       = var.portal_web_context
-  description = "Portal for ArcGIS web context"
-}
-
-resource "aws_ssm_parameter" "server_web_context" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
-  type        = "String"
-  value       = var.server_web_context
-  description = "ArcGIS Server web context"
-}
-
 resource "aws_ssm_parameter" "deployment_url" {
   name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-url"
   type        = "String"
-  value       = "https://${nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)}/${var.portal_web_context}"
+  value       = "https://${nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)}/${local.portal_web_context}"
   description = "Portal for ArcGIS URL of the deployment"
 }

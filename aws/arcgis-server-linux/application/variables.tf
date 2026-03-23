@@ -105,17 +105,6 @@ variable "log_level" {
   }
 }
 
-variable "os" {
-  description = "Operating system id (rhel8|rhel9)"
-  type        = string
-  default     = "rhel9"
-
-  validation {
-    condition     = contains(["rhel9"], var.os)
-    error_message = "Valid values for os variable are rhel9."
-  }
-}
-
 variable "portal_org_id" {
   description = "ArcGIS Enterprise organization Id"
   type        = string
@@ -144,6 +133,11 @@ variable "run_as_user" {
 variable "server_authorization_file_path" {
   description = "Local path of ArcGIS Server authorization file"
   type        = string
+
+  validation {
+    condition     = fileexists(var.server_authorization_file_path)
+    error_message = "The server_authorization_file_path value must be a valid file path."
+  }  
 }
 
 variable "server_authorization_options" {
@@ -210,6 +204,11 @@ variable "keystore_file_path" {
   description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.keystore_file_path == null || try(fileexists(var.keystore_file_path), false)
+    error_message = "The keystore_file_path value must be a valid file path."
+  }  
 }
 
 variable "keystore_file_password" {
@@ -223,4 +222,9 @@ variable "root_cert_file_path" {
   description = "Local path of root certificate file in PEM format used by ArcGIS Server"
   type        = string
   default     = null
+
+  validation {
+    condition     = var.root_cert_file_path == null || try(fileexists(var.root_cert_file_path), false)
+    error_message = "The root_cert_file_path value must be a valid file path."
+  }
 }

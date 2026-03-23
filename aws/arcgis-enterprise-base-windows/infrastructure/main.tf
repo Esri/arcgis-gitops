@@ -45,13 +45,15 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn | ARN of the application load balancer | 
  * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id | Security group ID of the application load balancer |
  * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn | Fully qualified domain name of the site ingress |
- * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn | ARN of the application load balancer | 
  * | /arcgis/${var.site_id}/backup/vault-name | Name of the AWS Backup vault |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI ID |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
  * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |

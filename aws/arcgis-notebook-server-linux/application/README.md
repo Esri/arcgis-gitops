@@ -48,9 +48,10 @@ The module reads the following SSM parameters:
 |--------------------|-------------|
 | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
 | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
-| /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system of the deployment |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
 | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
-| /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
+| /arcgis/${var.site_id}/chef-client-url/${os} | Chef Client URL for the operating system |
 | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
 | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
 | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
@@ -100,6 +101,7 @@ The module reads the following SSM parameters:
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.notebook_server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.os](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
@@ -121,7 +123,6 @@ The module reads the following SSM parameters:
 | log_level | ArcGIS Notebook Server log level | `string` | `"WARNING"` | no |
 | notebook_server_authorization_file_path | Local path of ArcGIS Notebook Server authorization file | `string` | n/a | yes |
 | notebook_server_authorization_options | Additional ArcGIS Notebook Server software authorization command line options | `string` | `""` | no |
-| os | Operating system id (rhel9\|ubuntu22\|ubuntu24) | `string` | `"rhel9"` | no |
 | portal_org_id | ArcGIS Enterprise organization Id | `string` | `null` | no |
 | portal_password | Portal for ArcGIS user password | `string` | n/a | yes |
 | portal_username | Portal for ArcGIS user name | `string` | n/a | yes |

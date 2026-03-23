@@ -68,12 +68,6 @@ variable "key_name" {
   type        = string
 }
 
-variable "portal_web_context" {
-  description = "Portal for ArcGIS web context"
-  type        = string
-  default     = "portal"  
-}
-
 variable "root_volume_iops" {
   description = "Root EBS volume IOPS of primary and standby EC2 instances"
   type        = number
@@ -105,12 +99,6 @@ variable "root_volume_throughput" {
     condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
     error_message = "The root_volume_throughput value must be between 125 and 1000."
   }
-}
-
-variable "server_web_context" {
-  description = "ArcGIS Server web context"
-  type        = string
-  default     = "server"  
 }
 
 variable "site_id" {

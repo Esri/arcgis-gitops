@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -70,11 +70,11 @@ jobs:
     - name: Terraform Apply
       id: apply
       if: github.event.inputs.terraform_command != 'plan'
-      run: terraform apply -var-file $CONFIG_FILE -auto-approve
+      run: terraform apply -var-file $CONFIG_FILE -auto-approve -input=false
     - name: Terraform Plan
       id: plan
       if: github.event.inputs.terraform_command == 'plan'
-      run: terraform plan -var-file $CONFIG_FILE 
+      run: terraform plan -var-file $CONFIG_FILE -input=false 
     - name: Terraform Output
       id: output  
       run: echo deployment_url=$(terraform output deployment_url) >> $GITHUB_OUTPUT

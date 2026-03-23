@@ -70,7 +70,7 @@ jobs:
           ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
           UPGRADE_TOKEN=$(kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis generate-token --expiration $MAX_UPGRADE_TIME) || UPGRADE_TOKEN="token"
           terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/organization.tfstate" -backend-config="region=$TF_VAR_aws_region" 
-          terraform apply -var-file=$CONFIG_FILE -var "upgrade_token=$UPGRADE_TOKEN" -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve 
+          terraform apply -var-file=$CONFIG_FILE -var "upgrade_token=$UPGRADE_TOKEN" -var "enterprise_admin_cli_version=$ADMIN_CLI_VERSION" -auto-approve -input=false 
       - name: Retrieve Logs
         id: retrieve-logs
         env:

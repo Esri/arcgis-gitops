@@ -29,8 +29,9 @@
  * 
  * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
  * * Path to aws/scripts directory must be added to PYTHONPATH
- * * AWS credentials must be configured.
- * * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+ * * AWS CLI must be installed and configured
+ * * AWS credentials must be configured
+ * * My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
  * 
  * ## SSM Parameters
  * 
@@ -51,11 +52,13 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary AMI Id |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node AMI Id |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context | Notebook Server web context name |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system identifier |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary AMI Id |
  */
 
-# Copyright 2025 Esri
+# Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -388,5 +391,14 @@ build {
     }
 
     command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/node -f packer-manifest.json -r ${build.PackerRunUUID}"
+  }
+
+    # Save os and notebook_server_web_context in SSM parameters for later use in deployment.
+  post-processor "shell-local" {
+    command = "aws ssm put-parameter --name /arcgis/${var.site_id}/images/${var.deployment_id}/os --value ${var.os} --type String --region ${var.aws_region}"
+  }
+
+  post-processor "shell-local" {
+    command = "aws ssm put-parameter --name /arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context --value ${var.notebook_server_web_context} --type String --region ${var.aws_region}"
   }
 }

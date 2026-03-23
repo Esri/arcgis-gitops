@@ -54,11 +54,12 @@
  * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
- * | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
- * | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
+ * | /arcgis/${var.site_id}/chef-client-url/${os} | Chef Client URL for the operating system |
  * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system of the deployment |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context | 
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -116,12 +117,16 @@ data "aws_ssm_parameter" "deployment_fqdn" {
   name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
 }
 
+data "aws_ssm_parameter" "os" {
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/os"
+}
+
 data "aws_ssm_parameter" "portal_web_context" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/portal-web-context"
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context"
 }
 
 data "aws_ssm_parameter" "server_web_context" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context"
 }
 
 data "aws_ssm_parameter" "s3_content" {
@@ -190,6 +195,7 @@ locals {
 
   mount_point             = "/mnt/efs"
   deployment_fqdn         = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  os                      = nonsensitive(data.aws_ssm_parameter.os.value)
   portal_web_context      = nonsensitive(data.aws_ssm_parameter.portal_web_context.value)
   server_web_context      = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
   primary_hostname        = "primary.${var.deployment_id}.${var.site_id}.internal"
@@ -283,7 +289,7 @@ module "s3_copy_files" {
 # Install Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment
 module "bootstrap_deployment" {
   source           = "../../modules/bootstrap"
-  os               = var.os
+  os               = local.os
   site_id          = var.site_id
   deployment_id    = var.deployment_id
   machine_roles    = ["primary", "standby"]

@@ -28,9 +28,9 @@ On the machine where Packer is executed:
 
 * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
 * Path to aws/scripts directory must be added to PYTHONPATH
-* AWS credentials must be configured.
-
-My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+* AWS CLI must be installed and configured
+* AWS credentials must be configured
+* My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
 
 ## SSM Parameters
 
@@ -51,8 +51,10 @@ The template writes the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary AMI Id |
 | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node AMI Id |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context | Notebook Server web context name |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system identifier |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary AMI Id |
 
 ## Inputs
 

@@ -54,11 +54,12 @@
  * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
- * | /arcgis/${var.site_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |  
- * | /arcgis/${var.site_id}/chef-client-url/${var.os} | Chef Client URL |
+ * | /arcgis/${var.site_id}/chef-client-url/${os} | Chef Client URL for the operating system |
  * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
  * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system id |   
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context | 
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |  
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output | 
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -77,7 +78,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 terraform {
   backend "s3" {
     key = "terraform/arcgis/enterprise-base-windows/application.tfstate"
@@ -95,10 +96,10 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
-      ArcGISAutomation   = "arcgis-gitops"      
+      ArcGISAutomation   = "arcgis-gitops"
       ArcGISSiteId       = var.site_id
       ArcGISDeploymentId = var.deployment_id
     }
@@ -109,16 +110,20 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "deployment_fqdn" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+data "aws_ssm_parameter" "os" {
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/os"
 }
 
 data "aws_ssm_parameter" "portal_web_context" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/portal-web-context"
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context"
 }
 
 data "aws_ssm_parameter" "server_web_context" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/server-web-context"
+  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context"
+}
+
+data "aws_ssm_parameter" "deployment_fqdn" {
+  name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
 }
 
 data "aws_ssm_parameter" "s3_content" {
@@ -206,11 +211,12 @@ locals {
   authorization_files_s3_prefix = "software/authorization/${var.arcgis_version}"
   certificates_s3_prefix        = "software/certificates"
 
-  deployment_fqdn     = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
-  portal_web_context  = nonsensitive(data.aws_ssm_parameter.portal_web_context.value)
-  server_web_context  = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
-  primary_hostname    = "primary.${var.deployment_id}.${var.site_id}.internal"
-  standby_hostname    = "standby.${var.deployment_id}.${var.site_id}.internal"
+  deployment_fqdn    = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  os                 = nonsensitive(data.aws_ssm_parameter.os.value)
+  portal_web_context = nonsensitive(data.aws_ssm_parameter.portal_web_context.value)
+  server_web_context = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
+  primary_hostname   = "primary.${var.deployment_id}.${var.site_id}.internal"
+  standby_hostname   = "standby.${var.deployment_id}.${var.site_id}.internal"
 
   software_dir            = "C:\\Software\\*"
   authorization_files_dir = "C:\\Software\\AuthorizationFiles"
@@ -238,14 +244,14 @@ locals {
           regionEndpointUrl = "https://s3.${data.aws_region.current.id}.amazonaws.com"
           rootDir           = "arcgis"
         }
-      }, {
+        }, {
         type     = "tableStore"
         name     = "Amazon Dynamo DB"
         category = "storage"
         connection = {
           regionEndpointUrl = "https://dynamodb.${data.aws_region.current.id}.amazonaws.com"
         }
-      }, {
+        }, {
         type     = "queueService"
         name     = "Amazon Queue Service"
         category = "queue"
@@ -255,9 +261,9 @@ locals {
       }]
       cloudServiceTags = [{
         ArcGISSiteId = var.site_id
-      }, {
+        }, {
         ArcGISDeploymentId = var.deployment_id
-      }, {
+        }, {
         ArcGISRole = "config-store"
       }]
     }]
@@ -286,24 +292,24 @@ locals {
 }
 
 module "site_core_info" {
-  source         = "../../modules/site_core_info"
-  site_id        = var.site_id
+  source  = "../../modules/site_core_info"
+  site_id = var.site_id
 }
 
 module "s3_copy_files" {
-  count                  = var.is_upgrade ? 1 : 0
-  source                 = "../../modules/s3_copy_files"
-  bucket_name            = module.site_core_info.s3_repository
-  index_file             = local.manifest_file_path
+  count       = var.is_upgrade ? 1 : 0
+  source      = "../../modules/s3_copy_files"
+  bucket_name = module.site_core_info.s3_repository
+  index_file  = local.manifest_file_path
 }
 
 # Install Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment
 module "bootstrap_deployment" {
-  source        = "../../modules/bootstrap"
-  site_id       = var.site_id
-  deployment_id = var.deployment_id
-  machine_roles = ["primary", "standby"]
-  os           = var.os
+  source           = "../../modules/bootstrap"
+  site_id          = var.site_id
+  deployment_id    = var.deployment_id
+  machine_roles    = ["primary", "standby"]
+  os               = local.os
   output_s3_bucket = module.site_core_info.s3_logs
 }
 
@@ -338,8 +344,8 @@ module "begin_upgrade_standby" {
   machine_roles  = ["standby"]
   json_attributes = jsonencode({
     arcgis = {
-      version = var.arcgis_version
-      configure_cloud_settings   = false
+      version                  = var.arcgis_version
+      configure_cloud_settings = false
       server = {
         admin_username = var.admin_username
         admin_password = var.admin_password
@@ -586,7 +592,7 @@ module "keystore_file" {
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
     arcgis = {
-      version = var.arcgis_version
+      version                  = var.arcgis_version
       configure_cloud_settings = false
       repository = {
         local_archives = local.certificates_dir
@@ -667,7 +673,7 @@ module "arcgis_enterprise_primary" {
       # without activating the deployment (routing deployment_fqdn to the deployment's ALB).
       hosts = {
         "${local.primary_hostname} FILESERVER" = ""
-      }      
+      }
       repository = {
         archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
@@ -679,25 +685,25 @@ module "arcgis_enterprise_primary" {
         replace_https_binding = true
       }
       server = {
-        url                            = "https://${local.primary_hostname}:6443/arcgis"
-        wa_url                         = "https://${local.primary_hostname}/${local.server_web_context}"
-        install_dir                    = "C:\\Program Files\\ArcGIS\\Server"
-        install_system_requirements    = true
-        private_url                    = "https://${local.deployment_fqdn}/${local.server_web_context}"
-        web_context_url                = "https://${local.deployment_fqdn}/${local.server_web_context}"
-        hostname                       = local.primary_hostname
-        admin_username                 = var.admin_username
-        admin_password                 = var.admin_password
-        authorization_file             = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
-        authorization_options          = var.server_authorization_options
-        keystore_file                  = var.keystore_file_path != null ? local.keystore_file : ""
-        keystore_password              = var.keystore_file_password
-        root_cert                      = local.root_cert
-        root_cert_alias                = "rootcert"
-        directories_root               = "\\\\FILESERVER\\arcgisserver"
-        log_dir                        = "C:\\arcgisserver\\logs"
-        log_level                      = var.log_level
-        config_store_type              = var.config_store_type
+        url                         = "https://${local.primary_hostname}:6443/arcgis"
+        wa_url                      = "https://${local.primary_hostname}/${local.server_web_context}"
+        install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
+        install_system_requirements = true
+        private_url                 = "https://${local.deployment_fqdn}/${local.server_web_context}"
+        web_context_url             = "https://${local.deployment_fqdn}/${local.server_web_context}"
+        hostname                    = local.primary_hostname
+        admin_username              = var.admin_username
+        admin_password              = var.admin_password
+        authorization_file          = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
+        authorization_options       = var.server_authorization_options
+        keystore_file               = var.keystore_file_path != null ? local.keystore_file : ""
+        keystore_password           = var.keystore_file_password
+        root_cert                   = local.root_cert
+        root_cert_alias             = "rootcert"
+        directories_root            = "\\\\FILESERVER\\arcgisserver"
+        log_dir                     = "C:\\arcgisserver\\logs"
+        log_level                   = var.log_level
+        config_store_type           = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
         config_store_connection_string = "\\\\FILESERVER\\arcgisserver\\config-store"
         cloud_config                   = local.cloud_config
@@ -784,7 +790,7 @@ module "arcgis_enterprise_primary" {
       "recipe[arcgis-enterprise::server]",
       "recipe[arcgis-enterprise::server_wa]",
       "recipe[arcgis-enterprise::datastore]",
-      "recipe[arcgis-enterprise::server_data_items]",      
+      "recipe[arcgis-enterprise::server_data_items]",
       "recipe[arcgis-enterprise::federation]"
     ]
   })
@@ -814,7 +820,7 @@ module "arcgis_enterprise_standby" {
       hosts = {
         "${local.standby_hostname}" = ""
         "FILESERVER"                = "${data.aws_instance.primary.private_ip}"
-      }      
+      }
       repository = {
         archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
@@ -916,11 +922,11 @@ module "backup" {
 # Delete the downloaded setup archives, the extracted setups, and other 
 # temporary files from primary and standby EC2 instances.
 module "clean_up" {
-  source        = "../../modules/clean_up"
-  site_id       = var.site_id
-  deployment_id = var.deployment_id
-  machine_roles = ["primary", "standby"]
-  directories   = [local.software_dir]
+  source                = "../../modules/clean_up"
+  site_id               = var.site_id
+  deployment_id         = var.deployment_id
+  machine_roles         = ["primary", "standby"]
+  directories           = [local.software_dir]
   uninstall_chef_client = false
   depends_on = [
     module.arcgis_enterprise_primary,

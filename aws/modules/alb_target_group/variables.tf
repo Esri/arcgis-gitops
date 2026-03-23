@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -18,6 +18,41 @@ variable "name" {
   default     = null
 }
 
+variable "alb_arn" {
+  description = "Application Load Balancer ARN"
+  type        = string
+}
+
+variable "alb_port" {
+  description = "Target group port"
+  type        = number
+  default     = 443
+}
+
+variable "health_check_path" {
+  description = "Health check path"
+  type        = string
+  default     = "/server/rest/info/healthcheck"
+}
+
+variable "instance_port" {
+  description = "Instance port"
+  type        = number
+  default     = 443
+}
+
+# variable "instance_web_context" {
+#   description = "Web context for the instance"
+#   type        = string
+#   default     = "arcgis"
+# }
+
+variable "priority" {
+  description = "Target group priority"
+  type        = number
+  default     = 100
+}
+
 variable "protocol" {
   description = "Target group protocol"
   type        = string
@@ -29,28 +64,9 @@ variable "protocol" {
   }
 }
 
-variable "alb_port" {
-  description = "Target group port"
-  type        = number
-  default     = 80
-}
-
-variable "instance_port" {
-  description = "Instance port"
-  type        = number
-  default     = 80
-}
-
-variable "health_check_path" {
-  description = "Health check path"
-  type        = string
-  default     = "/server/rest/info/healthcheck"
-}
-
-variable "path_patterns" {
-  description = "Listener rule path patterns"
+variable "target_instances" {
+  description = "List of target EC2 instance Ids"
   type        = list(string)
-  default     = ["/portal", "/portal/*", "/server", "/server/*"]
 }
 
 variable "vpc_id" {
@@ -58,18 +74,8 @@ variable "vpc_id" {
   type        = string
 }
 
-variable "alb_arn" {
-  description = "Application Load Balancer ARN"
+variable "web_context" {
+  description = "Web context for the service"
   type        = string
-}
-
-variable "target_instances" {
-  description = "List of target EC2 instance Ids"
-  type        = list(string)
-}
-
-variable "priority" {
-  description = "Target group priority"
-  type = number
-  default = 100
+  default     = "arcgis"
 }

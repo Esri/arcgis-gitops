@@ -7,7 +7,7 @@
  *
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -63,7 +63,23 @@ resource "aws_lb_listener_rule" "listener_rule" {
 
   condition {
     path_pattern {
-      values = var.path_patterns
+      values = ["/${var.web_context}", "/${var.web_context}/*"]
     }
+  }
+
+  # transform {
+  #   type = "url-rewrite"
+  #   url_rewrite_config {
+  #     rewrite {
+  #       # Matches /${var.web_context}/ followed by any path and captures it in group 1
+  #       regex   = "^/${var.web_context}/(.*)$"
+  #       # Replaces with /arcgis/ followed by the captured path group
+  #       replace = "/${var.instance_web_context}/$1"
+  #     }
+  #   }
+  # }
+
+  tags = {
+    "Name" = var.web_context
   }
 }

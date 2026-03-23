@@ -72,15 +72,15 @@ The target group is configured to forward requests for specific path patterns.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | alb_arn | Application Load Balancer ARN | `string` | n/a | yes |
-| alb_port | Target group port | `number` | `80` | no |
+| alb_port | Target group port | `number` | `443` | no |
 | health_check_path | Health check path | `string` | `"/server/rest/info/healthcheck"` | no |
-| instance_port | Instance port | `number` | `80` | no |
+| instance_port | Instance port | `number` | `443` | no |
 | name | Target group name | `string` | `null` | no |
-| path_patterns | Listener rule path patterns | `list(string)` | ```[ "/portal", "/portal/*", "/server", "/server/*" ]``` | no |
 | priority | Target group priority | `number` | `100` | no |
 | protocol | Target group protocol | `string` | `"HTTP"` | no |
 | target_instances | List of target EC2 instance Ids | `list(string)` | n/a | yes |
 | vpc_id | VPC Id | `string` | n/a | yes |
+| web_context | Web context for the service | `string` | `"arcgis"` | no |
 
 ## Outputs
 

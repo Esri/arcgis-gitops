@@ -45,8 +45,6 @@ Instructions:
 3. Commit the changes to a Git branch and push the branch to GitHub.
 4. Run the notebook-server-linux-aws-image workflow using the branch.
 
-> In the configuration files, "os" and "arcgis_version" property values for the same deployment must match across all the configuration files of the deployment.
-
 ### 2. Provision AWS Resources
 
 GitHub Actions workflow **notebook-server-linux-aws-infrastructure** creates AWS resources for ArcGIS Notebook Server deployment.

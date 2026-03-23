@@ -60,6 +60,7 @@
  * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
  * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
+ * | /arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
  * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
  * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
@@ -73,7 +74,6 @@
  * |--------------------|-------------|
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
  * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | ArcGIS Notebook Server URL |
- * | /arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
  * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
  * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
  */
@@ -120,7 +120,6 @@ provider "aws" {
 }
 
 # Retrieve configuration parameters from SSM Parameter Store
-
 data "aws_ssm_parameter" "primary_ami" {
   name = "/arcgis/${var.site_id}/images/${var.deployment_id}/primary"
 }
@@ -346,17 +345,10 @@ resource "aws_ssm_parameter" "deployment_fqdn" {
   description = "Fully qualified domain name of the deployment"
 }
 
-resource "aws_ssm_parameter" "notebook_server_web_context" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/notebook-server-web-context"
-  type        = "String"
-  value       = var.notebook_server_web_context
-  description = "ArcGIS Notebook Server web context"
-}
-
 resource "aws_ssm_parameter" "deployment_url" {
   name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-url"
   type        = "String"
-  value       = "https://${local.deployment_fqdn}/${var.notebook_server_web_context}"
+  value       = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
   description = "ArcGIS Notebook Server URL"
 }
 

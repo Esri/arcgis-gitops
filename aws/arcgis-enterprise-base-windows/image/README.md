@@ -24,8 +24,9 @@ On the machine where Packer is executed:
 
 * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
 * Path to aws/scripts directory must be added to PYTHONPATH
-* AWS credentials must be configured.
-* My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+* AWS CLI must be installed and configured
+* AWS credentials must be configured
+* My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
 
 ## SSM Parameters
 
@@ -41,6 +42,16 @@ The template uses the following SSM parameters:
 | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
 | /arcgis/${var.site_id}/s3/repository | Private repository S3 bucket |
 | /arcgis/${var.site_id}/vpc/subnets | Ids of VPC subnets |
+
+The template writes the following SSM parameters:
+
+| SSM parameter name | Description |
+|--------------------|-------------|
+| /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary AMI ID for the deployment |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/standby | Standby AMI ID for the deployment |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system of the AMI |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
+| /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 
 ## Inputs
 

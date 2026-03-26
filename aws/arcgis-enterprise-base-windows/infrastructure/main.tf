@@ -219,6 +219,8 @@ resource "aws_instance" "primary" {
   </powershell>
   EOF
 
+  user_data_replace_on_change = false
+
   tags = {
     Name              = "${var.site_id}/${var.deployment_id}/primary"
     ArcGISTemplateId  = local.arcgis_template_id

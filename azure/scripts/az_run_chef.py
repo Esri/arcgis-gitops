@@ -32,11 +32,13 @@ param(
     [string]$ManagedIdentityClientId,
     [string]$LogLevel = "info"
 )
+$Env:HOME = 'C:\\chef'
 $Env:Path = [System.Environment]::GetEnvironmentVariable("Path","Machine") + ";" `
             + [System.Environment]::GetEnvironmentVariable("Path","User")
 Write-Output \"Logging in to Azure using Managed Identity...\"
 az login --identity --client-id $ManagedIdentityClientId --output none
 Set-Location -Path 'C:\\chef'
+if (Test-Path '.cinc') { Remove-Item -Path '.cinc' -Recurse -Force }
 if (! $?) { exit 1 }
 & az keyvault secret show --name $JsonAttributesSecret --vault-name $VaultName --query "value" --output tsv | Out-File attributes.json -Encoding ASCII
 if (! $?) { exit 1 }

@@ -200,6 +200,25 @@ resource "aws_instance" "primary" {
     throughput  = var.root_volume_throughput
   }
 
+  # Allow loopback fileserver connection using the private DNS name that 
+  # resolves to the instance's primary IP address. 
+  user_data = <<-EOF
+  <powershell>
+  $computerName = $env:COMPUTERNAME
+  $customFQDN  = "primary.${var.deployment_id}.${var.site_id}.internal" 
+  $hosts = @($computerName, $customFQDN, "localhost", "127.0.0.1")
+
+  $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"
+  
+  if (-not (Test-Path $registryPath)) { 
+    New-Item $registryPath -Force 
+  }
+  
+  New-ItemProperty -Path $registryPath -Name "BackConnectionHostNames" `
+                   -Value $hosts -PropertyType MultiString -Force
+  </powershell>
+  EOF
+
   tags = {
     Name              = "${var.site_id}/${var.deployment_id}/primary"
     ArcGISTemplateId  = local.arcgis_template_id

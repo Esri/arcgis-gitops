@@ -96,7 +96,7 @@ data "azurerm_key_vault_secret" "vm_identity_client_id" {
 }
 
 locals {
-  shared_location = "\\\\\\\\FILESERVER\\\\arcgisbackup\\\\webgisdr"
+  shared_location = "\\\\\\\\primary.${var.deployment_id}.${var.site_id}.internal\\\\arcgisbackup\\\\webgisdr"
 }
 
 # Run webgisdr utility with import option on the primary VM.

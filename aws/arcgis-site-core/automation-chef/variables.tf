@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -34,23 +34,23 @@ variable "chef_client_paths" {
   type        = map(any)
   default = {
     windows2025 = {
-      path        = "cinc/cinc-18.8.54-1-x64.msi"
-      description = "Chef Client setup S3 key for Microsoft Windows Server 2022"
+      path        = "cinc/cinc-18.10.17-1-x64.msi"
+      description = "Chef Client setup S3 key for Microsoft Windows Server 2025"
     }
     windows2022 = {
-      path        = "cinc/cinc-18.8.54-1-x64.msi"
+      path        = "cinc/cinc-18.10.17-1-x64.msi"
       description = "Chef Client setup S3 key for Microsoft Windows Server 2022"
     }
     ubuntu22 = {
-      path        = "cinc/cinc_18.8.54-1.ubuntu22.amd64.deb"
+      path        = "cinc/cinc_18.10.17-1.ubuntu22.amd64.deb"
       description = "Chef Client setup S3 key for Ubuntu 22.04 LTS"
     }
     ubuntu24 = {
-      path        = "cinc/cinc_18.8.54-1.ubuntu24.amd64.deb"
+      path        = "cinc/cinc_18.10.17-1.ubuntu24.amd64.deb"
       description = "Chef Client setup S3 key for Ubuntu 24.04 LTS"
     }
     rhel9 = {
-      path        = "cinc/cinc-18.8.54-1.el9.x86_64.rpm"
+      path        = "cinc/cinc-18.10.17-1.el9.x86_64.rpm"
       description = "Chef Client setup S3 key for Red Hat Enterprise Linux version 9"
     }
   }

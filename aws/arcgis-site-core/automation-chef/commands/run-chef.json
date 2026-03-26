@@ -59,12 +59,15 @@
       },      
       "inputs": {
         "runCommand": [
+          "$Env:HOME = 'C:\\chef'",
           "$Env:Path += [System.Environment]::GetEnvironmentVariable('Path','Machine')",
           "Set-Location -Path 'C:\\chef'",
           "if (! $?) { exit 1 }",
           "& aws.exe ssm get-parameter --name '{{JsonAttributes}}' --with-decryption --query Parameter.Value --output text | Out-File attributes.json -Encoding ASCII", 
-          "if (! $?) { exit 1 }",          
-          "& cinc-client.bat -z -j attributes.json -l {{LogLevel}} | Tee-Object -FilePath chef-run.log -Append",
+          "if (! $?) { exit 1 }",
+          "if (Test-Path '.cinc') { Remove-Item -Path '.cinc' -Recurse -Force }",
+          "# Copy-Item -Path 'C:\\chef\\cookbooks' -Destination 'C:\\chef\\.cinc\\local-mode-cache\\cache\\cookbooks' -Recurse -Force",
+          "& cinc-client.bat -z -c C:\\chef\\client.rb -j attributes.json -l {{LogLevel}} | Tee-Object -FilePath chef-run.log -Append",
           "$ret = $?",
           "Remove-Item (Join-Path $env:SystemDrive 'chef\\nodes') -Recurse -ErrorAction SilentlyContinue",
           "Remove-Item attributes.json",

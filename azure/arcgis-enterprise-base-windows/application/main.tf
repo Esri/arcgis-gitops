@@ -415,7 +415,6 @@ module "arcgis_enterprise_patch" {
 
 # Configure fileserver for ArcGIS Server directories and WebGIS DR staging location.
 # Create the required network shares and directories in the primary VM.
-# Allow loopback to FILESERVER hostname.
 module "arcgis_enterprise_fileserver" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-fileserver"
@@ -441,7 +440,6 @@ module "arcgis_enterprise_fileserver" {
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
-      "recipe[arcgis-enterprise::disable_loopback_check]",
       "recipe[arcgis-enterprise::fileserver]"
     ]
   })
@@ -623,13 +621,6 @@ module "arcgis_enterprise_primary" {
       run_as_password            = var.run_as_password
       configure_windows_firewall = true
       configure_cloud_settings   = false
-      # Though local.primary_hostname resolves to the instance's private IP by the Route53 private hosted zone,
-      # the loopback for primary_hostname is required to prevent the reverse IP lookup of the Portal's 
-      # Apache Ignite using the machine hostname for the node hostname instead of primary_hostname.
-      # without activating the deployment (routing deployment_fqdn to the deployment's ALB).
-      hosts = {
-        "${local.primary_hostname} FILESERVER" = ""
-      }
       repository = {
         archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
@@ -639,6 +630,7 @@ module "arcgis_enterprise_primary" {
         keystore_file         = local.keystore_file
         keystore_password     = var.keystore_file_password
         replace_https_binding = true
+        features              = []
       }
       server = {
         url                         = "https://${local.primary_hostname}:6443/arcgis"
@@ -656,12 +648,12 @@ module "arcgis_enterprise_primary" {
         keystore_password           = var.keystore_file_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        directories_root            = "\\\\FILESERVER\\arcgisserver"
+        directories_root            = "\\\\${local.primary_hostname}\\arcgisserver"
         log_dir                     = "C:\\arcgisserver\\logs"
         log_level                   = var.log_level
         config_store_type           = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
-        config_store_connection_string = "\\\\FILESERVER\\arcgisserver\\config-store"
+        config_store_connection_string = "\\\\${local.primary_hostname}\\arcgisserver\\config-store"
         cloud_config                = local.cloud_config
         wa_name                     = local.server_web_context
         services_dir_enabled        = true
@@ -677,8 +669,8 @@ module "arcgis_enterprise_primary" {
         setup_options               = "ADDLOCAL=relational"
         install_system_requirements = true
         data_dir                    = "C:\\arcgisdatastore"
-        preferredidentifier         = "hostname"
-        hostidentifier              = local.primary_hostname
+        preferredidentifier         = "ip"
+        # hostidentifier              = local.primary_hostname
         types                       = "relational"
         relational = {
           enablessl               = true
@@ -779,10 +771,6 @@ module "arcgis_enterprise_standby" {
       run_as_password            = var.run_as_password
       configure_windows_firewall = true
       configure_cloud_settings   = false
-      hosts = {
-        "${local.standby_hostname}" = ""
-        "FILESERVER"                = "${data.azurerm_virtual_machine.primary.private_ip_address}"
-      }
       repository = {
         archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
@@ -792,6 +780,7 @@ module "arcgis_enterprise_standby" {
         keystore_file         = local.keystore_file
         keystore_password     = var.keystore_file_password
         replace_https_binding = true
+        features              = []        
       }
       server = {
         url                         = "https://${local.standby_hostname}:6443/arcgis"
@@ -816,8 +805,8 @@ module "arcgis_enterprise_standby" {
         setup_options               = "ADDLOCAL=relational"
         install_system_requirements = true
         data_dir                    = "C:\\arcgisdatastore"
-        preferredidentifier         = "hostname"
-        hostidentifier              = local.standby_hostname
+        preferredidentifier         = "ip"
+        # hostidentifier              = local.standby_hostname
         types                       = "relational"
       }
       portal = {
@@ -850,7 +839,6 @@ module "arcgis_enterprise_standby" {
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
-      "recipe[arcgis-enterprise::disable_loopback_check]",
       "recipe[esri-iis]",
       "recipe[arcgis-enterprise::install_portal]",
       "recipe[arcgis-enterprise::webstyles]",

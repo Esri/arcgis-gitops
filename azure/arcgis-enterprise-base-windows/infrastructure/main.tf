@@ -138,11 +138,11 @@ data "azurerm_private_dns_zone" "servicebus_private_dns_zone" {
 }
 
 locals {
-  deployment_fqdn    = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
-  portal_web_context = nonsensitive(data.azurerm_key_vault_secret.portal_web_context.value)
-  vm_roles           = var.is_ha ? ["primary", "standby"] : ["primary"]
-  zones              = var.is_ha ? ["1", "2"] : ["1"]
-  subnet_id          = var.subnet_id != null ? var.subnet_id : element(module.site_core_info.private_subnets, 0)
+  deployment_fqdn         = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  portal_web_context      = nonsensitive(data.azurerm_key_vault_secret.portal_web_context.value)
+  vm_roles                = var.is_ha ? ["primary", "standby"] : ["primary"]
+  zones                   = var.is_ha ? ["1", "2"] : ["1"]
+  subnet_id               = var.subnet_id != null ? var.subnet_id : element(module.site_core_info.private_subnets, 0)
   backend_address_pool_id = jsondecode(data.azurerm_key_vault_secret.backend_address_pools.value)["enterprise-base"]
 }
 
@@ -547,4 +547,19 @@ resource "azurerm_role_assignment" "servicebus_vm_identity" {
   role_definition_name             = "Azure Service Bus Data Owner"
   scope                            = azurerm_servicebus_namespace.deployment_servicebus[0].id
   skip_service_principal_aad_check = true
+}
+
+# Add the FQDNs of the VMs to the BackConnectionHostNames registry key to 
+# allow accessing the VMs using their own FQDNs.
+module "loopback_alias" {
+  count         = length(local.vm_roles)
+  source        = "../../modules/loopback_alias"
+  site_id       = var.site_id
+  deployment_id = var.deployment_id
+  machine_roles = [local.vm_roles[count.index]]
+  alias_fqdn    = "${local.vm_roles[count.index]}.${var.deployment_id}.${var.site_id}.internal"
+
+  depends_on = [ 
+    azurerm_windows_virtual_machine.vms 
+  ]
 }

@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,6 +35,7 @@ env:
   ARM_USE_AZUREAD: true
   TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME: ${{ vars.TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME }}
   TERRAFORM_BACKEND_CONTAINER_NAME: ${{ vars.TERRAFORM_BACKEND_CONTAINER_NAME }}
+  PYTHONPATH: ${{ github.workspace }}/azure/scripts
   CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-base-windows/infrastructure.tfvars.json
 
 concurrency:
@@ -53,6 +54,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+      - name: Azure SDK for Python
+        id: install-azure-sdk
+        run: pip install azure-identity azure-keyvault-secrets azure-mgmt-compute azure-storage-blob
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.10.0"
@@ -66,8 +70,8 @@ jobs:
       - name: Terraform Apply
         if: github.event.inputs.terraform_command != 'plan'
         run: |
-          # az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
-          # az account set --subscription $ARM_SUBSCRIPTION_ID
+          az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
+          az account set --subscription $ARM_SUBSCRIPTION_ID
           terraform apply -var-file $CONFIG_FILE -auto-approve -input=false
       - name: Terraform Plan
         if: github.event.inputs.terraform_command == 'plan'

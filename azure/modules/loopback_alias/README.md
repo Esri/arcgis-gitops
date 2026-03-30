@@ -1,9 +1,13 @@
 <!-- BEGIN_TF_DOCS -->
-# Terraform module lv_extend
+# Terraform module loopback_alias
 
-Terraform module lv_extend extends logical volumes on Azure VMs in a deployment.
+Terraform module loopback_alias adds the specified hostname to BackConnectionHostNames
+registry key.
 
-The module uses az_run_shell_script python module to run ${var.os}.sh scripts on the deployment's VMs in specific roles.
+See: https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/accessing-server-locally-with-fqdn-cname-alias-denied
+
+The module uses az_run_shell_script python module to run SetLoopbackAlias.ps1
+script on the deployment's VMs in specific roles.
 
 ## Requirements
 
@@ -32,8 +36,8 @@ On the machine where Terraform is executed:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
+| alias_fqdn | The FQDN to be added to BackConnectionHostNames registry key | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
-| os | Operating system id (rhel9\|ubuntu24) | `string` | `"rhel9"` | no |
 | site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

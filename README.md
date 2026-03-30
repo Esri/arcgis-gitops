@@ -6,7 +6,7 @@
 
 > For cloud administrators, DevOps engineers, and IT professionals deploying ArcGIS Enterprise.
 
-The template repository provides [GitHub Actions](https://docs.github.com/en/actions) workflows that automate deployment and operation of [ArcGIS Enterprise](https://enterprise.arcgis.com) following Infrastructure as Code methodologies, foundational system patterns, and best practices recommended for enterprise IT systems.
+The template repository provides [GitHub Actions](https://docs.github.com/en/actions) workflows that automate deployment and maintenance of [ArcGIS Enterprise](https://enterprise.arcgis.com) following Infrastructure as Code methodologies, foundational system patterns, and best practices recommended for enterprise IT systems.
 
 &nbsp;[![ArcGIS Automation using GitHub Actions](arcgis-gitops.png "ArcGIS Automation using GitHub Actions")](https://github.com/Esri/arcgis-gitops/wiki)
 

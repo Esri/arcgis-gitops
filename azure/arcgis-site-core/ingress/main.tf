@@ -27,8 +27,8 @@
  *
  * The Application Gateway's listeners, backend pools, health probes, and routing rules are
  * dynamically configured from the settings defined by the "routing_rules" variable. 
- * By default, the routing rules are set to route traffic to port 443 of 
- * "enterprise-base" and "notebook-server" backend pools.
+ * By default, the routing rules route traffic to ports 6443 and 7443 on 
+ * "enterprise-base" backend pool and port 443 on "notebook-server" backend pool.
  *
  * All the HTTPS listeners use the SSL certificate stored in the site's Key Vault. The certificate's
  * secret ID must be specified by the "ssl_certificate_secret_id" variable.
@@ -370,6 +370,10 @@ resource "azurerm_application_gateway" "ingress" {
       name                                = backend_http_settings.value.name
       cookie_based_affinity               = "Disabled"
       port                                = backend_http_settings.value.backend_port
+      # Override backend path 
+      # When a path-based rule is triggered, the Application Gateway identifies
+      # the part of the URL that matched the rule and substitutes it with the 
+      # path defined in the backend HTTP settings.
       path                                = backend_http_settings.value.backend_path
       protocol                            = backend_http_settings.value.protocol
       request_timeout                     = backend_http_settings.value.request_timeout
@@ -443,14 +447,14 @@ resource "azurerm_application_gateway" "ingress" {
           paths                      = path_rule.value.paths
           backend_address_pool_name  = path_rule.value.backend_pool
           backend_http_settings_name = path_rule.value.name
-          # If the rule has a backend_path defined, create a rewrite rule set to
-          # rewrite the path and/or host header for requests routed to this rule.
           rewrite_rule_set_name      = try(path_rule.value.backend_path, null) != null ? path_rule.value.name : null
         }
       }
     }
   }
 
+  # If the rule has a backend_path defined, create a rewrite rule set and associate it with the path rule 
+  # to rewrite X-Forwarded-Host request header and Location response header.
   dynamic "rewrite_rule_set" {
     # For all rules that have backend_path defined, create a rewrite rule set to rewrite the host header and/or the path.
     for_each = { for k, v in local.all_backend_http_settings : k => v if v.backend_path != null }

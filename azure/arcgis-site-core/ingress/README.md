@@ -27,8 +27,8 @@ public IP address of the Application Gateway.
 
 The Application Gateway's listeners, backend pools, health probes, and routing rules are
 dynamically configured from the settings defined by the "routing_rules" variable.
-By default, the routing rules are set to route traffic to port 443 of
-"enterprise-base" and "notebook-server" backend pools.
+By default, the routing rules route traffic to ports 6443 and 7443 on
+"enterprise-base" backend pool and port 443 on "notebook-server" backend pool.
 
 All the HTTPS listeners use the SSL certificate stored in the site's Key Vault. The certificate's
 secret ID must be specified by the "ssl_certificate_secret_id" variable.

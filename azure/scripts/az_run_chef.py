@@ -42,7 +42,7 @@ if (Test-Path '.cinc') { Remove-Item -Path '.cinc' -Recurse -Force }
 if (! $?) { exit 1 }
 & az keyvault secret show --name $JsonAttributesSecret --vault-name $VaultName --query "value" --output tsv | Out-File attributes.json -Encoding ASCII
 if (! $?) { exit 1 }
-& cinc-client.bat -z -j attributes.json -l $LogLevel | Tee-Object -FilePath chef-run.log -Append
+& cinc-client.bat -z -c C:\\chef\\client.rb -j attributes.json -l $LogLevel | Tee-Object -FilePath chef-run.log -Append
 $ret = $?
 Remove-Item (Join-Path $env:SystemDrive 'chef\\nodes') -Recurse -ErrorAction SilentlyContinue
 if (! $ret) { exit 1 }

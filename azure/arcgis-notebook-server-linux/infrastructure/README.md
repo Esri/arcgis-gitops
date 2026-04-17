@@ -7,7 +7,7 @@ The Terraform module provisions Azure resources for ArcGIS Notebook Server deplo
 
 The module creates network interfaces in the first private subnet or the subnet specified by subnet_id input variable and
 launches one primary and N node VMs (configurable via node_count) in different zones of the specified Azure region.
-The VMs are launched from images retrieved from "vm-image-${var.deployment_id}-primary" and "vm-image-${var.deployment_id}-node" secrets of the site's Key Vault.
+The VMs are launched from images retrieved from "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-node" secrets of the site's Key Vault.
 The images must be created by the Packer Template for ArcGIS Notebook Server on Linux.
 
 The network interfaces are associated with the backend address pool "notebook-server" of the Application Gateway created by the ingress
@@ -22,6 +22,11 @@ The module creates two storage accounts: one for ArcGIS Notebook Server config s
 The config store storage account is secured with private endpoints and only accessible from the VMs.
 The VM identity is granted access to the config store storage account.
 The file share is mounted to all the VMs.
+
+The module also extends the root volume on the VMs and mounts the file share to the VMs.
+
+The module creates a certificate for backend services/endpoints signed by the ingress CA and
+uploads the certificate to the repository storage container.
 
 The deployment's Monitoring Subsystem consists of a shared dashboard in Azure Monitor that displays
 the key metrics of the deployment's VMs and storage infrastructure.
@@ -43,10 +48,13 @@ On the machine where Terraform is executed:
 
 | Secret Name                                        | Description |
 |----------------------------------------------------|-------------|
+| ${var.deployment_id}-notebook-server-web-context   | Notebook Server web context |
 | ${var.deployment_id}-os                            | Operating system ID |
 | ${var.deployment_id}-vm-image-node                 | Node VM image ID |
 | ${var.deployment_id}-vm-image-primary              | Primary VM image ID |
 | ${var.ingress_deployment_id}-backend-address-pools | Application Gateway backend address pools |
+| ${var.ingress_deployment_id}-ca-private-key        | Private key of the ingress CA root certificate |
+| ${var.ingress_deployment_id}-ca-root-cert          | Root certificate used by Application Gateway to validate the backend's identity |  
 | ${var.ingress_deployment_id}-deployment-fqdn       | Ingress deployment FQDN |
 | ${var.portal_deployment_id}-deployment-url         | Portal deployment URL |
 | storage-account-key                                | Site storage account key |
@@ -60,6 +68,7 @@ On the machine where Terraform is executed:
 
 | Secret Name                               | Description |
 |-------------------------------------------|-------------|
+| ${var.deployment_id}-backend-pfx-password | Password for the PFX certificate |
 | ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
 | ${var.deployment_id}-deployment-url       | Deployment URL |
 | ${var.deployment_id}-portal-url           | Portal URL |
@@ -77,6 +86,7 @@ On the machine where Terraform is executed:
 | Name | Source | Version |
 |------|--------|---------|
 | aznfs_mount | ../../modules/aznfs_mount | n/a |
+| backend_cert | ../../modules/backend_cert | n/a |
 | lv_extend | ../../modules/lv_extend | n/a |
 | site_core_info | ../../modules/site_core_info | n/a |
 
@@ -86,6 +96,7 @@ On the machine where Terraform is executed:
 |------|------|
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.portal_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_linux_virtual_machine.nodes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
@@ -108,6 +119,7 @@ On the machine where Terraform is executed:
 | [azurerm_storage_account.file_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
 | [azurerm_storage_share.fileserver](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_share) | resource |
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
+| [random_password.pfx_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |

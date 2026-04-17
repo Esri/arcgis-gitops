@@ -132,10 +132,6 @@ locals {
   manifest           = jsondecode(file(local.manifest_file_path))
   archives_dir       = local.manifest.arcgis.repository.local_archives
   patches_dir        = local.manifest.arcgis.repository.local_patches
-  java_tarball       = local.manifest.arcgis.repository.metadata.java_tarball
-  java_version       = local.manifest.arcgis.repository.metadata.java_version
-  tomcat_tarball     = local.manifest.arcgis.repository.metadata.tomcat_tarball
-  tomcat_version     = local.manifest.arcgis.repository.metadata.tomcat_version
 
   software_dir = "/opt/software/setups/*"
 
@@ -243,15 +239,6 @@ build {
   provisioner "shell-local" {
     env = {
       JSON_ATTRIBUTES = base64encode(jsonencode({
-        java = {
-          version      = local.java_version
-          tarball_path = "${local.archives_dir}/${local.java_tarball}"
-        }
-        tomcat = {
-          version      = local.tomcat_version
-          tarball_path = "${local.archives_dir}/${local.tomcat_tarball}"
-          install_path = "/opt/tomcat_arcgis_${local.tomcat_version}"
-        }
         arcgis = {
           version     = var.arcgis_version
           run_as_user = var.run_as_user
@@ -259,42 +246,31 @@ build {
             archives = local.archives_dir
             setups   = "/opt/software/setups"
           }
-          web_server = {
-            webapp_dir = "/opt/tomcat_arcgis_${local.tomcat_version}/webapps"
-          }
           server = {
             install_dir                 = "/opt"
             install_system_requirements = true
             configure_autostart         = true
-            wa_name                     = var.server_web_context
-          }
-          web_adaptor = {
-            install_dir = "/opt"
           }
           data_store = {
             install_dir                 = "/opt"
             setup_options               = "-f Relational"
             data_dir                    = "/gisdata/arcgisdatastore"
             configure_autostart         = true
-            preferredidentifier         = "hostname"
+            preferredidentifier         = "ip"
             install_system_requirements = true
           }
           portal = {
             install_dir                 = "/opt"
             configure_autostart         = true
             install_system_requirements = true
-            wa_name                     = var.portal_web_context
+            preferredidentifier         = "ip"
           }
         }
         run_list = [
           "recipe[arcgis-enterprise::system]",
-          "recipe[esri-tomcat::openjdk]",
-          "recipe[esri-tomcat::install]",
           "recipe[arcgis-enterprise::install_portal]",
           "recipe[arcgis-enterprise::webstyles]",
-          "recipe[arcgis-enterprise::install_portal_wa]",
           "recipe[arcgis-enterprise::install_server]",
-          "recipe[arcgis-enterprise::install_server_wa]",
           "recipe[arcgis-enterprise::install_datastore]"
         ]
       }))
@@ -323,10 +299,6 @@ build {
           data_store = {
             install_dir = "/opt"
             patches     = var.arcgis_data_store_patches
-          }
-          web_adaptor = {
-            install_dir = "/opt"
-            patches     = var.arcgis_web_adaptor_patches
           }
         }
         run_list = [

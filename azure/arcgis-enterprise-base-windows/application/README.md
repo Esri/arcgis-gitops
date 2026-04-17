@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for Base ArcGIS Enterprise on Windows
 
-This Terraform module configures or upgrades applications of base ArcGIS Enterprise deployment on the Windows platform.
+This Terraform module configures or upgrades applications for a base ArcGIS Enterprise deployment on the Windows platform.
 
 ![Base ArcGIS Enterprise on Windows](enterprise-base-windows-azure-application.png "Base ArcGIS Enterprise on Windows")
 
@@ -9,7 +9,6 @@ First, the module bootstraps the deployment by installing Chef Client and Chef C
 
 If "is_upgrade" input variable is set to true, the module:
 
-* Un-registers the ArcGIS Server Web Adaptor on the standby VM
 * Copies the installation media for the ArcGIS Enterprise version specified by arcgis_version input variable to the private repository blob container
 * Downloads the installation media from the private repository blob container to the primary and standby VMs
 * Installs or upgrades ArcGIS Enterprise software on the primary and standby VMs
@@ -18,7 +17,7 @@ If "is_upgrade" input variable is set to true, the module:
 Then the module:
 
 * Copies the ArcGIS Server and Portal for ArcGIS authorization files to the private repository blob container
-* Copies the keystore and, if specified, root certificate files to the private repository blob container
+* If specified, copies the root certificate file to the private repository blob container
 * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository blob container to primary and standby VMs
 * Downloads the keystore and root certificate files from the private repository blob container to the primary and standby VMs
 * Creates the required network shares and directories in the primary VM
@@ -32,7 +31,7 @@ the configuration store in a Cosmos DB database, rather than on a file share.
 
 ## Requirements
 
-The Azure resources for the deployment must be provisioned by Infrastructure terraform module for base ArcGIS Enterprise on Windows.
+The Azure resources for the deployment must be provisioned by Infrastructure Terraform module for base ArcGIS Enterprise on Windows.
 
 On the machine where Terraform is executed:
 
@@ -41,7 +40,7 @@ On the machine where Terraform is executed:
 * Path to azure/scripts directory must be added to PYTHONPATH
 * Azure credentials must be configured using "az login" command
 
-My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD.
 
 ## Key Vault Secrets
 
@@ -49,6 +48,7 @@ The module reads the following Key Vault secrets:
 
 | Key Vault secret name                     | Description |
 |-------------------------------------------|-------------|
+| ${var.deployment_id}-backend-pfx-password | Password for the backend PFX certificate |
 | ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
 | ${var.deployment_id}-portal-web-context   | Portal for ArcGIS Web Adaptor web context |
 | ${var.deployment_id}-server-web-context   | ArcGIS Server Web Adaptor web context |
@@ -80,22 +80,22 @@ The module reads the following Key Vault secrets:
 | arcgis_enterprise_upgrade | ../../modules/run_chef | n/a |
 | authorization_files | ../../modules/run_chef | n/a |
 | az_copy_files | ../../modules/az_copy_files | n/a |
-| begin_upgrade_standby | ../../modules/run_chef | n/a |
 | bootstrap_deployment | ../../modules/bootstrap | n/a |
 | clean_up | ../../modules/clean_up | n/a |
-| keystore | ../../modules/run_chef | n/a |
+| primary_keystore | ../../modules/run_chef | n/a |
 | root_cert | ../../modules/run_chef | n/a |
 | site_core_info | ../../modules/site_core_info | n/a |
+| standby_keystore | ../../modules/run_chef | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [azurerm_storage_blob.keystore_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.portal_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.root_cert_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.server_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
+| [azurerm_key_vault_secret.backend_pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.portal_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.server_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -103,6 +103,7 @@ The module reads the following Key Vault secrets:
 | [azurerm_key_vault_secret.vm_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_resources.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
 | [azurerm_virtual_machine.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_machine) | data source |
+| [azurerm_virtual_machine.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_machine) | data source |
 
 ## Inputs
 
@@ -117,13 +118,10 @@ The module reads the following Key Vault secrets:
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install. | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
-| arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
-| keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | n/a | yes |
-| keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | n/a | yes |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
 | os | Operating system id (windows2022\|windows2025) | `string` | `"windows2025"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |

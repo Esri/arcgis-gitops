@@ -20,7 +20,7 @@ variable "azure_region" {
 variable "enabled_log_categories" {
   description = "List of log categories to enable for the Application Gateway"
   type        = list(string)
-  default     = [
+  default = [
     "ApplicationGatewayAccessLog",
     "ApplicationGatewayFirewallLog",
     "ApplicationGatewayPerformanceLog"
@@ -45,7 +45,7 @@ variable "deployment_id" {
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }  
+  }
 }
 
 variable "dns_zone_name" {
@@ -65,7 +65,7 @@ variable "dns_zone_resource_group_name" {
   default     = null
 
   validation {
-    condition = can(regex("^[a-zA-Z0-9_\\-\\.()]{1,90}$", var.dns_zone_resource_group_name)) || var.dns_zone_resource_group_name == null
+    condition     = can(regex("^[a-zA-Z0-9_\\-\\.()]{1,90}$", var.dns_zone_resource_group_name)) || var.dns_zone_resource_group_name == null
     error_message = "The dns_zone_resource_group_name value must be valid resource group name."
   }
 }
@@ -76,7 +76,7 @@ variable "ingress_private_ip" {
   default     = "10.5.255.254"
 
   validation {
-    condition = var.ingress_private_ip == null || can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", var.ingress_private_ip))
+    condition     = var.ingress_private_ip == null || can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}$", var.ingress_private_ip))
     error_message = "The ingress_private_ip value must be a valid IPv4 address."
   }
 }
@@ -85,17 +85,6 @@ variable "log_retention" {
   description = "Retention period in days for logs"
   type        = number
   default     = 90
-}
-
-variable "request_timeout" {
-  description = "Request timeout in seconds for the Application Gateway"
-  type        = number
-  default     = 60
-
-  validation {
-    condition     = var.request_timeout >= 60 && var.request_timeout <= 600
-    error_message = "The request_timeout value must be between 60 and 600 seconds."
-  }  
 }
 
 variable "site_id" {
@@ -135,63 +124,46 @@ variable "zones" {
 variable "routing_rules" {
   description = "List of routing rules for the Application Gateway"
   type        = list(any)
-  default     = [{
-    name     = "web-adaptor"
+  default = [{
+    name          = "https-443"
     frontend_port = 443
-    backend_port  = 443
-    protocol = "Https"
-    priority = 10
-    rules    = [{
-      name   = "server"
-      pool   = "enterprise-base"
-      probe  = "/server/rest/info/healthcheck"
-      paths  = ["/server/*"]
-    }, {
-      name   = "portal"
-      pool   = "enterprise-base"
-      probe  = "/portal/portaladmin/healthCheck"
-      paths  = ["/portal/*"]
-    }, {
-      name   = "notebooks"
-      pool   = "notebook-server"
-      probe  = "/notebooks/rest/info/healthcheck"
-      paths  = ["/notebooks/*"]
-    }]
-  }, {
-    name     = "server"
-    frontend_port = 6443
-    backend_port  = 6443
-    protocol = "Https"
-    priority = 11
-    rules    = [{
-      name   = "arcgis-6443"
-      pool   = "enterprise-base"
-      probe  = "/arcgis/rest/info/healthcheck"
-      paths  = ["/arcgis/*"]
-    }]
-  }, {
-    name     = "portal"
-    frontend_port = 7443
-    backend_port  = 7443
-    protocol = "Https"
-    priority = 12
-    rules    = [{
-      name   = "arcgis-7443"
-      pool   = "enterprise-base"
-      probe  = "/arcgis/portaladmin/healthCheck"
-      paths  = ["/arcgis/*"]
-    }]
-  }, {
-    name     = "notebook-server"
-    frontend_port = 11443
-    backend_port  = 11443
-    protocol = "Https"
-    priority = 13
-    rules    = [{
-      name   = "arcgis-11443"
-      pool   = "notebook-server"
-      probe  = "/arcgis/rest/info/healthcheck"
-      paths  = ["/arcgis/*"]
+    protocol      = "Https"
+    priority      = 10
+    rules = [{
+      name            = "server"
+      backend_pool    = "enterprise-base"
+      backend_port    = 6443
+      backend_path    = "/arcgis/"
+      override_host   = true
+      probe           = "/arcgis/rest/info/healthcheck"
+      paths           = [
+        "/server",
+        "/server/*"
+      ]
+      request_timeout = 600
+      }, {
+      name            = "portal"
+      backend_pool    = "enterprise-base"      
+      backend_port    = 7443
+      backend_path    = "/arcgis/"
+      override_host   = true
+      probe           = "/arcgis/portaladmin/healthCheck"
+      paths           = [
+        "/portal",
+        "/portal/*"
+      ]
+      request_timeout = 60
+      }, {
+      name            = "notebooks"
+      backend_pool    = "notebook-server"
+      backend_port    = 443
+      override_host   = false
+      probe           = "/notebooks/rest/info/healthcheck"
+      paths           = [
+        "/notebooks",
+        "/notebooks/*"
+      ]
+      request_timeout = 60
     }]
   }]
 }

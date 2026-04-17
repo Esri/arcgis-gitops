@@ -7,7 +7,7 @@
  *
  * The module creates network interfaces in the first private subnet or the subnet specified by subnet_id input variable and
  * launches one primary and N node VMs (configurable via node_count) in different zones of the specified Azure region.
- * The VMs are launched from images retrieved from "vm-image-${var.deployment_id}-primary" and "vm-image-${var.deployment_id}-node" secrets of the site's Key Vault. 
+ * The VMs are launched from images retrieved from "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-node" secrets of the site's Key Vault. 
  * The images must be created by the Packer Template for ArcGIS Notebook Server on Linux. 
  *  
  * The network interfaces are associated with the backend address pool "notebook-server" of the Application Gateway created by the ingress 
@@ -22,6 +22,11 @@
  * The config store storage account is secured with private endpoints and only accessible from the VMs.
  * The VM identity is granted access to the config store storage account.
  * The file share is mounted to all the VMs. 
+ *
+ * The module also extends the root volume on the VMs and mounts the file share to the VMs. 
+ *
+ * The module creates a certificate for backend services/endpoints signed by the ingress CA and 
+ * uploads the certificate to the repository storage container.
  *  
  * The deployment's Monitoring Subsystem consists of a shared dashboard in Azure Monitor that displays 
  * the key metrics of the deployment's VMs and storage infrastructure.
@@ -43,10 +48,13 @@
  *
  * | Secret Name                                        | Description |
  * |----------------------------------------------------|-------------|
+ * | ${var.deployment_id}-notebook-server-web-context   | Notebook Server web context |
  * | ${var.deployment_id}-os                            | Operating system ID |
  * | ${var.deployment_id}-vm-image-node                 | Node VM image ID |
  * | ${var.deployment_id}-vm-image-primary              | Primary VM image ID |
  * | ${var.ingress_deployment_id}-backend-address-pools | Application Gateway backend address pools |
+ * | ${var.ingress_deployment_id}-ca-private-key        | Private key of the ingress CA root certificate |
+ * | ${var.ingress_deployment_id}-ca-root-cert          | Root certificate used by Application Gateway to validate the backend's identity |  
  * | ${var.ingress_deployment_id}-deployment-fqdn       | Ingress deployment FQDN |
  * | ${var.portal_deployment_id}-deployment-url         | Portal deployment URL |
  * | storage-account-key                                | Site storage account key |
@@ -60,6 +68,7 @@
  *
  * | Secret Name                               | Description |
  * |-------------------------------------------|-------------|
+ * | ${var.deployment_id}-backend-pfx-password | Password for the PFX certificate |
  * | ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
  * | ${var.deployment_id}-deployment-url       | Deployment URL |
  * | ${var.deployment_id}-portal-url           | Portal URL |
@@ -89,6 +98,10 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.46"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.2"
     }
   }
 }
@@ -625,4 +638,39 @@ resource "azurerm_key_vault_secret" "storage_account_name" {
     ArcGISSiteId       = var.site_id
     ArcGISDeploymentId = var.deployment_id
   }
+}
+
+# Create a self-signed certificates trusted by the Application Gateway 
+# and store them in the repository storage container.
+resource "random_password" "pfx_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%*()-_=+[]{}:?"
+}
+
+module "backend_cert" {
+  source                 = "../../modules/backend_cert"
+  deployment_id          = var.deployment_id
+  ingress_id             = var.ingress_deployment_id
+  common_name            = local.deployment_fqdn
+  pfx_password           = random_password.pfx_password.result
+  storage_account_name   = module.site_core_info.storage_account_name
+  storage_container_name = "repository"
+  key_vault_id           = module.site_core_info.vault_id
+}
+
+# Store the PFX password in Azure Key Vault
+resource "azurerm_key_vault_secret" "pfx_password" {
+  name         = "${var.deployment_id}-backend-pfx-password"
+  value        = random_password.pfx_password.result
+  key_vault_id = module.site_core_info.vault_id
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+
+  depends_on = [
+    module.backend_cert
+  ]
 }

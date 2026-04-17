@@ -16,8 +16,7 @@
         "products": [
           "Portal for ArcGIS",
           "ArcGIS Server",
-          "ArcGIS Data Store",
-          "ArcGIS Web Adaptor (Java)"
+          "ArcGIS Data Store"
         ],
         "versions": [
           "12.0"
@@ -27,12 +26,7 @@
         ],
         "subfolder": "software/arcgis/12.0/patches"
       },
-      "metadata": {
-        "java_tarball": "OpenJDK17U-jdk_x64_linux_hotspot_17.0.15_6.tar.gz",
-        "java_version": "17.0.15+6",
-        "tomcat_tarball": "apache-tomcat-10.1.41.tar.gz",
-        "tomcat_version": "10.1.41"
-      },
+      "metadata": {},
       "files": {
         "ArcGIS_Server_Linux_120_197810.tar.gz": {
           "subfolder": "software/arcgis/12.0",
@@ -49,20 +43,6 @@
         "ArcGIS_DataStore_Linux_120_197823.tar.gz": {
           "subfolder": "software/arcgis/12.0",
           "sha256": "95FFE5565B90D76E6D6C129139BAE826FD4A5E4A843E15947AC5FA3140E5F200"
-        },
-        "ArcGIS_Web_Adaptor_Java_Linux_120_197824.tar.gz": {
-          "subfolder": "software/arcgis/12.0",
-          "sha256": "366AA307B12C3F25132332F1D7D06CD72413F706A1A19AD527B2F6690F204489"
-        },
-        "apache-tomcat-10.1.41.tar.gz": {
-          "url": "https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.41/bin/apache-tomcat-10.1.41.tar.gz",
-          "subfolder": "thirdparty",
-          "sha256": "1F7CC8CCE2D5F4ACD35491D0FA2ABAFA6DDD9BB0425B57B277310FDE5FF2FCB3"
-        },
-        "OpenJDK17U-jdk_x64_linux_hotspot_17.0.15_6.tar.gz": {
-          "url": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_x64_linux_hotspot_17.0.15_6.tar.gz",
-          "subfolder": "thirdparty",
-          "sha256": "9616877C733C9249328EA9BD83A5C8C30E0F9A7AF180CAC8FFDA9034161C2DF2"
         }
       }
     }

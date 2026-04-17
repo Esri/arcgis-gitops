@@ -17,6 +17,7 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
   The storage account name is stored in the Key Vault secret "${var.deployment_id}-storage-account-name".
 - If "is_ha" variable is true, provisions a Cosmos DB account and a Service Bus namespace for ArcGIS Server configuration store.
 - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
+- Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container.
 - Creates an Azure Monitor dashboard for monitoring key VM metrics.
 - Tags all resources with ArcGISSiteId and ArcGISDeploymentId for easy identification.
 
@@ -34,6 +35,8 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | ${var.deployment_id}-vm-image-primary            | Primary VM image ID |
 | ${var.deployment_id}-vm-image-standby            | Standby VM image ID |
 | ${var.ingress_deployment_id}-backend-address-pools | Application Gateway backend address pools |
+| ${var.ingress_deployment_id}-ca-private-key      | Private key of the ingress CA root certificate |
+| ${var.ingress_deployment_id}-ca-root-cert        | Root certificate used by Application Gateway to validate the backend's identity |
 | ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN |
 | storage-account-key                              | Storage account key |
 | storage-account-name                             | Storage account name |
@@ -44,10 +47,11 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 
 ### Secrets Written by the Module
 
-| Secret Name                        | Description |
-|------------------------------------|-------------|
-| ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
-| ${var.deployment_id}-deployment-url | Portal for ArcGIS URL of the deployment |
+| Secret Name                               | Description |
+|-------------------------------------------|-------------|
+| ${var.deployment_id}-backend-pfx-password | Password for the generated PFX file. |
+| ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
+| ${var.deployment_id}-deployment-url       | Portal for ArcGIS URL of the deployment |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
 
 ## Providers
@@ -61,6 +65,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 
 | Name | Source | Version |
 |------|--------|---------|
+| backend_cert | ../../modules/backend_cert | n/a |
 | loopback_alias | ../../modules/loopback_alias | n/a |
 | site_core_info | ../../modules/site_core_info | n/a |
 
@@ -74,6 +79,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_network_interface.nics](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
 | [azurerm_network_interface_application_gateway_backend_address_pool_association.targets](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface_application_gateway_backend_address_pool_association) | resource |
@@ -98,6 +104,7 @@ Before running Terraform, configure Azure credentials using "az login" CLI comma
 | [azurerm_storage_container.portal_content](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) | resource |
 | [azurerm_windows_virtual_machine.vms](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine) | resource |
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
+| [random_password.pfx_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_cosmosdb_sql_role_definition.data_contributor](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/cosmosdb_sql_role_definition) | data source |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |

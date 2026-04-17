@@ -3,7 +3,6 @@
   "arcgis_portal_patches": [],
   "arcgis_server_patches": [],
   "arcgis_version": "12.0",
-  "arcgis_web_adaptor_patches": [],
   "deployment_id": "enterprise-base-linux",
   "os": "rhel9",
   "os_disk_size": 256,

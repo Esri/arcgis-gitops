@@ -84,7 +84,7 @@ Outputs:
 Instructions:
 
 1. Add ArcGIS Notebook Server authorization file to `config/authorization/<ArcGIS version>` directory of the repository and set "notebook_server_authorization_file_path" property to the file path.
-2. Add SSL certificates for the base ArcGIS Enterprise domain name and (optionally) trusted root certificates to `config/certificates` directory and set "keystore_file_path" and "root_cert_file_path" properties to the file paths. Set "keystore_file_password" property to password of the keystore file.
+2. (Optionally) Add SSL trusted root certificates to `config/certificates` directory and set "root_cert_file_path" properties to the file path.
 3. (Optionally) Set "config_store_type" to "AZURE" to use ArcGIS Notebook Server configuration store in Azure Storage account instead of Azure files network share.
 4. Run the notebook-server-linux-azure-application workflow using the branch.
 

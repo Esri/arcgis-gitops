@@ -61,7 +61,6 @@ The template saves the built image ID in the following Key Vault secrets:
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
-| arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `list(string)` | `[]` | no |
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
 | deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
 | os | Operating system Id | `string` | `"windows2025"` | no |

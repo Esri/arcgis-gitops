@@ -16,8 +16,7 @@
         "products": [
           "Portal for ArcGIS",
           "ArcGIS Server",
-          "ArcGIS Data Store",
-          "ArcGIS Web Adaptor (Java)"
+          "ArcGIS Data Store"
         ],
         "versions": [
           "11.4"
@@ -27,12 +26,7 @@
         ],
         "subfolder": "software/arcgis/11.4/patches"
       },
-      "metadata": {
-        "java_tarball": "jdk-11.0.21.tar.gz",
-        "java_version": "11.0.21+9",
-        "tomcat_tarball": "apache-tomcat-9.0.83.tar.gz",
-        "tomcat_version": "9.0.83"
-      },
+      "metadata": {},
       "files": {
         "ArcGIS_Server_Linux_114_192977.tar.gz": {
           "subfolder": "software/arcgis/11.4",
@@ -49,20 +43,6 @@
         "ArcGIS_DataStore_Linux_114_192981.tar.gz": {
           "subfolder": "software/arcgis/11.4",
           "sha256": "8207EA907EFD2E2ADDDBF95AB05A1740A7FC5EE2E521C9E3DB473A4286426C16"
-        },
-        "ArcGIS_Web_Adaptor_Java_Linux_114_192983.tar.gz": {
-          "subfolder": "software/arcgis/11.4",
-          "sha256": "D01B9EBFF0FEA724266128F57369D0CAF9F4EC99C21DFA386634BAACAFBCBE55"
-        },
-        "apache-tomcat-9.0.83.tar.gz": {
-          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.83/bin/apache-tomcat-9.0.83.tar.gz",
-          "subfolder": "thirdparty",
-          "sha256": "76092DAE89DC1F3AE6DD11404D64852761A401F18CD373C93B5FF7EF2CE4F90A"
-        },
-        "jdk-11.0.21.tar.gz": {
-          "url": "https://github.com/adoptium/temurin11-binaries/releases/download/jdk-11.0.21%2B9/OpenJDK11U-jdk_x64_linux_hotspot_11.0.21_9.tar.gz",
-          "subfolder": "thirdparty",
-          "sha256": "60EA98DAA09834FDD3162CA91DDC8D92A155AB3121204F6F643176EE0C2D0D5E"
         }
       }
     }

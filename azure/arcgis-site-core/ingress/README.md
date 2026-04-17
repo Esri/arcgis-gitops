@@ -1,7 +1,11 @@
 <!-- BEGIN_TF_DOCS -->
 # Ingress Terraform Module
 
-This module deploys an Azure Application Gateway for an ArcGIS Enterprise site.
+Provisions Azure Application Gateway ingress for an ArcGIS Enterprise site, including
+public and private listeners, rule-driven backend routing, HTTP-to-HTTPS redirection,
+and backend trust configuration. The module integrates with Key Vault for certificates
+and secrets, creates deployment DNS records, and enables monitoring resources for
+gateway health and diagnostics.
 
 ![ArcGIS Enterprise site ingress](arcgis-enterprise-ingress-azure.png "ArcGIS Enterprise site ingress")
 
@@ -23,11 +27,15 @@ public IP address of the Application Gateway.
 
 The Application Gateway's listeners, backend pools, health probes, and routing rules are
 dynamically configured from the settings defined by the "routing_rules" variable.
-By default, the routing rules are set to route traffic to ports 443, 6443, and 7443 of
-"enterprise-base" backend pool.
+By default, the routing rules are set to route traffic to port 443 of
+"enterprise-base" and "notebook-server" backend pools.
 
 All the HTTPS listeners use the SSL certificate stored in the site's Key Vault. The certificate's
 secret ID must be specified by the "ssl_certificate_secret_id" variable.
+
+The module also generates a CA root certificate, configures the Application Gateway
+to use it as trusted certificate in the backend settings,
+and stores the certificate and its private key in the Key Vault as secrets.
 
 Requests to port 80 on both the public and private frontend IPs are redirected to port 443.
 
@@ -36,7 +44,7 @@ The Application Gateway's monitoring subsystem consists of:
 * An Azure Monitor metric alert that notifies the site's alert action group when
   the Application Gateway's unhealthy host count exceeds 0.
 * A Log Analytics workspace that collects the Application Gateway's logs.
-* An Azure Monitor dashboard "{var.site_id}-{var.deployment_id}" that visualizes the key metrics and logs of the Application Gateway.
+* An Azure Monitor dashboard "${var.site_id}-${var.deployment_id}" that visualizes the key metrics and logs of the Application Gateway.
 
 ## Key Vault Secrets
 
@@ -56,6 +64,8 @@ The Application Gateway's monitoring subsystem consists of:
 | Secret Name | Description |
 |-------------|-------------|
 | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
+| ${var.deployment_id}-ca-private-key | Private key of the CA root certificate |
+| ${var.deployment_id}-ca-root-cert | Self-signed root certificate used by Application Gateway to validate the backend's identity |
 | ${var.deployment_id}-backend-address-pools | JSON-encoded map of backend address pool names to their IDs |
 
 ## Providers
@@ -63,6 +73,7 @@ The Application Gateway's monitoring subsystem consists of:
 | Name | Version |
 |------|---------|
 | azurerm | ~> 4.58 |
+| tls | ~> 4.2 |
 
 ## Modules
 
@@ -77,6 +88,8 @@ The Application Gateway's monitoring subsystem consists of:
 | [azurerm_application_gateway.ingress](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/application_gateway) | resource |
 | [azurerm_dns_a_record.public_dns_entry](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/dns_a_record) | resource |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.ca_private_key](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.ca_root_cert](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_log_analytics_workspace.ingress](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/log_analytics_workspace) | resource |
 | [azurerm_monitor_diagnostic_setting.app_gateway_logs](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/monitor_diagnostic_setting) | resource |
@@ -88,6 +101,8 @@ The Application Gateway's monitoring subsystem consists of:
 | [azurerm_public_ip.ingress](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/public_ip) | resource |
 | [azurerm_resource_group.deployment_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_web_application_firewall_policy.arcgis_enterprise](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/web_application_firewall_policy) | resource |
+| [tls_private_key.ca_private_key](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/private_key) | resource |
+| [tls_self_signed_cert.ca_root_cert](https://registry.terraform.io/providers/hashicorp/tls/latest/docs/resources/self_signed_cert) | resource |
 | [azurerm_key_vault_secret.site_alerts_action_group_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 
@@ -103,8 +118,7 @@ The Application Gateway's monitoring subsystem consists of:
 | enabled_log_categories | List of log categories to enable for the Application Gateway | `list(string)` | ```[ "ApplicationGatewayAccessLog", "ApplicationGatewayFirewallLog", "ApplicationGatewayPerformanceLog" ]``` | no |
 | ingress_private_ip | IP address of the Application Gateway private frontend configuration. The IP address must be in the Application Gateway subnet. | `string` | `"10.5.255.254"` | no |
 | log_retention | Retention period in days for logs | `number` | `90` | no |
-| request_timeout | Request timeout in seconds for the Application Gateway | `number` | `60` | no |
-| routing_rules | List of routing rules for the Application Gateway | `list(any)` | ```[ { "backend_port": 443, "frontend_port": 443, "name": "web-adaptor", "priority": 10, "protocol": "Https", "rules": [ { "name": "server", "paths": [ "/server/*" ], "pool": "enterprise-base", "probe": "/server/rest/info/healthcheck" }, { "name": "portal", "paths": [ "/portal/*" ], "pool": "enterprise-base", "probe": "/portal/portaladmin/healthCheck" }, { "name": "notebooks", "paths": [ "/notebooks/*" ], "pool": "notebook-server", "probe": "/notebooks/rest/info/healthcheck" } ] }, { "backend_port": 6443, "frontend_port": 6443, "name": "server", "priority": 11, "protocol": "Https", "rules": [ { "name": "arcgis-6443", "paths": [ "/arcgis/*" ], "pool": "enterprise-base", "probe": "/arcgis/rest/info/healthcheck" } ] }, { "backend_port": 7443, "frontend_port": 7443, "name": "portal", "priority": 12, "protocol": "Https", "rules": [ { "name": "arcgis-7443", "paths": [ "/arcgis/*" ], "pool": "enterprise-base", "probe": "/arcgis/portaladmin/healthCheck" } ] }, { "backend_port": 11443, "frontend_port": 11443, "name": "notebook-server", "priority": 13, "protocol": "Https", "rules": [ { "name": "arcgis-11443", "paths": [ "/arcgis/*" ], "pool": "notebook-server", "probe": "/arcgis/rest/info/healthcheck" } ] } ]``` | no |
+| routing_rules | List of routing rules for the Application Gateway | `list(any)` | ```[ { "frontend_port": 443, "name": "https-443", "priority": 10, "protocol": "Https", "rules": [ { "backend_path": "/arcgis/", "backend_pool": "enterprise-base", "backend_port": 6443, "name": "server", "override_host": true, "paths": [ "/server", "/server/*" ], "probe": "/arcgis/rest/info/healthcheck", "request_timeout": 600 }, { "backend_path": "/arcgis/", "backend_pool": "enterprise-base", "backend_port": 7443, "name": "portal", "override_host": true, "paths": [ "/portal", "/portal/*" ], "probe": "/arcgis/portaladmin/healthCheck", "request_timeout": 60 }, { "backend_pool": "notebook-server", "backend_port": 443, "name": "notebooks", "override_host": false, "paths": [ "/notebooks", "/notebooks/*" ], "probe": "/notebooks/rest/info/healthcheck", "request_timeout": 60 } ] } ]``` | no |
 | site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 | ssl_certificate_secret_id | Key Vault secret ID of SSL certificate for the Application Gateway HTTPS listeners | `string` | n/a | yes |
 | ssl_policy | Predefined SSL policy that should be assigned to the Application Gateway to control the SSL protocol and ciphers | `string` | `"AppGwSslPolicy20220101"` | no |

@@ -126,8 +126,6 @@ locals{
   manifest           = jsondecode(file(local.manifest_file_path))
   archives_dir       = local.manifest.arcgis.repository.local_archives
   patches_dir        = local.manifest.arcgis.repository.local_patches
-  dotnet_setup       = local.manifest.arcgis.repository.metadata.dotnet_setup
-  web_deploy_setup   = local.manifest.arcgis.repository.metadata.web_deploy_setup
   
   software_dir       = "C:/Software/*"
 
@@ -251,14 +249,6 @@ build {
           server = {
             install_dir = "C:\\Program Files\\ArcGIS\\Server"
             install_system_requirements = true
-            wa_name = var.server_web_context
-          }
-          web_adaptor = {
-            install_system_requirements = true
-            dotnet_setup_path = "${local.archives_dir}\\${local.dotnet_setup}"
-            web_deploy_setup_path = "${local.archives_dir}\\${local.web_deploy_setup}"
-            admin_access = true
-            reindex_portal_content = false
           }
           data_store = {
             install_dir = "C:\\Program Files\\ArcGIS\\DataStore"
@@ -271,18 +261,14 @@ build {
             install_dir = "C:\\Program Files\\ArcGIS\\Portal"
             install_system_requirements = true
             data_dir = "C:\\arcgisportal"
-            preferredidentifier = "hostname"
-            wa_name = var.portal_web_context
+            preferredidentifier = "ip"
           }
         }
         run_list = [
           "recipe[arcgis-enterprise::system]",
-          "recipe[esri-iis::install]",
           "recipe[arcgis-enterprise::install_portal]",
           "recipe[arcgis-enterprise::webstyles]",
-          "recipe[arcgis-enterprise::install_portal_wa]",
           "recipe[arcgis-enterprise::install_server]",
-          "recipe[arcgis-enterprise::install_server_wa]",
           "recipe[arcgis-enterprise::install_datastore]"
         ]
       }))
@@ -310,9 +296,6 @@ build {
           data_store = {
             patches = var.arcgis_data_store_patches
           }
-          web_adaptor = {
-            patches = var.arcgis_web_adaptor_patches
-          }
         }
         run_list = [
           "recipe[arcgis-enterprise::install_patches]"
@@ -329,14 +312,16 @@ build {
   }
 
   # Restart the VM to finalize the installation
-  provisioner "windows-restart" {}
+  # provisioner "windows-restart" {}
 
   # Generalize the image
   provisioner "powershell" {
     inline = [
-      "$sysprep = \"$env:SystemRoot\\System32\\Sysprep\\Sysprep.exe\"",
-      "Start-Process $sysprep -ArgumentList '/oobe /generalize /quiet /shutdown /mode:vm' -Wait"
-    ]
+      "Write-Output 'Starting Sysprep...'",
+      # Use /quit instead of /shutdown so the script can finish
+      "& $env:SystemRoot\\System32\\Sysprep\\Sysprep.exe /oobe /generalize /quiet /quit /mode:vm",
+      # Wait for the process to actually finish in the background before exiting the script
+      "while($true) { $p = Get-Process Sysprep -ErrorAction SilentlyContinue; if(!$p) { break }; Start-Sleep -s 5 }"    ]
   }
 
   # Save the build artifacts metadata in packer-manifest.json file.

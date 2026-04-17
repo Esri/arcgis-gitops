@@ -90,22 +90,6 @@ variable "is_upgrade" {
   default     = false
 }
 
-variable "keystore_file_password" {
-  description = "Password for keystore file with SSL certificate used by HTTPS listeners"
-  type        = string
-  sensitive   = true
-}
-
-variable "keystore_file_path" {
-  description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
-  type        = string
-  
-  validation {
-    condition     = fileexists(var.keystore_file_path)
-    error_message = "The file specified in keystore_file_path does not exist."
-  }
-}
-
 variable "license_level" {
   description = "ArcGIS Notebook Server license level"
   type        = string

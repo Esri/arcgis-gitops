@@ -80,12 +80,6 @@ variable "arcgis_version" {
   }
 }
 
-variable "arcgis_web_adaptor_patches" {
-  description = "File names of ArcGIS Web Adaptor patches to install."
-  type        = list(string)
-  default     = []
-}
-
 variable "azure_region" {
   description = "Azure region display name"
   type        = string
@@ -117,23 +111,6 @@ variable "is_upgrade" {
   description = "Flag to indicate if this is an upgrade deployment"
   type        = bool
   default     = false
-}
-
-variable "keystore_file_password" {
-  description = "Password for keystore file with SSL certificate used by HTTPS listeners"
-  type        = string
-  sensitive   = true
-}
-
-variable "keystore_file_path" {
-  description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
-  type        = string
-  default     = null
-
-  validation {
-    condition     = var.keystore_file_path == null || try(fileexists(var.keystore_file_path), false)
-    error_message = "The keystore_file_path value must be a valid file path."
-  }
 }
 
 variable "log_level" {

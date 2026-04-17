@@ -1,7 +1,7 @@
 /**
  * # Application Terraform Module for ArcGIS Notebook Server on Linux
  *
- * The Terraform module configures or upgrades applications of highly available ArcGIS Notebook Server deployment on Linux platform.
+ * The Terraform module configures or upgrades applications for an ArcGIS Notebook Server deployment on the Linux platform.
  *
  * ![ArcGIS Notebook Server on Linux](arcgis-notebook-server-linux-application.png "ArcGIS Notebook Server on Linux")
  *
@@ -17,19 +17,18 @@
  * Then the module:
  *
  * * Copies the ArcGIS Notebook Server authorization file to the private repository blob container
- * * If specified, copies keystore and root certificate files to the private repository blob container
+ * * If specified, copies the root certificate files to the private repository blob container
  * * Downloads the ArcGIS Notebook Server authorization file from the private repository blob container to primary and node VMs
- * * If specified, downloads the keystore and root certificate files from the private repository blob container to primary and node VMs
+ * * If specified, downloads the root certificate files from the private repository blob container to primary and node VMs
  * * Creates the required directories in the NFS mount
- * * Configures ArcGIS Notebook Server on primary VMs
- * * Configures ArcGIS Notebook Server on node VMs if any
+ * * Configures ArcGIS Notebook Server on the primary VM
+ * * Configures ArcGIS Notebook Server on the node VMs if any
  * * Federates ArcGIS Notebook Server with Portal for ArcGIS
- * * If config_store_type input variable is set to "AZURE", configures system-level backups of the config store using Azure Backup service
  * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and node VMs
  *
  * ## Requirements
  *
- * The Azure resources for the deployment must be provisioned by Infrastructure terraform module for ArcGIS Notebook Server on Linux.
+ * The Azure resources for the deployment must be provisioned by Infrastructure Terraform module for ArcGIS Notebook Server on Linux.
  *
  * On the machine where Terraform is executed:
  * 
@@ -38,7 +37,7 @@
  * * The working directory must be set to the arcgis-notebook-server-linux/application module path
  * * Azure credentials must be configured
  *
- * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+ * My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD.
  *
  * ## Key Vault Secrets
  *
@@ -46,6 +45,7 @@
  *
  * | Secret Name                                      | Description |
  * |--------------------------------------------------|-------------|
+ * | ${var.deployment_id}-backend-pfx-password        | Password for the backend PFX certificate |
  * | ${var.deployment_id}-deployment-fqdn             | Fully qualified domain name of the deployment |
  * | ${var.deployment_id}-notebook-server-web-context | ArcGIS Notebook Server web context | 
  * | ${var.deployment_id}-os                          | Operating system ID |
@@ -59,7 +59,7 @@
  * | vm-identity-client-id                            | VM identity client ID |
  * | vnet-id                                          | VNet ID |
  *
- * > The module also writes multiple “attributes” Key Vault secrets used to run Chef.
+ * > The module also writes multiple attributes Key Vault secrets used to run Chef.
  */
 
 # Copyright 2026 Esri
@@ -99,7 +99,7 @@ provider "azurerm" {
 }
 
 data "azurerm_key_vault_secret" "deployment_fqdn" {
-  name = "${var.deployment_id}-deployment-fqdn"
+  name         = "${var.deployment_id}-deployment-fqdn"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -109,12 +109,12 @@ data "azurerm_key_vault_secret" "vm_identity_client_id" {
 }
 
 data "azurerm_key_vault_secret" "notebook_server_web_context" {
-  name = "${var.deployment_id}-notebook-server-web-context"
+  name         = "${var.deployment_id}-notebook-server-web-context"
   key_vault_id = module.site_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "portal_url" {
-  name = "${var.deployment_id}-portal-url"
+  name         = "${var.deployment_id}-portal-url"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -125,6 +125,11 @@ data "azurerm_key_vault_secret" "storage_account_name" {
 
 data "azurerm_key_vault_secret" "vm_image_os" {
   name         = "${var.deployment_id}-os"
+  key_vault_id = module.site_core_info.vault_id
+}
+
+data "azurerm_key_vault_secret" "backend_pfx_password" {
+  name         = "${var.deployment_id}-backend-pfx-password"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -156,23 +161,23 @@ locals {
   tomcat_version     = local.manifest.arcgis.repository.metadata.tomcat_version
 
   authorization_files_prefix = "software/authorization/${var.arcgis_version}"
-  certificates_prefix        = "software/certificates"
+  certificates_prefix        = "software/certificates/${var.deployment_id}"
 
-  mount_point             = "/mnt/fileserver"
-  deployment_fqdn         = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  mount_point                 = "/mnt/fileserver"
+  deployment_fqdn             = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
   notebook_server_web_context = nonsensitive(data.azurerm_key_vault_secret.notebook_server_web_context.value)
-  portal_url              = nonsensitive(data.azurerm_key_vault_secret.portal_url.value)
-  primary_hostname        = data.azurerm_virtual_machine.primary.private_ip_address
-  software_dir            = "/opt/software/setups/*"
-  authorization_files_dir = "/opt/software/authorization"
-  certificates_dir        = "/opt/software/certificates"
-  storage_account_name    = nonsensitive(data.azurerm_key_vault_secret.storage_account_name.value)
+  portal_url                  = nonsensitive(data.azurerm_key_vault_secret.portal_url.value)
+  primary_hostname            = data.azurerm_virtual_machine.primary.private_ip_address
+  software_dir                = "/opt/software/setups/*"
+  authorization_files_dir     = "/opt/software/authorization"
+  certificates_dir            = "/opt/software/certificates"
+  storage_account_name        = nonsensitive(data.azurerm_key_vault_secret.storage_account_name.value)
 
-  keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}/${basename(var.keystore_file_path)}" : ""
+  keystore_file = "${local.certificates_dir}/${local.deployment_fqdn}.pfx"
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
 
   timestamp = formatdate("YYYYMMDDhhmm", timestamp())
-  namespace=replace("${var.site_id}${var.deployment_id}", "/[^a-zA-Z0-9]/", "")
+  namespace = replace("${var.site_id}${var.deployment_id}", "/[^a-zA-Z0-9]/", "")
 }
 
 module "site_core_info" {
@@ -191,21 +196,21 @@ module "az_copy_files" {
 
 # Install Chef Client and Chef Cookbooks for ArcGIS on all VMs of the deployment
 module "bootstrap_deployment" {
-  source           = "../../modules/bootstrap"
-  os               = nonsensitive(data.azurerm_key_vault_secret.vm_image_os.value)
-  site_id          = var.site_id
-  deployment_id    = var.deployment_id
-  machine_roles    = ["primary", "node"]
+  source        = "../../modules/bootstrap"
+  os            = nonsensitive(data.azurerm_key_vault_secret.vm_image_os.value)
+  site_id       = var.site_id
+  deployment_id = var.deployment_id
+  machine_roles = ["primary", "node"]
 }
 
 # Download ArcGIS Notebook Server setup archives to primary and node EC2 instances
 module "arcgis_notebook_server_files" {
-  count          = var.is_upgrade ? 1 : 0
-  source         = "../../modules/run_chef"
+  count                  = var.is_upgrade ? 1 : 0
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-files"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary", "node"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary", "node"]
   json_attributes = templatefile(
     local.manifest_file_path,
     {
@@ -223,12 +228,12 @@ module "arcgis_notebook_server_files" {
 
 # Upgrade ArcGIS Notebook Server software on primary and node EC2 instances
 module "arcgis_notebook_server_upgrade" {
-  count          = var.is_upgrade ? 1 : 0
-  source         = "../../modules/run_chef"
+  count                  = var.is_upgrade ? 1 : 0
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-upgrade"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary", "node"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary", "node"]
   json_attributes = jsonencode({
     java = {
       version      = local.java_version
@@ -277,12 +282,12 @@ module "arcgis_notebook_server_upgrade" {
 
 # Patch ArcGIS Notebook Server software on primary and node EC2 instances
 module "arcgis_notebook_server_patch" {
-  count          = var.is_upgrade ? 1 : 0
-  source         = "../../modules/run_chef"
+  count                  = var.is_upgrade ? 1 : 0
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-patch"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary", "node"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary", "node"]
   json_attributes = jsonencode({
     arcgis = {
       version     = var.arcgis_version
@@ -312,11 +317,11 @@ module "arcgis_notebook_server_patch" {
 
 # Configure fileserver 
 module "arcgis_notebook_server_fileserver" {
-  source         = "../../modules/run_chef"
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-fileserver"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary"]
   json_attributes = jsonencode({
     arcgis = {
       version     = var.arcgis_version
@@ -350,17 +355,6 @@ resource "azurerm_storage_blob" "server_authorization_file" {
   content_md5            = filemd5(pathexpand(var.notebook_server_authorization_file_path))
 }
 
-# If specified, upload keystore file to the private repository blob container
-resource "azurerm_storage_blob" "keystore_file" {
-  count                  = var.keystore_file_path != null ? 1 : 0
-  name                   = "${local.certificates_prefix}/${basename(var.keystore_file_path)}"
-  storage_account_name   = module.site_core_info.storage_account_name
-  storage_container_name = "repository"
-  source                 = pathexpand(var.keystore_file_path)
-  type                   = "Block"
-  content_md5            = filemd5(pathexpand(var.keystore_file_path))
-}
-
 # If specified, upload root certificate file to the private repository blob container
 resource "azurerm_storage_blob" "root_cert_file" {
   count                  = var.root_cert_file_path != null ? 1 : 0
@@ -374,11 +368,11 @@ resource "azurerm_storage_blob" "root_cert_file" {
 
 # Download ArcGIS Notebook Server authorization file to primary and node EC2 instances
 module "authorization_files" {
-  source         = "../../modules/run_chef"
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-authorization-files"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary", "node"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary", "node"]
   json_attributes = jsonencode({
     arcgis = {
       version = var.arcgis_version
@@ -412,12 +406,11 @@ module "authorization_files" {
 
 # Download keystore file to primary and node EC2 instances
 module "keystore_file" {
-  count          = var.keystore_file_path != null ? 1 : 0
-  source         = "../../modules/run_chef"
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-keystore-file"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary", "node"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary", "node"]
   json_attributes = jsonencode({
     arcgis = {
       version = var.arcgis_version
@@ -433,7 +426,7 @@ module "keystore_file" {
           client_id      = data.azurerm_key_vault_secret.vm_identity_client_id.value
         }
         files = {
-          "${basename(var.keystore_file_path)}" = {
+          "${local.deployment_fqdn}.pfx" = {
             subfolder = local.certificates_prefix
           }
         }
@@ -444,19 +437,18 @@ module "keystore_file" {
     ]
   })
   depends_on = [
-    module.authorization_files,
-    azurerm_storage_blob.keystore_file
+    module.authorization_files
   ]
 }
 
 # Download root certificate file to primary and node EC2 instances
 module "root_cert" {
-  count          = var.root_cert_file_path != null ? 1 : 0
-  source         = "../../modules/run_chef"
+  count                  = var.root_cert_file_path != null ? 1 : 0
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-root-cert"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary", "node"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary", "node"]
   json_attributes = jsonencode({
     arcgis = {
       version = var.arcgis_version
@@ -491,17 +483,17 @@ module "root_cert" {
 
 # Configure ArcGIS Notebook Server on primary EC2 instance
 module "arcgis_notebook_server_primary" {
-  source         = "../../modules/run_chef"
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-primary"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary"]
   json_attributes = jsonencode({
     tomcat = {
       domain_name       = local.deployment_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
-      keystore_password = var.keystore_file_password
+      keystore_password = data.azurerm_key_vault_secret.backend_pfx_password.value
     }
     arcgis = {
       version     = var.arcgis_version
@@ -523,7 +515,8 @@ module "arcgis_notebook_server_primary" {
         authorization_options = var.notebook_server_authorization_options
         license_level         = var.license_level
         keystore_file         = local.keystore_file
-        keystore_password     = var.keystore_file_password
+        keystore_password     = data.azurerm_key_vault_secret.backend_pfx_password.value
+        cert_alias            = "servercert"
         root_cert             = local.root_cert
         root_cert_alias       = "rootcert"
         directories_root      = "${local.mount_point}/gisdata/notebookserver"
@@ -533,7 +526,7 @@ module "arcgis_notebook_server_primary" {
         config_store_type     = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AZURE" ?
           "NAMESPACE=${local.namespace};AccountName=${local.storage_account_name};CredentialType=UserAssignedIdentity;ManagedIdentityClientId=${data.azurerm_key_vault_secret.vm_identity_client_id.value}" :
-          "${local.mount_point}/gisdata/notebookserver/config-store")
+        "${local.mount_point}/gisdata/notebookserver/config-store")
         config_store_connection_secret = ""
         install_system_requirements    = true
         wa_name                        = local.notebook_server_web_context
@@ -561,18 +554,18 @@ module "arcgis_notebook_server_primary" {
 
 # Configure ArcGIS Notebook Server on node Azure VMs if any
 module "arcgis_notebook_server_node" {
-  count          = length(data.azurerm_resources.nodes.resources) > 0 ? 1 : 0
-  source         = "../../modules/run_chef"
+  count                  = length(data.azurerm_resources.nodes.resources) > 0 ? 1 : 0
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-node"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["node"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["node"]
   json_attributes = jsonencode({
     tomcat = {
       domain_name       = local.deployment_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
-      keystore_password = var.keystore_file_password
+      keystore_password = data.azurerm_key_vault_secret.backend_pfx_password.value
     }
     arcgis = {
       version     = var.arcgis_version
@@ -590,6 +583,11 @@ module "arcgis_notebook_server_node" {
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         license_level               = var.license_level
+        keystore_file               = local.keystore_file
+        keystore_password           = data.azurerm_key_vault_secret.backend_pfx_password.value
+        cert_alias                  = "servercert"
+        root_cert                   = local.root_cert
+        root_cert_alias             = "rootcert"
         log_dir                     = "${local.mount_point}/gisdata/notebookserver/logs"
         authorization_file          = "${local.authorization_files_dir}/${basename(var.notebook_server_authorization_file_path)}"
         authorization_options       = var.notebook_server_authorization_options
@@ -615,11 +613,11 @@ module "arcgis_notebook_server_node" {
 
 # Federate ArcGIS Notebook Server with Portal for ArcGIS
 module "arcgis_notebook_server_federation" {
-  source         = "../../modules/run_chef"
+  source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-federation"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary"]
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["primary"]
   json_attributes = jsonencode({
     arcgis = {
       portal = {
@@ -631,9 +629,6 @@ module "arcgis_notebook_server_federation" {
       }
       notebook_server = {
         web_context_url = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
-        # We cannot yet use port 11443 for federation because Chef does not support installing 
-        # SSL certs on Notebook Server.
-        # private_url     = "https://${local.deployment_fqdn}:11443/arcgis"
         private_url     = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
         admin_username  = var.admin_username
         admin_password  = var.admin_password

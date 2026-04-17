@@ -2,32 +2,28 @@
   "arcgis": {
     "repository": {
       "local_archives": "C:\\Software\\Archives",
-      "local_patches": "C:\\Software\\Archives\\Patches",      
+      "local_patches": "C:\\Software\\Archives\\Patches",
       "server": {
         "account_name": "${account_name}",
         "container_name": "${container_name}",
         "auth_mode": "login",
-        "client_id": "${client_id}"  
+        "client_id": "${client_id}"
       },
       "patch_notification": {
         "products": [
-            "Portal for ArcGIS",
-            "ArcGIS Server",
-            "ArcGIS Data Store",
-            "ArcGIS Web Adaptor (IIS)"
+          "Portal for ArcGIS",
+          "ArcGIS Server",
+          "ArcGIS Data Store"
         ],
         "versions": [
           "11.4"
         ],
-        "patches": [ 
+        "patches": [
           "ArcGIS-114-*.msp"
         ],
         "subfolder": "software/arcgis/11.4/patches"
       },
-      "metadata": {
-        "dotnet_setup": "dotnet-hosting-win.exe",
-        "web_deploy_setup": "WebDeploy_amd64_en-US.msi"
-      },
+      "metadata": {},
       "files": {
         "ArcGIS_Server_Windows_114_192938.exe": {
           "subfolder": "software/arcgis/11.4",
@@ -52,19 +48,6 @@
         "ArcGIS_DataStore_Windows_114_192943.exe": {
           "subfolder": "software/arcgis/11.4",
           "sha256": "8D31DA14BB39658EB30A29245ABA7AF733E54F9A7191F0EE54C780499BBE7C30"
-        },
-        "ArcGIS_Web_Adaptor_for_Microsoft_IIS_114_192944.exe": {
-          "subfolder": "software/arcgis/11.4",
-          "sha256": "59B725966D4206671A99A8444CCA8B7AE815F3E503B31D296B87CAE137E4468D"
-        },
-        "dotnet-hosting-win.exe": {
-          "url": "https://download.visualstudio.microsoft.com/download/pr/751d3fcd-72db-4da2-b8d0-709c19442225/33cc492bde704bfd6d70a2b9109005a0/dotnet-hosting-8.0.6-win.exe",
-          "subfolder": "thirdparty",
-          "sha256": "2AC38C2AAB8A55E50A2D761FEAD1320047D2AD5FD22C2F44316ACEB094505EC2"
-        },
-        "WebDeploy_amd64_en-US.msi": {
-          "url": "https://download.microsoft.com/download/webdeploy_amd64_en-US.msi",
-          "subfolder": "thirdparty"
         }
       }
     }

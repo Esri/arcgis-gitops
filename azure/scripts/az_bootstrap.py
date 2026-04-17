@@ -59,6 +59,17 @@ try {
     Remove-Item (Join-Path $env:SystemDrive 'cinc') -Recurse -ErrorAction SilentlyContinue
     $Env:Path += ";" + [System.Environment]::GetEnvironmentVariable('Path','Machine')
     chef-client -version
+    Write-Output \"Configuring Chef client...\"
+    $clientConfig = @"
+local_mode            true
+node_name             \"provision-node\"
+client_key            \"C:/chef/client.pem\"
+local_key_generation  true
+cookbook_path         [\"C:/chef/cookbooks\"]
+cookbook_sync_threads 1
+no_lazy_load          true
+"@
+    $clientConfig | Set-Content -Path (Join-Path $chefworkspacepath 'client.rb') -Encoding UTF8
     $cookbooks = (Join-Path $tempfolderpath 'cookbooks.tar.gz')
     Write-Output \"Downloading Chef Cookbooks for ArcGIS from $ChefCookbooksUrl...\"
     az storage blob download --blob-url $ChefCookbooksUrl --file $cookbooks --auth-mode login --no-progress --output none

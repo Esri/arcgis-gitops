@@ -1,7 +1,11 @@
 /**
  * # Ingress Terraform Module
  *
- * This module deploys an Azure Application Gateway for an ArcGIS Enterprise site.
+ * Provisions Azure Application Gateway ingress for an ArcGIS Enterprise site, including
+ * public and private listeners, rule-driven backend routing, HTTP-to-HTTPS redirection,
+ * and backend trust configuration. The module integrates with Key Vault for certificates
+ * and secrets, creates deployment DNS records, and enables monitoring resources for
+ * gateway health and diagnostics.
  *
  * ![ArcGIS Enterprise site ingress](arcgis-enterprise-ingress-azure.png "ArcGIS Enterprise site ingress")
  *
@@ -23,11 +27,15 @@
  *
  * The Application Gateway's listeners, backend pools, health probes, and routing rules are
  * dynamically configured from the settings defined by the "routing_rules" variable. 
- * By default, the routing rules are set to route traffic to ports 443, 6443, and 7443 of 
- * "enterprise-base" backend pool.
+ * By default, the routing rules route traffic to ports 6443 and 7443 on 
+ * "enterprise-base" backend pool and port 443 on "notebook-server" backend pool.
  *
  * All the HTTPS listeners use the SSL certificate stored in the site's Key Vault. The certificate's
  * secret ID must be specified by the "ssl_certificate_secret_id" variable.
+ *
+ * The module also generates a CA root certificate, configures the Application Gateway 
+ * to use it as trusted certificate in the backend settings, 
+ * and stores the certificate and its private key in the Key Vault as secrets.
  *
  * Requests to port 80 on both the public and private frontend IPs are redirected to port 443.
  *
@@ -36,7 +44,7 @@
  * * An Azure Monitor metric alert that notifies the site's alert action group when
  *   the Application Gateway's unhealthy host count exceeds 0.
  * * A Log Analytics workspace that collects the Application Gateway's logs.
- * * An Azure Monitor dashboard "{var.site_id}-{var.deployment_id}" that visualizes the key metrics and logs of the Application Gateway.
+ * * An Azure Monitor dashboard "${var.site_id}-${var.deployment_id}" that visualizes the key metrics and logs of the Application Gateway.
  *
  * ## Key Vault Secrets
  *
@@ -56,6 +64,8 @@
  * | Secret Name | Description |
  * |-------------|-------------|
  * | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
+ * | ${var.deployment_id}-ca-private-key | Private key of the CA root certificate |
+ * | ${var.deployment_id}-ca-root-cert | Self-signed root certificate used by Application Gateway to validate the backend's identity | 
  * | ${var.deployment_id}-backend-address-pools | JSON-encoded map of backend address pool names to their IDs |
  */
 
@@ -82,6 +92,10 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.58"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.2"
     }
   }
 }
@@ -110,7 +124,7 @@ locals {
   # Get a distinct list of backend address pools from the routing rules
   pools = distinct(flatten([
     for routing in var.routing_rules : [
-      for rule in routing.rules : rule.pool
+      for rule in routing.rules : rule.backend_pool
     ]
   ]))
 
@@ -119,12 +133,15 @@ locals {
     for routing in var.routing_rules : [
       for rule in routing.rules :
       {
-        backend_port = routing.backend_port
-        protocol     = routing.protocol
-        name         = rule.name
-        pool         = rule.pool
-        probe        = rule.probe
-        paths        = rule.paths
+        backend_pool    = rule.backend_pool
+        backend_port    = rule.backend_port
+        backend_path    = try(rule.backend_path, null)
+        override_host   = try(rule.override_host, false)
+        protocol        = routing.protocol
+        name            = rule.name
+        probe           = rule.probe
+        paths           = rule.paths
+        request_timeout = try(rule.request_timeout, 60)
       }
     ]
   ])
@@ -143,6 +160,47 @@ module "site_core_info" {
 resource "azurerm_resource_group" "deployment_rg" {
   name     = "${var.site_id}-${var.deployment_id}-rg"
   location = var.azure_region
+}
+
+# Generate the Private Key
+resource "tls_private_key" "ca_private_key" {
+  algorithm = "RSA"
+  rsa_bits  = 2048
+}
+
+# Create Self-Signed Certificate using the generated Private Key
+resource "tls_self_signed_cert" "ca_root_cert" {
+  private_key_pem = tls_private_key.ca_private_key.private_key_pem
+
+  # Mark this as an actual Authority
+  is_ca_certificate = true
+
+  subject {
+    common_name  = "Internal Root CA"
+    organization = var.site_id
+  }
+
+  validity_period_hours = 175200 # 20 years
+
+  allowed_uses = [
+    "cert_signing", # Required to sign the leaf certificates
+    "crl_signing",  # Required to sign revocation lists
+    "digital_signature"
+  ]
+}
+
+# Store the Private Key in Azure Key Vault
+resource "azurerm_key_vault_secret" "ca_private_key" {
+  name         = "${var.deployment_id}-ca-private-key"
+  value        = tls_private_key.ca_private_key.private_key_pem
+  key_vault_id = module.site_core_info.vault_id
+}
+
+# Store the Certificate (.cer) for App Gateway to use as Trusted Root
+resource "azurerm_key_vault_secret" "ca_root_cert" {
+  name         = "${var.deployment_id}-ca-root-cert"
+  value        = tls_self_signed_cert.ca_root_cert.cert_pem
+  key_vault_id = module.site_core_info.vault_id
 }
 
 resource "azurerm_public_ip" "ingress" {
@@ -309,12 +367,23 @@ resource "azurerm_application_gateway" "ingress" {
     for_each = local.all_backend_http_settings
 
     content {
-      name                  = backend_http_settings.value.name
-      cookie_based_affinity = "Disabled"
-      port                  = backend_http_settings.value.backend_port
-      protocol              = backend_http_settings.value.protocol
-      request_timeout       = var.request_timeout
-      probe_name            = backend_http_settings.value.name
+      name                                = backend_http_settings.value.name
+      cookie_based_affinity               = "Disabled"
+      port                                = backend_http_settings.value.backend_port
+      # Override backend path 
+      # When a path-based rule is triggered, the Application Gateway identifies
+      # the part of the URL that matched the rule and substitutes it with the 
+      # path defined in the backend HTTP settings.
+      path                                = backend_http_settings.value.backend_path
+      protocol                            = backend_http_settings.value.protocol
+      request_timeout                     = backend_http_settings.value.request_timeout
+      probe_name                          = backend_http_settings.value.name
+      trusted_root_certificate_names      = ["trusted-root"]
+      pick_host_name_from_backend_address = backend_http_settings.value.override_host
+      connection_draining {
+        enabled           = true
+        drain_timeout_sec = backend_http_settings.value.request_timeout
+      }
     }
   }
 
@@ -324,11 +393,17 @@ resource "azurerm_application_gateway" "ingress" {
     content {
       name                = probe.value.name
       protocol            = "Https"
-      host                = var.deployment_fqdn
       path                = probe.value.probe
       interval            = 60
       timeout             = 30
       unhealthy_threshold = 3
+      # If override_host is true, use the host name from the backend HTTP settings; otherwise, use the deployment FQDN.
+      host                                      = probe.value.override_host ? null: var.deployment_fqdn
+      pick_host_name_from_backend_http_settings = probe.value.override_host ? true : null
+
+      match {
+        status_code = [200]
+      }
     }
   }
 
@@ -361,7 +436,7 @@ resource "azurerm_application_gateway" "ingress" {
 
     content {
       name                               = url_path_map.value.name
-      default_backend_address_pool_name  = url_path_map.value.rules[0].pool
+      default_backend_address_pool_name  = url_path_map.value.rules[0].backend_pool
       default_backend_http_settings_name = url_path_map.value.rules[0].name
 
       dynamic "path_rule" {
@@ -370,8 +445,46 @@ resource "azurerm_application_gateway" "ingress" {
         content {
           name                       = path_rule.value.name
           paths                      = path_rule.value.paths
-          backend_address_pool_name  = path_rule.value.pool
+          backend_address_pool_name  = path_rule.value.backend_pool
           backend_http_settings_name = path_rule.value.name
+          rewrite_rule_set_name      = try(path_rule.value.backend_path, null) != null ? path_rule.value.name : null
+        }
+      }
+    }
+  }
+
+  # If the rule has a backend_path defined, create a rewrite rule set and associate it with the path rule 
+  # to rewrite X-Forwarded-Host request header and Location response header.
+  dynamic "rewrite_rule_set" {
+    # For all rules that have backend_path defined, create a rewrite rule set to rewrite the host header and/or the path.
+    for_each = { for k, v in local.all_backend_http_settings : k => v if v.backend_path != null }
+
+    content {
+      name = rewrite_rule_set.value.name
+
+      rewrite_rule {
+        name          = "XForwardedHostRewrite"
+        rule_sequence = 100
+
+        request_header_configuration {
+          header_name  = "X-Forwarded-Host"
+          header_value = "{http_req_host}" # var.deployment_fqdn
+        }
+      }
+
+      rewrite_rule {
+        name          = "LocationRewrite"
+        rule_sequence = 200
+
+        condition {
+          variable    = "http_resp_Location"
+          pattern     = "(https?):\\/\\/[^\\/]+:${rewrite_rule_set.value.backend_port}\\/(?:arcgis|${rewrite_rule_set.value.name})(.*)$"
+          ignore_case = true
+        }
+
+        response_header_configuration {
+          header_name  = "Location"
+          header_value = "{http_resp_Location_1}://{http_req_host}/${rewrite_rule_set.value.name}{http_resp_Location_2}"
         }
       }
     }
@@ -380,6 +493,11 @@ resource "azurerm_application_gateway" "ingress" {
   ssl_certificate {
     name                = "cert"
     key_vault_secret_id = var.ssl_certificate_secret_id
+  }
+
+  trusted_root_certificate {
+    name = "trusted-root"
+    data = tls_self_signed_cert.ca_root_cert.cert_pem
   }
 
   ssl_policy {

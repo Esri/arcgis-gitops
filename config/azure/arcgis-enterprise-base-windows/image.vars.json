@@ -9,7 +9,6 @@
     "ArcGIS-120-S-*.msp"
   ],
   "arcgis_version": "12.0",
-  "arcgis_web_adaptor_patches": [],
   "deployment_id": "enterprise-base-windows",
   "vm_size": "Standard_D8s_v5",
   "os": "windows2025",

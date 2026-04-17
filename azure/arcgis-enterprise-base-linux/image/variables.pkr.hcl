@@ -41,12 +41,6 @@ variable "arcgis_version" {
   }
 }
 
-variable "arcgis_web_adaptor_patches" {
-  description = "File names of ArcGIS Web Adaptor patches to install."
-  type        = list(string)
-  default     = []
-}
-
 variable "azure_cli_version" {
   description = "Version of Azure CLI to install on the image"
   type        = string

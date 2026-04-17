@@ -1,7 +1,7 @@
 /**
  * # Packer Template for ArcGIS Notebook Server on Linux
  * 
- * The Packer template builds VM images for a specific ArcGIS Notebook Server deployment and
+ * The Packer template builds VM image for a specific ArcGIS Notebook Server deployment and
  * publishes it to the site Image Gallery.
  * 
  * The VM image is built from the operating system's base image specified by Key Vault secret "vm-image-${var.os}".
@@ -20,7 +20,7 @@
  * 5. Install patches for the ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
  * 6. Delete temporary files and uninstall Cinc Client
  * 
- * IDs of the images are saved in "${var.deployment_id}-vm-image-primary" 
+ * The image ID is saved in "${var.deployment_id}-vm-image-primary" 
  * and "${var.deployment_id}-vm-image-node" Key Vault secrets.
  * 
  * ## Requirements
@@ -31,11 +31,11 @@
  * On the machine where Packer is executed:
  *
  * * Python 3.9 or later must be installed
- * * azure-identity, azure-keyvault-secrets, and azure-mgmt-compute azure-storage-blob Azure Python SDK packages must be installed
+ * * Azure Python SDK packages azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob must be installed
  * * Path to azure/scripts directory must be added to PYTHONPATH
  * * Azure CLI must be installed and configured
  * * Azure credentials must be configured using "az login" CLI command
- * * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
+ * * My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
  *
  * ## Key Vault Secrets
  *

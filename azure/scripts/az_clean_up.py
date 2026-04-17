@@ -14,7 +14,7 @@
 
 # The script uses Azure Run Command on the deployment VMs in the specified roles
 # to delete temporary files created by Chef runs, optionally uninstalling 
-# the Chef client and running sysprep.
+# the Chef client.
 
 import argparse
 import az_utils
@@ -26,8 +26,7 @@ EXECUTION_TIMEOUT = 600  # seconds
 windows_script = """
 param (
     [string] $Directories,
-    [string] $UninstallChefClient,
-    [string] $Sysprep
+    [string] $UninstallChefClient
 )
 $dirs = $Directories -split ","
 foreach ($dir in $dirs) {
@@ -44,10 +43,6 @@ if ($UninstallChefClient -eq "True") {
   }
   Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $Env:USERPROFILE '.cinc')
   Remove-Item -Recurse -Force -ErrorAction SilentlyContinue (Join-Path $Env:SystemDrive 'chef')
-}
-if ($Sysprep -eq "True") {
-   $sysprep = Join-Path $Env:SystemRoot "System32\\Sysprep\\Sysprep.exe"
-   Start-Process $sysprep -ArgumentList '/oobe /generalize /quiet /shutdown /mode:vm' -Wait
 }
 Write-Output "Cleanup script completed successfully."
 """
@@ -91,12 +86,12 @@ function uninstall_cinc() {
 function main() { 
   IFS=',' read -ra ADDR <<< "$Directories"
   for i in "${ADDR[@]}"; do
-    rm -r $i
+    rm -rf $i
   done
   if [ "$UninstallChefClient" == "True" ]; then
     uninstall_cinc
-    rm -r ~/.cinc
-    rm -r /var/chef
+    rm -rf ~/.cinc
+    rm -rf /var/chef
   fi
   exit 0
 }
@@ -113,7 +108,6 @@ if __name__ == "__main__":
     parser.add_argument('-s', dest='site_id', help='Site Id')
     parser.add_argument('-d', dest='deployment_id', help='Deployment Id')
     parser.add_argument('-m', dest='machine_roles', help='Machine roles')
-    parser.add_argument('-p', dest='sysprep', action='store_true', help='Run sysprep script')
     parser.add_argument('-u', dest='uninstall_chef_client', action='store_true', help='Uninstall Chef/Cinc Client')
     parser.add_argument('-f', dest='directories', default="", help='Comma-separated list of local directories to clean up')
     parser.add_argument("-v", dest="vault_name", help="Azure Key Vault name")
@@ -122,8 +116,7 @@ if __name__ == "__main__":
 
     parameters = [
         RunCommandInputParameter(name="Directories", value=args.directories),
-        RunCommandInputParameter(name="UninstallChefClient", value=str(args.uninstall_chef_client)),
-        RunCommandInputParameter(name="Sysprep", value=str(args.sysprep))
+        RunCommandInputParameter(name="UninstallChefClient", value=str(args.uninstall_chef_client))
     ]
 
     ret = az_utils.run_command(

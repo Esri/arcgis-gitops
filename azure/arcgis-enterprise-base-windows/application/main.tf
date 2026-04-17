@@ -1,7 +1,7 @@
 /**
  * # Application Terraform Module for Base ArcGIS Enterprise on Windows
  *
- * This Terraform module configures or upgrades applications of base ArcGIS Enterprise deployment on the Windows platform.
+ * This Terraform module configures or upgrades applications for a base ArcGIS Enterprise deployment on the Windows platform.
  *
  * ![Base ArcGIS Enterprise on Windows](enterprise-base-windows-azure-application.png "Base ArcGIS Enterprise on Windows")
  *
@@ -9,7 +9,6 @@
  *
  * If "is_upgrade" input variable is set to true, the module:
  *
- * * Un-registers the ArcGIS Server Web Adaptor on the standby VM
  * * Copies the installation media for the ArcGIS Enterprise version specified by arcgis_version input variable to the private repository blob container
  * * Downloads the installation media from the private repository blob container to the primary and standby VMs
  * * Installs or upgrades ArcGIS Enterprise software on the primary and standby VMs
@@ -18,7 +17,7 @@
  * Then the module:
  *
  * * Copies the ArcGIS Server and Portal for ArcGIS authorization files to the private repository blob container
- * * Copies the keystore and, if specified, root certificate files to the private repository blob container
+ * * If specified, copies the root certificate file to the private repository blob container
  * * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository blob container to primary and standby VMs
  * * Downloads the keystore and root certificate files from the private repository blob container to the primary and standby VMs
  * * Creates the required network shares and directories in the primary VM
@@ -32,7 +31,7 @@
  *
  * ## Requirements
  *
- * The Azure resources for the deployment must be provisioned by Infrastructure terraform module for base ArcGIS Enterprise on Windows.
+ * The Azure resources for the deployment must be provisioned by Infrastructure Terraform module for base ArcGIS Enterprise on Windows.
  *
  * On the machine where Terraform is executed:
  * 
@@ -41,7 +40,7 @@
  * * Path to azure/scripts directory must be added to PYTHONPATH
  * * Azure credentials must be configured using "az login" command
  *
- * My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+ * My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD.
  *
  * ## Key Vault Secrets
  *
@@ -49,6 +48,7 @@
  *
  * | Key Vault secret name                     | Description |
  * |-------------------------------------------|-------------|
+ * | ${var.deployment_id}-backend-pfx-password | Password for the backend PFX certificate |
  * | ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
  * | ${var.deployment_id}-portal-web-context   | Portal for ArcGIS Web Adaptor web context |
  * | ${var.deployment_id}-server-web-context   | ArcGIS Server Web Adaptor web context |
@@ -112,12 +112,17 @@ data "azurerm_key_vault_secret" "storage_account_name" {
 }
 
 data "azurerm_key_vault_secret" "portal_web_context" {
-  name        = "${var.deployment_id}-portal-web-context"
+  name         = "${var.deployment_id}-portal-web-context"
   key_vault_id = module.site_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "server_web_context" {
-  name        = "${var.deployment_id}-server-web-context"
+  name         = "${var.deployment_id}-server-web-context"
+  key_vault_id = module.site_core_info.vault_id
+}
+
+data "azurerm_key_vault_secret" "backend_pfx_password" {
+  name         = "${var.deployment_id}-backend-pfx-password"
   key_vault_id = module.site_core_info.vault_id
 }
 
@@ -141,6 +146,12 @@ data "azurerm_resources" "standby" {
   }
 }
 
+data "azurerm_virtual_machine" "standby" {
+  count               = length(data.azurerm_resources.standby.resources) > 0 ? 1 : 0
+  name                = data.azurerm_resources.standby.resources[0].name
+  resource_group_name = "${var.site_id}-${var.deployment_id}-rg"
+}
+
 locals {
   portal_web_context = nonsensitive(data.azurerm_key_vault_secret.portal_web_context.value)
   server_web_context = nonsensitive(data.azurerm_key_vault_secret.server_web_context.value)
@@ -149,71 +160,73 @@ locals {
   manifest           = jsondecode(file(local.manifest_file_path))
   archives_dir       = local.manifest.arcgis.repository.local_archives
   patches_dir        = local.manifest.arcgis.repository.local_patches
-  dotnet_setup       = local.manifest.arcgis.repository.metadata.dotnet_setup
-  web_deploy_setup   = local.manifest.arcgis.repository.metadata.web_deploy_setup
 
   authorization_files_prefix = "software/authorization/${var.deployment_id}/${var.arcgis_version}"
   certificates_prefix        = "software/certificates/${var.deployment_id}"
 
-  deployment_fqdn  = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
-  primary_hostname = "primary.${var.deployment_id}.${var.site_id}.internal"
-  standby_hostname = "standby.${var.deployment_id}.${var.site_id}.internal"
+  deployment_fqdn     = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  fileserver_hostname = "primary.${var.deployment_id}.${var.site_id}.internal"
+  primary_hostname    = data.azurerm_virtual_machine.primary.private_ip_address
+  standby_hostname    = length(data.azurerm_resources.standby.resources) > 0 ? data.azurerm_virtual_machine.standby[0].private_ip_address : ""
 
   software_dir            = "C:\\Software\\*"
   authorization_files_dir = "C:\\Software\\AuthorizationFiles"
   certificates_dir        = "C:\\Software\\Certificates"
 
-  keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}\\${basename(var.keystore_file_path)}" : "C:\\chef\\keystore.pfx"
-  root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}\\${basename(var.root_cert_file_path)}" : ""
+  primary_backend_cert  = "${local.primary_hostname}.pfx"
+  primary_keystore_file = "${local.certificates_dir}\\${local.primary_backend_cert}"
+  standby_backend_cert  = length(data.azurerm_resources.standby.resources) > 0 ? "${local.standby_hostname}.pfx" : ""
+  standby_keystore_file = length(data.azurerm_resources.standby.resources) > 0 ? "${local.certificates_dir}\\${local.standby_backend_cert}" : ""
+  root_cert             = var.root_cert_file_path != null ? "${local.certificates_dir}\\${basename(var.root_cert_file_path)}" : ""
 
   storage_account_name          = data.azurerm_key_vault_secret.storage_account_name.value
   storage_account_blob_endpoint = "https://${data.azurerm_key_vault_secret.storage_account_name.value}.blob.core.windows.net"
   cosmos_db_account_name        = local.storage_account_name
   service_bus_namespace         = local.storage_account_name
-   
+
   is_ha = length(data.azurerm_resources.standby.resources) > 0
 
   # See "Azure user-assigned identity example" in cloudConfigJson parameter description at
   # https://developers.arcgis.com/rest/enterprise-administration/server/createsite/
   cloud_config = var.config_store_type == "AZURE" ? jsonencode([{
-    name = "AZURE"
+    name      = "AZURE"
     namespace = "${var.site_id}-${var.deployment_id}"
     credential = {
       type = "USER-ASSIGNED-IDENTITY"
       secret = {
         managedIdentityClientId = data.azurerm_key_vault_secret.vm_identity_client_id.value
       }
-    }    
+    }
     cloudServices = [{
       name  = "Azure Blob Store"
       type  = "objectStore"
       usage = "DEFAULT"
       connection = {
-        containerName = "object-store"
-        rootDir = "arcgis"
+        containerName      = "object-store"
+        rootDir            = "arcgis"
         accountEndpointUrl = "https://${local.storage_account_name}.blob.core.windows.net"
       }
       category = "storage"
-    },
-    {
-      name = "Azure Cosmos DB"
-      type = "tableStore"
-      connection = {
-        subscriptionId = data.azurerm_client_config.current.subscription_id
-        resourceGroupName = "${var.site_id}-${var.deployment_id}-rg"
-        accountEndpointUrl = "https://${local.cosmos_db_account_name}.documents.azure.com"
-        databaseId = "config-store"
-        cosmosDBConnectionMode = "Gateway"
-      }
-      category = "storage"
-    },
-    {
-      name = "Azure Service Bus"
-      type = "queueService"
-      connection = {
-        serviceBusEndpointUrl = "sb://${local.service_bus_namespace}.servicebus.windows.net"
-      }
-      category = "queue"
+      },
+      {
+        name = "Azure Cosmos DB"
+        type = "tableStore"
+        connection = {
+          subscriptionId         = data.azurerm_client_config.current.subscription_id
+          resourceGroupName      = "${var.site_id}-${var.deployment_id}-rg"
+          accountEndpointUrl     = "https://${local.cosmos_db_account_name}.documents.azure.com"
+          databaseId             = "config-store"
+          cosmosDBConnectionMode = "Gateway"
+        }
+        category = "storage"
+      },
+      {
+        name = "Azure Service Bus"
+        type = "queueService"
+        connection = {
+          serviceBusEndpointUrl = "sb://${local.service_bus_namespace}.servicebus.windows.net"
+        }
+        category = "queue"
     }]
   }]) : null
 
@@ -282,33 +295,6 @@ module "arcgis_enterprise_files" {
   ]
 }
 
-# If it's an upgrade, unregister ArcGIS Server's Web Adaptor on standby VM
-module "begin_upgrade_standby" {
-  count                  = var.is_upgrade && local.is_ha ? 1 : 0
-  source                 = "../../modules/run_chef"
-  json_attributes_secret = "${var.deployment_id}-begin-upgrade-standby"
-  site_id                = var.site_id
-  deployment_id          = var.deployment_id
-  machine_roles          = ["standby"]
-  json_attributes = jsonencode({
-    arcgis = {
-      version                  = var.arcgis_version
-      configure_cloud_settings = false
-      server = {
-        admin_username = var.admin_username
-        admin_password = var.admin_password
-      }
-    }
-    run_list = [
-      "recipe[arcgis-enterprise::unregister_server_wa]"
-    ]
-  })
-  execution_timeout = 600
-  depends_on = [
-    module.arcgis_enterprise_files
-  ]
-}
-
 # Upgrade base ArcGIS Enterprise software on primary and standby VMs
 module "arcgis_enterprise_upgrade" {
   count                  = var.is_upgrade ? 1 : 0
@@ -331,14 +317,6 @@ module "arcgis_enterprise_upgrade" {
       server = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements = true
-        wa_name                     = local.server_web_context
-      }
-      web_adaptor = {
-        install_system_requirements = true
-        dotnet_setup_path           = "${local.archives_dir}\\${local.dotnet_setup}"
-        web_deploy_setup_path       = "${local.archives_dir}\\${local.web_deploy_setup}"
-        admin_access                = true
-        reindex_portal_content      = false
       }
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
@@ -351,27 +329,22 @@ module "arcgis_enterprise_upgrade" {
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
         install_system_requirements = true
         data_dir                    = "C:\\arcgisportal"
-        wa_name                     = local.portal_web_context
       }
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
-      "recipe[esri-iis::install]",
       "recipe[arcgis-enterprise::install_portal]",
       "recipe[arcgis-enterprise::start_portal]",
       "recipe[arcgis-enterprise::webstyles]",
-      "recipe[arcgis-enterprise::install_portal_wa]",
       "recipe[arcgis-enterprise::install_server]",
       "recipe[arcgis-enterprise::start_server]",
-      "recipe[arcgis-enterprise::install_server_wa]",
       "recipe[arcgis-enterprise::install_datastore]",
       "recipe[arcgis-enterprise::start_datastore]"
     ]
   })
   execution_timeout = 7200
   depends_on = [
-    module.arcgis_enterprise_files,
-    module.begin_upgrade_standby
+    module.arcgis_enterprise_files
   ]
 }
 
@@ -398,9 +371,6 @@ module "arcgis_enterprise_patch" {
       }
       data_store = {
         patches = var.arcgis_data_store_patches
-      }
-      web_adaptor = {
-        patches = var.arcgis_web_adaptor_patches
       }
     }
     run_list = [
@@ -470,17 +440,6 @@ resource "azurerm_storage_blob" "portal_authorization_file" {
   content_md5            = filemd5(pathexpand(var.portal_authorization_file_path))
 }
 
-# If specified, upload keystore file to the private repository blob container
-resource "azurerm_storage_blob" "keystore_file" {
-  count                  = var.keystore_file_path != null ? 1 : 0
-  name                   = "${local.certificates_prefix}/${basename(var.keystore_file_path)}"
-  storage_account_name   = module.site_core_info.storage_account_name
-  storage_container_name = "repository"
-  source                 = pathexpand(var.keystore_file_path)
-  type                   = "Block"
-  content_md5            = filemd5(pathexpand(var.keystore_file_path))
-}
-
 # If specified, upload root certificate file to the private repository blob container
 resource "azurerm_storage_blob" "root_cert_file" {
   count                  = var.root_cert_file_path != null ? 1 : 0
@@ -532,14 +491,13 @@ module "authorization_files" {
   ]
 }
 
-# Download keystore file to primary and standby VMs
-module "keystore" {
-  count                  = var.keystore_file_path != null ? 1 : 0
+# Download keystore file to primary VM
+module "primary_keystore" {
   source                 = "../../modules/run_chef"
-  json_attributes_secret = "${var.deployment_id}-keystore-file"
+  json_attributes_secret = "${var.deployment_id}-primary-keystore-file"
   site_id                = var.site_id
   deployment_id          = var.deployment_id
-  machine_roles          = ["primary", "standby"]
+  machine_roles          = ["primary"]
   json_attributes = jsonencode({
     arcgis = {
       version                  = var.arcgis_version
@@ -553,7 +511,7 @@ module "keystore" {
           client_id      = data.azurerm_key_vault_secret.vm_identity_client_id.value
         }
         files = {
-          "${basename(var.keystore_file_path)}" = {
+          "${local.primary_hostname}.pfx" = {
             subfolder = local.certificates_prefix
           }
         }
@@ -564,8 +522,43 @@ module "keystore" {
     ]
   })
   depends_on = [
-    module.authorization_files,
-    azurerm_storage_blob.keystore_file
+    module.authorization_files
+  ]
+}
+
+# Download keystore file to standby VM
+module "standby_keystore" {
+  count                  = local.is_ha ? 1 : 0
+  source                 = "../../modules/run_chef"
+  json_attributes_secret = "${var.deployment_id}-standby-keystore-file"
+  site_id                = var.site_id
+  deployment_id          = var.deployment_id
+  machine_roles          = ["standby"]
+  json_attributes = jsonencode({
+    arcgis = {
+      version                  = var.arcgis_version
+      configure_cloud_settings = false
+      repository = {
+        local_archives = local.certificates_dir
+        server = {
+          account_name   = module.site_core_info.storage_account_name
+          container_name = "repository"
+          auth_mode      = "login"
+          client_id      = data.azurerm_key_vault_secret.vm_identity_client_id.value
+        }
+        files = {
+          "${local.standby_hostname}.pfx" = {
+            subfolder = local.certificates_prefix
+          }
+        }
+      }
+    }
+    run_list = [
+      "recipe[arcgis-repository::azure_files]"
+    ]
+  })
+  depends_on = [
+    module.authorization_files
   ]
 }
 
@@ -602,7 +595,6 @@ module "root_cert" {
   })
   depends_on = [
     module.authorization_files,
-    azurerm_storage_blob.keystore_file,
     azurerm_storage_blob.root_cert_file
   ]
 }
@@ -625,16 +617,8 @@ module "arcgis_enterprise_primary" {
         archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
       }
-      iis = {
-        domain_name           = local.deployment_fqdn
-        keystore_file         = local.keystore_file
-        keystore_password     = var.keystore_file_password
-        replace_https_binding = true
-        features              = []
-      }
       server = {
         url                         = "https://${local.primary_hostname}:6443/arcgis"
-        wa_url                      = "https://${local.primary_hostname}/${local.server_web_context}"
         install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements = true
         private_url                 = "https://${local.deployment_fqdn}/${local.server_web_context}"
@@ -644,20 +628,20 @@ module "arcgis_enterprise_primary" {
         admin_password              = var.admin_password
         authorization_file          = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
         authorization_options       = var.server_authorization_options
-        keystore_file               = var.keystore_file_path != null ? local.keystore_file : ""
-        keystore_password           = var.keystore_file_password
+        keystore_file               = local.primary_keystore_file
+        keystore_password           = data.azurerm_key_vault_secret.backend_pfx_password.value
+        cert_alias                  = "servercert"
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        directories_root            = "\\\\${local.primary_hostname}\\arcgisserver"
+        directories_root            = "\\\\${local.fileserver_hostname}\\arcgisserver"
         log_dir                     = "C:\\arcgisserver\\logs"
         log_level                   = var.log_level
         config_store_type           = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
-        config_store_connection_string = "\\\\${local.primary_hostname}\\arcgisserver\\config-store"
-        cloud_config                = local.cloud_config
-        wa_name                     = local.server_web_context
-        services_dir_enabled        = true
-        callback_functions_enabled  = true
+        config_store_connection_string = "\\\\${local.fileserver_hostname}\\arcgisserver\\config-store"
+        cloud_config                   = local.cloud_config
+        services_dir_enabled           = true
+        callback_functions_enabled     = true
         system_properties = {
           WebContextURL = "https://${local.deployment_fqdn}/${local.server_web_context}"
         }
@@ -671,7 +655,7 @@ module "arcgis_enterprise_primary" {
         data_dir                    = "C:\\arcgisdatastore"
         preferredidentifier         = "ip"
         # hostidentifier              = local.primary_hostname
-        types                       = "relational"
+        types = "relational"
         relational = {
           enablessl               = true
           disk_threshold_readonly = 5120
@@ -685,8 +669,7 @@ module "arcgis_enterprise_primary" {
       }
       portal = {
         url                         = "https://${local.primary_hostname}:7443/arcgis"
-        wa_url                      = "https://${local.primary_hostname}/${local.portal_web_context}"
-        preferredidentifier         = "hostname"
+        preferredidentifier         = "ip"
         hostname                    = local.primary_hostname
         hostidentifier              = local.primary_hostname
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
@@ -715,34 +698,23 @@ module "arcgis_enterprise_primary" {
         object_store         = "${local.storage_account_blob_endpoint}/portal-content"
         authorization_file   = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
         user_license_type_id = var.portal_user_license_type_id
-        keystore_file        = var.keystore_file_path != null ? local.keystore_file : ""
-        keystore_password    = var.keystore_file_password
+        keystore_file        = local.primary_keystore_file
+        keystore_password    = data.azurerm_key_vault_secret.backend_pfx_password.value
         cert_alias           = "portalcert"
         root_cert            = local.root_cert
         root_cert_alias      = "rootcert"
-        wa_name              = local.portal_web_context
         system_properties = {
-          privatePortalURL = "https://${local.deployment_fqdn}:7443/arcgis"
+          privatePortalURL = "https://${local.deployment_fqdn}/${local.portal_web_context}"
           WebContextURL    = "https://${local.deployment_fqdn}/${local.portal_web_context}"
         }
-      }
-      web_adaptor = {
-        install_system_requirements = true
-        dotnet_setup_path           = null
-        web_deploy_setup_path       = null
-        admin_access                = true
-        reindex_portal_content      = false
       }
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
-      "recipe[esri-iis]",
       "recipe[arcgis-enterprise::install_portal]",
       "recipe[arcgis-enterprise::webstyles]",
       "recipe[arcgis-enterprise::portal]",
-      "recipe[arcgis-enterprise::portal_wa]",
       "recipe[arcgis-enterprise::server]",
-      "recipe[arcgis-enterprise::server_wa]",
       "recipe[arcgis-enterprise::datastore]",
       "recipe[arcgis-enterprise::server_data_items]",
       "recipe[arcgis-enterprise::federation]"
@@ -751,7 +723,7 @@ module "arcgis_enterprise_primary" {
   execution_timeout = 14400
   depends_on = [
     module.authorization_files,
-    module.keystore,
+    module.primary_keystore,
     module.root_cert
   ]
 }
@@ -775,16 +747,8 @@ module "arcgis_enterprise_standby" {
         archives = local.archives_dir
         setups   = "C:\\Software\\Setups"
       }
-      iis = {
-        domain_name           = local.deployment_fqdn
-        keystore_file         = local.keystore_file
-        keystore_password     = var.keystore_file_password
-        replace_https_binding = true
-        features              = []        
-      }
       server = {
         url                         = "https://${local.standby_hostname}:6443/arcgis"
-        wa_url                      = "https://${local.standby_hostname}/${local.server_web_context}"
         hostname                    = local.standby_hostname
         install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
         install_system_requirements = true
@@ -793,12 +757,12 @@ module "arcgis_enterprise_standby" {
         admin_password              = var.admin_password
         authorization_file          = "${local.authorization_files_dir}\\${basename(var.server_authorization_file_path)}"
         authorization_options       = var.server_authorization_options
-        keystore_file               = var.keystore_file_path != null ? local.keystore_file : ""
-        keystore_password           = var.keystore_file_password
+        keystore_file               = local.standby_keystore_file
+        keystore_password           = data.azurerm_key_vault_secret.backend_pfx_password.value
+        cert_alias                  = "servercert"
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
         log_dir                     = "C:\\arcgisserver\\logs"
-        wa_name                     = local.server_web_context
       }
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
@@ -807,12 +771,11 @@ module "arcgis_enterprise_standby" {
         data_dir                    = "C:\\arcgisdatastore"
         preferredidentifier         = "ip"
         # hostidentifier              = local.standby_hostname
-        types                       = "relational"
+        types = "relational"
       }
       portal = {
         url                         = "https://${local.standby_hostname}:7443/arcgis"
-        wa_url                      = "https://${local.standby_hostname}/${local.portal_web_context}"
-        preferredidentifier         = "hostname"
+        preferredidentifier         = "ip"
         hostname                    = local.standby_hostname
         hostidentifier              = local.standby_hostname
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
@@ -820,32 +783,21 @@ module "arcgis_enterprise_standby" {
         primary_machine_url         = "https://${local.primary_hostname}:7443"
         admin_username              = var.admin_username
         admin_password              = var.admin_password
-        keystore_file               = var.keystore_file_path != null ? local.keystore_file : ""
-        keystore_password           = var.keystore_file_password
-        cert_alias                   = "portalcert"
+        keystore_file               = local.standby_keystore_file
+        keystore_password           = data.azurerm_key_vault_secret.backend_pfx_password.value
+        cert_alias                  = "portalcert"
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
         data_dir                    = "C:\\arcgisportal"
         log_dir                     = "C:\\arcgisportal\\logs"
-        wa_name                     = local.portal_web_context
-      }
-      web_adaptor = {
-        install_system_requirements = true
-        dotnet_setup_path           = null
-        web_deploy_setup_path       = null
-        admin_access                = true
-        reindex_portal_content      = false
       }
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
-      "recipe[esri-iis]",
       "recipe[arcgis-enterprise::install_portal]",
       "recipe[arcgis-enterprise::webstyles]",
       "recipe[arcgis-enterprise::portal_standby]",
-      "recipe[arcgis-enterprise::portal_wa]",
       "recipe[arcgis-enterprise::server_node]",
-      "recipe[arcgis-enterprise::server_wa]",
       "recipe[arcgis-enterprise::datastore_standby]"
     ]
   })

@@ -18,12 +18,16 @@
  * - Provisions an NFS Azure Files storage account (file_store) with a "fileserver" NFS share mounted to the VMs.
  * - If "is_ha" variable is true, provisions a Cosmos DB account and a Service Bus namespace for ArcGIS Server configuration store.
  * - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
+ * - Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container. 
  * - Creates an Azure Monitor dashboard for monitoring key VM metrics.
  * - Tags all resources with ArcGISSiteId and ArcGISDeploymentId for easy identification.
  *
  * ## Requirements
  *
- * Before running Terraform, configure Azure credentials using "az login" command.
+ * On the machine where Terraform is executed:
+ *
+ * * OpenSSL must be installed and available in the system PATH
+ * * Azure credentials must be configured using "az login" CLI command
  *
  * ## Key Vault Secrets
  *
@@ -36,6 +40,8 @@
  * | ${var.deployment_id}-vm-image-primary            | Primary VM image ID |
  * | ${var.deployment_id}-vm-image-standby            | Standby VM image ID |
  * | ${var.ingress_deployment_id}-backend-address-pools | Application Gateway backend address pools |
+ * | ${var.ingress_deployment_id}-ca-private-key      | Private key of the ingress CA root certificate |
+ * | ${var.ingress_deployment_id}-ca-root-cert        | Root certificate used by Application Gateway to validate the backend's identity | 
  * | ${var.ingress_deployment_id}-deployment-fqdn     | Ingress deployment FQDN |
  * | storage-account-key                              | Site storage account key |
  * | storage-account-name                             | Site storage account name |
@@ -48,6 +54,7 @@
  *
  * | Secret Name                               | Description |
  * |-------------------------------------------|-------------|
+ * | ${var.deployment_id}-backend-pfx-password | Password for the generated PFX file |
  * | ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
  * | ${var.deployment_id}-deployment-url       | Portal for ArcGIS URL of the deployment |
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
@@ -76,6 +83,10 @@ terraform {
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.46"
+    }
+    tls = {
+      source  = "hashicorp/tls"
+      version = "~> 4.2"   
     }
   }
 }
@@ -518,10 +529,10 @@ module "lv_extend" {
 
 # Mount the file share to the VMs.
 module "aznfs_mount" {
-  source        = "../../modules/aznfs_mount"
-  site_id       = var.site_id
-  deployment_id = var.deployment_id
-  machine_roles = ["primary", "standby"]
+  source               = "../../modules/aznfs_mount"
+  site_id              = var.site_id
+  deployment_id        = var.deployment_id
+  machine_roles        = ["primary", "standby"]
   storage_account_name = azurerm_storage_account.file_store.name
   file_share_name      = azurerm_storage_share.fileserver.name
   mount_point          = "/mnt/fileserver"
@@ -737,4 +748,52 @@ resource "azurerm_key_vault_secret" "deployment_url" {
     ArcGISSiteId       = var.site_id
     ArcGISDeploymentId = var.deployment_id
   }
+}
+
+# Create a self-signed certificates trusted by the Application Gateway 
+# and store them in the repository storage container.
+resource "random_password" "pfx_password" {
+  length           = 16
+  special          = true
+  override_special = "!#$%*()-_=+[]{}:?"
+}
+
+module "primary_backend_cert" {
+  source                 = "../../modules/backend_cert"
+  common_name            = azurerm_linux_virtual_machine.primary.private_ip_address
+  deployment_id          = var.deployment_id
+  ingress_id             = var.ingress_deployment_id
+  key_vault_id           = module.site_core_info.vault_id
+  pfx_password           = random_password.pfx_password.result
+  storage_account_name   = module.site_core_info.storage_account_name
+  storage_container_name = "repository"
+}
+
+module "standby_backend_cert" {
+  count                  = var.is_ha ? 1 : 0
+  source                 = "../../modules/backend_cert"
+  common_name            = azurerm_linux_virtual_machine.standby[0].private_ip_address
+  deployment_id          = var.deployment_id
+  ingress_id             = var.ingress_deployment_id
+  key_vault_id           = module.site_core_info.vault_id
+  pfx_password           = random_password.pfx_password.result
+  storage_account_name   = module.site_core_info.storage_account_name
+  storage_container_name = "repository"
+}
+
+# Store the PFX password in Azure Key Vault
+resource "azurerm_key_vault_secret" "pfx_password" {
+  name         = "${var.deployment_id}-backend-pfx-password"
+  value        = random_password.pfx_password.result
+  key_vault_id = module.site_core_info.vault_id
+
+  tags = {
+    ArcGISSiteId       = var.site_id
+    ArcGISDeploymentId = var.deployment_id
+  }
+  
+  depends_on = [ 
+    module.primary_backend_cert,
+    module.standby_backend_cert
+  ]
 }

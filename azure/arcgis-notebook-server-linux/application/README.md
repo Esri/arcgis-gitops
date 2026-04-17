@@ -1,7 +1,7 @@
 <!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for ArcGIS Notebook Server on Linux
 
-The Terraform module configures or upgrades applications of highly available ArcGIS Notebook Server deployment on Linux platform.
+The Terraform module configures or upgrades applications for an ArcGIS Notebook Server deployment on the Linux platform.
 
 ![ArcGIS Notebook Server on Linux](arcgis-notebook-server-linux-application.png "ArcGIS Notebook Server on Linux")
 
@@ -17,19 +17,18 @@ If "is_upgrade" input variable is set to `true`, the module:
 Then the module:
 
 * Copies the ArcGIS Notebook Server authorization file to the private repository blob container
-* If specified, copies keystore and root certificate files to the private repository blob container
+* If specified, copies the root certificate files to the private repository blob container
 * Downloads the ArcGIS Notebook Server authorization file from the private repository blob container to primary and node VMs
-* If specified, downloads the keystore and root certificate files from the private repository blob container to primary and node VMs
+* If specified, downloads the root certificate files from the private repository blob container to primary and node VMs
 * Creates the required directories in the NFS mount
-* Configures ArcGIS Notebook Server on primary VMs
-* Configures ArcGIS Notebook Server on node VMs if any
+* Configures ArcGIS Notebook Server on the primary VM
+* Configures ArcGIS Notebook Server on the node VMs if any
 * Federates ArcGIS Notebook Server with Portal for ArcGIS
-* If config_store_type input variable is set to "AZURE", configures system-level backups of the config store using Azure Backup service
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and node VMs
 
 ## Requirements
 
-The Azure resources for the deployment must be provisioned by Infrastructure terraform module for ArcGIS Notebook Server on Linux.
+The Azure resources for the deployment must be provisioned by Infrastructure Terraform module for ArcGIS Notebook Server on Linux.
 
 On the machine where Terraform is executed:
 
@@ -38,7 +37,7 @@ On the machine where Terraform is executed:
 * The working directory must be set to the arcgis-notebook-server-linux/application module path
 * Azure credentials must be configured
 
-My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
+My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD.
 
 ## Key Vault Secrets
 
@@ -46,6 +45,7 @@ The module reads the following Key Vault secrets:
 
 | Secret Name                                      | Description |
 |--------------------------------------------------|-------------|
+| ${var.deployment_id}-backend-pfx-password        | Password for the backend PFX certificate |
 | ${var.deployment_id}-deployment-fqdn             | Fully qualified domain name of the deployment |
 | ${var.deployment_id}-notebook-server-web-context | ArcGIS Notebook Server web context |
 | ${var.deployment_id}-os                          | Operating system ID |
@@ -59,7 +59,7 @@ The module reads the following Key Vault secrets:
 | vm-identity-client-id                            | VM identity client ID |
 | vnet-id                                          | VNet ID |
 
-> The module also writes multiple “attributes” Key Vault secrets used to run Chef.
+> The module also writes multiple attributes Key Vault secrets used to run Chef.
 
 ## Providers
 
@@ -90,10 +90,10 @@ The module reads the following Key Vault secrets:
 
 | Name | Type |
 |------|------|
-| [azurerm_storage_blob.keystore_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.root_cert_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.server_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
+| [azurerm_key_vault_secret.backend_pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.notebook_server_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.portal_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -116,8 +116,6 @@ The module reads the following Key Vault secrets:
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_id | Deployment Id | `string` | `"notebook-server-linux"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
-| keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | n/a | yes |
-| keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | n/a | yes |
 | license_level | ArcGIS Notebook Server license level | `string` | `"standard"` | no |
 | log_level | ArcGIS Notebook Server log level | `string` | `"WARNING"` | no |
 | notebook_server_authorization_file_path | Local path of ArcGIS Notebook Server authorization file | `string` | n/a | yes |

@@ -145,7 +145,7 @@ To create a Standby enterprise for Windows and Linux platforms:
 
 1. Create a new Git branch from the branch of the active enterprise.
 2. Change "enterprise_id" property in all the configuration files of the enterprise's deployments to a new unique ID of the standby enterprise.
-   > The "enterprise_id" value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-).
+   > The "enterprise_id" value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-).
 3. Change the "backup_enterprise_id" property in the restore.tfvars.json configuration files of the standby branch to the active "enterprise_id".
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Deploy the standby enterprise using the standby branch.

@@ -6,14 +6,14 @@ The Terraform module restores a base ArcGIS Enterprise deployment on Windows fro
 The module runs the WebGISDR utility with 'import' option on the primary VM of the deployment.
 
 The backup is retrieved from the "webgisdr-backups" and "content-backups" blob containers in the storage
-account of the site specified by "backup_site_id" input variable.
+account of the enterprise specified by "backup_enterprise_id" input variable.
 
 ## Requirements
 
 The base ArcGIS Enterprise must be configured on the deployment by application terraform module for base ArcGIS Enterprise on Windows.
 
 The user assigned managed identity assigned to the VMs must have Storage Blob Data Owner role on
-the backup site's storage account.
+the backup enterprise's storage account.
 On the machine where Terraform is executed:
 
 * Python 3.9 or later must be installed
@@ -21,12 +21,12 @@ On the machine where Terraform is executed:
 * Path to azure/scripts directory must be added to PYTHONPATH
 * Azure credentials must be configured using "az login" CLI command
 
-The deployment VMs must have access to the storage account of the backup site specified by the `backup_site_id` input variable,
+The deployment VMs must have access to the storage account of the backup enterprise specified by the `backup_enterprise_id` input variable,
 so that WebGISDR import can retrieve backups from the `webgisdr-backups` and `content-backups` containers:
 
-* The deployment VMs must have network-level access to the storage account endpoint of the backup site.
+* The deployment VMs must have network-level access to the storage account endpoint of the backup enterprise.
 * The user-assigned managed identity attached to the deployment virtual machines must have read access
-  to the storage account of the backup site.
+  to the storage account of the backup enterprise.
 
 ## Key Vault Secrets
 
@@ -34,14 +34,14 @@ The module reads the following Key Vault secrets:
 
 | Key Vault secret name | Description |
 |-----------------------|-------------|
-| storage-account-key | Site's storage account key |
-| storage-account-name | Site's storage account name |
-| subnets | VNet subnets IDs |
+| storage-account-key   | Enterprise's storage account key |
+| storage-account-name  | Enterprise's storage account name |
+| subnets               | VNet subnets IDs |
 | vm-identity-client-id | Client ID of the user-assigned VM identity |
-| vnet-id | VNet ID |
+| vnet-id               | VNet ID |
 
 > The storage-account-name, storage-account-key, subnets, and vnet-id
-  secrets are retrieved by backup_site_core_info module.
+  secrets are retrieved by backup_enterprise_core_info module.
 
 ## Providers
 
@@ -54,8 +54,8 @@ The module reads the following Key Vault secrets:
 | Name | Source | Version |
 |------|--------|---------|
 | arcgis_enterprise_webgisdr_import | ../../modules/run_chef | n/a |
-| backup_site_core_info | ../../modules/site_core_info | n/a |
-| target_site_core_info | ../../modules/site_core_info | n/a |
+| backup_enterprise_core_info | ../../modules/enterprise_core_info | n/a |
+| target_enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 
 ## Resources
 
@@ -70,12 +70,12 @@ The module reads the following Key Vault secrets:
 | admin_password | Portal for ArcGIS administrator user password | `string` | n/a | yes |
 | admin_username | Portal for ArcGIS administrator user name | `string` | `"siteadmin"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
+| backup_enterprise_id | ArcGIS Enterprise ID of the backup to restore from | `string` | `"arcgis"` | no |
 | backup_restore_mode | Restore mode: specifies the type of backup to restore (backup, full, incremental) | `string` | `"backup"` | no |
-| backup_site_id | ArcGIS site Id of the backup to restore from | `string` | `"arcgis"` | no |
-| deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
+| deployment_id | Deployment ID | `string` | `"enterprise-base-windows"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | execution_timeout | Execution timeout in seconds | `number` | `36000` | no |
 | portal_admin_url | Portal for ArcGIS administrative URL | `string` | `"https://localhost:7443/arcgis"` | no |
 | run_as_password | Password for the account used to run Portal for ArcGIS | `string` | n/a | yes |
 | run_as_user | User name for the account used to run Portal for ArcGIS | `string` | `"arcgis"` | no |
-| site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 <!-- END_TF_DOCS -->

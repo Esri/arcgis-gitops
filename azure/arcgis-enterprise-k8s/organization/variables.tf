@@ -17,19 +17,19 @@ variable "azure_region" {
   type        = string
 }
  
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
   type        = string
   default     = "arcgis"
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
 variable "deployment_id" {
-  description = "ArcGIS Enterprise deployment Id"
+  description = "ArcGIS Enterprise deployment ID"
   type        = string
   default     = "enterprise-k8s"
 

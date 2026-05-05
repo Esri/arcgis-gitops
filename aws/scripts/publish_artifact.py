@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Retrieves AMI Id from packer-manifest.json file and saves in SSM parameter.
+# Retrieves AMI ID from packer-manifest.json file and saves in SSM parameter.
 
 import argparse
 import json
@@ -21,7 +21,7 @@ import boto3
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='publish_artifact.py',
-        description='Retrieves AMI Id from packer-manifest.json file and saves in SSM parameter.')
+        description='Retrieves AMI ID from packer-manifest.json file and saves in SSM parameter.')
 
     parser.add_argument('-p', dest='parameter', help='SSM parameter name')
     parser.add_argument('-f', dest='manifest', help='packer-manifest.json file path')
@@ -54,4 +54,4 @@ if __name__ == '__main__':
         Tier='Intelligent-Tiering'
     )
 
-    print("AMI Id '{0}' stored in '{1}' SSM parameter.".format(ami_id, args.parameter))
+    print("AMI ID '{0}' stored in '{1}' SSM parameter.".format(ami_id, args.parameter))

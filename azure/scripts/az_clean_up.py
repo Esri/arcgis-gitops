@@ -105,8 +105,8 @@ if __name__ == "__main__":
         description="Deletes temporary files created by Chef runs on the deployment VMs in the specified roles.",
     )
 
-    parser.add_argument('-s', dest='site_id', help='Site Id')
-    parser.add_argument('-d', dest='deployment_id', help='Deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment ID')
     parser.add_argument('-m', dest='machine_roles', help='Machine roles')
     parser.add_argument('-u', dest='uninstall_chef_client', action='store_true', help='Uninstall Chef/Cinc Client')
     parser.add_argument('-f', dest='directories', default="", help='Comma-separated list of local directories to clean up')
@@ -120,7 +120,7 @@ if __name__ == "__main__":
     ]
 
     ret = az_utils.run_command(
-        args.site_id,
+        args.enterprise_id,
         args.deployment_id,
         args.machine_roles,
         "clean_up",

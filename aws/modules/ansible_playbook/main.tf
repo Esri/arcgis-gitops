@@ -7,7 +7,7 @@
  *
  * ## Requirements
  *
- * The name of the S3 bucket used by the SSM connection for file transfers is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+ * The name of the S3 bucket used by the SSM connection for file transfers is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
  *
  * On the machine where Terraform is executed:
  *
@@ -43,7 +43,7 @@ terraform {
 data "aws_region" "current" {}
 
 data "aws_ssm_parameter" "ansible_aws_ssm_bucket" {
-  name  = "/arcgis/${var.site_id}/s3/logs"
+  name = "/arcgis/${var.enterprise_id}/s3/logs"
 }
 
 locals {
@@ -53,9 +53,9 @@ resource "local_sensitive_file" "external_vars" {
   content = yamlencode(merge(
     var.external_vars,
     {
-      ansible_connection = "aws_ssm"
+      ansible_connection          = "aws_ssm"
       ansible_aws_ssm_bucket_name = data.aws_ssm_parameter.ansible_aws_ssm_bucket.value
-      ansible_aws_ssm_region = data.aws_region.current.region
+      ansible_aws_ssm_region      = data.aws_region.current.region
       # ansible_python_interpreter = "/usr/bin/python3"
     })
   )
@@ -63,19 +63,19 @@ resource "local_sensitive_file" "external_vars" {
 }
 
 resource "local_file" "inventory" {
-  content  = yamlencode({
+  content = yamlencode({
     plugin = "amazon.aws.aws_ec2"
-    regions = [ 
+    regions = [
       data.aws_region.current.region
     ]
     compose = {
       ansible_host = "instance_id"
     }
     filters = {
-      "instance-state-name" = "running"
-      "tag:ArcGISSiteId" = var.site_id
-      "tag:ArcGISDeploymentId" = var.deployment_id
-      "tag:ArcGISMachineRole" = var.machine_roles
+      "instance-state-name"    = "running"
+      "tag:ArcGISEnterpriseID" = var.enterprise_id
+      "tag:ArcGISDeploymentID" = var.deployment_id
+      "tag:ArcGISMachineRole"  = var.machine_roles
     }
   })
   filename = "/tmp/${local.session_id}/inventory.aws_ec2.yaml"
@@ -92,7 +92,7 @@ resource "null_resource" "ansible_playbook" {
       AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
-    command = "python -m ssm_wait_for_target_instances -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)}"
+    command = "python -m ssm_wait_for_target_instances -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)}"
   }
 
   # Run Ansible playbook on target SSM managed EC2 instances.

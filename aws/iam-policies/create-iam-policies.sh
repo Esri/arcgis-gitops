@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,13 +17,13 @@
 # The script creates IAM policies for the GitHub Action workflows using the JSON policy documents
 # located in the same directory as this script.
 
-aws iam create-policy --policy-name ArcGISEnterpriseApplication --policy-document file://ArcGISEnterpriseApplication.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for ArcGIS Enterprise applications management workflows" --output text
-aws iam create-policy --policy-name ArcGISEnterpriseDestroy --policy-document file://ArcGISEnterpriseDestroy.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for destroying resources created by ArcGIS Enterprise infrastructure and application management workflows" --output text
-aws iam create-policy --policy-name ArcGISEnterpriseImage --policy-document file://ArcGISEnterpriseImage.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for creating EC2 AMIs for ArcGIS Enterprise deployments" --output text
-aws iam create-policy --policy-name ArcGISEnterpriseInfrastructure --policy-document file://ArcGISEnterpriseInfrastructure.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for ArcGIS Enterprise infrastructure management workflows" --output text
-aws iam create-policy --policy-name ArcGISEnterpriseK8s --policy-document file://ArcGISEnterpriseK8s.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for ArcGIS Enterprise on Kubernetes workflows" --output text
-aws iam create-policy --policy-name ArcGISSiteCore --policy-document file://ArcGISSiteCore.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for site-core-aws workflow" --output text
-aws iam create-policy --policy-name ArcGISSiteCoreDestroy --policy-document file://ArcGISSiteCoreDestroy.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for site-core-aws-destroy workflow" --output text
-aws iam create-policy --policy-name ArcGISSiteK8sCluster --policy-document file://ArcGISSiteK8sCluster.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for site-k8s-cluster-aws workflow" --output text
-aws iam create-policy --policy-name ArcGISSiteK8sClusterDestroy --policy-document file://ArcGISSiteK8sClusterDestroy.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for site-k8s-cluster-aws-destroy workflow" --output text
-aws iam create-policy --policy-name TerraformBackend --policy-document file://TerraformBackend.json --tags Key=ArcGISSiteId,Value=arcgis --description "The policy for Terraform S3 backend" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseApplication --policy-document file://ArcGISEnterpriseApplication.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for ArcGIS Enterprise applications management workflows" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseDestroy --policy-document file://ArcGISEnterpriseDestroy.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for destroying resources created by ArcGIS Enterprise infrastructure and application management workflows" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseImage --policy-document file://ArcGISEnterpriseImage.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for creating EC2 AMIs for ArcGIS Enterprise deployments" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseInfrastructure --policy-document file://ArcGISEnterpriseInfrastructure.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for ArcGIS Enterprise infrastructure management workflows" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseK8s --policy-document file://ArcGISEnterpriseK8s.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for ArcGIS Enterprise on Kubernetes workflows" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseCore --policy-document file://ArcGISEnterpriseCore.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for enterprise-core-aws workflow" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseCoreDestroy --policy-document file://ArcGISEnterpriseCoreDestroy.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for enterprise-core-aws-destroy workflow" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseK8sCluster --policy-document file://ArcGISEnterpriseK8sCluster.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for enterprise-k8s-cluster-aws workflow" --output text
+aws iam create-policy --policy-name ArcGISEnterpriseK8sClusterDestroy --policy-document file://ArcGISEnterpriseK8sClusterDestroy.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for enterprise-k8s-cluster-aws-destroy workflow" --output text
+aws iam create-policy --policy-name TerraformBackend --policy-document file://TerraformBackend.json --tags Key=ArcGISEnterpriseId,Value=arcgis --description "The policy for Terraform S3 backend" --output text

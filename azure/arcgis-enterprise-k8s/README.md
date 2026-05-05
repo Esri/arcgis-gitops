@@ -11,7 +11,7 @@ Supported ArcGIS Enterprise on Kubernetes versions:
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
-2. Provision core Azure resources for ArcGIS Enterprise site and deploy AKS cluster using [arcgis-site-core](../arcgis-site-core/README.md) template.
+2. Provision core Azure resources for ArcGIS Enterprise and deploy AKS cluster using [arcgis-enterprise-core](../arcgis-enterprise-core/README.md) template.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch and the deployment branch, commit the changes, and push the branches to GitHub.
 
@@ -23,9 +23,9 @@ Initial deployment of ArcGIS Enterprise on Kubernetes includes provisioning cont
 
 > The service principal used by the template's workflows must have the cluster administrator permissions.
 
-### 1. Set GitHub Actions Secrets for the Site
+### 1. Set GitHub Actions Secrets for the Enterprise
 
-Set the primary ArcGIS Enterprise site administrator credentials in the GitHub Actions secrets of the repository settings.
+Set the primary ArcGIS Enterprise administrator credentials in the GitHub Actions secrets of the repository settings.
 
 | Name                      | Description                                    |
 |---------------------------|------------------------------------------------|
@@ -72,13 +72,13 @@ Instructions:
 
 1. Add TLS certificate for the deployment's frontend HTTPS listener and the certificate's private key files in PEM format to `/config/certificates/` directory of the repository and set "tls_certificate_path" and "tls_private_key_path" config properties to the files' paths.
 2. Add CA certificate file for backend TLS certificate validation in PEM format to `/config/certificates/` directory of the repository and set "ca_certificate_path" config property to the file's path.
-3. Set "deployment_fqdn" property to the ArcGIS Enterprise deployment domain name.
+3. Set "ingress_fqdn" property to the ArcGIS Enterprise deployment domain name.
 4. If Azure DNS is used, set "dns_zone_name" and "dns_zone_resource_group_name" properties to the hosted zone name and resource group name of the ArcGIS Enterprise domain name DNS zone.
 5. Commit the changes to a Git branch and push the branch to GitHub.
 6. Run enterprise-k8s-azure-ingress workflow using the branch.
 7. If Azure DNS is not used, retrieve FQDN of the application gateway public frontend created by the workflow and create a CNAME record for it within the DNS server of the ArcGIS Enterprise domain name.
 
-> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "${var.deployment_id}-alb-dns-name" secret of the site's key vault.
+> Job outputs are not shown in the properties of completed GitHub Actions run. To retrieve the DNS name, check the run logs of "Terraform Apply" step or read it from "${var.deployment_id}-alb-dns-name" secret of the enterprise's key vault.
 
 ### 4. Create ArcGIS Enterprise Organization
 

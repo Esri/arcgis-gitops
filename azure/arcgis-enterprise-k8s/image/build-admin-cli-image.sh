@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # This script builds container image for Enterprise Admin CLI and pushes it to
-# private container repository of the site.
+# private container repository of the enterprise.
 #
 # On the machine where the script is executed:
 #
@@ -27,11 +27,11 @@ set -e
 ACR_REPOSITORY_NAME=$1
 TAG=$2
 BUILD_CONTEXT_PATH=$3
-SITE_ID=$4
+ENTERPRISE_ID=$4
 
 az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
 
-VAULT_NAME=$(az resource list --resource-group $SITE_ID-infrastructure-core --resource-type=Microsoft.KeyVault/vaults --query "[].{name:name}" -o tsv)
+VAULT_NAME=$(az resource list --resource-group $ENTERPRISE_ID-infrastructure-core --resource-type=Microsoft.KeyVault/vaults --query "[].{name:name}" -o tsv)
 ACR_NAME=$(az keyvault secret show --name acr-name --vault-name $VAULT_NAME --query value -o tsv)
 ACR_LOGIN_SERVER=$(az keyvault secret show --name acr-login-server --vault-name $VAULT_NAME --query value -o tsv)
 

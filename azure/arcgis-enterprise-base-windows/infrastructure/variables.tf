@@ -18,7 +18,7 @@ variable "azure_region" {
 }
 
 variable "deployment_id" {
-  description = "ArcGIS Enterprise deployment Id"
+  description = "ArcGIS Enterprise deployment ID"
   type        = string
   default     = "enterprise-base-windows"
 
@@ -28,20 +28,25 @@ variable "deployment_id" {
   }  
 }
 
-variable "vm_size" {
-  description = "Azure VM size"
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
   type        = string
-  default     = "Standard_D8s_v5"
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
 }
 
-variable "ingress_deployment_id"{
-    description = "ArcGIS Enterprise ingress deployment Id"
+variable "ingress_id"{
+    description = "ArcGIS Enterprise ingress ID"
     type        = string
     default     = "enterprise-ingress"
 
     validation {
-        condition     = can(regex("^[a-z0-9-]{3,25}$", var.ingress_deployment_id))
-        error_message = "The ingress_deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+        condition     = can(regex("^[a-z0-9-]{3,25}$", var.ingress_id))
+        error_message = "The ingress_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
     }
 }
 
@@ -59,17 +64,6 @@ variable "os_disk_size" {
   validation {
     condition     = var.os_disk_size >= 100   && var.os_disk_size <= 4095
     error_message = "The os_disk_size value must be between 100 and 4095."
-  }
-}
-
-variable "site_id" {
-  description = "ArcGIS site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
@@ -101,14 +95,20 @@ variable "subnet_id" {
   default     = null
 }
 
+variable "vm_admin_password" {
+  description = "VM administrator password"
+  type        = string
+  sensitive   = true
+}
+
 variable "vm_admin_username" {
   description = "VM administrator username"
   type        = string
   default     = "vmadmin"
 }
 
-variable "vm_admin_password" {
-  description = "VM administrator password"
+variable "vm_size" {
+  description = "Azure VM size"
   type        = string
-  sensitive   = true
+  default     = "Standard_D8s_v5"
 }

@@ -2,6 +2,6 @@
   "arcgis_version": "12.0.0",
   "container_registry_org": "esridocker",
   "ecr_repository_prefix": "docker-hub",
-  "pull_through_cache": true,
-  "site_id": "arcgis"
+  "enterprise_id": "arcgis",
+  "pull_through_cache": true
 }

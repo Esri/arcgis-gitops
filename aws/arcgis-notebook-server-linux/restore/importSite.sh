@@ -15,7 +15,7 @@
 # limitations under the License.
 #
 # This script restores the ArcGIS Notebook Server deployment's config store
-# and arcgisworkspace directory from the site's backup S3 bucket.
+# and arcgisworkspace directory from the backup S3 bucket.
 #
 # On the machine where the script is executed:
 #
@@ -45,14 +45,14 @@ fi
 # Get the parameters from the JSON string
 ADMIN_PASSWORD=$(echo $attributes | jq -r '.admin_password')
 ADMIN_USERNAME=$(echo $attributes | jq -r '.admin_username')
-BACKUP_SITE_ID=$(echo $attributes | jq -r '.backup_site_id')
+BACKUP_ENTERPRISE_ID=$(echo $attributes | jq -r '.backup_enterprise_id')
 DEPLOYMENT_ID=$(echo $attributes | jq -r '.deployment_id')
 RUN_AS_USER=$(echo $attributes | jq -r '.run_as_user')
 S3_PREFIX=$(echo $attributes | jq -r '.s3_prefix')
 
 # Get the backup S3 bucket and region from SSM Parameter Store
-BACKUP_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$BACKUP_SITE_ID/s3/backup" --query "Parameter.Value" --output text)
-S3_REGION=$(aws ssm get-parameter --name "/arcgis/$BACKUP_SITE_ID/s3/region" --query "Parameter.Value" --output text)
+BACKUP_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$BACKUP_ENTERPRISE_ID/s3/backup" --query "Parameter.Value" --output text)
+S3_REGION=$(aws ssm get-parameter --name "/arcgis/$BACKUP_ENTERPRISE_ID/s3/region" --query "Parameter.Value" --output text)
 
 # Get the last modified backup file key from S3
 LAST_BACKUP_KEY=$(aws s3api list-objects-v2 --bucket $BACKUP_S3_BUCKET --prefix $S3_PREFIX --query "sort_by(Contents,&LastModified)[-1].Key" --output text)

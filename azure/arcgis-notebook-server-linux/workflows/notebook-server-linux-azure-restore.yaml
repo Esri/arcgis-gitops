@@ -51,14 +51,14 @@ jobs:
     - name: Import Site
       id: import-site
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-        BACKUP_SITE_ID=$(jq -r '.backup_site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
+        BACKUP_ENTERPRISE_ID=$(jq -r '.backup_enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
         az account set --subscription $ARM_SUBSCRIPTION_ID
-        BACKUP_KV_NAME=$(az keyvault list --query "[?tags.ArcGISSiteId=='$BACKUP_SITE_ID' && tags.ArcGISRole=='site-vault'].name" -o tsv)
+        BACKUP_KV_NAME=$(az keyvault list --query "[?tags.ArcGISEnterpriseID=='$BACKUP_ENTERPRISE_ID' && tags.ArcGISRole=='enterprise-vault'].name" -o tsv)
         STORAGE_ACCOUNT_NAME=$(az keyvault secret show --vault-name $BACKUP_KV_NAME --name "storage-account-name" --query "value" -o tsv)
-        KV_NAME=$(az keyvault list --query "[?tags.ArcGISSiteId=='$SITE_ID' && tags.ArcGISRole=='site-vault'].name" -o tsv)
+        KV_NAME=$(az keyvault list --query "[?tags.ArcGISEnterpriseID=='$ENTERPRISE_ID' && tags.ArcGISRole=='enterprise-vault'].name" -o tsv)
         VM_IDENTITY_CLIENT_ID=$(az keyvault secret show --vault-name $KV_NAME --name "vm-identity-client-id" --query "value" -o tsv)
         export JSON_PARAMETERS=$(cat $CONFIG_FILE | jq ".admin_username += \"$ADMIN_USERNAME\"" | jq ".admin_password += \"$ADMIN_PASSWORD\"" | jq ".storage_account_name += \"$STORAGE_ACCOUNT_NAME\"" | jq ".vm_identity_client_id += \"$VM_IDENTITY_CLIENT_ID\"" | base64)
-        python -m az_run_shell_script -s $SITE_ID -d $DEPLOYMENT_ID -m primary -f importSite.sh -v $KV_NAME -e 600
+        python -m az_run_shell_script -s $ENTERPRISE_ID -d $DEPLOYMENT_ID -m primary -f importSite.sh -v $KV_NAME -e 600

@@ -29,7 +29,7 @@ description: This module federates an ArcGIS Server with Portal for ArGIS in a s
 
 options:
     portal_org_id:
-        description: ArcGIS Enterprise organization Id.
+        description: ArcGIS Enterprise organization ID.
         required: false
         type: str
     portal_url:

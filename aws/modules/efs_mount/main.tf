@@ -3,11 +3,11 @@
  * 
  * Terraform module efs_mount mounts EFS file system targets on EC2 instances in a deployment.
  * 
- * The module uses ssm_efs_mount.py script to run {var.site-id}-efs-mount SSM command on the deployment's EC2 instances in specific roles.
+ * The module uses ssm_efs_mount.py script to run ${var.enterprise_id}-efs-mount SSM command on the deployment's EC2 instances in specific roles.
  *
  * ## Requirements
  *
- * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+ * The S3 bucket for the SSM command output is retrieved from "/arcgis/${var.enterprise_id}/s3/logs" SSM parameter.
  *
  * On the machine where Terraform is executed:
  *
@@ -43,7 +43,7 @@ terraform {
 data "aws_region" "current" {}
 
 data "aws_ssm_parameter" "output_s3_bucket" {
-  name  = "/arcgis/${var.site_id}/s3/logs"
+  name  = "/arcgis/${var.enterprise_id}/s3/logs"
 }
 
 resource "null_resource" "nfs_mount" {
@@ -56,6 +56,6 @@ resource "null_resource" "nfs_mount" {
       AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
-    command = "python -m ssm_efs_mount -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -i ${var.file_system_id} -p ${var.mount_point} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
+    command = "python -m ssm_efs_mount -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -i ${var.file_system_id} -p ${var.mount_point} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
   }
 }

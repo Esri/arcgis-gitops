@@ -29,13 +29,13 @@ The module allows egress for all ports on all IP addresses.
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | alb_ports | Ports used by Application Load Balancer | `list(number)` | ```[ 80, 443 ]``` | no |
-| alb_security_group_id | Security group Id of Application Load Balancer | `string` | n/a | yes |
+| alb_security_group_id | Security group ID of Application Load Balancer | `string` | n/a | yes |
 | name | Security group name | `string` | n/a | yes |
-| vpc_id | VPC Id | `string` | n/a | yes |
+| vpc_id | VPC ID | `string` | n/a | yes |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| id | Security group Id |
+| id | Security group ID |
 <!-- END_TF_DOCS -->

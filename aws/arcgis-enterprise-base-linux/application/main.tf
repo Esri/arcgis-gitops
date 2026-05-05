@@ -50,22 +50,22 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
- * | /arcgis/${var.site_id}/chef-client-url/${os} | Chef Client URL for the operating system |
- * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
- * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system of the deployment |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context | 
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
- * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
- * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
- * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
- * | /arcgis/${var.site_id}/vpc/id | VPC ID |
- * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+ * | /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |
+ * | /arcgis/${var.enterprise_id}/cookbooks-url | Chef cookbooks URL |
+ * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context | 
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
+ * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
+ * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
+ * | /arcgis/${var.enterprise_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+ * | /arcgis/${var.enterprise_id}/vpc/id | VPC ID |
+ * | /arcgis/${var.enterprise_id}/vpc/subnets | IDs of VPC subnets |
  */
 
 # Copyright 2024-2026 Esri
@@ -103,8 +103,8 @@ provider "aws" {
   default_tags {
     tags = {
       ArcGISAutomation   = "arcgis-gitops"
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 
@@ -113,39 +113,62 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "deployment_fqdn" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+data "aws_ssm_parameter" "ingress_fqdn" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
 }
 
 data "aws_ssm_parameter" "os" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/os"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/os"
 }
 
 data "aws_ssm_parameter" "portal_web_context" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/portal-web-context"
 }
 
 data "aws_ssm_parameter" "server_web_context" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context"
 }
 
 data "aws_ssm_parameter" "s3_content" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket"
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/content-s3-bucket"
 }
 
 data "aws_ssm_parameter" "object_store" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket"
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket"
+}
+
+# Retrieve attributes of the primary EC2 instance
+data "aws_instance" "primary" {
+  filter {
+    name   = "tag:ArcGISEnterpriseID"
+    values = [var.enterprise_id]
+  }
+
+  filter {
+    name   = "tag:ArcGISDeploymentID"
+    values = [var.deployment_id]
+  }
+
+  filter {
+    name   = "tag:ArcGISMachineRole"
+    values = ["primary"]
+  }
+
+  filter {
+    name   = "instance-state-name"
+    values = ["pending", "running"]
+  }
 }
 
 # Find the standby EC2 instance of the deployment if it exists
 data "aws_instances" "standby" {
   filter {
-    name   = "tag:ArcGISSiteId"
-    values = [var.site_id]
+    name   = "tag:ArcGISEnterpriseID"
+    values = [var.enterprise_id]
   }
 
   filter {
-    name   = "tag:ArcGISDeploymentId"
+    name   = "tag:ArcGISDeploymentID"
     values = [var.deployment_id]
   }
 
@@ -160,15 +183,20 @@ data "aws_instances" "standby" {
   }
 }
 
+data "aws_instance" "standby" {
+  count = length(data.aws_instances.standby.ids) > 0 ? 1 : 0
+  instance_id = data.aws_instances.standby.ids[0]
+}
+
 # Retrieve attributes of all the deployment's EC2 instances
 data "aws_instances" "deployment" {
   filter {
-    name   = "tag:ArcGISSiteId"
-    values = [var.site_id]
+    name   = "tag:ArcGISEnterpriseID"
+    values = [var.enterprise_id]
   }
 
   filter {
-    name   = "tag:ArcGISDeploymentId"
+    name   = "tag:ArcGISDeploymentID"
     values = [var.deployment_id]
   }
 
@@ -194,25 +222,27 @@ locals {
   certificates_s3_prefix        = "software/certificates"
 
   mount_point             = "/mnt/efs"
-  deployment_fqdn         = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  ingress_fqdn            = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
   os                      = nonsensitive(data.aws_ssm_parameter.os.value)
   portal_web_context      = nonsensitive(data.aws_ssm_parameter.portal_web_context.value)
   server_web_context      = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
-  primary_hostname        = "primary.${var.deployment_id}.${var.site_id}.internal"
-  standby_hostname        = "standby.${var.deployment_id}.${var.site_id}.internal"
+  # primary_hostname        = "primary.${var.deployment_id}.${var.enterprise_id}.internal"
+  # standby_hostname        = "standby.${var.deployment_id}.${var.enterprise_id}.internal"
+  primary_hostname        = data.aws_instance.primary.private_ip
+  standby_hostname        = length(data.aws_instances.standby.ids) > 0 ? data.aws_instance.standby[0].private_ip : ""
   software_dir            = "/opt/software/*"
   authorization_files_dir = "/opt/software/authorization"
   certificates_dir        = "/opt/software/certificates"
 
-  keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}/${basename(var.keystore_file_path)}" : ""
-  root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
+  keystore_file = var.server_certificate_path != null ? "${local.certificates_dir}/${basename(var.server_certificate_path)}" : ""
+  root_cert     = var.root_certificate_path != null ? "${local.certificates_dir}/${basename(var.root_certificate_path)}" : ""
 
   timestamp = formatdate("YYYYMMDDhhmm", timestamp())
 
   cloud_config = var.config_store_type == "AMAZON" ? jsonencode([
     {
       name      = "AWS"
-      namespace = "${var.site_id}-${var.deployment_id}"
+      namespace = "${var.enterprise_id}-${var.deployment_id}"
       region    = data.aws_region.current.id
       credential = {
         type = "IAM-ROLE"
@@ -226,14 +256,14 @@ locals {
           regionEndpointUrl = "https://s3.${data.aws_region.current.id}.amazonaws.com"
           rootDir           = "arcgis"
         }
-      }, {
+        }, {
         type     = "tableStore"
         name     = "Amazon Dynamo DB"
         category = "storage"
         connection = {
           regionEndpointUrl = "https://dynamodb.${data.aws_region.current.id}.amazonaws.com"
         }
-      }, {
+        }, {
         type     = "queueService"
         name     = "Amazon Queue Service"
         category = "queue"
@@ -242,10 +272,10 @@ locals {
         }
       }]
       cloudServiceTags = [{
-        ArcGISSiteId = var.site_id
-      }, {
-        ArcGISDeploymentId = var.deployment_id
-      }, {
+        ArcGISEnterpriseID = var.enterprise_id
+        }, {
+        ArcGISDeploymentID = var.deployment_id
+        }, {
         ArcGISRole = "config-store"
       }]
     }]
@@ -273,16 +303,16 @@ locals {
   }]
 }
 
-module "site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 # Copy ArcGIS Enterprise setup archives of the ArcGIS Enterprise version to the private repository S3 bucket
 module "s3_copy_files" {
   count       = var.is_upgrade ? 1 : 0
   source      = "../../modules/s3_copy_files"
-  bucket_name = module.site_core_info.s3_repository
+  bucket_name = module.enterprise_core_info.s3_repository
   index_file  = local.manifest_file_path
 }
 
@@ -290,25 +320,25 @@ module "s3_copy_files" {
 module "bootstrap_deployment" {
   source           = "../../modules/bootstrap"
   os               = local.os
-  site_id          = var.site_id
+  enterprise_id    = var.enterprise_id
   deployment_id    = var.deployment_id
   machine_roles    = ["primary", "standby"]
-  output_s3_bucket = module.site_core_info.s3_logs
+  output_s3_bucket = module.enterprise_core_info.s3_logs
 }
 
 # Download base ArcGIS Enterprise setup archives to primary and standby EC2 instances
 module "arcgis_enterprise_files" {
   count          = var.is_upgrade ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/files"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/files"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
   json_attributes = templatefile(
     local.manifest_file_path,
     {
-      s3bucket = module.site_core_info.s3_repository
-      region   = module.site_core_info.s3_region
+      s3bucket = module.enterprise_core_info.s3_repository
+      region   = module.enterprise_core_info.s3_region
     }
   )
   execution_timeout = 1800
@@ -322,8 +352,8 @@ module "arcgis_enterprise_files" {
 module "begin_upgrade_standby" {
   count          = var.is_upgrade && length(data.aws_instances.standby.ids) > 0 ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/begin-upgrade-standby"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/begin-upgrade-standby"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["standby"]
   json_attributes = jsonencode({
@@ -349,8 +379,8 @@ module "begin_upgrade_standby" {
 module "arcgis_enterprise_upgrade" {
   count          = var.is_upgrade ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/upgrade"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/upgrade"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -388,7 +418,7 @@ module "arcgis_enterprise_upgrade" {
         setup_options               = "-f Relational"
         data_dir                    = "/gisdata/arcgisdatastore"
         configure_autostart         = true
-        preferredidentifier         = "hostname"
+        preferredidentifier         = "ip"
         install_system_requirements = true
       }
       portal = {
@@ -427,8 +457,8 @@ module "arcgis_enterprise_upgrade" {
 module "arcgis_enterprise_patch" {
   count          = var.is_upgrade ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/patch"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/patch"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -480,8 +510,8 @@ resource "aws_ec2_tag" "arcgis_version" {
 # Configure fileserver 
 module "arcgis_enterprise_fileserver" {
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/${var.arcgis_version}/fileserver"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/${var.arcgis_version}/fileserver"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary"]
   json_attributes = jsonencode({
@@ -511,39 +541,39 @@ module "arcgis_enterprise_fileserver" {
 
 # Upload ArcGIS Server authorization file to the private repository S3 bucket
 resource "aws_s3_object" "server_authorization_file" {
-  bucket = module.site_core_info.s3_repository
+  bucket = module.enterprise_core_info.s3_repository
   key    = "${local.authorization_files_s3_prefix}/${basename(var.server_authorization_file_path)}"
   source = var.server_authorization_file_path
 }
 
 # Upload Portal for ArcGIS authorization file to the private repository S3 bucket
 resource "aws_s3_object" "portal_authorization_file" {
-  bucket = module.site_core_info.s3_repository
+  bucket = module.enterprise_core_info.s3_repository
   key    = "${local.authorization_files_s3_prefix}/${basename(var.portal_authorization_file_path)}"
   source = var.portal_authorization_file_path
 }
 
 # If specified, upload keystore file to the private repository S3 bucket
 resource "aws_s3_object" "keystore_file" {
-  count  = var.keystore_file_path != null ? 1 : 0
-  bucket = module.site_core_info.s3_repository
-  key    = "${local.certificates_s3_prefix}/${basename(var.keystore_file_path)}"
-  source = var.keystore_file_path
+  count  = var.server_certificate_path != null ? 1 : 0
+  bucket = module.enterprise_core_info.s3_repository
+  key    = "${local.certificates_s3_prefix}/${basename(var.server_certificate_path)}"
+  source = var.server_certificate_path
 }
 
 # If specified, upload root certificate file to the private repository S3 bucket
-resource "aws_s3_object" "root_cert_file" {
-  count  = var.root_cert_file_path != null ? 1 : 0
-  bucket = module.site_core_info.s3_repository
-  key    = "${local.certificates_s3_prefix}/${basename(var.root_cert_file_path)}"
-  source = var.root_cert_file_path
+resource "aws_s3_object" "root_certificate_file" {
+  count  = var.root_certificate_path != null ? 1 : 0
+  bucket = module.enterprise_core_info.s3_repository
+  key    = "${local.certificates_s3_prefix}/${basename(var.root_certificate_path)}"
+  source = var.root_certificate_path
 }
 
 # Download ArcGIS Server authorization file to primary and standby EC2 instances
 module "authorization_files" {
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/authorization-files"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/authorization-files"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -553,8 +583,8 @@ module "authorization_files" {
       repository = {
         local_archives = local.authorization_files_dir
         server = {
-          s3bucket = module.site_core_info.s3_repository
-          region   = module.site_core_info.s3_region
+          s3bucket = module.enterprise_core_info.s3_repository
+          region   = module.enterprise_core_info.s3_region
         }
         files = {
           "${basename(var.server_authorization_file_path)}" = {
@@ -579,10 +609,10 @@ module "authorization_files" {
 
 # Download keystore file to primary and standby EC2 instances
 module "keystore_file" {
-  count          = var.keystore_file_path != null ? 1 : 0
+  count          = var.server_certificate_path != null ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/keystore-file"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/keystore-file"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -592,11 +622,11 @@ module "keystore_file" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          s3bucket = module.site_core_info.s3_repository
-          region   = module.site_core_info.s3_region
+          s3bucket = module.enterprise_core_info.s3_repository
+          region   = module.enterprise_core_info.s3_region
         }
         files = {
-          "${basename(var.keystore_file_path)}" = {
+          "${basename(var.server_certificate_path)}" = {
             subfolder = local.certificates_s3_prefix
           }
         }
@@ -614,10 +644,10 @@ module "keystore_file" {
 
 # Download root certificate file to primary and standby EC2 instances
 module "root_cert" {
-  count          = var.root_cert_file_path != null ? 1 : 0
+  count          = var.root_certificate_path != null ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/root-cert"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/root-cert"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -627,11 +657,11 @@ module "root_cert" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          s3bucket = module.site_core_info.s3_repository
-          region   = module.site_core_info.s3_region
+          s3bucket = module.enterprise_core_info.s3_repository
+          region   = module.enterprise_core_info.s3_region
         }
         files = {
-          "${basename(var.root_cert_file_path)}" = {
+          "${basename(var.root_certificate_path)}" = {
             subfolder = local.certificates_s3_prefix
           }
         }
@@ -644,23 +674,23 @@ module "root_cert" {
   depends_on = [
     module.authorization_files,
     module.keystore_file,
-    aws_s3_object.root_cert_file
+    aws_s3_object.root_certificate_file
   ]
 }
 
 # Configure base ArcGIS Enterprise on primary EC2 instance
 module "arcgis_enterprise_primary" {
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/primary"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/primary"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary"]
   json_attributes = jsonencode({
     tomcat = {
-      domain_name       = local.deployment_fqdn
+      domain_name       = local.ingress_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
-      keystore_password = var.keystore_file_password
+      keystore_password = var.server_certificate_password
     }
     arcgis = {
       version                  = var.arcgis_version
@@ -677,15 +707,15 @@ module "arcgis_enterprise_primary" {
         url                   = "https://${local.primary_hostname}:6443/arcgis"
         wa_url                = "https://${local.primary_hostname}/${local.server_web_context}"
         install_dir           = "/opt"
-        private_url           = "https://${local.deployment_fqdn}/${local.server_web_context}"
-        web_context_url       = "https://${local.deployment_fqdn}/${local.server_web_context}"
+        private_url           = "https://${local.ingress_fqdn}/${local.server_web_context}"
+        web_context_url       = "https://${local.ingress_fqdn}/${local.server_web_context}"
         hostname              = local.primary_hostname
         admin_username        = var.admin_username
         admin_password        = var.admin_password
         authorization_file    = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
         authorization_options = var.server_authorization_options
         keystore_file         = local.keystore_file
-        keystore_password     = var.keystore_file_password
+        keystore_password     = var.server_certificate_password
         root_cert             = local.root_cert
         root_cert_alias       = "rootcert"
         directories_root      = "${local.mount_point}/gisdata/arcgisserver"
@@ -700,7 +730,7 @@ module "arcgis_enterprise_primary" {
         services_dir_enabled           = true
         callback_functions_enabled     = true
         system_properties = {
-          WebContextURL = "https://${local.deployment_fqdn}/${local.server_web_context}"
+          WebContextURL = "https://${local.ingress_fqdn}/${local.server_web_context}"
         }
         # Configure the object store in S3 bucket
         data_items = local.data_items
@@ -709,7 +739,7 @@ module "arcgis_enterprise_primary" {
         install_dir                 = "/opt"
         setup_options               = "-f Relational"
         data_dir                    = "/gisdata/arcgisdatastore"
-        preferredidentifier         = "hostname"
+        preferredidentifier         = "ip"
         hostidentifier              = local.primary_hostname
         install_system_requirements = true
         types                       = "relational"
@@ -720,16 +750,16 @@ module "arcgis_enterprise_primary" {
           # Point-in-time recovery (PITR) must be enabled in relational ArcGIS Data Store for WebGISDR tool to work in "incremental" backup-restore mode.
           pitr            = "enable"
           backup_type     = "s3"
-          backup_location = "type=s3;location=${nonsensitive(module.site_core_info.s3_backup)}/relational-${local.timestamp};name=re_default;region=${module.site_core_info.s3_region}"
+          backup_location = "type=s3;location=${nonsensitive(module.enterprise_core_info.s3_backup)}/relational-${local.timestamp};name=re_default;region=${module.enterprise_core_info.s3_region}"
         }
       }
       portal = {
         url                      = "https://${local.primary_hostname}:7443/arcgis"
         wa_url                   = "https://${local.primary_hostname}/${local.portal_web_context}"
-        private_url              = "https://${local.deployment_fqdn}/${local.portal_web_context}"
+        private_url              = "https://${local.ingress_fqdn}/${local.portal_web_context}"
         hostname                 = local.primary_hostname
         hostidentifier           = local.primary_hostname
-        preferredidentifier      = "hostname"
+        preferredidentifier      = "ip"
         install_dir              = "/opt"
         admin_username           = var.admin_username
         admin_password           = var.admin_password
@@ -751,14 +781,14 @@ module "arcgis_enterprise_primary" {
         authorization_file          = "${local.authorization_files_dir}/${basename(var.portal_authorization_file_path)}"
         user_license_type_id        = var.portal_user_license_type_id
         keystore_file               = local.keystore_file
-        keystore_password           = var.keystore_file_password
+        keystore_password           = var.server_certificate_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
         install_system_requirements = true
         wa_name                     = local.portal_web_context
         system_properties = {
-          privatePortalURL = "https://${local.deployment_fqdn}/${local.portal_web_context}"
-          WebContextURL    = "https://${local.deployment_fqdn}/${local.portal_web_context}"
+          privatePortalURL = "https://${local.ingress_fqdn}/${local.portal_web_context}"
+          WebContextURL    = "https://${local.ingress_fqdn}/${local.portal_web_context}"
         }
       }
       web_adaptor = {
@@ -794,16 +824,16 @@ module "arcgis_enterprise_primary" {
 module "arcgis_enterprise_standby" {
   count          = length(data.aws_instances.standby.ids) > 0 ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/standby"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/standby"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["standby"]
   json_attributes = jsonencode({
     tomcat = {
-      domain_name       = local.deployment_fqdn
+      domain_name       = local.ingress_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
-      keystore_password = var.keystore_file_password
+      keystore_password = var.server_certificate_password
     }
     arcgis = {
       version                  = var.arcgis_version
@@ -828,7 +858,7 @@ module "arcgis_enterprise_standby" {
         authorization_file          = "${local.authorization_files_dir}/${basename(var.server_authorization_file_path)}"
         authorization_options       = var.server_authorization_options
         keystore_file               = local.keystore_file
-        keystore_password           = var.keystore_file_password
+        keystore_password           = var.server_certificate_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
         install_system_requirements = true
@@ -838,7 +868,7 @@ module "arcgis_enterprise_standby" {
         install_dir                 = "/opt"
         setup_options               = "-f Relational"
         data_dir                    = "/gisdata/arcgisdatastore"
-        preferredidentifier         = "hostname"
+        preferredidentifier         = "ip"
         hostidentifier              = local.standby_hostname
         install_system_requirements = true
         types                       = "relational"
@@ -854,7 +884,7 @@ module "arcgis_enterprise_standby" {
         admin_password              = var.admin_password
         log_dir                     = "/opt/arcgis/portal/usr/arcgisportal/logs"
         keystore_file               = local.keystore_file
-        keystore_password           = var.keystore_file_password
+        keystore_password           = var.server_certificate_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
         install_system_requirements = true
@@ -892,7 +922,7 @@ module "backup" {
   arcgis_application = "server"
   arcgis_version     = var.arcgis_version
   deployment_id      = var.deployment_id
-  site_id            = var.site_id
+  enterprise_id      = var.enterprise_id
 
   depends_on = [
     module.arcgis_enterprise_primary
@@ -903,7 +933,7 @@ module "backup" {
 # temporary files from primary and standby EC2 instances.
 module "clean_up" {
   source                = "../../modules/clean_up"
-  site_id               = var.site_id
+  enterprise_id         = var.enterprise_id
   deployment_id         = var.deployment_id
   machine_roles         = ["primary", "standby"]
   directories           = [local.software_dir]

@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Retrieves VM image Id from packer-manifest.json file and saves in Azure Key Vault secret.
+# Retrieves VM image ID from packer-manifest.json file and saves in Azure Key Vault secret.
 
 import argparse
 import json
@@ -23,7 +23,7 @@ from azure.keyvault.secrets import SecretClient
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='publish_artifact.py',
-        description='Retrieves VM image Id from packer-manifest.json file and saves in Azure Key Vault secret.')
+        description='Retrieves VM image ID from packer-manifest.json file and saves in Azure Key Vault secret.')
 
     parser.add_argument('-v', dest='vault_name', help='Key Vault name')
     parser.add_argument('-s', dest='secret_name', help='Key Vault secret name')
@@ -50,4 +50,4 @@ if __name__ == '__main__':
     client = SecretClient(vault_url=vault_url, credential=credential)
     client.set_secret(args.secret_name, image_id)
 
-    print("Image Id '{0}' stored in a Key Vault secret.".format(image_id))
+    print("Image ID '{0}' stored in a Key Vault secret.".format(image_id))

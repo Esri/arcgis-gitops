@@ -5,7 +5,7 @@
  *
  * The module runs 'restore' admin utility on the primary EC2 instance of the deployment.
  *
- * The backup is retrieved from the backup S3 bucket of the site specified by "backup_site_id" input variable.
+ * The backup is retrieved from the backup S3 bucket of the enterprise specified by "backup_enterprise_id" input variable.
  *
  * ## Requirements
  *
@@ -18,8 +18,8 @@
  * * arcgis.common and arcgis.server Ansible collections must be installed
  * * AWS credentials must be configured
  *
- * The module retrieves the backup S3 bucket name and region from '/arcgis/${var.backup_site_id}/s3/backup' and 
- * '/arcgis/${var.backup_site_id}/s3/region' SSM parameters.
+ * The module retrieves the backup S3 bucket name and region from '/arcgis/${var.backup_enterprise_id}/s3/backup' and 
+ * '/arcgis/${var.backup_enterprise_id}/s3/region' SSM parameters.
  */
 
 # Copyright 2024-2026 Esri
@@ -57,15 +57,15 @@ provider "aws" {
   default_tags {
     tags = {
       ArcGISAutomation   = "arcgis-gitops"      
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 }
 
-module "backup_site_core_info" {
-  source = "../../modules/site_core_info"
-  site_id = var.backup_site_id
+module "backup_enterprise_core_info" {
+  source = "../../modules/enterprise_core_info"
+  enterprise_id = var.backup_enterprise_id
 }
 
 data "aws_region" "current" {}
@@ -73,7 +73,7 @@ data "aws_region" "current" {}
 # Restore ArcGIS Server configurtion from backup
 module "arcgis_server_restore" {
   source         = "../../modules/ansible_playbook"
-  site_id        = var.site_id
+  enterprise_id        = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary"]
   playbook       = "arcgis.server.s3_restore"
@@ -83,8 +83,8 @@ module "arcgis_server_restore" {
     admin_password = var.admin_password
     install_dir = "/opt"
     run_as_user = var.run_as_user
-    s3_bucket = module.backup_site_core_info.s3_backup
-    s3_region = module.backup_site_core_info.s3_region
+    s3_bucket = module.backup_enterprise_core_info.s3_backup
+    s3_region = module.backup_enterprise_core_info.s3_region
     s3_prefix = var.s3_prefix
   }
 }

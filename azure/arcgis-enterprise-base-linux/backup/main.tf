@@ -5,7 +5,7 @@
  *
  * The module runs WebGISDR utility with 'export' option on the primary VM of the deployment.
  *
- * The WebGISDR backups are stored in "webgisdr-backups" blob container of the site's Azure Storage account.
+ * The WebGISDR backups are stored in "webgisdr-backups" blob container of the enterprise's Azure Storage account.
  * The Portal for ArcGIS content store backups are stored in "content-backups" blob container.
  *
  * ## Requirements
@@ -59,23 +59,23 @@ provider "azurerm" {
 
 data "azurerm_key_vault_secret" "vm_identity_client_id" {
   name         = "vm-identity-client-id"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 locals {
   shared_location = "/mnt/fileserver/gisdata/arcgisbackup/webgisdr"
 }
 
-module "site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 # Run webgisdr utility with export option on the primary VM.
 module "arcgis_enterprise_webgisdr_export" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-webgisdr-export"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary"]
   execution_timeout      = var.execution_timeout
@@ -94,12 +94,12 @@ module "arcgis_enterprise_webgisdr_export" {
           SHARED_LOCATION                     = local.shared_location
           INCLUDE_SCENE_TILE_CACHES           = false
           BACKUP_STORE_PROVIDER               = "AzureBlob"
-          AZURE_BLOB_ACCOUNT_NAME             = module.site_core_info.storage_account_name
+          AZURE_BLOB_ACCOUNT_NAME             = module.enterprise_core_info.storage_account_name
           AZURE_BLOB_ACCOUNT_ENDPOINT_SUFFIX  = "core.windows.net"
           AZURE_BLOB_CONTAINER_NAME           = "webgisdr-backups"
           AZURE_BLOB_CREDENTIALTYPE           = "userAssignedIdentity"
           AZURE_BLOB_USER_MI_CLIENT_ID        = data.azurerm_key_vault_secret.vm_identity_client_id.value
-          BACKUP_BLOB_ACCOUNT_NAME            = module.site_core_info.storage_account_name
+          BACKUP_BLOB_ACCOUNT_NAME            = module.enterprise_core_info.storage_account_name
           BACKUP_BLOB_ACCOUNT_ENDPOINT_SUFFIX = "core.windows.net"
           BACKUP_BLOB_CONTAINER_NAME          = "content-backups"
           BACKUP_BLOB_CREDENTIALTYPE          = "userAssignedIdentity"

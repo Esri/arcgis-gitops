@@ -1,6 +1,6 @@
 # Packer Template for Base ArcGIS Enterprise on Windows Images
 
-The Packer template builds VM images for a specific base ArcGIS Enterprise deployment on Windows and publishes it to the site Image Gallery.
+The Packer template builds VM images for a specific base ArcGIS Enterprise deployment on Windows and publishes it to the enterprise Image Gallery.
 
 The images are built from a Windows OS base image specified by Key Vault secret "vm-image-${var.os}".
 
@@ -19,7 +19,7 @@ IDs of the images are saved in "${var.deployment_id}-vm-image-primary" and "${va
 
 ## Requirements
 
-VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" must be created in the site Image Gallery before running the template.
+VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" must be created in the enterprise Image Gallery before running the template.
 
 On the machine where Packer is executed:
 
@@ -37,7 +37,7 @@ The template reads the following Key Vault secrets:
 |---------------------------|-------------|
 | chef-client-url-${var.os} | Chef Client URL |
 | cookbooks-url             | Chef Cookbooks for ArcGIS archive URL |
-| image-gallery-name        | Site Image Gallery name |
+| image-gallery-name        | Enterprise Image Gallery name |
 | storage-account-name      | Private repository storage account name |
 | vm-identity-client-id     | Managed identity client ID |
 | vm-identity-id            | Managed identity resource ID |
@@ -62,13 +62,13 @@ The template saves the built image ID in the following Key Vault secrets:
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
-| deployment_id | Deployment Id | `string` | `"enterprise-base-windows"` | no |
-| os | Operating system Id | `string` | `"windows2025"` | no |
+| deployment_id | Deployment ID | `string` | `"enterprise-base-windows"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
+| os | Operating system ID | `string` | `"windows2025"` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | run_as_password | Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `env("RUN_AS_PASSWORD")` | yes |
 | run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | skip_create_image | If true, Packer will not create the image | `bool` | `false` | no |
 | vm_size | Azure VM size | `string` | `"Standard_D8s_v5"` | no |

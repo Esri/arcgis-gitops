@@ -58,7 +58,7 @@ variable "arcgis_web_adaptor_patches" {
 }
 
 variable "aws_region" {
-  description = "AWS region Id"
+  description = "AWS region ID"
   type        = string
 }
 
@@ -74,7 +74,7 @@ variable "config_store_type" {
 }
 
 variable "deployment_id" {
-  description = "Deployment Id"
+  description = "ArcGIS Enterprise deployment ID"
   type        = string
   default     = "notebook-server-linux"
 
@@ -84,28 +84,21 @@ variable "deployment_id" {
   }
 }
 
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
 variable "is_upgrade" {
   description = "Flag to indicate if this is an upgrade deployment"
   type        = bool
   default     = false
-}
-
-variable "keystore_file_password" {
-  description = "Password for keystore file with SSL certificate used by HTTPS listeners"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "keystore_file_path" {
-  description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
-  type        = string
-  default     = null
-
-  validation {
-    condition     = var.keystore_file_path == null || try(fileexists(var.keystore_file_path), false)
-    error_message = "The keystore_file_path value must be a valid file path."
-  }  
 }
 
 variable "license_level" {
@@ -147,7 +140,7 @@ variable "notebook_server_authorization_options" {
 }
 
 variable "portal_org_id" {
-  description = "ArcGIS Enterprise organization Id"
+  description = "ArcGIS Enterprise organization ID"
   type        = string
   default     = null
 }
@@ -163,14 +156,14 @@ variable "portal_username" {
   type        = string
 }
 
-variable "root_cert_file_path" {
-  description = "Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS"
+variable "root_certificate_path" {
+  description = "Local path of root certificate file in PEM format"
   type        = string
   default     = null
 
   validation {
-    condition     = var.root_cert_file_path == null || try(fileexists(var.root_cert_file_path), false)
-    error_message = "The root_cert_file_path value must be a valid file path."
+    condition     = var.root_certificate_path == null || try(fileexists(var.root_certificate_path), false)
+    error_message = "The root_certificate_path value must be a valid file path."
   }  
 }
 
@@ -180,13 +173,20 @@ variable "run_as_user" {
   default     = "arcgis"
 }
 
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
+variable "server_certificate_password" {
+  description = "Password of TLS certificate in PKCS12 format installed on backend servers"
   type        = string
-  default     = "arcgis"
+  sensitive   = true
+  default     = ""
+}
+
+variable "server_certificate_path" {
+  description = "Local path of TLS certificate in PKCS12 format installed on backend servers"
+  type        = string
+  default     = null
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
+    condition     = var.server_certificate_path == null || try(fileexists(var.server_certificate_path), false)
+    error_message = "The server_certificate_path value must be a valid file path."
+  }  
 }

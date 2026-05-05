@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -49,8 +49,8 @@ delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseDestroy
 delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseImage
 delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseInfrastructure
 delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseK8s
-delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISSiteCore
-delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISSiteCoreDestroy
-delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISSiteK8sCluster
-delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISSiteK8sClusterDestroy
+delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseCore
+delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseCoreDestroy
+delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseK8sCluster
+delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseK8sClusterDestroy
 delete_iam_policy arn:aws:iam::$AWS_ACCOUNT_ID:policy/TerraformBackend

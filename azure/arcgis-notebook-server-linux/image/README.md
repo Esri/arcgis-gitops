@@ -1,7 +1,7 @@
 # Packer Template for ArcGIS Notebook Server on Linux
 
 The Packer template builds VM image for a specific ArcGIS Notebook Server deployment and
-publishes it to the site Image Gallery.
+publishes it to the enterprise Image Gallery.
 
 The VM image is built from the operating system's base image specified by Key Vault secret "vm-image-${var.os}".
 
@@ -25,7 +25,7 @@ and "${var.deployment_id}-vm-image-node" Key Vault secrets.
 ## Requirements
 
 VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" 
-must be created in the site Image Gallery before running the template.
+must be created in the enterprise Image Gallery before running the template.
 
 On the machine where Packer is executed:
 
@@ -44,11 +44,11 @@ The template reads the following Key Vault secrets:
 |---------------------------|-------------|
 | chef-client-url-${var.os} | Chef Client URL |
 | cookbooks-url             | Chef Cookbooks for ArcGIS archive URL |
-| image-gallery-name        | Site Image Gallery name | 
+| image-gallery-name        | Enterprise Image Gallery name | 
 | storage-account-name      | Private repository storage account name |
-| vm-identity-client-id     | Managed identity client Id |
-| vm-identity-id            | Managed identity resource Id |
-| vm-image-${var.os}        | Source VM Image Id |
+| vm-identity-client-id     | Managed identity client ID |
+| vm-identity-id            | Managed identity resource ID |
+| vm-image-${var.os}        | Source VM Image ID |
 
 The template writes the following Key Vault secrets:
 
@@ -56,8 +56,8 @@ The template writes the following Key Vault secrets:
 |--------------------------------------------------|-------------|
 | ${var.deployment_id}-notebook-server-web-context | ArcGIS Notebook Server web context |
 | ${var.deployment_id}-os                          | Operating system ID |
-| ${var.deployment_id}-vm-image-node               | Built image Id for additional nodes |
-| ${var.deployment_id}-vm-image-primary            | Built image Id for primary node |
+| ${var.deployment_id}-vm-image-node               | Built image ID for additional nodes |
+| ${var.deployment_id}-vm-image-primary            | Built image ID for primary node |
 
 ## Inputs
 
@@ -68,15 +68,15 @@ The template writes the following Key Vault secrets:
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
 | azure_cli_version | Version of Azure CLI to install on the image | `string` | `"2.76.0"` | no |
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
-| deployment_id | Deployment Id | `string` | `"notebook-server-linux"` | no |
+| deployment_id | Deployment ID | `string` | `"notebook-server-linux"` | no |
 | docker_version | Version of Docker CE to install on the image | `string` | `"28.5.2"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | gpu_ready | If true, the image is built with GPU support | `bool` | `false` | no |
 | license_level | ArcGIS Notebook Server license level | `string` | `"standard"` | no |
 | notebook_server_web_context | ArcGIS Notebook Server web context | `string` | `"notebooks"` | no |
-| os | Operating system Id (rhel9\|ubuntu24) | `string` | `"rhel9"` | no |
+| os | Operating system ID (rhel9\|ubuntu24) | `string` | `"rhel9"` | no |
 | os_disk_size | OS disk size in GB | `number` | `128` | no |
 | run_as_user | User account used to run ArcGIS Notebook Server | `string` | `"arcgis"` | no |
-| site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 | skip_create_image | If true, Packer will not create the image | `bool` | `false` | no |
 | vault_name | Name of the Azure Key Vault | `string` | n/a | yes |
 | vm_size | Size of the source VM used to build the image | `string` | `"Standard_D8s_v5"` | no |

@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,7 +28,7 @@ locals {
 module "copy_webadaptor_files" {
   count       = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source      = "../../modules/s3_copy_files"
-  bucket_name = module.site_core_info.s3_repository
+  bucket_name = module.enterprise_core_info.s3_repository
   index_file  = local.webadaptor_manifest_path
   depends_on = [
     module.arcgis_server_node
@@ -39,15 +39,15 @@ module "copy_webadaptor_files" {
 module "download_webadaptor_files" {
   count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.s3_files"
   external_vars = {
     local_repository = local.archives_dir
     manifest         = local.webadaptor_manifest_path
-    bucket_name      = module.site_core_info.s3_repository
-    region           = module.site_core_info.s3_region
+    bucket_name      = module.enterprise_core_info.s3_repository
+    region           = module.enterprise_core_info.s3_region
   }
   depends_on = [
     module.copy_webadaptor_files
@@ -56,14 +56,14 @@ module "download_webadaptor_files" {
 
 # Copy keystore file to primary and node EC2 instances
 module "tomcat_keystore_file" {
-  count         = var.keystore_file_path != null ? 1 : 0
+  count         = var.server_certificate_path != null ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.file"
   external_vars = {
-    src_file  = var.keystore_file_path
+    src_file  = var.server_certificate_path
     dest_file = local.tomcat_keystore_file
   }
 }
@@ -72,7 +72,7 @@ module "tomcat_keystore_file" {
 module "openjdk_upgrade" {
   count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.webadaptor.openjdk"
@@ -91,7 +91,7 @@ module "openjdk_upgrade" {
 module "tomcat_upgrade" {
   count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.webadaptor.tomcat"
@@ -110,7 +110,7 @@ module "tomcat_upgrade" {
 module "arcgis_webadaptor_upgrade" {
   count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.webadaptor.install"
@@ -130,13 +130,13 @@ module "arcgis_webadaptor_upgrade" {
 module "tomcat_ssl_config" {
   count         = var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.webadaptor.tomcat_ssl_config"
   external_vars = {
     keystore_file     = local.keystore_file
-    keystore_password = var.keystore_file_password != "" ? var.keystore_file_password : "changeit"
+    keystore_password = var.server_certificate_password != "" ? var.server_certificate_password : "changeit"
   }
   depends_on = [
     module.arcgis_server_primary,
@@ -150,7 +150,7 @@ module "tomcat_ssl_config" {
 module "arcgis_webadaptor" {
   count         = var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.webadaptor.configure"

@@ -3,11 +3,11 @@
 
 Terraform module efs_mount mounts EFS file system targets on EC2 instances in a deployment.
 
-The module uses ssm_efs_mount.py script to run {var.site-id}-efs-mount SSM command on the deployment's EC2 instances in specific roles.
+The module uses ssm_efs_mount.py script to run ${var.enterprise_id}-efs-mount SSM command on the deployment's EC2 instances in specific roles.
 
 ## Requirements
 
-The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+The S3 bucket for the SSM command output is retrieved from "/arcgis/${var.enterprise_id}/s3/logs" SSM parameter.
 
 On the machine where Terraform is executed:
 
@@ -35,9 +35,9 @@ On the machine where Terraform is executed:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
-| file_system_id | EFS file system Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
+| file_system_id | EFS file system ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | mount_point | NFS mount point | `string` | `"/mnt/efs"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

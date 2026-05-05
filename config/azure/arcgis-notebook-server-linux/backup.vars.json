@@ -1,6 +1,6 @@
 {
   "blob_container": "notebook-server-linux-backups",
   "deployment_id": "notebook-server-linux",
-  "run_as_user": "arcgis",
-  "site_id": "arcgis"
+  "enterprise_id": "arcgis",
+  "run_as_user": "arcgis"
 }

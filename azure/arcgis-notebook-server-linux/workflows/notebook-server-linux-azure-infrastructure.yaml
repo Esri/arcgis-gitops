@@ -66,11 +66,11 @@ jobs:
         terraform_version: "1.10.0"
     - name: Terraform Init
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                         -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                        -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/infrastructure.tfstate"
+                        -backend-config="key=$ENTERPRISE_ID/azure/$DEPLOYMENT_ID/infrastructure.tfstate"
     - name: Terraform Apply
       if: github.event.inputs.terraform_command != 'plan'
       run: |

@@ -12,20 +12,20 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "aws_ssm_parameter" "alb_deployment_fqdn" {
-  name = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn"
+data "aws_ssm_parameter" "alb_ingress_fqdn" {
+  name = "/arcgis/${var.enterprise_id}/${var.ingress_id}/ingress-fqdn"
 }
 
 data "aws_ssm_parameter" "alb_security_group_id" {
-  name = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id"
+  name = "/arcgis/${var.enterprise_id}/${var.ingress_id}/alb/security-group-id"
 }
 
 data "aws_ssm_parameter" "alb_arn" {
-  name = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn"
+  name = "/arcgis/${var.enterprise_id}/${var.ingress_id}/alb/arn"
 }
 
 data "aws_ssm_parameter" "notebook_server_web_context" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context"
 }
 
 data "aws_lb" "alb" {
@@ -36,7 +36,7 @@ locals {
   alb_security_group_id       = nonsensitive(data.aws_ssm_parameter.alb_security_group_id.value)
   alb_arn                     = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
   alb_dns_name                = nonsensitive(data.aws_lb.alb.dns_name)
-  deployment_fqdn             = nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)
+  ingress_fqdn             = nonsensitive(data.aws_ssm_parameter.alb_ingress_fqdn.value)
   notebook_server_web_context = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
 }
 
@@ -46,7 +46,7 @@ locals {
 module "notebook_server_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = substr(local.notebook_server_web_context, 0, 6)
-  vpc_id            = module.site_core_info.vpc_id
+  vpc_id            = module.enterprise_core_info.vpc_id
   alb_arn           = local.alb_arn
   protocol          = "HTTPS"
   alb_port          = 443

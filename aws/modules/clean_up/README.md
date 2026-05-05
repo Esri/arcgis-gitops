@@ -4,11 +4,11 @@
 Terraform module deletes files in specific directories on EC2 instances in specific roles.
 Optionally, if the uninstall_chef_client variable is set to true, the module also uninstalls Chef client on the instances.
 
-The module uses ssm_clean_up.py script to run {var.site-id}-clean-up SSM command on the deployment's EC2 instances in specific roles.
+The module uses ssm_clean_up.py script to run {var.enterprise_id}-clean-up SSM command on the deployment's EC2 instances in specific roles.
 
 ## Requirements
 
-The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
 
 On the machine where Terraform is executed:
 
@@ -21,7 +21,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| aws | ~> 6.0 |
+| aws | ~> 6.10 |
 | null | n/a |
 
 ## Resources
@@ -29,15 +29,16 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [null_resource.clean_up](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
+| [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.output_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | directories | List of directories to clean up | `list(string)` | `[]` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
-| site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 | uninstall_chef_client | Set to true to uninstall Chef/Cinc Client | `bool` | `true` | no |
 <!-- END_TF_DOCS -->

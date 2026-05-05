@@ -17,7 +17,7 @@
  *  Cinc client and Chef Cookbooks for ArcGIS must be installed on the target Azure VMs.
  */
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -31,18 +31,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "azurerm_resources" "site_vault" {
-  resource_group_name = "${var.site_id}-infrastructure-core"
+data "azurerm_resources" "enterprise_vault" {
+  resource_group_name = "${var.enterprise_id}-infrastructure-core"
 
   required_tags = {
-    ArcGISSiteId = var.site_id
-    ArcGISRole   = "site-vault"
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISRole         = "enterprise-vault"
   }
 }
 
-data "azurerm_key_vault" "site_vault" {
-  name                = data.azurerm_resources.site_vault.resources[0].name
-  resource_group_name = data.azurerm_resources.site_vault.resource_group_name
+data "azurerm_key_vault" "enterprise_vault" {
+  name                = data.azurerm_resources.enterprise_vault.resources[0].name
+  resource_group_name = data.azurerm_resources.enterprise_vault.resource_group_name
 }
 
 resource "null_resource" "run_chef" {
@@ -55,6 +55,6 @@ resource "null_resource" "run_chef" {
       JSON_ATTRIBUTES = nonsensitive(base64encode(var.json_attributes))
     }
 
-    command = "python -m az_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -j ${var.json_attributes_secret} -v ${data.azurerm_key_vault.site_vault.name} -e ${var.execution_timeout}"
+    command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -j ${var.json_attributes_secret} -v ${data.azurerm_key_vault.enterprise_vault.name} -e ${var.execution_timeout}"
   }
 }

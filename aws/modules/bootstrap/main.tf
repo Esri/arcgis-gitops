@@ -3,11 +3,11 @@
  * 
  * Terraform module installs or upgrades Chef client and Chef Cookbooks for ArcGIS on EC2 instances.
  *
- * The module uses ssm_bootstrap.py script to run {var.site-id}-bootstrap SSM command on the deployment's EC2 instances in specific roles.
+ * The module uses ssm_bootstrap.py script to run {var.enterprise_id}-bootstrap SSM command on the deployment's EC2 instances in specific roles.
  *
  * ## Requirements
  *
- * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+ * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
  *
  * On the machine where Terraform is executed:
  *
@@ -43,11 +43,11 @@ terraform {
 data "aws_region" "current" {}
 
 data "aws_ssm_parameter" "chef_client_url" {
-  name  = "/arcgis/${var.site_id}/chef-client-url/${var.os}"
+  name  = "/arcgis/${var.enterprise_id}/chef-client-url/${var.os}"
 }
 
 data "aws_ssm_parameter" "chef_cookbooks_url" {
-  name  = "/arcgis/${var.site_id}/cookbooks-url"
+  name  = "/arcgis/${var.enterprise_id}/cookbooks-url"
 }
 
 locals {
@@ -65,6 +65,6 @@ resource "null_resource" "bootstrap" {
       AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
-    command = "python -m ssm_bootstrap -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -c ${local.chef_client_url} -k ${local.chef_cookbooks_url} -b ${var.output_s3_bucket}"
+    command = "python -m ssm_bootstrap -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -c ${local.chef_client_url} -k ${local.chef_cookbooks_url} -b ${var.output_s3_bucket}"
   }
 }

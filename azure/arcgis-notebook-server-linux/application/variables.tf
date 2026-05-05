@@ -74,13 +74,24 @@ variable "config_store_type" {
 }
 
 variable "deployment_id" {
-  description = "Deployment Id"
+  description = "Deployment ID"
   type        = string
   default     = "notebook-server-linux"
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
@@ -129,7 +140,7 @@ variable "notebook_server_authorization_options" {
 }
 
 variable "portal_org_id" {
-  description = "ArcGIS Enterprise organization Id"
+  description = "ArcGIS Enterprise organization ID"
   type        = string
   default     = null
 }
@@ -160,15 +171,4 @@ variable "run_as_user" {
   description = "User name for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store."
   type        = string
   default     = "arcgis"
-}
-
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
 }

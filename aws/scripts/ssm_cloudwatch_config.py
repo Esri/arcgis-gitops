@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ if __name__ == '__main__':
         prog='ssm_cloudwatch_config.py',
         description='Runs AmazonCloudWatch-ManageAgent SSM command on all EC2 instances in a deployment.')
 
-    parser.add_argument('-s', dest='site_id', help='ArcGIS Enterprise site Id')
-    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment ID')
     parser.add_argument('-p', dest='parameter', help='SSM parameter name with CloudWatch agent configuration JSON')
     parser.add_argument('-b', dest='s3_bucket', help='Output S3 bucket')
 
@@ -42,10 +42,10 @@ if __name__ == '__main__':
     s3_client = boto3.client('s3')
 
     ec2_filters = [{
-        'Name': 'tag:ArcGISSiteId',
-        'Values': [args.site_id]
+        'Name': 'tag:ArcGISEnterpriseID',
+        'Values': [args.enterprise_id]
     }, {
-        'Name': 'tag:ArcGISDeploymentId',
+        'Name': 'tag:ArcGISDeploymentID',
         'Values': [args.deployment_id]
     }, {
         'Name': 'instance-state-name',
@@ -53,10 +53,10 @@ if __name__ == '__main__':
     }]
 
     ssm_filters = [{
-        'Key': 'tag:ArcGISSiteId',
-        'Values': [args.site_id]
+        'Key': 'tag:ArcGISEnterpriseID',
+        'Values': [args.enterprise_id]
     }, {
-        'Key': 'tag:ArcGISDeploymentId',
+        'Key': 'tag:ArcGISDeploymentID',
         'Values': [args.deployment_id]
     }]
 

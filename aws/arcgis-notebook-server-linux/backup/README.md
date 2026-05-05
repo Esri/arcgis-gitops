@@ -1,6 +1,6 @@
 # Backup Script for ArcGIS Notebook Server on Linux
 
-The `exportSite.sh` script automates the process of backing up an ArcGIS Notebook Server deployment and securely storing the backup in the ArcGIS Enterprise site's backup S3 bucket (see [Back up and restore ArcGIS Notebook Server](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm)).
+The `exportSite.sh` script automates the process of backing up an ArcGIS Notebook Server deployment and securely storing the backup in the ArcGIS Enterprise backup S3 bucket (see [Back up and restore ArcGIS Notebook Server](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm)).
 
 The script is designed to be executed by ssm_run_shell_script python module on the primary EC2 instance of the ArcGIS Notebook Server deployment. It uses AWS CLI commands to interact with Amazon S3 for backup storage and AWS Systems Manager (SSM) Parameter Store to retrieve configuration details.
 
@@ -26,8 +26,8 @@ On the machine where the script is executed:
 The script reads the following SSM parameters:
 
 * `<json_attributes_parameter>`: SSM parameter containing a JSON object with the script input parameters
-* `/arcgis/${site_id}/s3/backup`: S3 bucket for the backup
-* `/arcgis/${site_id}/s3/region`: The S3 bucket region
+* `/arcgis/${enterprise_id}/s3/backup`: S3 bucket for the backup
+* `/arcgis/${enterprise_id}/s3/region`: The S3 bucket region
 
 <!-- BEGIN_TF_DOCS -->
 

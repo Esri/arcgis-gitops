@@ -14,6 +14,6 @@
  
 output "arcgis_server_url" {
   description = "ArcGIS Server URL"
-  value       = "https://${local.deployment_fqdn}/${local.server_web_context}"
+  value       = "https://${local.ingress_fqdn}/${local.server_web_context}"
 }
 

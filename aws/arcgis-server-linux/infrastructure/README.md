@@ -7,7 +7,7 @@ The Terraform module provisions AWS resources for ArcGIS Server deployment on th
 
 The module launches one primary SSM-managed EC2 instance and node_count additional instances
 in the private VPC subnets or subnets specified by the subnet_ids input variable.
-The instances are launched from images retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters.
+The instances are launched from images retrieved from '/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}' SSM parameters.
 The images must be created by the Packer Template for ArcGIS Server on Linux AMI.
 
 For the primary EC2 instance the module creates an "A" record in the VPC Route 53 private hosted zone
@@ -32,9 +32,9 @@ The deployment's Monitoring Subsystem consists of:
 * A CloudWatch dashboard that displays the CloudWatch metrics and logs of the deployment.
 
 The module also creates an AWS backup plan for the deployment that backs up all the EC2
-instances and EFS file system in the site's backup vault.
+instances and EFS file system in the enterprise's backup vault.
 
-All the created AWS resources are tagged with ArcGISSiteId and ArcGISDeploymentId tags.
+All the created AWS resources are tagged with ArcGISEnterpriseID and ArcGISDeploymentID tags.
 
 ## Requirements
 
@@ -54,33 +54,33 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn | ALB ARN |
-| /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id | ALB security group ID |
-| /arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
-| /arcgis/${var.site_id}/${var.portal_deployment_id}/deployment-url | Deployment URL of Portal for ArcGIS (if portal_deployment_id is set) |
-| /arcgis/${var.site_id}/backup/vault-name | Name of the AWS Backup vault |
-| /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
-| /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
-| /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
-| /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
-| /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
-| /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
-| /arcgis/${var.site_id}/vpc/id | VPC ID |
-| /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+| /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/arn | ALB ARN |
+| /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/security-group-id | ALB security group ID |
+| /arcgis/${var.enterprise_id}/${var.ingress_id}/ingress-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
+| /arcgis/${var.enterprise_id}/${var.portal_deployment_id}/deployment-url | Deployment URL of Portal for ArcGIS (if portal_deployment_id is set) |
+| /arcgis/${var.enterprise_id}/backup/vault-name | Name of the AWS Backup vault |
+| /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+| /arcgis/${var.enterprise_id}/iam/instance-profile-name | IAM instance profile name |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
+| /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
+| /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+| /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
+| /arcgis/${var.enterprise_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+| /arcgis/${var.enterprise_id}/vpc/id | VPC ID |
+| /arcgis/${var.enterprise_id}/vpc/subnets | IDs of VPC subnets |
 
 The module writes the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
-| /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
-| /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
-| /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
-| /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
-| /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
 
 ## Providers
 
@@ -94,10 +94,10 @@ The module writes the following SSM parameters:
 |------|--------|---------|
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
+| enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | nfs_mount | ../../modules/ansible_playbook | n/a |
 | security_group | ../../modules/security_group | n/a |
 | server_https_alb_target | ../../modules/alb_target_group | n/a |
-| site_core_info | ../../modules/site_core_info | n/a |
 
 ## Resources
 
@@ -116,15 +116,15 @@ The module writes the following SSM parameters:
 | [aws_s3_bucket_ownership_controls.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_ownership_controls) | resource |
 | [aws_s3_bucket_versioning.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_bucket_versioning) | resource |
 | [aws_ssm_parameter.backup_plan_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
-| [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.deployment_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.object_store_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_lb.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/lb) | data source |
 | [aws_ssm_parameter.alb_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
-| [aws_ssm_parameter.alb_deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.alb_ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.alb_security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.backup_role_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.backup_vault_name](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -137,19 +137,19 @@ The module writes the following SSM parameters:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| aws_region | AWS region Id | `string` | n/a | yes |
+| aws_region | AWS region ID | `string` | n/a | yes |
 | backup_retention | Number of days to retain backups | `number` | `14` | no |
 | backup_schedule | Backup schedule in cron format | `string` | `"cron(0 0 * * ? *)"` | no |
-| deployment_id | ArcGIS Server deployment Id | `string` | `"server-linux"` | no |
-| ingress_deployment_id | Ingress deployment Id | `string` | `"enterprise-ingress"` | no |
+| deployment_id | ArcGIS Server deployment ID | `string` | `"server-linux"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
+| ingress_id | Ingress ID | `string` | `"enterprise-ingress"` | no |
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | node_count | Number of node EC2 instances | `number` | `1` | no |
-| portal_deployment_id | Portal for ArcGIS deployment Id | `string` | `null` | no |
+| portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `null` | no |
 | root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
 | root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |
 | use_webadaptor | If true, port 443 is used as the instance HTTPS port, otherwise 6443 is used. | `bool` | `false` | no |
 
@@ -158,5 +158,5 @@ The module writes the following SSM parameters:
 | Name | Description |
 |------|-------------|
 | deployment_url | ArcGIS Server URL |
-| security_group_id | EC2 security group Id |
+| security_group_id | EC2 security group ID |
 <!-- END_TF_DOCS -->

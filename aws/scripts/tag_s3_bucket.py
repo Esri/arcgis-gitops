@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 # The script adds tags and configures versioning for an S3 bucket that is required
 # to support the backup and restore workflows that leverage the AWS Backup service.
-# The script adds ArcGISSiteId, ArcGISDeploymentId, and ArcGISRole tags to the
+# The script adds ArcGISEnterpriseID, ArcGISDeploymentID, and ArcGISRole tags to the
 # specified S3 bucket. If the tags already exist, they are updated with the new values.
 # The script also enables versioning on the bucket if it is not already enabled.
 
@@ -27,8 +27,8 @@ if __name__ == '__main__':
         description='Adds tags and configures versioning for an S3 bucket')
 
     parser.add_argument('-b', dest='bucket_name', help='S3 bucket name')
-    parser.add_argument('-s', dest='site_id', help='Site Id')
-    parser.add_argument('-d', dest='deployment_id', help='Deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment ID')
     parser.add_argument('-m', dest='role', help='S3 bucket role')
 
     args = parser.parse_args()
@@ -38,8 +38,8 @@ if __name__ == '__main__':
     s3 = boto3.resource('s3')
     bucket = s3.Bucket(args.bucket_name)
     tags = {
-        'ArcGISSiteId': args.site_id,
-        'ArcGISDeploymentId': args.deployment_id,
+        'ArcGISEnterpriseID': args.enterprise_id,
+        'ArcGISDeploymentID': args.deployment_id,
         'ArcGISRole': args.role
     }
 

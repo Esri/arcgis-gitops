@@ -1,3 +1,3 @@
 # Certificates
 
-Place SSL certificates for the ArcGIS Enterprise site domain names in this directory.
+Place SSL certificates for the ArcGIS Enterprise domain names in this directory.

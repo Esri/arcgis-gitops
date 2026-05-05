@@ -10,11 +10,11 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment | 
- * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment | 
+ * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
  */
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,18 +36,18 @@ data "aws_region" "current" {}
 # Retrieve the S3 bucket and DynamoDB table names for the configstore namespace from 
 # ArcGISConfigStores DynamoDB table
 data "aws_ssm_parameter" "backup_role_arn" {
-  name = "/arcgis/${var.site_id}/iam/backup-role-arn"
+  name = "/arcgis/${var.enterprise_id}/iam/backup-role-arn"
 }
 
 data "aws_ssm_parameter" "backup_plan_id" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id"
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id"
 }
 
 data "aws_dynamodb_table_item" "config_store" {
   table_name = "ArcGISConfigStores"
   key = jsonencode({
     Namespace = {
-      S = "${var.site_id}-${var.deployment_id}"
+      S = "${var.enterprise_id}-${var.deployment_id}"
     }
   })
 }
@@ -62,13 +62,13 @@ data "aws_dynamodb_table" "config_store_table" {
 
 locals {
   tags = var.backup_s3_bucket ? {
-    "ArcGISSiteId" : var.site_id,
-    "ArcGISDeploymentId" : var.deployment_id,
+    "ArcGISEnterpriseID" : var.enterprise_id,
+    "ArcGISDeploymentID" : var.deployment_id,
     "ArcGISRole" : "config-store"
   } : {}
 }
 
-# Tag the config store S3 bucket with ArcGIS site ID, deployment ID, and role.
+# Tag the config store S3 bucket with ArcGIS Enterprise ID, deployment ID, and role.
 # Enable S3 bucket versioning required by AWS Backup.
 resource "null_resource" "tag_s3_bucket" {
   count = var.backup_s3_bucket ? 1 : 0
@@ -82,7 +82,7 @@ resource "null_resource" "tag_s3_bucket" {
       AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
-    command = "python -m tag_s3_bucket -b ${data.aws_s3_bucket.config_store_bucket.bucket} -s ${var.site_id} -d ${var.deployment_id} -m config-store"
+    command = "python -m tag_s3_bucket -b ${data.aws_s3_bucket.config_store_bucket.bucket} -s ${var.enterprise_id} -d ${var.deployment_id} -m config-store"
   }
 }
 
@@ -90,19 +90,19 @@ resource "aws_dynamodb_tag" "config_store_table" {
   for_each = local.tags
 
   resource_arn = data.aws_dynamodb_table.config_store_table.arn
-  key         = each.key
-  value       = each.value
+  key          = each.key
+  value        = each.value
 }
 
 # Retrieve all DynamoDB tables and S3 buckets tagged as the deployment's config store.
 data "aws_resourcegroupstaggingapi_resources" "dynamodb_tables_by_tag" {
   tag_filter {
-    key    = "ArcGISSiteId"
-    values = [var.site_id]
+    key    = "ArcGISEnterpriseID"
+    values = [var.enterprise_id]
   }
 
   tag_filter {
-    key    = "ArcGISDeploymentId"
+    key    = "ArcGISDeploymentID"
     values = [var.deployment_id]
   }
 
@@ -116,7 +116,7 @@ data "aws_resourcegroupstaggingapi_resources" "dynamodb_tables_by_tag" {
     "s3:bucket"
   ]
 
-  depends_on = [ 
+  depends_on = [
     null_resource.tag_s3_bucket,
     aws_dynamodb_tag.config_store_table
   ]
@@ -126,7 +126,7 @@ data "aws_resourcegroupstaggingapi_resources" "dynamodb_tables_by_tag" {
 # the backup plan resources selection.
 resource "aws_backup_selection" "application" {
   iam_role_arn = nonsensitive(data.aws_ssm_parameter.backup_role_arn.value)
-  name         = "${var.site_id}-${var.deployment_id}-application"
+  name         = "${var.enterprise_id}-${var.deployment_id}-application"
   plan_id      = nonsensitive(data.aws_ssm_parameter.backup_plan_id.value)
 
   resources = data.aws_resourcegroupstaggingapi_resources.dynamodb_tables_by_tag.resource_tag_mapping_list[*].resource_arn

@@ -27,8 +27,8 @@ if __name__ == "__main__":
         description="The script runs a shell script on Azure VMs of a deployment.",
     )
 
-    parser.add_argument('-s', dest='site_id', help='Site Id')
-    parser.add_argument('-d', dest='deployment_id', help='Deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment ID')
     parser.add_argument('-m', dest='machine_roles', help='Machine roles')
     parser.add_argument('-e', dest='execution_timeout', type=int, default=3600, help='Execution timeout (seconds)')
     parser.add_argument("-v", dest="vault_name", help="Azure Key Vault name")
@@ -55,7 +55,7 @@ if __name__ == "__main__":
         parameters.append(RunCommandInputParameter(name=key, value=value))
 
     ret = az_utils.run_command(
-        args.site_id,
+        args.enterprise_id,
         args.deployment_id,
         args.machine_roles,
         "run_shell_script",

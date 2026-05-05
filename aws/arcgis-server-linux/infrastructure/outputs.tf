@@ -13,11 +13,11 @@
 # limitations under the License.
 
 output "security_group_id" {
-  description = "EC2 security group Id"
+  description = "EC2 security group ID"
   value       = module.security_group.id
 }
 
 output "deployment_url" {
   description = "ArcGIS Server URL"
-  value       = "https://${local.deployment_fqdn}/${local.server_web_context}"
+  value       = "https://${local.ingress_fqdn}/${local.server_web_context}"
 }

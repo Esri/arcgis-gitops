@@ -37,7 +37,7 @@ No modules.
 | <a name="input_path_patterns"></a> [path\_patterns](#input\_path\_patterns) | Listener rule path patterns | `list(string)` | <pre>[<br>  "/portal",<br>  "/portal/*",<br>  "/server",<br>  "/server/*"<br>]</pre> | no |
 | <a name="input_protocol"></a> [protocol](#input\_protocol) | Target group protocol | `string` | `"HTTP"` | no |
 | <a name="input_target_instances"></a> [target\_instances](#input\_target\_instances) | List of target EC2 instance Ids | `list(string)` | n/a | yes |
-| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC Id | `string` | n/a | yes |
+| <a name="input_vpc_id"></a> [vpc\_id](#input\_vpc\_id) | VPC ID | `string` | n/a | yes |
 
 ## Outputs
 
@@ -79,7 +79,7 @@ The target group is configured to forward requests for specific path patterns.
 | priority | Target group priority | `number` | `100` | no |
 | protocol | Target group protocol | `string` | `"HTTP"` | no |
 | target_instances | List of target EC2 instance Ids | `list(string)` | n/a | yes |
-| vpc_id | VPC Id | `string` | n/a | yes |
+| vpc_id | VPC ID | `string` | n/a | yes |
 | web_context | Web context for the service | `string` | `"arcgis"` | no |
 
 ## Outputs

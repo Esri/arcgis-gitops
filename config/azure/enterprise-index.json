@@ -1,0 +1,7 @@
+{
+  "provider": "azure",
+  "core": "arcgis-enterprise-core",
+  "deployments": [
+    "arcgis-enterprise-base-windows"
+  ]
+}

@@ -9,7 +9,7 @@ The module uses ssm_cloudwatch_config.py script to run AmazonCloudWatch-ManageAg
 
 ## Requirements
 
-The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
 
 On the machine where Terraform is executed:
 
@@ -38,9 +38,9 @@ On the machine where Terraform is executed:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| deployment_id | ArcGIS Enteprise deployment Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | platform | Platform (windows\|linux) | `string` | `"windows"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 
 ## Outputs
 

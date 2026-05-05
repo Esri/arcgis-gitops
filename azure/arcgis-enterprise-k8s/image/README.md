@@ -15,5 +15,5 @@ Builds container image for Enterprise Admin CLI and pushes it to private ACR rep
 
 ```bash
 chmod +x ./build-admin-cli-image.sh
-./build-admin-cli-image.sh enterprise-admin-cli <admin CLI version> <build context path> <site ID>
+./build-admin-cli-image.sh enterprise-admin-cli <admin CLI version> <build context path> <enterprise ID>
 ```

@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -35,8 +35,8 @@ if __name__ == '__main__':
         prog='ssm_run_shell_script.py',
         description='Runs  AWS-RunShellScript SSM command on EC2 instances of a deployment.')
 
-    parser.add_argument('-s', dest='site_id', required=True, help='Site Id')
-    parser.add_argument('-d', dest='deployment_id', required=True, help='Deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', required=True, help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', required=True, help='ArcGIS Enterprise deployment ID')
     parser.add_argument('-m', dest='machine_roles', required=True, help='Machine roles')
     parser.add_argument('-j', dest='json_attributes_parameter', default=None, help='SSM parameter name of the script input parameters')
     parser.add_argument('-b', dest='s3_bucket', required=True, help='Output S3 bucket')
@@ -59,10 +59,10 @@ if __name__ == '__main__':
     s3_client = boto3.client('s3')
 
     ec2_filters = [{
-        'Name': 'tag:ArcGISSiteId',
-        'Values': [args.site_id]
+        'Name': 'tag:ArcGISEnterpriseID',
+        'Values': [args.enterprise_id]
     }, {
-        'Name': 'tag:ArcGISDeploymentId',
+        'Name': 'tag:ArcGISDeploymentID',
         'Values': [args.deployment_id]
     }, {
         'Name': 'tag:ArcGISMachineRole',
@@ -73,10 +73,10 @@ if __name__ == '__main__':
     }]
 
     ssm_filters = [{
-        'Key': 'tag:ArcGISSiteId',
-        'Values': [args.site_id]
+        'Key': 'tag:ArcGISEnterpriseID',
+        'Values': [args.enterprise_id]
     }, {
-        'Key': 'tag:ArcGISDeploymentId',
+        'Key': 'tag:ArcGISDeploymentID',
         'Values': [args.deployment_id]
     }, {
         'Key': 'tag:ArcGISMachineRole',
@@ -99,8 +99,8 @@ if __name__ == '__main__':
             Type='SecureString',
             Tags=[
                 {
-                    'Key': 'ArcGISSiteId',
-                    'Value': args.site_id
+                    'Key': 'ArcGISEnterpriseID',
+                    'Value': args.enterprise_id
                 },
             ],
             Tier='Intelligent-Tiering'

@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@ if __name__ == '__main__':
         prog='snapshot_deployment.py',
         description='Creates AMIs from deployment EC2 instances and stores the AMI IDs in SSM parameters.')
 
-    parser.add_argument('-s', dest='site_id', help='ArcGIS Enterprise site Id')
-    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment ID')
 
     args = parser.parse_args()
 
@@ -32,10 +32,10 @@ if __name__ == '__main__':
     ssm_client = boto3.client('ssm')
 
     ec2_filters = [{
-        'Name': 'tag:ArcGISSiteId',
-        'Values': [args.site_id]
+        'Name': 'tag:ArcGISEnterpriseID',
+        'Values': [args.enterprise_id]
     }, {
-        'Name': 'tag:ArcGISDeploymentId',
+        'Name': 'tag:ArcGISDeploymentID',
         'Values': [args.deployment_id]
     }, {
         'Name': 'instance-state-name',
@@ -67,15 +67,15 @@ if __name__ == '__main__':
                 continue
 
             if machine_role not in amis_by_role:
-                ami_name  = '{site}-{deployment}-{version}-{role}-{timestamp}'.format(
-                    site=args.site_id,
+                ami_name  = '{enterprise}-{deployment}-{version}-{role}-{timestamp}'.format(
+                    enterprise=args.enterprise_id,
                     deployment=args.deployment_id,
                     version=arcgis_version,
                     role=machine_role,
                     timestamp=timestamp)
                 
-                ami_description = 'AMI created from {site}/{deployment}/{role} EC2 instance'.format(
-                    site=args.site_id,
+                ami_description = 'AMI created from {enterprise}/{deployment}/{role} EC2 instance'.format(
+                    enterprise=args.enterprise_id,
                     deployment=args.deployment_id,
                     role=machine_role)
 
@@ -90,10 +90,10 @@ if __name__ == '__main__':
                             'Key': 'Name',
                             'Value': ami_name
                         }, {
-                            'Key': 'ArcGISSiteId',
-                            'Value': args.site_id
+                            'Key': 'ArcGISEnterpriseID',
+                            'Value': args.enterprise_id
                         }, {
-                            'Key': 'ArcGISDeploymentId',
+                            'Key': 'ArcGISDeploymentID',
                             'Value': args.deployment_id
                         }, {
                             'Key': 'ArcGISMachineRole',
@@ -108,7 +108,7 @@ if __name__ == '__main__':
                     }]
                 )['ImageId']
 
-                print("AMI Id '{ami_id}' created from instance '{instance}'.".format(
+                print("AMI ID '{ami_id}' created from instance '{instance}'.".format(
                     ami_id=amis_by_role[machine_role], instance=instance['InstanceId']))
     
     print("Waiting for the AMIs to become available...")
@@ -118,13 +118,13 @@ if __name__ == '__main__':
 
     # Store AMI Ids in SSM parameters
     for role, ami_id in amis_by_role.items():
-        ssm_parameter_name = '/arcgis/{site}/images/{deployment}/{role}'.format(
-                site=args.site_id,
+        ssm_parameter_name = '/arcgis/{enterprise}/images/{deployment}/{role}'.format(
+                enterprise=args.enterprise_id,
                 deployment=args.deployment_id,
                 role=role)
         
-        ssm_parameter_description = 'AMI created from {site}/{deployment}/{role} EC2 instance'.format(
-                site=args.site_id,
+        ssm_parameter_description = 'AMI created from {enterprise}/{deployment}/{role} EC2 instance'.format(
+                enterprise=args.enterprise_id,
                 deployment=args.deployment_id,
                 role=role)
         
@@ -137,6 +137,6 @@ if __name__ == '__main__':
             Tier='Intelligent-Tiering'
         )
 
-        print("AMI Id '{ami_id}' stored in '{parameter}' SSM parameter.".format(
+        print("AMI ID '{ami_id}' stored in '{parameter}' SSM parameter.".format(
             ami_id=ami_id, 
             parameter=ssm_parameter_name))

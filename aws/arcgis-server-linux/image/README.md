@@ -2,7 +2,7 @@
 
 The Packer template builds EC2 AMI for a specific ArcGIS Server Enterprise deployment.
 
-The AMI is built from a Linux OS base image specified by SSM parameter "/arcgis/${var.site_id}/images/${var.os}".
+The AMI is built from a Linux OS base image specified by SSM parameter "/arcgis/${var.enterprise_id}/images/${var.os}".
 
 > Note: If the base image does not have SSM Agent installed, it's installed using user data script.
 
@@ -22,7 +22,7 @@ If the "use_webadaptor" variable is set to true, the template will also:
 2. Install Apache Tomcat
 3. Install ArcGIS Web Adaptor with name specified by "server_web_context" variable.
 
-Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.site_id}/images/${var.deployment_id}/node" SSM parameters.
+ID of the built AMI is saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/node" SSM parameters.
 
 ## Requirements
 
@@ -42,35 +42,35 @@ The template uses the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
-| /arcgis/${var.site_id}/images/${var.os} | Source AMI ID|
-| /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
-| /arcgis/${var.site_id}/s3/region | S3 buckets region code |
-| /arcgis/${var.site_id}/s3/repository | Private repository S3 bucket |
-| /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+| /arcgis/${var.enterprise_id}/iam/instance-profile-name | IAM instance profile name |
+| /arcgis/${var.enterprise_id}/images/${var.os} | Source AMI ID|
+| /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM commands output |
+| /arcgis/${var.enterprise_id}/s3/region | S3 buckets region code |
+| /arcgis/${var.enterprise_id}/s3/repository | Private repository S3 bucket |
+| /arcgis/${var.enterprise_id}/vpc/subnets | IDs of VPC subnets |
 
 The template writes the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node AMI ID |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context name |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system identifier |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary AMI ID |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/node | Node AMI ID |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context name |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system identifier |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary AMI ID |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| aws_region | AWS region ID | `string` | `env("AWS_DEFAULT_REGION")` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `string` | `[]` | no |
 | arcgis_version | ArcGIS Server version | `string` | `"12.0"` | no |
+| aws_region | AWS region ID | `string` | `env("AWS_DEFAULT_REGION")` | no |
 | deployment_id | Deployment ID | `string` | `"server-linux"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | instance_type | EC2 instance type | `string` | `"m6i.2xlarge"` | no |
 | os | Operating system ID | `string` | `"rhel9"` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `100` | no |
 | run_as_user | User account used to run ArcGIS Server | `string` | `"arcgis"` | no |
-| site_id | ArcGIS site ID | `string` | `"arcgis"` | no |
+| server_web_context | ArcGIS Web Adaptor name | `string` | `"arcgis"` | no |
 | skip_create_ami | If true, Packer will not create the AMI | `bool` | `false` | no |
 | use_webadaptor | If true, OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor will be installed on the AMI. | `bool` | `false` | no |
-| server_web_context | ArcGIS Web Adaptor name | `string` | `"arcgis"` | no |

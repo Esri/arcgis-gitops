@@ -6,14 +6,14 @@
  * The module runs the WebGISDR utility with 'import' option on the primary VM of the deployment.
  *
  * The backup is retrieved from the "webgisdr-backups" and "content-backups" blob containers in the storage
- * account of the site specified by "backup_site_id" input variable.
+ * account of the enterprise specified by "backup_enterprise_id" input variable.
  *
  * ## Requirements
  *
  * The base ArcGIS Enterprise must be configured on the deployment by application terraform module for base ArcGIS Enterprise on Windows.
  *
  * The user assigned managed identity assigned to the VMs must have Storage Blob Data Owner role on
- * the backup site's storage account.
+ * the backup enterprise's storage account.
  * On the machine where Terraform is executed:
  * 
  * * Python 3.9 or later must be installed
@@ -21,12 +21,12 @@
  * * Path to azure/scripts directory must be added to PYTHONPATH
  * * Azure credentials must be configured using "az login" CLI command
  *
- * The deployment VMs must have access to the storage account of the backup site specified by the `backup_site_id` input variable, 
+ * The deployment VMs must have access to the storage account of the backup enterprise specified by the `backup_enterprise_id` input variable, 
  * so that WebGISDR import can retrieve backups from the `webgisdr-backups` and `content-backups` containers:
  *
- * * The deployment VMs must have network-level access to the storage account endpoint of the backup site.
+ * * The deployment VMs must have network-level access to the storage account endpoint of the backup enterprise.
  * * The user-assigned managed identity attached to the deployment virtual machines must have read access 
- *   to the storage account of the backup site.
+ *   to the storage account of the backup enterprise.
  *
  * ## Key Vault Secrets
  *
@@ -34,17 +34,17 @@
  *
  * | Key Vault secret name | Description |
  * |-----------------------|-------------|
- * | storage-account-key | Site's storage account key |
- * | storage-account-name | Site's storage account name |
- * | subnets | VNet subnets IDs |
+ * | storage-account-key   | Enterprise's storage account key |
+ * | storage-account-name  | Enterprise's storage account name |
+ * | subnets               | VNet subnets IDs |
  * | vm-identity-client-id | Client ID of the user-assigned VM identity |
- * | vnet-id | VNet ID |
+ * | vnet-id               | VNet ID |
  *
  * > The storage-account-name, storage-account-key, subnets, and vnet-id
- *   secrets are retrieved by backup_site_core_info module.
+ *   secrets are retrieved by backup_enterprise_core_info module.
  */
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -80,33 +80,33 @@ provider "azurerm" {
   }
 }
 
-module "backup_site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.backup_site_id
+module "backup_enterprise_core_info" {
+  source  = "../../modules/enterprise_core_info"
+  enterprise_id = var.backup_enterprise_id
 }
 
-module "target_site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.site_id
+module "target_enterprise_core_info" {
+  source  = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 data "azurerm_key_vault_secret" "vm_identity_client_id" {
   name         = "vm-identity-client-id"
-  key_vault_id = module.target_site_core_info.vault_id
+  key_vault_id = module.target_enterprise_core_info.vault_id
 }
 
 locals {
-  shared_location = "\\\\\\\\primary.${var.deployment_id}.${var.site_id}.internal\\\\arcgisbackup\\\\webgisdr"
+  shared_location = "\\\\\\\\primary.${var.deployment_id}.${var.enterprise_id}.internal\\\\arcgisbackup\\\\webgisdr"
 }
 
 # Run webgisdr utility with import option on the primary VM.
-# Note: to support cross-site restore, the backup uses accessKey authentication
+# Note: to support cross-enterprise restore, the backup uses accessKey authentication
 # for storage account. The user assigned managed identity assigned to the VM
-# may not have access to the storage account of the backup site.
+# may not have access to the storage account of the backup enterprise.
 module "arcgis_enterprise_webgisdr_import" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-webgisdr-import"
-  site_id                = var.site_id
+  enterprise_id                = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary"]
   execution_timeout      = var.execution_timeout
@@ -126,16 +126,16 @@ module "arcgis_enterprise_webgisdr_import" {
           SHARED_LOCATION                     = local.shared_location
           INCLUDE_SCENE_TILE_CACHES           = false
           BACKUP_STORE_PROVIDER               = "AzureBlob"
-          AZURE_BLOB_ACCOUNT_NAME             = module.backup_site_core_info.storage_account_name
-          # AZURE_BLOB_ACCOUNT_KEY              = module.backup_site_core_info.storage_account_key
+          AZURE_BLOB_ACCOUNT_NAME             = module.backup_enterprise_core_info.storage_account_name
+          # AZURE_BLOB_ACCOUNT_KEY              = module.backup_enterprise_core_info.storage_account_key
           AZURE_BLOB_ACCOUNT_ENDPOINT_SUFFIX  = "core.windows.net"
           AZURE_BLOB_CONTAINER_NAME           = "webgisdr-backups"
           # AZURE_BLOB_CREDENTIALTYPE           = "accessKey"
           # AZURE_BLOB_ACCOUNT_KEY_ENCRYPTED    = false
           AZURE_BLOB_CREDENTIALTYPE           = "userAssignedIdentity"
           AZURE_BLOB_USER_MI_CLIENT_ID        = data.azurerm_key_vault_secret.vm_identity_client_id.value
-          BACKUP_BLOB_ACCOUNT_NAME            = module.backup_site_core_info.storage_account_name
-          # BACKUP_BLOB_ACCOUNT_KEY             = module.backup_site_core_info.storage_account_key
+          BACKUP_BLOB_ACCOUNT_NAME            = module.backup_enterprise_core_info.storage_account_name
+          # BACKUP_BLOB_ACCOUNT_KEY             = module.backup_enterprise_core_info.storage_account_key
           BACKUP_BLOB_ACCOUNT_ENDPOINT_SUFFIX = "core.windows.net"
           BACKUP_BLOB_CONTAINER_NAME          = "content-backups"
           # BACKUP_BLOB_CREDENTIALTYPE          = "accessKey"

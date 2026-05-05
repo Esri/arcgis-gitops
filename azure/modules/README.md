@@ -10,4 +10,4 @@ A Terraform module can call other modules to include their resources into the co
 * [loopback_alias](loopback_alias/README.md) - adds the specified hostname to BackConnectionHostNames registry key on the deployment VMs
 * [lv_extend](lv_extend/README.md) - extends logical volumes on Azure VMs in a deployment
 * [run_chef](run_chef/README.md) - runs Cinc Client in local mode on the deployment VMs
-* [site_core_info](site_core_info/README.md) - retrieves names and Ids of core Azure resources from the site Key Vault
+* [enterprise_core_info](enterprise_core_info/README.md) - retrieves names and Ids of core Azure resources from the enterprise Key Vault

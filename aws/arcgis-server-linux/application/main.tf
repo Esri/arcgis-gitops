@@ -49,18 +49,18 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
- * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified) | 
- * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
- * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
- * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
- * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
- * | /arcgis/${var.site_id}/vpc/id | VPC ID |
- * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified) | 
+ * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context | 
+ * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
+ * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
+ * | /arcgis/${var.enterprise_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+ * | /arcgis/${var.enterprise_id}/vpc/id | VPC ID |
+ * | /arcgis/${var.enterprise_id}/vpc/subnets | IDs of VPC subnets |
  */
 
 # Copyright 2024-2026 Esri
@@ -98,8 +98,8 @@ provider "aws" {
   default_tags {
     tags = {
       ArcGISAutomation   = "arcgis-gitops"
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 
@@ -108,32 +108,32 @@ provider "aws" {
   }
 }
 
-data "aws_ssm_parameter" "deployment_fqdn" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+data "aws_ssm_parameter" "ingress_fqdn" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
 }
 
 data "aws_ssm_parameter" "server_web_context" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context"
 }
 
 data "aws_ssm_parameter" "portal_url" {
   count = var.server_role != "" ? 1 : 0
-  name  = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
+  name  = "/arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url"
 }
 
 data "aws_ssm_parameter" "object_store" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket"
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket"
 }
 
 # Retrieve attributes of the primary EC2 instance
 data "aws_instance" "primary" {
   filter {
-    name   = "tag:ArcGISSiteId"
-    values = [var.site_id]
+    name   = "tag:ArcGISEnterpriseID"
+    values = [var.enterprise_id]
   }
 
   filter {
-    name   = "tag:ArcGISDeploymentId"
+    name   = "tag:ArcGISDeploymentID"
     values = [var.deployment_id]
   }
 
@@ -156,7 +156,7 @@ locals {
   archives_dir            = local.server_manifest.arcgis.repository.local_archives
   patches_dir             = local.server_manifest.arcgis.repository.local_patches
   mount_point             = "/mnt/efs"
-  deployment_fqdn         = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  ingress_fqdn         = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
   server_web_context      = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
   primary_hostname        = data.aws_instance.primary.private_ip
   software_dir            = "/opt/software/*"
@@ -167,7 +167,7 @@ locals {
   cloud_config = var.config_store_type == "AMAZON" ? jsonencode([
     {
       name      = "AWS"
-      namespace = "${var.site_id}-${var.deployment_id}"
+      namespace = "${var.enterprise_id}-${var.deployment_id}"
       region    = data.aws_region.current.id
       credential = {
         type = "IAM-ROLE"
@@ -181,14 +181,14 @@ locals {
           regionEndpointUrl = "https://s3.${data.aws_region.current.id}.amazonaws.com"
           rootDir           = "arcgis"
         }
-      }, {
+        }, {
         type     = "tableStore"
         name     = "Amazon Dynamo DB"
         category = "storage"
         connection = {
           regionEndpointUrl = "https://dynamodb.${data.aws_region.current.id}.amazonaws.com"
         }
-      }, {
+        }, {
         type     = "queueService"
         name     = "Amazon Queue Service"
         category = "queue"
@@ -197,26 +197,26 @@ locals {
         }
       }]
       cloudServiceTags = [{
-        ArcGISSiteId = var.site_id
-      }, {
-        ArcGISDeploymentId = var.deployment_id
-      }, {
+        ArcGISEnterpriseID = var.enterprise_id
+        }, {
+        ArcGISDeploymentID = var.deployment_id
+        }, {
         ArcGISRole = "config-store"
       }]
     }]
   ) : null
 }
 
-module "site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 # Copy ArcGIS Server setup archives to the private repository S3 bucket
 module "copy_server_files" {
   count       = var.is_upgrade ? 1 : 0
   source      = "../../modules/s3_copy_files"
-  bucket_name = module.site_core_info.s3_repository
+  bucket_name = module.enterprise_core_info.s3_repository
   index_file  = local.server_manifest_path
 }
 
@@ -225,14 +225,14 @@ module "copy_server_files" {
 module "arcgis_server_files" {
   count         = var.is_upgrade ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.s3_files"
   external_vars = {
     local_repository = local.archives_dir
     manifest         = local.server_manifest_path
-    bucket_name      = module.site_core_info.s3_repository
+    bucket_name      = module.enterprise_core_info.s3_repository
     region           = data.aws_region.current.region
   }
   depends_on = [
@@ -244,7 +244,7 @@ module "arcgis_server_files" {
 module "unregister_web_adaptors" {
   count         = var.is_upgrade && var.use_webadaptor ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["node"]
   playbook      = "arcgis.server.unregister_wa"
@@ -258,7 +258,7 @@ module "unregister_web_adaptors" {
 module "arcgis_server_upgrade" {
   count         = var.is_upgrade ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.server.install"
@@ -279,7 +279,7 @@ module "arcgis_server_upgrade" {
 module "arcgis_server_patch" {
   count         = var.is_upgrade ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.server.patch"
@@ -298,7 +298,7 @@ module "arcgis_server_patch" {
 # Configure EFS fileserver
 module "arcgis_server_fileserver" {
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary"]
   playbook      = "arcgis.server.fileserver"
@@ -317,7 +317,7 @@ module "arcgis_server_fileserver" {
 # Copy ArcGIS Server authorization file to primary and node EC2 instances
 module "authorization_file" {
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.file"
@@ -329,14 +329,14 @@ module "authorization_file" {
 
 # Copy keystore file to primary and node EC2 instances
 module "keystore_file" {
-  count         = var.keystore_file_path != null ? 1 : 0
+  count         = var.server_certificate_path != null ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.file"
   external_vars = {
-    src_file  = var.keystore_file_path
+    src_file  = var.server_certificate_path
     dest_file = local.keystore_file
   }
 }
@@ -345,7 +345,7 @@ module "keystore_file" {
 # set the site's system properties, and configure SSL certificates of the machine.
 module "arcgis_server_primary" {
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary"]
   playbook      = "arcgis.server.primary"
@@ -368,8 +368,8 @@ module "arcgis_server_primary" {
     system_properties              = var.system_properties
     services_dir_enabled           = var.services_dir_enabled
     keystore_file                  = local.keystore_file
-    keystore_password              = var.keystore_file_password
-    cert_alias                     = local.deployment_fqdn
+    keystore_password              = var.server_certificate_password
+    cert_alias                     = local.ingress_fqdn
   }
   depends_on = [
     module.authorization_file,
@@ -381,7 +381,7 @@ module "arcgis_server_primary" {
 # an existing ArcGIS Server site, and configure SSL certificates of the machines.
 module "arcgis_server_node" {
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["node"]
   playbook      = "arcgis.server.node"
@@ -394,8 +394,8 @@ module "arcgis_server_node" {
     primary_server_url    = "https://${local.primary_hostname}:6443/arcgis"
     run_as_user           = var.run_as_user
     keystore_file         = local.keystore_file
-    keystore_password     = var.keystore_file_password
-    cert_alias            = local.deployment_fqdn
+    keystore_password     = var.server_certificate_password
+    cert_alias            = local.ingress_fqdn
   }
   depends_on = [
     module.authorization_file,
@@ -411,7 +411,7 @@ module "backup" {
   arcgis_application = "server"
   arcgis_version     = var.arcgis_version
   deployment_id      = var.deployment_id
-  site_id            = var.site_id
+  enterprise_id      = var.enterprise_id
 
   depends_on = [
     module.arcgis_server_primary
@@ -422,7 +422,7 @@ module "backup" {
 module "clean" {
   count         = var.is_upgrade ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.clean"
@@ -442,7 +442,7 @@ module "clean" {
 module "arcgis_server_federation" {
   count         = var.server_role != "" ? 1 : 0
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary"]
   playbook      = "arcgis.portal.federate_server"
@@ -451,8 +451,8 @@ module "arcgis_server_federation" {
     portal_url       = nonsensitive(data.aws_ssm_parameter.portal_url[0].value)
     username         = var.portal_username
     password         = var.portal_password
-    server_url       = "https://${local.deployment_fqdn}/${local.server_web_context}"
-    server_admin_url = "https://${local.deployment_fqdn}/${local.server_web_context}"
+    server_url       = "https://${local.ingress_fqdn}/${local.server_web_context}"
+    server_admin_url = "https://${local.ingress_fqdn}/${local.server_web_context}"
     server_username  = var.admin_username
     server_password  = var.admin_password
     server_role      = var.server_role

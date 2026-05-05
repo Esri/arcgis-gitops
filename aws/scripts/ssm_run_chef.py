@@ -1,4 +1,4 @@
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,7 +16,7 @@
 # 
 # The script retrieves the Chef JSON attributes from the JSON_ATTRIBUTES environment variable
 # and puts them into SecureString SSM parameter specified by json_attributes_parameter command line argument.
-# To execute Chef Client the script runs <site id>-run-chef SSM command on EC2 instances of the deployment
+# To execute Chef Client the script runs <enterprise id>-run-chef SSM command on EC2 instances of the deployment
 # in the specified machine roles, waits for all the command invocations to complete, 
 # retrieves from S3 and prints outputs of the command invocations.
 
@@ -32,10 +32,10 @@ SEND_TIMEOUT = 600 # seconds
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
         prog='ssm_run_chef.py',
-        description='Runs <site id>-run-chef SSM command on EC2 instances of a deployment in certain roles.')
+        description='Runs <enterprise id>-run-chef SSM command on EC2 instances of a deployment in certain roles.')
 
-    parser.add_argument('-s', dest='site_id', help='Site Id')
-    parser.add_argument('-d', dest='deployment_id', help='Deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment ID')
     parser.add_argument('-m', dest='machine_roles', help='Machine roles')
     parser.add_argument('-j', dest='json_attributes_parameter', help='SSM parameter name of role attributes')
     parser.add_argument('-b', dest='s3_bucket', help='Output S3 bucket')
@@ -48,10 +48,10 @@ if __name__ == '__main__':
     s3_client = boto3.client('s3')
 
     ec2_filters = [{
-        'Name': 'tag:ArcGISSiteId',
-        'Values': [args.site_id]
+        'Name': 'tag:ArcGISEnterpriseID',
+        'Values': [args.enterprise_id]
     }, {
-        'Name': 'tag:ArcGISDeploymentId',
+        'Name': 'tag:ArcGISDeploymentID',
         'Values': [args.deployment_id]
     }, {
         'Name': 'tag:ArcGISMachineRole',
@@ -62,10 +62,10 @@ if __name__ == '__main__':
     }]
 
     ssm_filters = [{
-        'Key': 'tag:ArcGISSiteId',
-        'Values': [args.site_id]
+        'Key': 'tag:ArcGISEnterpriseID',
+        'Values': [args.enterprise_id]
     }, {
-        'Key': 'tag:ArcGISDeploymentId',
+        'Key': 'tag:ArcGISDeploymentID',
         'Values': [args.deployment_id]
     }, {
         'Key': 'tag:ArcGISMachineRole',
@@ -88,8 +88,8 @@ if __name__ == '__main__':
             Type='SecureString',
             Tags=[
                 {
-                    'Key': 'ArcGISSiteId',
-                    'Value': args.site_id
+                    'Key': 'ArcGISEnterpriseID',
+                    'Value': args.enterprise_id
                 },
             ],
             Tier='Intelligent-Tiering'
@@ -97,7 +97,7 @@ if __name__ == '__main__':
 
     command_id = ssm_client.send_command(
         Targets=ssm_filters,
-        DocumentName=args.site_id + '-run-chef',
+        DocumentName=args.enterprise_id + '-run-chef',
         TimeoutSeconds=SEND_TIMEOUT,
         Comment='Runs Chef client with a specific role JSON file.',
         Parameters={

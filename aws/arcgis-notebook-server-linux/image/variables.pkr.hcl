@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -36,13 +36,13 @@ variable "arcgis_web_adaptor_patches" {
 }
 
 variable "aws_region" {
-  description = "AWS region Id"
+  description = "AWS region ID"
   type        = string
   default     = env("AWS_DEFAULT_REGION")
 }
 
 variable "deployment_id" {
-  description = "Deployment Id"
+  description = "Deployment ID"
   type        = string
   default     = "notebook-server-linux"
 
@@ -50,6 +50,23 @@ variable "deployment_id" {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "gpu_ready" {
+  description = "If true, the AMI is built with GPU support."
+  type        = bool
+  default     = false
 }
 
 variable "instance_type" {
@@ -69,8 +86,14 @@ variable "license_level" {
   }
 }
 
+variable "notebook_server_web_context" {
+  description = "ArcGIS Web Adaptor name"
+  type        = string
+  default     = "notebooks"
+}
+
 variable "os" {
-  description = "Operating system Id (rhel9|ubuntu22|ubuntu24)"
+  description = "Operating system ID (rhel9|ubuntu22|ubuntu24)"
   type        = string
   default     = "rhel9"
 
@@ -97,31 +120,8 @@ variable "run_as_user" {
   default     = "arcgis"
 }
 
-variable "notebook_server_web_context" {
-  description = "ArcGIS Web Adaptor name"
-  type        = string
-  default     = "notebooks"
-}
-
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
-}
-
 variable "skip_create_ami" {
   description = "If true, Packer will not create the AMI. Useful for setting to true during a build test stage."
   type        = bool
   default     = false
 }
-
-variable "gpu_ready" {
-  description = "If true, the AMI is built with GPU support."
-  type        = bool
-  default     = false
-} 

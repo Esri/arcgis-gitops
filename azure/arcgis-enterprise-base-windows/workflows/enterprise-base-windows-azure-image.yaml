@@ -50,15 +50,15 @@ jobs:
         run: |
           az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
           az account set --subscription $ARM_SUBSCRIPTION_ID
-          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
           ARCGIS_VERSION=$(jq -r '.arcgis_version' $CONFIG_FILE)
           OS=$(jq -r '.os' $CONFIG_FILE)
-          VAULT_NAME=$(az keyvault list --query "[?tags.ArcGISSiteId=='$SITE_ID' && tags.ArcGISRole=='site-vault'].name" -o tsv)
+          VAULT_NAME=$(az keyvault list --query "[?tags.ArcGISEnterpriseID=='$ENTERPRISE_ID' && tags.ArcGISRole=='enterprise-vault'].name" -o tsv)
           IMAGE_GALLERY_NAME=$(az keyvault secret show --name "image-gallery-name" --vault-name "$VAULT_NAME" --query "value" -o tsv)
-          az sig image-definition create --resource-group $SITE_ID-infrastructure-core --gallery-name $IMAGE_GALLERY_NAME \
+          az sig image-definition create --resource-group $ENTERPRISE_ID-infrastructure-core --gallery-name $IMAGE_GALLERY_NAME \
             --gallery-image-definition $DEPLOYMENT_ID-$ARCGIS_VERSION-$OS \
-            --publisher $SITE_ID --offer $DEPLOYMENT_ID --sku $ARCGIS_VERSION-$OS \
+            --publisher $ENTERPRISE_ID --offer $DEPLOYMENT_ID --sku $ARCGIS_VERSION-$OS \
             --description "Base ArcGIS Enterprise $ARCGIS_VERSION images for $OS" \
             --os-type Windows --os-state Generalized --architecture x64 --hyper-v-generation V2 \
             --features SecurityType=TrustedLaunch \
@@ -71,7 +71,7 @@ jobs:
         run: |
           az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID --output none
           az account set --subscription $ARM_SUBSCRIPTION_ID
-          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
-          VAULT_NAME=$(az keyvault list --query "[?tags.ArcGISSiteId=='$SITE_ID' && tags.ArcGISRole=='site-vault'].name" -o tsv)
+          ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
+          VAULT_NAME=$(az keyvault list --query "[?tags.ArcGISEnterpriseID=='$ENTERPRISE_ID' && tags.ArcGISRole=='enterprise-vault'].name" -o tsv)
           packer init .
           packer build -var-file=$CONFIG_FILE -var "vault_name=$VAULT_NAME" .

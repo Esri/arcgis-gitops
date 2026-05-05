@@ -25,17 +25,17 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [null_resource.mount](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [azurerm_key_vault.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
-| [azurerm_resources.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
+| [azurerm_key_vault.enterprise_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
+| [azurerm_resources.enterprise_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | file_share_name | Name of file share within the storage account | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | mount_point | NFS mount point | `string` | `"/mnt/efs"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 | storage_account_name | Azure Storage Account Name | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

@@ -24,7 +24,7 @@ if __name__ == '__main__':
     parser.add_argument('--account-endpoint-url', dest='account_endpoint_url', default=None, help='Blob service endpoint URL')
     parser.add_argument('--root', dest='root', default='backups', help='blob container root directory')
     parser.add_argument('--is-default', dest='is_default', action='store_true', help='make the store default')
-    parser.add_argument('--client-id', dest='client_id', help='User-assigned managed identity client Id')
+    parser.add_argument('--client-id', dest='client_id', help='User-assigned managed identity client ID')
     
     args = parser.parse_args()
 

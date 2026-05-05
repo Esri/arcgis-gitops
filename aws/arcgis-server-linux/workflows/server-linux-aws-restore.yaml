@@ -57,7 +57,7 @@ jobs:
     - name: Run Terraform
       id: terraform
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/restore.tfstate" -backend-config="region=$TF_VAR_aws_region"
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$ENTERPRISE_ID/aws/$DEPLOYMENT_ID/restore.tfstate" -backend-config="region=$TF_VAR_aws_region"
         terraform apply -var-file $CONFIG_FILE -auto-approve -input=false

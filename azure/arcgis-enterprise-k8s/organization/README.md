@@ -19,15 +19,15 @@ The module:
 * Updates the DR settings to use the specified storage class and size for staging volume
 * Registers backup store using blob container in Azure storage account specified by "storage-account-name" Key Vault secret
 
-The module retrieves the following secrets from the site's Key Vault:
+The module retrieves the following secrets from the enterprise's Key Vault:
 
-| Secret Name | Description |
-| --- | --- |
-| deployment-fqdn | Fully qualified domain name used for the ArcGIS Enterprise deployment |
-| acr-login-server | Azure Container Registry login server |
+| Secret Name               | Description |
+| ------------------------- | --- |
+| ingress-fqdn           | Fully qualified domain name used for the ArcGIS Enterprise deployment |
+| acr-login-server          | Azure Container Registry login server |
 | aks-identity-principal-id | AKS cluster managed identity principal ID |
-| aks-identity-client-id | AKS cluster managed identity client ID |
-| storage-account-name | Azure storage account name |
+| aks-identity-client-id    | AKS cluster managed identity client ID |
+| storage-account-name      | Azure storage account name |
 
 ## Requirements
 
@@ -53,9 +53,9 @@ On the machine where Terraform is executed:
 | Name | Source | Version |
 |------|--------|---------|
 | azure_storage | ./modules/storage | n/a |
+| enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | helm_charts | ./modules/helm-charts | n/a |
 | register_azure_backup_store | ./modules/cli-command | n/a |
-| site_core_info | ../../modules/site_core_info | n/a |
 | update_dr_settings | ./modules/cli-command | n/a |
 
 ## Resources
@@ -71,8 +71,8 @@ On the machine where Terraform is executed:
 | [azurerm_key_vault_secret.acr_login_server](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.aks_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.aks_identity_principal_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_storage_account.site_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
+| [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_storage_account.enterprise_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/storage_account) | data source |
 
 ## Inputs
 
@@ -92,8 +92,9 @@ On the machine where Terraform is executed:
 | common_verbose | Enable verbose install logging | `bool` | `false` | no |
 | configure_enterprise_org | Configure ArcGIS Enterprise on Kubernetes organization | `bool` | `true` | no |
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.5.0"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | image_repository_prefix | Prefix of images in ACR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |
 | license_type_id | User type ID for the primary administrator account | `string` | `"creatorUT"` | no |
@@ -102,7 +103,6 @@ On the machine where Terraform is executed:
 | mandatory_update_target_id | Patch ID of required update | `string` | `""` | no |
 | security_question_answer | ArcGIS Enterprise on Kubernetes organization administrator account security question answer | `string` | n/a | yes |
 | security_question_index | ArcGIS Enterprise on Kubernetes organization administrator account security question index | `number` | `1` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | staging_volume_class | Staging volume storage class | `string` | `"managed-premium"` | no |
 | staging_volume_size | Staging volume size | `string` | `"64Gi"` | no |
 | storage | Storage properties for the data stores | ```map(object({ type = string size = string class = string label1 = string label2 = string }))``` | ```{ "indexer": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "memory": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "object": { "class": "managed-premium", "label1": "", "label2": "", "size": "32Gi", "type": "DYNAMIC" }, "prometheus": { "class": "managed-premium", "label1": "", "label2": "", "size": "30Gi", "type": "DYNAMIC" }, "queue": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "relational": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "sharing": { "class": "managed-premium", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" } }``` | no |

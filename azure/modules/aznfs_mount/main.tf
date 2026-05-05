@@ -28,25 +28,25 @@
 # See the License for the specific language governing permissions and
 # limitations under the License. 
 
-data "azurerm_resources" "site_vault" {
-  resource_group_name = "${var.site_id}-infrastructure-core"
+data "azurerm_resources" "enterprise_vault" {
+  resource_group_name = "${var.enterprise_id}-infrastructure-core"
 
   required_tags = {
-    ArcGISSiteId = var.site_id
-    ArcGISRole   = "site-vault"
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISRole         = "enterprise-vault"
   }
 }
 
-data "azurerm_key_vault" "site_vault" {
-  name                = data.azurerm_resources.site_vault.resources[0].name
-  resource_group_name = data.azurerm_resources.site_vault.resource_group_name
+data "azurerm_key_vault" "enterprise_vault" {
+  name                = data.azurerm_resources.enterprise_vault.resources[0].name
+  resource_group_name = data.azurerm_resources.enterprise_vault.resource_group_name
 }
 
 resource "null_resource" "mount" {
   triggers = {
     always_run = "${timestamp()}"
   }
-    
+
   provisioner "local-exec" {
     environment = {
       JSON_PARAMETERS = base64encode(jsonencode({
@@ -56,6 +56,6 @@ resource "null_resource" "mount" {
       }))
     }
 
-    command = "python -m az_run_shell_script -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${path.module}/scripts/mount.sh -v ${data.azurerm_key_vault.site_vault.name}" 
+    command = "python -m az_run_shell_script -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${path.module}/scripts/mount.sh -v ${data.azurerm_key_vault.enterprise_vault.name}"
   }
 }

@@ -11,7 +11,7 @@ is downloaded from My Esri and extracted in the module's `helm-charts/arcgis-ent
 
 The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
 The module also creates an S3 bucket for the organization object store, registers it with the deployment,
-and registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
+and registers backup store using S3 bucket specified by "/arcgis/${var.enterprise_id}/s3/backup" SSM parameter.
 
 The deployment's CloudWatch dashboard displays the CloudWatch metrics and container logs of the deployment.
 
@@ -30,8 +30,8 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/s3/backup | Backup S3 bucket name |
-| /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+| /arcgis/${var.enterprise_id}/s3/backup | Backup S3 bucket name |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
 
 ## Providers
 
@@ -63,7 +63,7 @@ The module reads the following SSM parameters:
 | [local_sensitive_file.license_file](https://registry.terraform.io/providers/hashicorp/local/latest/docs/resources/sensitive_file) | resource |
 | [aws_caller_identity.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/caller_identity) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.s3_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 
 ## Inputs
@@ -78,14 +78,15 @@ The module reads the following SSM parameters:
 | arcgis_enterprise_context | Context path to be used in the URL for ArcGIS Enterprise on Kubernetes | `string` | `"arcgis"` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | authorization_file_path | ArcGIS Enterprise on Kubernetes authorization file path | `string` | n/a | yes |
-| aws_region | AWS region Id | `string` | n/a | yes |
+| aws_region | AWS region ID | `string` | n/a | yes |
 | backup_job_timeout | Backup job timeout in seconds | `number` | `7200` | no |
 | cloud_config_json_file_path | ArcGIS Enterprise on Kubernetes cloud configuration JSON file path | `string` | `null` | no |
 | common_verbose | Enable verbose install logging | `bool` | `false` | no |
 | configure_enterprise_org | Configure ArcGIS Enterprise on Kubernetes organization | `bool` | `true` | no |
 | configure_wait_time_min | Organization admin URL validation timeout in minutes | `number` | `15` | no |
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | `"enterprise-k8s"` | no |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-k8s"` | no |
 | enterprise_admin_cli_version | ArcGIS Enterprise Admin CLI image tag | `string` | `"0.5.0"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | image_repository_prefix | Prefix of images in ECR repositories | `string` | `"docker-hub/esridocker"` | no |
 | k8s_cluster_domain | Kubernetes cluster domain | `string` | `"cluster.local"` | no |
 | license_type_id | User type ID for the primary administrator account | `string` | `"creatorUT"` | no |
@@ -94,7 +95,6 @@ The module reads the following SSM parameters:
 | mandatory_update_target_id | Patch ID of required update | `string` | `""` | no |
 | security_question_answer | ArcGIS Enterprise on Kubernetes organization administrator account security question answer | `string` | n/a | yes |
 | security_question_index | ArcGIS Enterprise on Kubernetes organization administrator account security question index | `number` | `1` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | staging_volume_class | Staging volume storage class | `string` | `"gp3"` | no |
 | staging_volume_size | Staging volume size | `string` | `"64Gi"` | no |
 | storage | Storage properties for the data stores | ```map(object({ type = string size = string class = string label1 = string label2 = string }))``` | ```{ "indexer": { "class": "gp3", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "memory": { "class": "gp3", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "object": { "class": "gp3", "label1": "", "label2": "", "size": "32Gi", "type": "DYNAMIC" }, "prometheus": { "class": "gp3", "label1": "", "label2": "", "size": "30Gi", "type": "DYNAMIC" }, "queue": { "class": "gp3", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "relational": { "class": "gp3", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" }, "sharing": { "class": "gp3", "label1": "", "label2": "", "size": "16Gi", "type": "DYNAMIC" } }``` | no |

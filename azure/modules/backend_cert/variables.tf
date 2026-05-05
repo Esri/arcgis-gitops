@@ -18,7 +18,7 @@ variable "common_name" {
 }
 
 variable "deployment_id" {
-  description = "ArcGIS Enterprise deployment Id"
+  description = "ArcGIS Enterprise deployment ID"
   type        = string
 }
 
@@ -29,7 +29,7 @@ variable "dns_names" {
 }
 
 variable "ingress_id" {
-  description = "Ingress deployment Id."
+  description = "ingress ID."
   type        = string
   default     = "enterprise-ingress"
 }

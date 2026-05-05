@@ -19,5 +19,5 @@ output "public_frontend_fqdn" {
 
 output "deployment_url" {
   description = "URL of the ArcGIS Enterprise on Kubernetes deployment"
-  value       = "https://${var.deployment_fqdn}/${var.arcgis_enterprise_context}"
+  value       = "https://${var.ingress_fqdn}/${var.arcgis_enterprise_context}"
 }

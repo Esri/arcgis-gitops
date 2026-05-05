@@ -16,7 +16,7 @@
  * * arcgis.common and arcgis.server Ansible collections must be installed
  * * AWS credentials must be configured
  *
- * The module retrieves the backup S3 bucket name from '/arcgis/${var.site_id}/s3/backup' SSM parameters.
+ * The module retrieves the backup S3 bucket name from '/arcgis/${var.enterprise_id}/s3/backup' SSM parameters.
  */
 
 # Copyright 2024-2026 Esri
@@ -32,7 +32,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License. 
- 
+
 terraform {
   backend "s3" {
     key = "terraform/arcgis-enterprise/arcgis-server/backup.tfstate"
@@ -50,38 +50,38 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
-      ArcGISAutomation   = "arcgis-gitops"      
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISAutomation   = "arcgis-gitops"
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 }
 
 data "aws_region" "current" {}
 
-module "site_core_info" {
-  source = "../../modules/site_core_info"
-  site_id = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 # Backup ArcGIS Server configurtion
 module "arcgis_server_backup" {
-  source         = "../../modules/ansible_playbook"
-  site_id        = var.site_id
-  deployment_id  = var.deployment_id
-  machine_roles  = ["primary"]
-  playbook       = "arcgis.server.s3_backup"
-  external_vars  = {
-    server_url = "https://localhost:6443/arcgis"
+  source        = "../../modules/ansible_playbook"
+  enterprise_id = var.enterprise_id
+  deployment_id = var.deployment_id
+  machine_roles = ["primary"]
+  playbook      = "arcgis.server.s3_backup"
+  external_vars = {
+    server_url     = "https://localhost:6443/arcgis"
     admin_username = var.admin_username
     admin_password = var.admin_password
-    install_dir = "/opt"
-    run_as_user = var.run_as_user
-    s3_bucket = module.site_core_info.s3_backup
-    s3_region = module.site_core_info.s3_region
-    s3_prefix = var.s3_prefix
+    install_dir    = "/opt"
+    run_as_user    = var.run_as_user
+    s3_bucket      = module.enterprise_core_info.s3_backup
+    s3_region      = module.enterprise_core_info.s3_region
+    s3_prefix      = var.s3_prefix
   }
 }

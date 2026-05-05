@@ -118,6 +118,13 @@
                 "backup:TagResource"
             ],
             "Resource": "*"
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "tag:GetResources"
+            ],
+            "Resource": "*"
         }
     ]
 }

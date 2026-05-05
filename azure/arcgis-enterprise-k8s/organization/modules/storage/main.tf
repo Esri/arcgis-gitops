@@ -10,7 +10,7 @@
  * * Creates cloud config JSON file for the object store.
  */
 
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -30,8 +30,8 @@ data "azurerm_private_dns_zone" "blob_private_dns_zone" {
 
 resource "random_id" "storage_account_suffix" {
   keepers = {
-    # Generate a new id each time we switch to a new site id or deployment id
-    site_id       = var.site_id
+    # Generate a new id each time we switch to a new enterprise id or deployment id
+    enterprise_id = var.enterprise_id
     deployment_id = var.deployment_id
   }
 
@@ -57,8 +57,8 @@ resource "azurerm_storage_account" "deployment_storage" {
   allow_nested_items_to_be_public = false
 
   tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
   }
 }
 
@@ -102,7 +102,7 @@ resource "azurerm_private_endpoint" "object_store_private_endpoint" {
   }
 
   tags = {
-    ArcGISSiteId = var.site_id
+    ArcGISEnterpriseID = var.enterprise_id
   }
 }
 

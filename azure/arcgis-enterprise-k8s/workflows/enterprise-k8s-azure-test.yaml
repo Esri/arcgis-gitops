@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,10 +39,10 @@ jobs:
       uses: actions/checkout@v4
     - name: Update kubeconfig
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
         az account set --subscription $ARM_SUBSCRIPTION_ID
-        az aks get-credentials --resource-group "$SITE_ID"-k8s-cluster --name $SITE_ID --overwrite-existing        
+        az aks get-credentials --resource-group "$ENTERPRISE_ID"-k8s-cluster --name $ENTERPRISE_ID --overwrite-existing        
     - name: Run Tests
       run: |
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)

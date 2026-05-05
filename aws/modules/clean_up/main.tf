@@ -4,11 +4,11 @@
  * Terraform module deletes files in specific directories on EC2 instances in specific roles. 
  * Optionally, if the uninstall_chef_client variable is set to true, the module also uninstalls Chef client on the instances. 
  *
- * The module uses ssm_clean_up.py script to run {var.site-id}-clean-up SSM command on the deployment's EC2 instances in specific roles.
+ * The module uses ssm_clean_up.py script to run {var.enterprise_id}-clean-up SSM command on the deployment's EC2 instances in specific roles.
  *
  * ## Requirements
  *
- * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+ * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
  *
  * On the machine where Terraform is executed:
  *
@@ -44,7 +44,7 @@ terraform {
 data "aws_region" "current" {}
 
 data "aws_ssm_parameter" "output_s3_bucket" {
-  name  = "/arcgis/${var.site_id}/s3/logs"
+  name  = "/arcgis/${var.enterprise_id}/s3/logs"
 }
 
 resource "null_resource" "clean_up" {
@@ -57,6 +57,6 @@ resource "null_resource" "clean_up" {
       AWS_DEFAULT_REGION = data.aws_region.current.region
     }
     
-    command = "python -m ssm_clean_up -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${join(",", var.directories)} -u ${var.uninstall_chef_client ? "true" : "false"} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
+    command = "python -m ssm_clean_up -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${join(",", var.directories)} -u ${var.uninstall_chef_client ? "true" : "false"} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
   }
 }

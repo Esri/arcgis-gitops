@@ -149,7 +149,7 @@ Arguments:
                         Azure storage account name
   --account-endpoint-url ACCOUNT_ENDPOINT_URL
                         Blob service endpoint URL
-  --client-id CLIENT_ID User-assigned managed identity client Id
+  --client-id CLIENT_ID User-assigned managed identity client ID
   --root ROOT           blob container root directory  
   --is-default          make the store default
 ```

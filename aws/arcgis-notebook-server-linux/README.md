@@ -17,7 +17,7 @@ Supported Operating Systems:
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
-2. Create core AWS resources and Chef automation resources for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
+2. Create core AWS resources and Chef automation resources for ArcGIS Enterprise using [arcgis-enterprise-core](../arcgis-enterprise-core/README.md) template.
 3. Create a base ArcGIS Enterprise deployment using [arcgis-enterprise-base-linux](../arcgis-enterprise-base-linux/README.md) or [arcgis-enterprise-base-windows](../arcgis-enterprise-base-windows/README.md) templates.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
@@ -113,7 +113,7 @@ The template supports application-level and system-level ArcGIS Notebook Server 
 
 ### Application-level Backups
 
-The application-level ArcGIS Notebook Server deployment backups back up and restore the site's configuration store using [Export Site and Import Site tools](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm) and the *arcgisworkspace* directory. The backups are stored in the site's backup S3 bucket.
+The application-level ArcGIS Notebook Server deployment backups back up and restore the site's configuration store using [Export Site and Import Site tools](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm) and the *arcgisworkspace* directory. The backups are stored in the enterprise's backup S3 bucket.
 
 #### Creating Application-level Backups
 
@@ -149,13 +149,13 @@ Instructions:
 
 ### System-level backups
 
-The system-level ArcGIS Notebook Server deployment backups back up S3 buckets, DynamoDB tables, EFS file systems, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the site's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
+The system-level ArcGIS Notebook Server deployment backups back up S3 buckets, DynamoDB tables, EFS file systems, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the enterprise's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
 
 > System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or an edit to a feature service that is made during the backup process.
 
 #### Creating System-level Backups
 
-GitHub Actions workflow **notebook-server-linux-aws-infrastructure** creates an AWS backup plan for the deployment that backs up the EC2 instances and the EFS file system created by the workflow in the site's AWS Backup vault. The backup schedule is controlled by the CRON expression set in the "backup_schedule" property in the [infrastructure.tfvars.json](../../config/aws/arcgis-notebook-server-linux/infrastructure.tfvars.json) file.
+GitHub Actions workflow **notebook-server-linux-aws-infrastructure** creates an AWS backup plan for the deployment that backs up the EC2 instances and the EFS file system created by the workflow in the enterprise's AWS Backup vault. The backup schedule is controlled by the CRON expression set in the "backup_schedule" property in the [infrastructure.tfvars.json](../../config/aws/arcgis-notebook-server-linux/infrastructure.tfvars.json) file.
 
 If the deployment uses S3 and DynamoDB AWS storage services for ArcGIS Notebook Server configuration store, then the GitHub Actions workflow **notebook-server-linux-aws-application** enables versioning for the configuration store S3 bucket, tags the S3 bucket and DynamoDB table, and adds them to the deployment's backup plan.
 

@@ -58,21 +58,21 @@ jobs:
       id: application-destroy
       working-directory: aws/arcgis-enterprise-base-windows/application
       run: |
-        SITE_ID=$(jq -r '.site_id' $APPLICATION_CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $APPLICATION_CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $APPLICATION_CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/application.tfstate" -backend-config="region=$TF_VAR_aws_region"
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$ENTERPRISE_ID/aws/$DEPLOYMENT_ID/application.tfstate" -backend-config="region=$TF_VAR_aws_region"
         terraform destroy -var-file $APPLICATION_CONFIG_FILE -auto-approve -input=false
     - name: Destroy Infrastructure
       id: infrastructure-destroy
       working-directory: aws/arcgis-enterprise-base-windows/infrastructure
       run: |
-        SITE_ID=$(jq -r '.site_id' $INFRASTRUCTURE_CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $INFRASTRUCTURE_CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $INFRASTRUCTURE_CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$TF_VAR_aws_region" 
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$ENTERPRISE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$TF_VAR_aws_region" 
         terraform destroy -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve -input=false
     - name: Delete AMIs
       id: delete-amis
       run: |
-        SITE_ID=$(jq -r '.site_id' $INFRASTRUCTURE_CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $INFRASTRUCTURE_CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $INFRASTRUCTURE_CONFIG_FILE)
-        python -m delete_deployment_amis -s $SITE_ID -d $DEPLOYMENT_ID
+        python -m delete_deployment_amis -s $ENTERPRISE_ID -d $DEPLOYMENT_ID

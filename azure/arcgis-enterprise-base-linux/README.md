@@ -16,7 +16,7 @@ Supported Operating Systems:
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
-2. Create core Azure resources, Chef automation resources, and Application Gateway for the ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
+2. Create core Azure resources, Chef automation resources, and Application Gateway for the ArcGIS Enterprise using [arcgis-enterprise-core](../arcgis-enterprise-core/README.md) template.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 
@@ -26,9 +26,9 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of base ArcGIS Enterprise includes building images, provisioning Azure resources, configuring the applications, and testing the deployment web services.
 
-### 1. Set GitHub Actions Secrets for the Site
+### 1. Set GitHub Actions Secrets for the Enterprise
 
-Set the primary ArcGIS Enterprise site administrator and VM administrator credentials in the GitHub Actions secrets of the repository settings.
+Set the primary ArcGIS Enterprise administrator and VM administrator credentials in the GitHub Actions secrets of the repository settings.
 
 | Name                      | Description                                    |
 |---------------------------|------------------------------------------------|
@@ -116,7 +116,7 @@ Instructions:
 To upgrade base ArcGIS Enterprise to a newer version:
 
 1. Build new VM images for the new ArcGIS Enterprise version by updating `arcgis_version` and `os` properties in [image.vars.json](../../config/azure/arcgis-enterprise-base-linux/image.vars.json) and running the **enterprise-base-linux-azure-image** workflow.
-2. In [infrastructure.tfvars.json](../../config/azure/arcgis-enterprise-base-linux/infrastructure.tfvars.json), verify that the `deployment_id` and `site_id` match the existing deployment.
+2. In [infrastructure.tfvars.json](../../config/azure/arcgis-enterprise-base-linux/infrastructure.tfvars.json), verify that the `deployment_id` and `enterprise_id` match the existing deployment.
 3. Run the **enterprise-base-linux-azure-infrastructure** workflow to replace the VMs with new images.
 4. Update `arcgis_version` and set `is_upgrade` to `true` in [application.tfvars.json](../../config/azure/arcgis-enterprise-base-linux/application.tfvars.json).
 5. Run the enterprise-base-linux-azure-application workflow.
@@ -125,7 +125,7 @@ To upgrade base ArcGIS Enterprise to a newer version:
 
 The template supports application-level base ArcGIS Enterprise backup and restore operations using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/linux/create-web-gis-backup.htm) tool.
 
-The application-level backup of base ArcGIS Enterprise deployment backs up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/linux/create-web-gis-backup.htm) tool. The backups are stored in the "webgisdr-backups" blob container in the site's storage account.
+The application-level backup of base ArcGIS Enterprise deployment backs up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/linux/create-web-gis-backup.htm) tool. The backups are stored in the "webgisdr-backups" blob container in the enterprise's storage account.
 
 ### Backup
 
@@ -147,7 +147,7 @@ The workflow uses [restore](restore/README.md) Terraform module with [restore.tf
 
 Instructions:
 
-1. Configure the `backup_site_id`, `backup_restore_mode`, and other properties.
+1. Configure the `backup_enterprise_id`, `backup_restore_mode`, and other properties.
 2. Commit the changes to a Git branch and push the branch to GitHub.
 3. Run the enterprise-base-linux-azure-restore workflow.
 

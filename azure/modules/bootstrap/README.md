@@ -25,10 +25,10 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [null_resource.bootstrap](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [azurerm_key_vault.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
+| [azurerm_key_vault.enterprise_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
 | [azurerm_key_vault_secret.chef_client_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.cookbooks_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_resources.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
+| [azurerm_resources.enterprise_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
 
 ## Inputs
 
@@ -36,8 +36,8 @@ On the machine where Terraform is executed:
 |------|-------------|------|---------|:--------:|
 | chef_client_url | URL of Chef client installer | `string` | `null` | no |
 | chef_cookbooks_url | URL of ArcGIS Chef cookbooks archive | `string` | `null` | no |
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
-| os | Operating system id | `string` | n/a | yes |
-| site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
+| os | Operating system ID | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

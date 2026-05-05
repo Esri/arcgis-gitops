@@ -14,19 +14,19 @@
  * while in "protect" mode, the WAF blocks the requests.
  *
  * If enable_access_log is set to true, access logging is enabled for the load balancer. The access logs are stored
- * in the site's logs S3 bucket specified by the "/arcgis/${var.site_id}/s3/logs" SSM parameter.
+ * in the enterprise's logs S3 bucket specified by the "/arcgis/${var.enterprise_id}/s3/logs" SSM parameter.
  *
  * If a Route 53 hosted zone ID is provided, an alias record is created in the hosted zone
- * that points the deployment's FQDN to the load balancer's DNS name. The DNS name is also stored in 
- * "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
+ * that points the ingress FQDN to the load balancer's DNS name. The DNS name is also stored in 
+ * "/arcgis/${var.enterprise_id}/${var.deployment_id}/alb/dns-name" SSM parameter.
  *
- * The module also creates a private Route 53 hosted zone for the deployment FQDN and an alias record 
+ * The module also creates a private Route 53 hosted zone for the ingress FQDN and an alias record 
  * in the hosted zone for the load balancer DNS name.
- * This makes the deployment FQDN always addressable from the VPC subnets. 
+ * This makes the ingress FQDN always addressable from the VPC subnets. 
  *
  * The module creates a monitoring subsystem for the ingress that includes:
  *
- * * A CloudWatch alarm that monitors the health of ingress ALB target groups and posts to the site alarms SNS topic if the number of unhealthy instances is nonzero
+ * * A CloudWatch alarm that monitors the health of ingress ALB target groups and posts to the enterprise alarms SNS topic if the number of unhealthy instances is nonzero
  * * A CloudWatch log group for AWS WAF logs
  * * A CloudWatch dashboard that displays the CloudWatch alarm status, the ALB metrics, and the log of requests flagged by WAF rules
  * 
@@ -43,17 +43,17 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket used by deployments to store logs |
- * | /arcgis/${var.site_id}/sns-topics/site-alarms | Site alarms SNS topic ARN |
- * | /arcgis/${var.site_id}/vpc/id | VPC ID |
+ * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket used by deployments to store logs |
+ * | /arcgis/${var.enterprise_id}/sns-topics/enterprise-alarms | Enterprise alarms SNS topic ARN |
+ * | /arcgis/${var.enterprise_id}/vpc/id | VPC ID |
  *
  * The module writes the following SSM parameters:
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer |
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the site ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/alb/arn | ARN of the application load balancer | 
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/alb/dns-name | DNS name of the application load balancer |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the enterprise ingress |
  */
 
 # Copyright 2024-2026 Esri
@@ -95,8 +95,8 @@ provider "aws" {
   default_tags {
     tags = {
       ArcGISAutomation   = "arcgis-gitops"
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 }
@@ -106,15 +106,15 @@ provider "kubernetes" {
 }
 
 data "aws_ssm_parameter" "s3_logs" {
-  name = "/arcgis/${var.site_id}/s3/logs"
+  name = "/arcgis/${var.enterprise_id}/s3/logs"
 }
 
 data "aws_ssm_parameter" "sns_topic" {
-  name = "/arcgis/${var.site_id}/sns-topics/site-alarms"
+  name = "/arcgis/${var.enterprise_id}/sns-topics/enterprise-alarms"
 }
 
 data "aws_ssm_parameter" "vpc_id" {
-  name = "/arcgis/${var.site_id}/vpc/id"
+  name = "/arcgis/${var.enterprise_id}/vpc/id"
 }
 
 data "aws_lb" "arcgis_enterprise_ingress" {
@@ -160,7 +160,7 @@ resource "kubernetes_ingress_v1" "arcgis_enterprise" {
   spec {
     ingress_class_name = "alb"
     rule {
-      host = var.deployment_fqdn
+      host = var.ingress_fqdn
       http {
         path {
           path      = "/${var.arcgis_enterprise_context}"
@@ -184,29 +184,29 @@ resource "kubernetes_ingress_v1" "arcgis_enterprise" {
 }
 
 resource "aws_ssm_parameter" "alb_arn" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/alb/arn"
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/alb/arn"
   type        = "String"
   value       = data.aws_lb.arcgis_enterprise_ingress.arn
   description = "ARN of the deployment's ALB"
 }
 
 resource "aws_ssm_parameter" "alb_dns_name" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/alb/dns-name"
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/alb/dns-name"
   type        = "String"
   value       = data.aws_lb.arcgis_enterprise_ingress.dns_name
   description = "DNS name of the deployment's ingress load balancer"
 }
 
-resource "aws_ssm_parameter" "deployment_fqdn" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+resource "aws_ssm_parameter" "ingress_fqdn" {
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
   type        = "String"
-  value       = var.deployment_fqdn
-  description = "Fully qualified domain name of the deployment"
+  value       = var.ingress_fqdn
+  description = "Fully qualified domain name of the ingress"
 }
 
-# Route53 private hosted zone for the deployment FQDN
-resource "aws_route53_zone" "deployment_fqdn" {
-  name = var.deployment_fqdn
+# Route53 private hosted zone for the ingress FQDN
+resource "aws_route53_zone" "ingress_fqdn" {
+  name = var.ingress_fqdn
 
   vpc {
     vpc_id = data.aws_ssm_parameter.vpc_id.value
@@ -214,8 +214,8 @@ resource "aws_route53_zone" "deployment_fqdn" {
 }
 
 # Create Route 53 record for the Application Load Balancer 
-resource "aws_route53_record" "deployment_fqdn" {
-  zone_id = aws_route53_zone.deployment_fqdn.zone_id
+resource "aws_route53_record" "ingress_fqdn" {
+  zone_id = aws_route53_zone.ingress_fqdn.zone_id
   name    = "" # Apex domain name
   type    = "A"
   alias {
@@ -228,7 +228,7 @@ resource "aws_route53_record" "deployment_fqdn" {
 resource "aws_route53_record" "arcgis_enterprise" {
   count   = var.hosted_zone_id != null ? 1 : 0
   zone_id = var.hosted_zone_id
-  name    = "${var.deployment_fqdn}."
+  name    = "${var.ingress_fqdn}."
   type    = "A"
   alias {
     name                   = data.aws_lb.arcgis_enterprise_ingress.dns_name

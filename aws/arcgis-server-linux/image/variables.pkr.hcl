@@ -12,12 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
  
-variable "aws_region" {
-  description = "AWS region ID"
-  type        = string
-  default     = env("AWS_DEFAULT_REGION")
-}
-
 variable "arcgis_server_patches" {
   description = "File names of ArcGIS Server patches to install."
   type        = list(string)
@@ -35,6 +29,12 @@ variable "arcgis_version" {
   }
 }
 
+variable "aws_region" {
+  description = "AWS region ID"
+  type        = string
+  default     = env("AWS_DEFAULT_REGION")
+}
+
 variable "deployment_id" {
   description = "Deployment ID"
   type        = string
@@ -43,6 +43,17 @@ variable "deployment_id" {
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
@@ -80,15 +91,10 @@ variable "run_as_user" {
   default     = "arcgis"
 }
 
-variable "site_id" {
-  description = "ArcGIS Enterprise site ID"
+variable "server_web_context" {
+  description = "ArcGIS Web Adaptor name"
   type        = string
   default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
 }
 
 variable "skip_create_ami" {
@@ -101,10 +107,4 @@ variable "use_webadaptor" {
   description = "If true, OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor will be installed on the AMI."
   type        = bool
   default     = false
-}
-
-variable "server_web_context" {
-  description = "ArcGIS Web Adaptor name"
-  type        = string
-  default     = "arcgis"
 }

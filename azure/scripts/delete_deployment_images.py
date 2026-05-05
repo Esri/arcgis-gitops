@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -20,15 +20,15 @@ from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.keyvault import KeyVaultManagementClient
 from azure.keyvault.secrets import SecretClient
 
-def delete_vm_images(compute_client, arcgis_site_id, arcgis_deployment_id):
+def delete_vm_images(compute_client, arcgis_enterprise_id, arcgis_deployment_id):
     matched_images = []
 
     # Enumerate all managed images in the subscription
     for image in compute_client.images.list():
         tags = image.tags or {}
 
-        if (tags.get("ArcGISSiteId") == arcgis_site_id and
-            tags.get("ArcGISDeploymentId") == arcgis_deployment_id):
+        if (tags.get("ArcGISEnterpriseID") == arcgis_enterprise_id and
+            tags.get("ArcGISDeploymentID") == arcgis_deployment_id):
             matched_images.append({
                 "name": image.name,
                 "resource_group": image.id.split("/")[4],
@@ -42,21 +42,21 @@ def delete_vm_images(compute_client, arcgis_site_id, arcgis_deployment_id):
         compute_client.images.begin_delete(image["resource_group"], image["name"]).wait()
 
 
-def delete_vm_image_secrets(kv_mgmt_client, credential, arcgis_site_id, arcgis_deployment_id):
+def delete_vm_image_secrets(kv_mgmt_client, credential, arcgis_enterprise_id, arcgis_deployment_id):
     vaults = kv_mgmt_client.vaults.list()
 
     for vault in vaults:
-        if vault.tags and vault.tags.get("ArcGISSiteId") == arcgis_site_id:
+        if vault.tags and vault.tags.get("ArcGISEnterpriseID") == arcgis_enterprise_id:
             key_vault_url = "https://{0}.vault.azure.net".format(vault.name)
             break
     else:
-        print(f'No Key Vault found for site {arcgis_site_id}')
+        print(f'No Key Vault found for enterprise {arcgis_enterprise_id}')
         key_vault_url = None
 
     if key_vault_url:
         secret_client = SecretClient(vault_url=key_vault_url, credential=credential)
 
-        secret_prefix = f'vm-image-{arcgis_site_id}-{arcgis_deployment_id}-'
+        secret_prefix = f'vm-image-{arcgis_enterprise_id}-{arcgis_deployment_id}-'
         
         secrets = secret_client.list_properties_of_secrets()
         
@@ -76,23 +76,23 @@ if __name__ == '__main__':
         prog='delete_deployment_images.py',
         description='Deletes VM images used by the specified deployment and Key Vault secrets referencing the images.')
 
-    parser.add_argument('-s', dest='site_id', required=True, help='ArcGIS Enterprise site Id')
-    parser.add_argument('-d', dest='deployment_id', required=True, help='ArcGIS Enterprise deployment Id')
-    parser.add_argument('-u', dest='subscription_id', required=True, help='Azure Subscription Id')
+    parser.add_argument('-e', dest='enterprise_id', required=True, help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', required=True, help='ArcGIS Enterprise deployment ID')
+    parser.add_argument('-u', dest='subscription_id', required=True, help='Azure Subscription ID')
 
     args = parser.parse_args()
 
-    print(f'Deleting VM images for deployment \"{args.deployment_id}\" in site \"{args.site_id}\"...')
+    print(f'Deleting VM images for deployment \"{args.deployment_id}\" in enterprise \"{args.enterprise_id}\"...')
 
     # Authenticate using DefaultAzureCredential (supports env vars, managed identity, CLI login, etc.)
     credential = DefaultAzureCredential()
 
     compute_client = ComputeManagementClient(credential, args.subscription_id)
 
-    delete_vm_images(compute_client, args.site_id, args.deployment_id)
+    delete_vm_images(compute_client, args.enterprise_id, args.deployment_id)
 
     kv_mgmt_client = KeyVaultManagementClient(credential, args.subscription_id)
 
-    delete_vm_image_secrets(kv_mgmt_client, credential, args.site_id, args.deployment_id)
+    delete_vm_image_secrets(kv_mgmt_client, credential, args.enterprise_id, args.deployment_id)
 
     print('Done.')

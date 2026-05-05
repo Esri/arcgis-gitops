@@ -50,9 +50,9 @@ On the machine where Terraform is executed:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | common_name | Common Name (CN) to use in the certificate. | `string` | n/a | yes |
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | dns_names | List of DNS names to include as SANs in the certificate. | `list(string)` | `[]` | no |
-| ingress_id | Ingress deployment Id. | `string` | `"enterprise-ingress"` | no |
+| ingress_id | ingress ID. | `string` | `"enterprise-ingress"` | no |
 | ip_addresses | List of IP addresses to include as SANs in the certificate. | `list(string)` | `[]` | no |
 | key_vault_id | ID of the Key Vault where the trusted root certificate is stored. | `string` | n/a | yes |
 | pfx_password | Password for the generated PFX file. | `string` | n/a | yes |

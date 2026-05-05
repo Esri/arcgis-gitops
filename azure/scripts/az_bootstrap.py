@@ -48,7 +48,7 @@ try {
     Write-Output \"Downloading Chef/Cinc client from $ChefClientUrl...\"
     az storage blob download --blob-url $ChefClientUrl --file $chefClientMsi --auth-mode login --no-progress --output none
     if ($? -eq $false) {
-        throw "Error downloading Chef/Cinc client. Run site-automation-chef-azure workflow to upload the client to repository blob container."
+        throw "Error downloading Chef/Cinc client. Run enterprise-automation-chef-azure workflow to upload the client to repository blob container."
     }
     Write-Output \"Installing Chef/Cinc client...\"
     Start-Process msiexec.exe -Wait -ArgumentList \"/I $chefClientMsi /qb\"
@@ -193,8 +193,8 @@ if __name__ == "__main__":
         description="Installs CINC client and ArcGIS Chef Cookbooks on VMs in a deployment with specified roles.",
     )
 
-    parser.add_argument("-s", dest="site_id", help="ArcGIS Enterprise site Id")
-    parser.add_argument("-d", dest="deployment_id", help="ArcGIS Enterprise deployment Id")
+    parser.add_argument("-s", dest="enterprise_id", help="ArcGIS Enterprise ID")
+    parser.add_argument("-d", dest="deployment_id", help="ArcGIS Enterprise deployment ID")
     parser.add_argument("-m", dest="machine_roles", help="Machine roles")
     parser.add_argument("-c", dest="chef_client_url", help="Chef client blob store URL")
     parser.add_argument("-k", dest="chef_cookbooks_url", help="Chef cookbooks blob store URL")
@@ -209,7 +209,7 @@ if __name__ == "__main__":
     ]
 
     ret = az_utils.run_command(
-        args.site_id,
+        args.enterprise_id,
         args.deployment_id,
         args.machine_roles,
         "bootstrap",

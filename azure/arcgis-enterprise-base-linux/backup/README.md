@@ -5,7 +5,7 @@ The Terraform module creates a backup of base ArcGIS Enterprise deployment on Li
 
 The module runs WebGISDR utility with 'export' option on the primary VM of the deployment.
 
-The WebGISDR backups are stored in "webgisdr-backups" blob container of the site's Azure Storage account.
+The WebGISDR backups are stored in "webgisdr-backups" blob container of the enterprise's Azure Storage account.
 The Portal for ArcGIS content store backups are stored in "content-backups" blob container.
 
 ## Requirements
@@ -31,7 +31,7 @@ On the machine where Terraform is executed:
 | Name | Source | Version |
 |------|--------|---------|
 | arcgis_enterprise_webgisdr_export | ../../modules/run_chef | n/a |
-| site_core_info | ../../modules/site_core_info | n/a |
+| enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 
 ## Resources
 
@@ -47,9 +47,9 @@ On the machine where Terraform is executed:
 | admin_username | Portal for ArcGIS administrator user name | `string` | `"siteadmin"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | backup_restore_mode | Type of backup | `string` | `"backup"` | no |
-| deployment_id | Deployment Id | `string` | `"enterprise-base-linux"` | no |
+| deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | execution_timeout | Execution timeout in seconds | `number` | `36000` | no |
 | portal_admin_url | Portal for ArcGIS administrative URL | `string` | `"https://localhost:7443/arcgis"` | no |
 | run_as_user | User name for the account used to run Portal for ArcGIS | `string` | `"arcgis"` | no |
-| site_id | ArcGIS site Id | `string` | `"arcgis"` | no |
 <!-- END_TF_DOCS -->

@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -48,9 +48,9 @@ jobs:
     - name: Import Site
       id: import-site
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        LOGS_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/s3/logs" --query "Parameter.Value" --output text)
+        LOGS_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/s3/logs" --query "Parameter.Value" --output text)
         export JSON_ATTRIBUTES=$(cat $CONFIG_FILE | jq ".admin_username += \"$ADMIN_USERNAME\"" | jq ".admin_password += \"$ADMIN_PASSWORD\"" | base64)
-        JSON_ATTRIBUTES_PARAMETER="/arcgis/$SITE_ID/attributes/$DEPLOYMENT_ID/restore"
-        python -m ssm_run_shell_script -s $SITE_ID -d $DEPLOYMENT_ID -m primary -j $JSON_ATTRIBUTES_PARAMETER -f importSite.sh -b $LOGS_S3_BUCKET -e 600
+        JSON_ATTRIBUTES_PARAMETER="/arcgis/$ENTERPRISE_ID/attributes/$DEPLOYMENT_ID/restore"
+        python -m ssm_run_shell_script -s $ENTERPRISE_ID -d $DEPLOYMENT_ID -m primary -j $JSON_ATTRIBUTES_PARAMETER -f importSite.sh -b $LOGS_S3_BUCKET -e 600

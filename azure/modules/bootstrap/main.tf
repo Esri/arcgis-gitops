@@ -14,7 +14,7 @@
  * * Azure credentials must be configured
  */
 
-# Copyright 2024 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -28,27 +28,27 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "azurerm_resources" "site_vault" {
-  resource_group_name = "${var.site_id}-infrastructure-core"
+data "azurerm_resources" "enterprise_vault" {
+  resource_group_name = "${var.enterprise_id}-infrastructure-core"
 
   required_tags = {
-    ArcGISSiteId = var.site_id
-    ArcGISRole   = "site-vault"
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISRole         = "enterprise-vault"
   }
 }
 
-data "azurerm_key_vault" "site_vault" {
-  name                = data.azurerm_resources.site_vault.resources[0].name
-  resource_group_name = data.azurerm_resources.site_vault.resource_group_name
+data "azurerm_key_vault" "enterprise_vault" {
+  name                = data.azurerm_resources.enterprise_vault.resources[0].name
+  resource_group_name = data.azurerm_resources.enterprise_vault.resource_group_name
 }
 
 data "azurerm_key_vault_secret" "chef_client_url" {
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = data.azurerm_key_vault.enterprise_vault.id
   name  = "chef-client-url-${var.os}"
 }
 
 data "azurerm_key_vault_secret" "cookbooks_url" {
-  key_vault_id = data.azurerm_key_vault.site_vault.id
+  key_vault_id = data.azurerm_key_vault.enterprise_vault.id
   name = "cookbooks-url"
 }
 
@@ -63,6 +63,6 @@ resource "null_resource" "bootstrap" {
   }
 
   provisioner "local-exec" {
-    command = "python -m az_bootstrap -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -c ${local.chef_client_url} -k ${local.chef_cookbooks_url} -v ${data.azurerm_key_vault.site_vault.name}"
+    command = "python -m az_bootstrap -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -c ${local.chef_client_url} -k ${local.chef_cookbooks_url} -v ${data.azurerm_key_vault.enterprise_vault.name}"
   }
 }

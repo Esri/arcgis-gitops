@@ -56,18 +56,18 @@ jobs:
         echo Test mode: ${{ inputs.test_mode }}
     - name: Restore Deployment
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         BACKUP_TIME=$(jq -r '.backup_time' $CONFIG_FILE)
         [[ "$BACKUP_TIME" == "null" || "$BACKUP_TIME" == "" ]] && BACKUP_TIME_ARG="" || BACKUP_TIME_ARG="-c $BACKUP_TIME"
         [[ "${{ inputs.test_mode }}" == "true" ]] && TEST_MODE_ARG="-t" || TEST_MODE_ARG=""
-        python -m recover_deployment -s $SITE_ID -d $DEPLOYMENT_ID $BACKUP_TIME_ARG $TEST_MODE_ARG
+        python -m recover_deployment -s $ENTERPRISE_ID -d $DEPLOYMENT_ID $BACKUP_TIME_ARG $TEST_MODE_ARG
     - name: Terraform Init
       id: init
       run: |
-        SITE_ID=$(jq -r '.site_id' $INFRASTRUCTURE_CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $INFRASTRUCTURE_CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $INFRASTRUCTURE_CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$SITE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$TF_VAR_aws_region" 
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$ENTERPRISE_ID/aws/$DEPLOYMENT_ID/infrastructure.tfstate" -backend-config="region=$TF_VAR_aws_region" 
     - name: Terraform Apply
       id: apply
       if: ${{ inputs.test_mode == false }}

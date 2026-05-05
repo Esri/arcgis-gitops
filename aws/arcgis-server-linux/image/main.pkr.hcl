@@ -3,7 +3,7 @@
  * 
  * The Packer template builds EC2 AMI for a specific ArcGIS Server deployment.
  * 
- * The AMI is built from the operating system's base image specified by SSM parameter "/arcgis/${var.site_id}/images/${var.os}".
+ * The AMI is built from the operating system's base image specified by SSM parameter "/arcgis/${var.enterprise_id}/images/${var.os}".
  * 
  * > Note: If the base image does not have SSM Agent installed, it's installed using user data script.
  * 
@@ -26,8 +26,8 @@
  * 2. Install Apache Tomcat
  * 3. Install ArcGIS Web Adaptor with name specified by "server_web_context" variable.
  * 
- * Id of the built AMI is saved in "/arcgis/${var.site_id}/images/${var.deployment_id}/primary"
- * and "/arcgis/${var.site_id}/images/${var.deployment_id}/node" SSM parameters.
+ * ID of the built AMI is saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary"
+ * and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/node" SSM parameters.
  * 
  * ## Requirements
  * 
@@ -47,21 +47,21 @@
  * 
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name|
- * | /arcgis/${var.site_id}/images/${var.os} | Source AMI ID|
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM commands output |
- * | /arcgis/${var.site_id}/s3/region | S3 buckets region code |
- * | /arcgis/${var.site_id}/s3/repository | Private repository S3 bucket |
- * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+ * | /arcgis/${var.enterprise_id}/iam/instance-profile-name | IAM instance profile name|
+ * | /arcgis/${var.enterprise_id}/images/${var.os} | Source AMI ID|
+ * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM commands output |
+ * | /arcgis/${var.enterprise_id}/s3/region | S3 buckets region code |
+ * | /arcgis/${var.enterprise_id}/s3/repository | Private repository S3 bucket |
+ * | /arcgis/${var.enterprise_id}/vpc/subnets | IDs of VPC subnets |
  *
  * The template writes the following SSM parameters:
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node AMI ID |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context name |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system identifier |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary AMI ID |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/node | Node AMI ID |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context name |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system identifier |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary AMI ID |
  */
 
 # Copyright 2024-2026 Esri
@@ -88,32 +88,32 @@ packer {
 }
 
 data "amazon-parameterstore" "source_ami" {
-  name   = "/arcgis/${var.site_id}/images/${var.os}"
+  name   = "/arcgis/${var.enterprise_id}/images/${var.os}"
   region = var.aws_region
 }
 
 data "amazon-parameterstore" "subnets" {
-  name   = "/arcgis/${var.site_id}/vpc/subnets"
+  name   = "/arcgis/${var.enterprise_id}/vpc/subnets"
   region = var.aws_region
 }
 
 data "amazon-parameterstore" "instance_profile_name" {
-  name   = "/arcgis/${var.site_id}/iam/instance-profile-name"
+  name   = "/arcgis/${var.enterprise_id}/iam/instance-profile-name"
   region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_repository" {
-  name   = "/arcgis/${var.site_id}/s3/repository"
+  name   = "/arcgis/${var.enterprise_id}/s3/repository"
   region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_logs" {
-  name   = "/arcgis/${var.site_id}/s3/logs"
+  name   = "/arcgis/${var.enterprise_id}/s3/logs"
   region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_region" {
-  name   = "/arcgis/${var.site_id}/s3/region"
+  name   = "/arcgis/${var.enterprise_id}/s3/region"
   region = var.aws_region
 }
 
@@ -147,8 +147,8 @@ locals {
     }
     filters = {
       "instance-state-name" = "running"
-      "tag:ArcGISSiteId" = var.site_id
-      "tag:ArcGISDeploymentId" = var.deployment_id
+      "tag:ArcGISEnterpriseID" = var.enterprise_id
+      "tag:ArcGISDeploymentID" = var.deployment_id
       "tag:ArcGISMachineRole" = local.machine_role
     }
   })
@@ -222,9 +222,9 @@ source "amazon-ebs" "main" {
   run_tags = {
     Name               = local.ami_name
     ArcGISAutomation   = "arcgis-gitops"
-    ArcGISSiteId       = var.site_id    
+    ArcGISEnterpriseID = var.enterprise_id    
     ArcGISVersion      = var.arcgis_version
-    ArcGISDeploymentId = var.deployment_id    
+    ArcGISDeploymentID = var.deployment_id    
     ArcGISMachineRole  = local.machine_role
     OperatingSystem    = var.os    
   }
@@ -245,7 +245,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
+    command = "python -m ssm_package -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Install Amazon EFS Utils
@@ -254,7 +254,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m ssm_package -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonEFSUtils -b ${data.amazon-parameterstore.s3_logs.value}"
+    command = "python -m ssm_package -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonEFSUtils -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Download setups from private S3 repository and install ArcGIS Server   
@@ -307,13 +307,13 @@ build {
     }
   }
 
-  # Retrieve the the AMI Id from packer-manifest.json manifest file and save it in SSM parameters.
+  # Retrieve the the AMI ID from packer-manifest.json manifest file and save it in SSM parameters.
   post-processor "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/primary -f packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -p /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary -f packer-manifest.json -r ${build.PackerRunUUID}"
   }
 
   post-processor "shell-local" {
@@ -321,15 +321,15 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m publish_artifact -p /arcgis/${var.site_id}/images/${var.deployment_id}/node -f packer-manifest.json -r ${build.PackerRunUUID}"
+    command = "python -m publish_artifact -p /arcgis/${var.enterprise_id}/images/${var.deployment_id}/node -f packer-manifest.json -r ${build.PackerRunUUID}"
   }
 
   # Save os and server_web_context in SSM parameters for later use in deployment.
   post-processor "shell-local" {
-    command = "aws ssm put-parameter --name /arcgis/${var.site_id}/images/${var.deployment_id}/os --value ${var.os} --type String --region ${var.aws_region}"
+    command = "aws ssm put-parameter --name /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os --value ${var.os} --overwrite --type String --region ${var.aws_region}"
   }
 
   post-processor "shell-local" {
-    command = "aws ssm put-parameter --name /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context --value ${var.server_web_context} --type String --region ${var.aws_region}"
+    command = "aws ssm put-parameter --name /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context --value ${var.server_web_context} --overwrite --type String --region ${var.aws_region}"
   }
 }

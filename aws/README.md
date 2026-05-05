@@ -9,7 +9,7 @@ The workflows require:
 * ArcGIS Online user account to download ArcGIS Enterprise installation media from [MyEsri](https://my.esri.com)
 * (For Kubernetes platform) Docker Hub account that has access to private repositories with ArcGIS Enterprise on Kubernetes container images
 * Authorization files for ArcGIS Enterprise software
-* SSL certificates for the ArcGIS Enterprise site domain names
+* SSL certificates for the ArcGIS Enterprise domain names
 
 On Windows and Linux platforms the workflows use:
 
@@ -33,11 +33,11 @@ Basic knowledge of Git and AWS is required to use the templates. Knowledge of th
 
 ## Templates
 
-An *ArcGIS Enterprise site* in this context is a group of *deployments* that typically include a [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) or [ArcGIS Enterprise on Kubernetes deployment](https://enterprise-k8s.arcgis.com/en/latest/deploy/system-architecture.htm) plus [additional server deployments](https://enterprise.arcgis.com/en/get-started/latest/windows/additional-server-deployment.htm) in different roles.
+An *ArcGIS Enterprise* in this context is a group of *deployments* that typically include a [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) or [ArcGIS Enterprise on Kubernetes deployment](https://enterprise-k8s.arcgis.com/en/latest/deploy/system-architecture.htm) plus [additional server deployments](https://enterprise.arcgis.com/en/get-started/latest/windows/additional-server-deployment.htm) in different roles.
 
 The following templates are available for AWS:
 
-* [arcgis-site-core](arcgis-site-core/README.md) - Provision core AWS resources for ArcGIS Enterprise site
+* [arcgis-enterprise-core](arcgis-enterprise-core/README.md) - Provision core AWS resources for ArcGIS Enterprise
 * [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
 * [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) - Base ArcGIS Enterprise on Linux deployment operations
 * [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment operations
@@ -76,9 +76,9 @@ The specific guidance for using the templates depends on the use case and may in
 
 [Create a new private GitHub repository](https://github.com/new?template_name=arcgis-gitops&template_owner=Esri&description=ArcGIS%20Enterprise%20on%20AWS&name=arcgis-enterprise) from https://github.com/esri/arcgis-gitops template repository.
 
-Use a separate GitHub repository for each ArcGIS Enterprise site and separate Git branches for different environments.
+Use a separate GitHub repository for each ArcGIS Enterprise and separate Git branches for different environments.
 
-> When operating multiple similar ArcGIS Enterprise sites, consider first forking and modifying https://github.com/esri/arcgis-gitops template repository and then creating repositories for the sites from the modified template.
+> When operating multiple similar ArcGIS Enterprises, consider first forking and modifying https://github.com/esri/arcgis-gitops template repository and then creating repositories from the modified template.
 
 ### 2. Create Required AWS Resources
 
@@ -98,9 +98,9 @@ Configure secrets and variables for GitHub Actions in the repository settings.
 
 | Name                   | Description                       |
 |------------------------|-----------------------------------|
-| AWS_ACCESS_KEY_ID      | AWS access key Id                 |
+| AWS_ACCESS_KEY_ID      | AWS access key ID                 |
 | AWS_SECRET_ACCESS_KEY  | AWS secret access key             |
-| ENTERPRISE_ADMIN_EMAIL | Site administrator e-mail address |
+| ENTERPRISE_ADMIN_EMAIL | ArcGIS Enterprise administrator e-mail address |
 | Name                   | Description                       |
 | ARCGIS_ONLINE_USERNAME | ArcGIS Online user name           |
 | ARCGIS_ONLINE_PASSWORD | ArcGIS Online user password       |
@@ -116,16 +116,16 @@ For ArcGIS Enterprise on Kubernetes:
 
 | Name                        | Description                         |
 |-----------------------------|-------------------------------------|
-| AWS_DEFAULT_REGION          | Default AWS region Id               |
+| AWS_DEFAULT_REGION          | Default AWS region ID               |
 | TERRAFORM_BACKEND_S3_BUCKET | Terraform backend S3 bucket         |
 
 Run **validate-settings-aws** GitHub Actions workflow to validate the settings.
 
 > If the GitHub subscription plan supports GitHub Actions Environments, consider [environment secrets](https://docs.github.com/en/actions/deployment/targeting-different-environments/using-environments-for-deployment) to use secrets specific to each environment.
 
-### 4. Create the Primary Site
+### 4. Create the Primary Enterprise
 
-Provision core AWS resources for the ArcGIS Enterprise site using the [arcgis-site-core](arcgis-site-core/README.md) template.
+Provision core AWS resources for the ArcGIS Enterprise using the [arcgis-enterprise-core](arcgis-enterprise-core/README.md) template.
 
 Create base ArcGIS Enterprise deployment using the [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) or [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) templates.
 
@@ -133,32 +133,32 @@ Optionally, create deployments for each additional server role.
 
 > Consult the README files of the templates to create and operate the required ArcGIS Enterprise deployments.
 
-Use **verify-site-config-aws** GitHub Actions workflow to verify the site configuration before running any other workflows. The workflow checks integrity of the configuration of the deployments specified by "deployments" array in [site-index.json](../config/aws/site-index.json) file.
+Use **verify-enterprise-config-aws** GitHub Actions workflow to verify the enterprise configuration before running any other workflows. The workflow checks integrity of the configuration of the deployments specified by "deployments" array in [enterprise-index.json](../config/aws/enterprise-index.json) file.
 
-> Consider triggering verify-site-config-aws workflow by pull requests to the main branch to verify the configuration changes before merging them into the main branch.
+> Consider triggering verify-enterprise-config-aws workflow by pull requests to the main branch to verify the configuration changes before merging them into the main branch.
 
-### 5. Create the Standby Site
+### 5. Create the Standby Enterprise
 
-One common approach to responding to a disaster scenario is to switch traffic to a Standby site, which exists to take on traffic when a primary site identifies or experiences issues.
+One common approach to responding to a disaster scenario is to switch traffic to a Standby enterprise, which exists to take on traffic when a primary enterprise identifies or experiences issues.
 
-To create a Standby site for Windows and Linux platforms:
+To create a Standby enterprise for Windows and Linux platforms:
 
-1. Create a new Git branch from the branch of the active site.
-2. Change "site_id" property in all the configuration files of the site's deployments to a new unique Id of the standby site.
-   > The "site_id" value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-).
-3. Change the "backup_site_id" property in the restore.tfvars.json configuration files of the standby branch to the active "site_id".
+1. Create a new Git branch from the branch of the active enterprise.
+2. Change "enterprise_id" property in all the configuration files of the enterprise's deployments to a new unique ID of the standby enterprise.
+   > The "enterprise_id" value must be between 3 and 23 characters long and can consist only of lowercase letters, numbers, and hyphens (-).
+3. Change the "backup_enterprise_id" property in the restore.tfvars.json configuration files of the standby branch to the active "enterprise_id".
 4. Commit the changes to the Git branch and push the branch to GitHub.
-5. Deploy the standby site using the standby branch.
-6. Backup all the deployments of the active site.
-7. Restore all the deployments of the standby site.
+5. Deploy the standby enterprise using the standby branch.
+6. Backup all the deployments of the active enterprise.
+7. Restore all the deployments of the standby enterprise.
 
-> Sites configured to receive traffic from clients are referred to as *primary*, *active*, or *live*.
+> Enterprises configured to receive traffic from clients are referred to as *primary*, *active*, or *live*.
 
-To activate the standby site:
+To activate the standby enterprise:
 
 1. Retrieve DNS name of the load balancer created by the infrastructure workflow, and
 2. Update the CNAME record for the base ArcGIS Enterprise domain name in the DNS server.
 
-> The test workflow cannot be used with the standby site deployments until it is activated.
+> The test workflow cannot be used with the standby enterprise deployments until it is activated.
 
-> The standby site deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types can differ from the active deployment.
+> The standby enterprise deployments must use the same platform and ArcGIS Enterprise version as the active one, while other properties, such as operating system and EC2 instance types can differ from the active deployment.

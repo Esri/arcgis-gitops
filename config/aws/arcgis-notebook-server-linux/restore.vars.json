@@ -1,7 +1,7 @@
 {
-  "backup_site_id": "arcgis",
+  "backup_enterprise_id": "arcgis",
   "deployment_id": "notebook-server-linux",
+  "enterprise_id": "arcgis",
   "run_as_user": "arcgis",
-  "site_id": "arcgis",
   "s3_prefix": "arcgis-notebook-server-backups"
 }

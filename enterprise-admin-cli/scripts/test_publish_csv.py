@@ -37,14 +37,14 @@ def publish_csv(gis):
     print("Uploading CSV...")
     root_folder = gis.content.folders.get(folder="/")
     csv_item = root_folder.add(item_properties=csv_properties, file=csv_path).result()
-    print("CSV uploaded. Item Id: {0}".format(csv_item.id))
+    print("CSV uploaded. Item ID: {0}".format(csv_item.id))
 
     sleep(10.0)
 
     try:
         print("Publishing feature service from the uploaded CSV...")
         feature_service_item = csv_item.publish()
-        print("Feature service published. Item Id: {0}".format(feature_service_item.id))
+        print("Feature service published. Item ID: {0}".format(feature_service_item.id))
 
         print("Deleting the feature service...")
         feature_service_item.delete()

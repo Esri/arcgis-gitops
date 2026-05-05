@@ -1,0 +1,51 @@
+{
+  "schemaVersion": "2.2",
+  "description": "Mounts EFS target on EC2 instances",
+  "parameters": {
+    "FileSystemId": {
+      "type": "String",
+      "description": "EFS file system ID"
+    },
+    "MountPoint": {
+      "type": "String",
+      "description": "NFS mount point",
+      "default": "/mnt/efs/"
+    },
+    "ExecutionTimeout": {
+      "type": "String",
+      "description": "(Optional) Execution timeout in seconds",
+      "default": "600"
+    }
+  },
+  "mainSteps": [
+    {
+      "action": "aws:runShellScript",
+      "name": "EFSMount",
+      "precondition": {
+        "StringEquals": [
+          "platformType",
+          "Linux"
+        ]
+      },
+      "inputs": {
+        "runCommand": [
+          "#!/bin/bash",
+          "",
+          "set -e",
+          "",
+          "mkdir -p {{ MountPoint }}",
+          "if [ $? -ne 0 ]; then",
+          "  exit 1",
+          "fi",
+          "sudo mount -t efs {{ FileSystemId }} {{ MountPoint }}",
+          "if [ $? -ne 0 ]; then",
+          "  exit 1",
+          "fi",          
+          "fs='{{ FileSystemId }}:/ {{ MountPoint }} efs _netdev,noresvport,tls,iam 0 0'",
+          "grep -q \"$fs\" /etc/fstab || echo $fs >> /etc/fstab"
+        ],
+        "timeoutSeconds": "{{ ExecutionTimeout }}"
+      }
+    }
+  ]
+}

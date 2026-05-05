@@ -17,15 +17,15 @@ Deletes AMIs used by the specified deployment and SSM parameters referencing the
 usage:
 
 ```shell
-python -m delete_deployment_amis [-h] [-s SITE_ID] [-d DEPLOYMENT_ID]
+python -m delete_deployment_amis [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID]
 ```
 
 options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID            ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID      ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment ID
 ```
 
 ## download_files
@@ -60,7 +60,7 @@ Queries the Esri patch notification service for patches for a given set of produ
 
 ## publish_artifact
 
-Retrieves AMI Id from packer-manifest.json file and saves in SSM parameter.
+Retrieves AMI ID from packer-manifest.json file and saves in SSM parameter.
 
 usage:
 
@@ -86,22 +86,22 @@ The script:
 1. Finds the latest recovery points for S3 buckets, DynamoDB tables, EFS file systems, and EC2 instances of the specified deployment using the deployment tags.
 2. If the deployment uses a cloud-based config store, the script restores the config store DynamoDB table and S3 bucket into new resources and replaces the references in ArcGISConfigStores DynamoDB table.
 3. Restores S3 buckets and, if any, EFS file systems from the AWS backup recovery points to the deployment's infrastructure resources.
-4. Replaces AMI IDs in "/arcgis/{site_id}/images/{deployment_id}/{role}" SSM parameters with the snapshot AMI IDs retrieved from the EC2 recovery points.
+4. Replaces AMI IDs in "/arcgis/{enterprise_id}/images/{deployment_id}/{role}" SSM parameters with the snapshot AMI IDs retrieved from the EC2 recovery points.
 
 usage:
 
 ```shell
-recover_deployment.py [-h] -s SITE_ID -d DEPLOYMENT_ID [-c BACKUP_TIME] [-t]
+recover_deployment.py [-h] -s ENTERPRISE_ID -d DEPLOYMENT_ID [-c BACKUP_TIME] [-t]
 ```
 
 options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID, --site-id SITE_ID
-                        ArcGIS Enterprise site Id
+  -s ENTERPRISE_ID, --enterprise-id ENTERPRISE_ID
+                        ArcGIS Enterprise ID
   -d DEPLOYMENT_ID, --deployment-id DEPLOYMENT_ID
-                        ArcGIS Enterprise deployment Id
+                        ArcGIS Enterprise deployment ID
   -c BACKUP_TIME, --backup-time BACKUP_TIME
                         Use recovery points that were created before the specified timestamp in ISO 8601 format (e.g., 2024-01-01T00:00:00Z)
   -t, --test-mode       Run in test mode without making changes.
@@ -141,33 +141,33 @@ Creates AMIs from deployment EC2 instances and stores the AMI IDs in SSM paramet
 usage:
 
 ```shell
-python -m snapshot_deployment [-h] [-s SITE_ID] [-d DEPLOYMENT_ID]
+python -m snapshot_deployment [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID]
 ```
 
 options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID            ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID      ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment ID
 ```
 
 ## ssm_bootstrap
 
-Runs `<site id>-bootstrap` SSM command on EC2 instances in a deployment with specified roles.
+Runs `<enterprise id>-bootstrap` SSM command on EC2 instances in a deployment with specified roles.
 
 usage:
 
 ```shell
-python -m ssm_bootstrap [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-c CHEF_CLIENT_URL] [-k CHEF_COOKBOOKS_URL] [-b S3_BUCKET]
+python -m ssm_bootstrap [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-c CHEF_CLIENT_URL] [-k CHEF_COOKBOOKS_URL] [-b S3_BUCKET]
 ```
 
 options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID            ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID      ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES      Machine roles
   -c CHEF_CLIENT_URL    Chef client URL
   -k CHEF_COOKBOOKS_URL Chef cookbooks URL
@@ -176,20 +176,20 @@ options:
 
 ## ssm_clean_up
 
-Runs `<site id>-clean-up` SSM command on EC2 instances of a deployment in certain roles.
+Runs `<enterprise id>-clean-up` SSM command on EC2 instances of a deployment in certain roles.
 
 usage:
 
 ```shell
-python -m ssm_clean_up [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-p SYSPREP] [-u UNINSTALL_CHEF_CLIENT] [-f DIRECTORIES] [-b S3_BUCKET]
+python -m ssm_clean_up [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-p SYSPREP] [-u UNINSTALL_CHEF_CLIENT] [-f DIRECTORIES] [-b S3_BUCKET]
 ```
 
 options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID            ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID      ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES      Machine roles
   -p SYSPREP            Run sysprep script
   -u UNINSTALL_CHEF_CLIENT
@@ -205,57 +205,57 @@ Runs AmazonCloudWatch-ManageAgent SSM command on all EC2 instances in a deployme
 usage:
 
 ```shell
-python -m ssm_cloudwatch_config [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-p PARAMETER] [-b S3_BUCKET]
+python -m ssm_cloudwatch_config [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-p PARAMETER] [-b S3_BUCKET]
 ```
 
 options:
 
 ```shell
   -h, --help        show this help message and exit
-  -s SITE_ID        ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID  ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment ID
   -p PARAMETER      SSM parameter name with CloudWatch agent configuration JSON
   -b S3_BUCKET      Output S3 bucket
 ```
 
 ## ssm_efs_mount
 
-Runs `<site id>-efs-mount` SSM command on EC2 instances in a deployment with specified roles.
+Runs `<enterprise id>-efs-mount` SSM command on EC2 instances in a deployment with specified roles.
 
 usage:
 
 ```shell
-python -m ssm_efs_mount [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-i FILE_SYSTEM_ID] [-p MOUNT_POINT] [-b S3_BUCKET]
+python -m ssm_efs_mount [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-i FILE_SYSTEM_ID] [-p MOUNT_POINT] [-b S3_BUCKET]
 ```
 
 options:
 
 ```shell
   -h, --help          show this help message and exit
-  -s SITE_ID          ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID    ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID    ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID    ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES    Machine roles
-  -i FILE_SYSTEM_ID   EFS file system Id
+  -i FILE_SYSTEM_ID   EFS file system ID
   -p MOUNT_POINT      Mount point
   -b S3_BUCKET        Output S3 bucket
 ```
 
 ## ssm_install_awscli
 
-Runs `<site id>-install-awscli` SSM command on EC2 instances in a deployment with specified roles.
+Runs `<enterprise id>-install-awscli` SSM command on EC2 instances in a deployment with specified roles.
 
 usage:
 
 ```shell
-python -m ssm_install_awscli [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-b S3_BUCKET]
+python -m ssm_install_awscli [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-b S3_BUCKET]
 ```
 
 options:
 
 ```shell
   -h, --help        show this help message and exit
-  -s SITE_ID        ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID  ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES  Machine roles
   -b S3_BUCKET      Output S3 bucket
 ```
@@ -267,15 +267,15 @@ Runs AWS-ConfigureAWSPackage SSM command on EC2 instances in a deployment with s
 usage:
 
 ```shell
-python -m ssm_package [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-p PACKAGE] [-v VERSION] [-b S3_BUCKET]
+python -m ssm_package [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-p PACKAGE] [-v VERSION] [-b S3_BUCKET]
 ```
 
 options:
 
 ```shell
   -h, --help        show this help message and exit
-  -s SITE_ID        ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID  ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES  Machine roles
   -p PACKAGE        AWS Package Manager package name
   -v VERSION        AWS Package Manager package version
@@ -286,20 +286,20 @@ options:
 
 The script runs Chef Client in solo mode on EC2 instances of a deployment.
 
-The script retrieves the Chef JSON attributes from the JSON_ATTRIBUTES environment variable and puts them into SecureString SSM parameter specified by json_attributes_parameter command line argument. To execute Chef Client the script runs `<site id>-run-chef` SSM command on EC2 instances of the deployment in the specified machine roles, waits for all the command invocations to complete, retrieves from S3 and prints outputs of the command invocations.
+The script retrieves the Chef JSON attributes from the JSON_ATTRIBUTES environment variable and puts them into SecureString SSM parameter specified by json_attributes_parameter command line argument. To execute Chef Client the script runs `<enterprise id>-run-chef` SSM command on EC2 instances of the deployment in the specified machine roles, waits for all the command invocations to complete, retrieves from S3 and prints outputs of the command invocations.
 
 usage:
 
 ```shell
-python -m ssm_run_chef [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-j JSON_ATTRIBUTES_PARAMETER] [-b S3_BUCKET] [-e EXECUTION_TIMEOUT]
+python -m ssm_run_chef [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-j JSON_ATTRIBUTES_PARAMETER] [-b S3_BUCKET] [-e EXECUTION_TIMEOUT]
 ```
 
 options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID            Site Id
-  -d DEPLOYMENT_ID      Deployment Id
+  -s ENTERPRISE_ID      ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES      Machine roles
   -j JSON_ATTRIBUTES_PARAMETER
                         SSM parameter name of role attributes
@@ -321,15 +321,15 @@ and prints outputs of the command invocations.
 usage:
 
 ```shell
-python -m ssm_run_shell_script [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-j JSON_ATTRIBUTES_PARAMETER] [-f SCRIPT_FILE] [-b S3_BUCKET] [-e EXECUTION_TIMEOUT]
+python -m ssm_run_shell_script [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-j JSON_ATTRIBUTES_PARAMETER] [-f SCRIPT_FILE] [-b S3_BUCKET] [-e EXECUTION_TIMEOUT]
 ```
 
 options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID            Site Id
-  -d DEPLOYMENT_ID      Deployment Id
+  -s ENTERPRISE_ID      ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES      Machine roles
   -j JSON_ATTRIBUTES_PARAMETER
                         SSM parameter name of the script input parameters
@@ -353,15 +353,15 @@ Waits for target SSM managed EC2 instances to become available.
 usage:
 
 ```shell
-python -m ssm_wait_for_target_instances [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES]
+python -m ssm_wait_for_target_instances [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES]
 ```
 
 options:
 
 ```shell
   -h, --help        show this help message and exit
-  -s SITE_ID        ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID  ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES  Machine roles
 ```
 
@@ -372,7 +372,7 @@ Adds tags and configures versioning for an S3 bucket.
 usage:
 
 ```shell
-tag_s3_bucket.py [-h] [-b BUCKET_NAME] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m ROLE]
+tag_s3_bucket.py [-h] [-b BUCKET_NAME] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m ROLE]
 ```
 
 options:
@@ -380,8 +380,8 @@ options:
 ```shell
   -h, --help        show this help message and exit
   -b BUCKET_NAME    S3 bucket name
-  -s SITE_ID        Site Id
-  -d DEPLOYMENT_ID  Deployment Id
+  -s ENTERPRISE_ID  ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment ID
   -m ROLE           S3 bucket role
 ```  
 
@@ -406,19 +406,19 @@ options:
 
 ArcGIS Online token service client.
 
-## verify_site_config
+## verify_enterprise_config
 
-Verifies configuration of the site referenced by the specified index JSON file.
+Verifies configuration of the ArcGIS Enterprise referenced by the specified index JSON file.
 
 usage:
 
 ```shell
-python -m verify_site_config [-h] [-i SITE_INDEX]
+python -m verify_enterprise_config [-h] [-i ENTERPRISE_INDEX]
 ```
 
 options:
 
 ```shell
-  -h, --help     show this help message and exit
-  -i SITE_INDEX  Site index file path
+  -h, --help           show this help message and exit
+  -i ENTERPRISE_INDEX  Enterprise index file path
 ```

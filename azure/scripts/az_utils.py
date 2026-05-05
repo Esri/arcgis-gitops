@@ -21,18 +21,19 @@ from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import VirtualMachineRunCommand
 from azure.mgmt.compute.models import VirtualMachineRunCommandScriptSource
 from azure.mgmt.compute.models import RunCommandInputParameter
+from azure.mgmt.compute.models import RunCommandManagedIdentity
 from azure.keyvault.secrets import SecretClient
 from azure.storage.blob import BlobClient
 from azure.core.exceptions import ResourceExistsError
 
 SLEEP_TIME = 10
 
-# Runs a PowerShell script on VMs of the specified site Id, deployment Id, and machine roles
+# Runs a PowerShell script on VMs of the specified enterprise ID, deployment ID, and machine roles
 # using Azure Managed Run Command. Waits for the script to complete on all targeted VMs.
 # Returns True if the command succeeded on all the VMs, False otherwise.
 def run_command(
-    site_id: str,       # ArcGIS Enterprise site Id
-    deployment_id: str, # ArcGIS Enterprise deployment Id
+    enterprise_id: str, # ArcGIS Enterprise ID
+    deployment_id: str, # ArcGIS Enterprise deployment ID
     machine_roles: str, # comma-separated list of machine roles to target
     command_name: str,  # Command name
     windows_script: str,        # PowerShell script to execute
@@ -41,12 +42,12 @@ def run_command(
     vault_name: str,    # Azure Key Vault name
     timeout: int        # Execution timeout in seconds
 ): 
-    if not site_id:
-        print("Site id parameter is required.")
+    if not enterprise_id:
+        print("ArcGIS Enterprise ID parameter is required.")
         return False
     
     if not deployment_id:
-        print("Deployment id parameter is required.")
+        print("ArcGIS Enterprise deployment ID parameter is required.")
         return False
 
     if not machine_roles:
@@ -78,9 +79,9 @@ def run_command(
 
     storage_account_name = vault_client.get_secret("storage-account-name").value
 
-    managed_identity = {
-        "client_id": vault_client.get_secret("vm-identity-client-id").value
-    }
+    managed_identity = RunCommandManagedIdentity(
+        client_id=vault_client.get_secret("vm-identity-client-id").value
+    )
 
     # If a parameter value starts with 'secret:', replace it with the corresponding secret value
     if parameters:
@@ -98,8 +99,8 @@ def run_command(
     for vm in vms:
         if (
             vm.tags
-            and vm.tags.get("ArcGISSiteId") == site_id
-            and vm.tags.get("ArcGISDeploymentId") == deployment_id
+            and vm.tags.get("ArcGISEnterpriseID") == enterprise_id
+            and vm.tags.get("ArcGISDeploymentID") == deployment_id
             and vm.tags.get("ArcGISRole") in roles
         ):
             print(f"Found '{deployment_id}' deployment's '{vm.name}' VM in '{vm.provisioning_state}' state.")
@@ -148,7 +149,7 @@ def run_command(
 
         os_type = vm_instance.storage_profile.os_disk.os_type
 
-        command_log = f"https://{storage_account_name}.blob.core.windows.net/logs/{site_id}/{deployment_id}/{vm.name}/{command_name}/{timestamp}"
+        command_log = f"https://{storage_account_name}.blob.core.windows.net/logs/{enterprise_id}/{deployment_id}/{vm.name}/{command_name}/{timestamp}"
         
         run_command = VirtualMachineRunCommand(
             location = vm.location,
@@ -162,8 +163,8 @@ def run_command(
             async_execution = True,
             treat_failure_as_deployment_failure = False,
             tags = {
-                "ArcGISSiteId": site_id,
-                "ArcGISDeploymentId": deployment_id
+                "ArcGISEnterpriseID": enterprise_id,
+                "ArcGISDeploymentID": deployment_id
             }
         )
         

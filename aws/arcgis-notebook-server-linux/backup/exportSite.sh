@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # This script backs up the ArcGIS Notebook Server deployment's config store
-# and arcgisworkspace directory in the site's backup S3 bucket.
+# and arcgisworkspace directory in the enterprise's backup S3 bucket.
 #
 # On the machine where the script is executed:
 #
@@ -44,15 +44,15 @@ if ! command -v jq &> /dev/null; then
 fi
 
 # Get the parameters from the JSON string
-SITE_ID=$(echo $attributes | jq -r '.site_id')
+ENTERPRISE_ID=$(echo $attributes | jq -r '.enterprise_id')
 DEPLOYMENT_ID=$(echo $attributes | jq -r '.deployment_id')
 ADMIN_USERNAME=$(echo $attributes | jq -r '.admin_username')
 ADMIN_PASSWORD=$(echo $attributes | jq -r '.admin_password')
 S3_PREFIX=$(echo $attributes | jq -r '.s3_prefix')
 
 # Get the S3 bucket and region from SSM Parameter Store
-BACKUP_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/s3/backup" --query "Parameter.Value" --output text)
-S3_REGION=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/s3/region" --query "Parameter.Value" --output text)
+BACKUP_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/s3/backup" --query "Parameter.Value" --output text)
+S3_REGION=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/s3/region" --query "Parameter.Value" --output text)
 
 # Generate a token for the admin user and export the site
 TOKEN_JSON=$(curl -k --request POST --data "username=$ADMIN_USERNAME&password=$ADMIN_PASSWORD&client=referer&referer=referer&f=json" $ADMIN_URL/generateToken)

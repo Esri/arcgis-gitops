@@ -7,7 +7,7 @@ The module uses community.aws.aws_ssm connection plugin to connect to EC2 instan
 
 ## Requirements
 
-The name of the S3 bucket used by the SSM connection for file transfers is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+The name of the S3 bucket used by the SSM connection for file transfers is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
 
 On the machine where Terraform is executed:
 
@@ -38,9 +38,9 @@ On the machine where Terraform is executed:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | external_vars | Ansible external vars | `any` | n/a | yes |
 | machine_roles | List of machine roles. | `list(string)` | n/a | yes |
 | playbook | Ansible playbook | `string` | n/a | yes |
-| site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

@@ -11,7 +11,7 @@
  *
  * The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
  * The module also creates an S3 bucket for the organization object store, registers it with the deployment, 
- * and registers backup store using S3 bucket specified by "/arcgis/${var.site_id}/s3/backup" SSM parameter.
+ * and registers backup store using S3 bucket specified by "/arcgis/${var.enterprise_id}/s3/backup" SSM parameter.
  *
  * The deployment's CloudWatch dashboard displays the CloudWatch metrics and container logs of the deployment.
  *
@@ -30,8 +30,8 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/s3/backup | Backup S3 bucket name |
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
+ * | /arcgis/${var.enterprise_id}/s3/backup | Backup S3 bucket name |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
  */
 
 # Copyright 2024-2026 Esri
@@ -87,8 +87,8 @@ provider "aws" {
   default_tags {
     tags = {
       ArcGISAutomation   = "arcgis-gitops"      
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 }
@@ -98,11 +98,11 @@ data "aws_region" "current" {}
 data "aws_caller_identity" "current" {}
 
 data "aws_ssm_parameter" "s3_backup" {
-  name = "/arcgis/${var.site_id}/s3/backup"
+  name = "/arcgis/${var.enterprise_id}/s3/backup"
 }
 
-data "aws_ssm_parameter" "deployment_fqdn" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+data "aws_ssm_parameter" "ingress_fqdn" {
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
 }
 
 locals {
@@ -116,7 +116,7 @@ locals {
   backup_store = "s3-backup-store-${local.backup_store_suffix}"
   backup_root_dir = "${var.deployment_id}/${var.arcgis_version}"
 
-  deployment_fqdn = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  ingress_fqdn = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
   
   manifest_file_path = "./manifests/arcgis-enterprise-k8s-files-${var.arcgis_version}.json"
 }
@@ -147,7 +147,7 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
       image_pull_policy = "Always"
       env {
         name  = "ARCGIS_ENTERPRISE_URL"
-        value = "https://${local.deployment_fqdn}/${var.arcgis_enterprise_context}"
+        value = "https://${local.ingress_fqdn}/${var.arcgis_enterprise_context}"
       }
       env {
         name = "ARCGIS_ENTERPRISE_USER"
@@ -284,13 +284,13 @@ resource "helm_release" "arcgis_enterprise" {
         authenticationType = "integrated"
       }
       install = {
-        enterpriseFQDN              = local.deployment_fqdn
+        enterpriseFQDN              = local.ingress_fqdn
         context                     = var.arcgis_enterprise_context
         allowedPrivilegedContainers = true
         configureWaitTimeMin        = var.configure_wait_time_min
         ingress = {
           tls = {
-            selfSignCN = local.deployment_fqdn
+            selfSignCN = local.ingress_fqdn
           }
         }
         k8sClusterDomain = var.k8s_cluster_domain
@@ -345,7 +345,7 @@ module "update_dr_settings" {
 }
 
 # Register default S3 backup store using S3 bucket specified by 
-# "/arcgis/${var.site_id}/s3/backup" SSM parameter.
+# "/arcgis/${var.enterprise_id}/s3/backup" SSM parameter.
 module "register_s3_backup_store" {
   count = local.configure_cloud_stores ? 1 : 0
   source        = "./modules/cli-command"
@@ -384,7 +384,7 @@ module "register_s3_backup_store" {
 
 module "monitoring" {
   source        = "./modules/monitoring"
-  cluster_name  = var.site_id
+  cluster_name  = var.enterprise_id
   namespace     = var.deployment_id
 }
 

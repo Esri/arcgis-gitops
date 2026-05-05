@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,7 +14,7 @@
 
 output "deployment_url" {
   description = "Portal for ArcGIS URL"
-  value       = "https://${local.deployment_fqdn}/${local.portal_web_context}"
+  value       = "https://${local.ingress_fqdn}/${local.portal_web_context}"
 }
 
 

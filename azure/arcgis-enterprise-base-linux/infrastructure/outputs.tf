@@ -14,5 +14,5 @@
 
 output "deployment_url" {
   description = "Portal for ArcGIS URL"
-  value       = "https://${local.deployment_fqdn}/${local.portal_web_context}"
+  value       = "https://${local.ingress_fqdn}/${local.portal_web_context}"
 }

@@ -13,14 +13,8 @@
 # limitations under the License.
 
 variable "aws_region" {
-  description = "AWS region Id"
+  description = "AWS region ID"
   type        = string
-}
-
-variable "backup_schedule" {
-  description = "Backup schedule in cron format"
-  type        = string
-  default     = "cron(0 0 * * ? *)"
 }
 
 variable "backup_retention" {
@@ -29,8 +23,14 @@ variable "backup_retention" {
   default     = 14
 }
 
+variable "backup_schedule" {
+  description = "Backup schedule in cron format"
+  type        = string
+  default     = "cron(0 0 * * ? *)"
+}
+
 variable "deployment_id" {
-  description = "ArcGIS Enterprise deployment Id"
+  description = "ArcGIS Enterprise deployment ID"
   type        = string
   default     = "enterprise-base-linux"
 
@@ -40,14 +40,25 @@ variable "deployment_id" {
   }
 }
 
-variable "ingress_deployment_id" {
-  description = "ArcGIS Enterprise ingress deployment Id"
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "ingress_id" {
+  description = "ArcGIS Enterprise ingress ID"
   type        = string
   default     = "enterprise-ingress"
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,25}$", var.ingress_deployment_id))
-    error_message = "The ingress_deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+    condition     = can(regex("^[a-z0-9-]{3,25}$", var.ingress_id))
+    error_message = "The ingress_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
@@ -98,17 +109,6 @@ variable "root_volume_throughput" {
   validation {
     condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
     error_message = "The root_volume_throughput value must be between 125 and 1000."
-  }
-}
-
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 

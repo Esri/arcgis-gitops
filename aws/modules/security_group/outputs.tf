@@ -13,6 +13,6 @@
 # limitations under the License.
 
 output "id" {
-    description = "Security group Id"
+    description = "Security group ID"
     value = aws_security_group.security_group.id
 }

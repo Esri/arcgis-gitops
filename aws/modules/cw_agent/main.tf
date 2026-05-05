@@ -9,7 +9,7 @@
  *
  * ## Requirements
  *
- * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+ * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
  *
  * On the machine where Terraform is executed:
  *
@@ -19,7 +19,7 @@
  * * AWS region must be specified by AWS_DEFAULT_REGION environment variable
  */
 
- # Copyright 2024-2026 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -45,11 +45,11 @@ terraform {
 data "aws_region" "current" {}
 
 data "aws_ssm_parameter" "output_s3_bucket" {
-  name = "/arcgis/${var.site_id}/s3/logs"
+  name = "/arcgis/${var.enterprise_id}/s3/logs"
 }
 
 locals {
-  log_group_name = "monitoring/${var.site_id}/${var.deployment_id}/deployment"
+  log_group_name = "monitoring/${var.enterprise_id}/${var.deployment_id}/deployment"
 
   linux_agent_config = jsonencode({
     agent = {
@@ -67,16 +67,16 @@ locals {
           measurement                 = ["cpu_usage_active"]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         mem = {
           measurement                 = ["mem_available"]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         disk = {
@@ -94,32 +94,32 @@ locals {
           ]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         diskio = {
           measurement                 = ["diskio_write_bytes", "diskio_read_bytes"]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         net = {
           measurement                 = ["net_bytes_recv", "net_bytes_sent"]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         processes = {
           measurement                 = ["processes_total"]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
       }
@@ -175,8 +175,8 @@ locals {
           ]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         Memory = {
@@ -189,8 +189,8 @@ locals {
           ]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         LogicalDisk = {
@@ -214,8 +214,8 @@ locals {
           resources                   = ["C:"]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         "Network Interface" = {
@@ -234,8 +234,8 @@ locals {
           resources                   = ["*"]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
         System = {
@@ -248,8 +248,8 @@ locals {
           ]
           metrics_collection_interval = 60
           append_dimensions = {
-            SiteId       = var.site_id
-            DeploymentId = var.deployment_id
+            EnterpriseID = var.enterprise_id
+            DeploymentID = var.deployment_id
           }
         }
       }
@@ -285,7 +285,7 @@ locals {
 }
 
 resource "aws_ssm_parameter" "cloudwatch_agent_config" {
-  name        = "/arcgis/${var.site_id}/monitoring/${var.deployment_id}/cloudwatch/config"
+  name        = "/arcgis/${var.enterprise_id}/monitoring/${var.deployment_id}/cloudwatch/config"
   type        = "String"
   value       = startswith(var.platform, "windows") ? local.windows_agent_config : local.linux_agent_config
   description = "CloudWatch agent configuration"
@@ -301,7 +301,7 @@ resource "null_resource" "ssm_cloudwatch_config" {
       AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
-    command = "python -m ssm_cloudwatch_config -s ${var.site_id} -d ${var.deployment_id} -p ${aws_ssm_parameter.cloudwatch_agent_config.name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
+    command = "python -m ssm_cloudwatch_config -s ${var.enterprise_id} -d ${var.deployment_id} -p ${aws_ssm_parameter.cloudwatch_agent_config.name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
   }
 
   depends_on = [

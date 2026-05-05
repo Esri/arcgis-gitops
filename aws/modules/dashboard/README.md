@@ -25,8 +25,8 @@ The CloudWatch dashboard includes widgets for:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | log_group_name | CloudWatch log group name | `string` | n/a | yes |
 | platform | Deployment platform (windows\|linux) | `string` | `"windows"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

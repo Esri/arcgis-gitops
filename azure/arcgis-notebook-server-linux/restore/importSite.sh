@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # This script restores the ArcGIS Notebook Server deployment's config store
-# and arcgisworkspace directory from the site's backup Azure blob storage.
+# and arcgisworkspace directory from the enterprise's backup Azure blob storage.
 #
 # On the machine where the script is executed:
 #

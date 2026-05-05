@@ -1,7 +1,7 @@
 /**
  * # Packer Template for Base ArcGIS Enterprise on Windows Images
  *
- * The Packer template builds VM images for a specific base ArcGIS Enterprise deployment on Windows and publishes it to the site Image Gallery.
+ * The Packer template builds VM images for a specific base ArcGIS Enterprise deployment on Windows and publishes it to the enterprise Image Gallery.
  *
  * The images are built from a Windows OS base image specified by Key Vault secret "vm-image-${var.os}".
  *
@@ -21,7 +21,7 @@
  * ## Requirements
  *
  * VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" 
- * must be created in the site Image Gallery before running the template.
+ * must be created in the enterprise Image Gallery before running the template.
  *
  * On the machine where Packer is executed:
  *
@@ -39,7 +39,7 @@
  * |---------------------------|-------------|
  * | chef-client-url-${var.os} | Chef Client URL |
  * | cookbooks-url             | Chef Cookbooks for ArcGIS archive URL |
- * | image-gallery-name        | Site Image Gallery name |
+ * | image-gallery-name        | Enterprise Image Gallery name |
  * | storage-account-name      | Private repository storage account name |
  * | vm-identity-client-id     | Managed identity client ID |
  * | vm-identity-id            | Managed identity resource ID |
@@ -79,45 +79,45 @@ packer {
   }
 }
 
-data "azure-keyvaultsecret" "site_ig" {
+data "azure-keyvaultsecret" "enterprise_ig" {
   vault_name         = var.vault_name
   secret_name        = "image-gallery-name"
   use_azure_cli_auth = true
 }
 
 data "azure-keyvaultsecret" "vm_image" {
-  vault_name = var.vault_name
-  secret_name = "vm-image-${var.os}"
+  vault_name         = var.vault_name
+  secret_name        = "vm-image-${var.os}"
   use_azure_cli_auth = true
 }
 
 data "azure-keyvaultsecret" "vm_identity_id" {
-  vault_name = var.vault_name
-  secret_name = "vm-identity-id"
+  vault_name         = var.vault_name
+  secret_name        = "vm-identity-id"
   use_azure_cli_auth = true
 }
 
 data "azure-keyvaultsecret" "vm_identity_client_id" {
-  vault_name = var.vault_name
-  secret_name = "vm-identity-client-id"
+  vault_name         = var.vault_name
+  secret_name        = "vm-identity-client-id"
   use_azure_cli_auth = true
 }
 
 data "azure-keyvaultsecret" "chef_client_url" {
-  vault_name = var.vault_name
-  secret_name = "chef-client-url-${var.os}"
+  vault_name         = var.vault_name
+  secret_name        = "chef-client-url-${var.os}"
   use_azure_cli_auth = true
 }
 
 data "azure-keyvaultsecret" "cookbooks_url" {
-  vault_name = var.vault_name
-  secret_name = "cookbooks-url"
+  vault_name         = var.vault_name
+  secret_name        = "cookbooks-url"
   use_azure_cli_auth = true
 }
 
 data "azure-keyvaultsecret" "storage_account_name" {
-  vault_name = var.vault_name
-  secret_name = "storage-account-name"
+  vault_name         = var.vault_name
+  secret_name        = "storage-account-name"
   use_azure_cli_auth = true
 }
 
@@ -167,8 +167,8 @@ source "azure-arm" "main" {
 
   # Destination Image
   shared_image_gallery_destination {
-    resource_group = "${var.site_id}-infrastructure-core"
-    gallery_name   = data.azure-keyvaultsecret.site_ig.value
+    resource_group = "${var.enterprise_id}-infrastructure-core"
+    gallery_name   = data.azure-keyvaultsecret.enterprise_ig.value
     image_name     = "${var.deployment_id}-${var.arcgis_version}-${var.os}"
     image_version  = formatdate("YYYY.MMDD.HHMM", timestamp())
   }
@@ -191,9 +191,9 @@ source "azure-arm" "main" {
   user_data_file = "./scripts/userdata.ps1"
 
   azure_tags = {
-    "ArcGISSiteId"     = var.site_id
-    "ArcGISDeploymentId" = var.deployment_id
-    "ArcGISRole"       = local.machine_role
+    "ArcGISEnterpriseID" = var.enterprise_id
+    "ArcGISDeploymentID" = var.deployment_id
+    "ArcGISRole"         = local.machine_role
   }
 }
 
@@ -208,7 +208,7 @@ build {
 
  # Bootstrap the VM
   provisioner "shell-local" {
-    command = "python -m az_bootstrap -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -c ${data.azure-keyvaultsecret.chef_client_url.value} -k ${data.azure-keyvaultsecret.cookbooks_url.value} -v ${var.vault_name}"
+    command = "python -m az_bootstrap -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -c ${data.azure-keyvaultsecret.chef_client_url.value} -k ${data.azure-keyvaultsecret.cookbooks_url.value} -v ${var.vault_name}"
   }
 
   # Copy files to private blob repository
@@ -229,7 +229,7 @@ build {
       ))
     }
 
-    command = "python -m az_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-files -v ${var.vault_name} -e 1200"
+    command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-files -v ${var.vault_name} -e 1200"
   }
 
   # Install
@@ -274,7 +274,7 @@ build {
       }))
     }
 
-    command = "python -m az_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-install -v ${var.vault_name} -e 14400"
+    command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-install -v ${var.vault_name} -e 14400"
   }
 
   # Install patches
@@ -303,12 +303,12 @@ build {
       }))
     }
 
-    command = "python -m az_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-patches -v ${var.vault_name} -e 3600"
+    command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-patches -v ${var.vault_name} -e 3600"
   }
 
   # Clean up
   provisioner "shell-local" {
-    command = "python -m az_clean_up -s ${var.site_id} -d ${var.deployment_id} -m ${local.machine_role} -f \"${local.software_dir},C:/Program Files/ArcGIS/Portal/etc/ssl/*\" -v ${var.vault_name}"
+    command = "python -m az_clean_up -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -f \"${local.software_dir},C:/Program Files/ArcGIS/Portal/etc/ssl/*\" -v ${var.vault_name}"
   }
 
   # Restart the VM to finalize the installation
@@ -331,7 +331,7 @@ build {
     strip_path = true
   }
 
-  # Retrieve the image Id from main-packer-manifest.json manifest file and save it in a key vault secret.
+  # Retrieve the image ID from main-packer-manifest.json manifest file and save it in a key vault secret.
   post-processor "shell-local" {
     command = "python -m publish_artifact -v ${var.vault_name} -s ${var.deployment_id}-vm-image-primary -f main-packer-manifest.json -r ${build.PackerRunUUID}"
   }

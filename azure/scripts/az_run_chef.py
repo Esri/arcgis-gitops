@@ -74,8 +74,8 @@ if __name__ == "__main__":
         description="The script runs Chef Client in solo mode on the deployment VMs in the specified roles.",
     )
 
-    parser.add_argument('-s', dest='site_id', help='Site Id')
-    parser.add_argument('-d', dest='deployment_id', help='Deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', help='ArcGIS Enterprise deployment ID')
     parser.add_argument('-m', dest='machine_roles', help='Machine roles')
     parser.add_argument('-j', dest='json_attributes_secret', help='Key Vault secret name of role attributes')
     parser.add_argument('-e', dest='execution_timeout', type=int, default=3600, help='Execution timeout (seconds)')
@@ -104,7 +104,7 @@ if __name__ == "__main__":
     ]
 
     ret = az_utils.run_command(
-        args.site_id,
+        args.enterprise_id,
         args.deployment_id,
         args.machine_roles,
         "run_chef",

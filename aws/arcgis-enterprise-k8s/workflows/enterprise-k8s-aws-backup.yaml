@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,7 +39,7 @@ jobs:
       run: |
         AWS_REGION=$(jq -r '.aws_region' $CONFIG_FILE)
         [[ "$AWS_REGION" == "null" || "$AWS_REGION" == "" ]] && AWS_REGION=$AWS_DEFAULT_REGION      
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         STORE=$(jq -r '.store' $CONFIG_FILE)
         BACKUP=$(jq -r '.prefix' $CONFIG_FILE)-${{ github.run_number }}
@@ -47,5 +47,5 @@ jobs:
         RETENTION=$(jq -r '.retention' $CONFIG_FILE)
         DESCRIPTION=$(jq -r '.description' $CONFIG_FILE)
         [[ "$STORE" == "null" || "$STORE" == "" ]] && STORE_ARG="" || STORE_ARG="--store $STORE"
-        aws eks update-kubeconfig --region $AWS_REGION --name $SITE_ID
+        aws eks update-kubeconfig --region $AWS_REGION --name $ENTERPRISE_ID
         kubectl exec enterprise-admin-cli --namespace=$DEPLOYMENT_ID -- gis create-backup $STORE_ARG --backup "$BACKUP" --passcode "$PASSCODE" --description "$DESCRIPTION" --retention $RETENTION --wait

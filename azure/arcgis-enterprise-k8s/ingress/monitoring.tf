@@ -12,9 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-data "azurerm_key_vault_secret" "site_alerts_action_group_id" {
-  name         = "site-alerts-action-group-id"
-  key_vault_id = module.site_core_info.vault_id
+data "azurerm_key_vault_secret" "enterprise_alerts_action_group_id" {
+  name         = "enterprise-alerts-action-group-id"
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 resource "azurerm_log_analytics_workspace" "ingress" {
@@ -25,8 +25,8 @@ resource "azurerm_log_analytics_workspace" "ingress" {
   retention_in_days   = var.log_retention
 
   tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    ArcGISEnterpriseID       = var.enterprise_id
+    ArcGISDeploymentID       = var.deployment_id
   }
 }
 
@@ -64,12 +64,12 @@ resource "azurerm_monitor_metric_alert" "backend_healthy_targets" {
   }
 
   action {
-    action_group_id = data.azurerm_key_vault_secret.site_alerts_action_group_id.value
+    action_group_id = data.azurerm_key_vault_secret.enterprise_alerts_action_group_id.value
   }
 
   tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    ArcGISEnterpriseID       = var.enterprise_id
+    ArcGISDeploymentID       = var.deployment_id
   }
 }
 
@@ -580,7 +580,7 @@ resource "azurerm_portal_dashboard" "ingress" {
   })
 
   tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    ArcGISEnterpriseID       = var.enterprise_id
+    ArcGISDeploymentID       = var.deployment_id
   }
 }

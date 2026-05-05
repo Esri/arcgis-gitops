@@ -19,15 +19,15 @@
  * * Updates the DR settings to use the specified storage class and size for staging volume
  * * Registers backup store using blob container in Azure storage account specified by "storage-account-name" Key Vault secret
  *
- * The module retrieves the following secrets from the site's Key Vault:
+ * The module retrieves the following secrets from the enterprise's Key Vault:
  * 
- * | Secret Name | Description |
- * | --- | --- |
- * | deployment-fqdn | Fully qualified domain name used for the ArcGIS Enterprise deployment |
- * | acr-login-server | Azure Container Registry login server |
+ * | Secret Name               | Description |
+ * | ------------------------- | --- |
+ * | ingress-fqdn           | Fully qualified domain name used for the ArcGIS Enterprise deployment |
+ * | acr-login-server          | Azure Container Registry login server |
  * | aks-identity-principal-id | AKS cluster managed identity principal ID |
- * | aks-identity-client-id | AKS cluster managed identity client ID |
- * | storage-account-name | Azure storage account name |
+ * | aks-identity-client-id    | AKS cluster managed identity client ID |
+ * | storage-account-name      | Azure storage account name |
  *
  * ## Requirements
  * 
@@ -96,31 +96,31 @@ data "azurerm_client_config" "current" {}
 
 data "azurerm_key_vault_secret" "acr_login_server" {
   name         = "acr-login-server"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
-data "azurerm_key_vault_secret" "deployment_fqdn" {
-  name         = "${var.deployment_id}-deployment-fqdn"
-  key_vault_id = module.site_core_info.vault_id
+data "azurerm_key_vault_secret" "ingress_fqdn" {
+  name         = "${var.deployment_id}-ingress-fqdn"
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "aks_identity_principal_id" {
   name         = "aks-identity-principal-id"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "aks_identity_client_id" {
   name         = "aks-identity-client-id"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
-data "azurerm_storage_account" "site_storage" {
-  name                = module.site_core_info.storage_account_name
-  resource_group_name = module.site_core_info.resource_group_name
+data "azurerm_storage_account" "enterprise_storage" {
+  name                = module.enterprise_core_info.storage_account_name
+  resource_group_name = module.enterprise_core_info.resource_group_name
 }
 
 locals {
-  deployment_fqdn            = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  ingress_fqdn            = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
   container_registry         = nonsensitive(data.azurerm_key_vault_secret.acr_login_server.value)
   enterprise_admin_cli_image = "${local.container_registry}/enterprise-admin-cli:${var.enterprise_admin_cli_version}"
 
@@ -133,10 +133,10 @@ locals {
   manifest_file_path = "./manifests/arcgis-enterprise-k8s-files-${var.arcgis_version}.json"
 }
 
-# Module to retrieve site core information from the Key Vault.
-module "site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.site_id
+# Module to retrieve enterprise core information from the Key Vault.
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 # Kubernetes secret with ArcGIS Enterprise credentials used by the Enterprise Admin CLI pod.
@@ -161,12 +161,12 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
 
   spec {
     container {
-      name  = "enterprise-admin-cli"
-      image = local.enterprise_admin_cli_image
+      name              = "enterprise-admin-cli"
+      image             = local.enterprise_admin_cli_image
       image_pull_policy = "Always"
       env {
         name  = "ARCGIS_ENTERPRISE_URL"
-        value = "https://${local.deployment_fqdn}/${var.arcgis_enterprise_context}"
+        value = "https://${local.ingress_fqdn}/${var.arcgis_enterprise_context}"
       }
       env {
         name = "ARCGIS_ENTERPRISE_USER"
@@ -216,8 +216,8 @@ resource "kubernetes_pod" "enterprise_admin_cli" {
 
 # Install Helm charts for ArcGIS Enterprise on Kubernetes.
 module "helm_charts" {
-  source = "./modules/helm-charts"
-  index_file = local.manifest_file_path
+  source      = "./modules/helm-charts"
+  index_file  = local.manifest_file_path
   install_dir = "./helm-charts/arcgis-enterprise"
 }
 
@@ -225,7 +225,7 @@ module "helm_charts" {
 resource "local_sensitive_file" "license_file" {
   content  = file(var.authorization_file_path)
   filename = "${module.helm_charts.helm_charts_path}/user-inputs/license.json"
-  
+
   depends_on = [
     module.helm_charts
   ]
@@ -247,9 +247,9 @@ module "azure_storage" {
   count                       = local.configure_cloud_stores && var.cloud_config_json_file_path == null ? 1 : 0
   source                      = "./modules/storage"
   azure_region                = var.azure_region
-  site_id                     = var.site_id
+  enterprise_id               = var.enterprise_id
   deployment_id               = var.deployment_id
-  subnet_id                   = module.site_core_info.internal_subnets[0]
+  subnet_id                   = module.enterprise_core_info.internal_subnets[0]
   cloud_config_json_file_path = "${module.helm_charts.helm_charts_path}/user-inputs/cloud-config.json"
   client_id                   = data.azurerm_key_vault_secret.aks_identity_client_id.value
   principal_id                = data.azurerm_key_vault_secret.aks_identity_principal_id.value
@@ -291,14 +291,14 @@ resource "helm_release" "arcgis_enterprise" {
         authenticationType = "integrated"
       }
       install = {
-        enterpriseFQDN              = local.deployment_fqdn
+        enterpriseFQDN              = local.ingress_fqdn
         context                     = var.arcgis_enterprise_context
         allowedPrivilegedContainers = true
         configureWaitTimeMin        = var.configure_wait_time_min
         ingress = {
           ingressServiceUseClusterIP = true
           tls = {
-            # selfSignCN = local.deployment_fqdn
+            # selfSignCN = local.ingress_fqdn
             secretName = "listener-tls-secret"
           }
         }
@@ -364,8 +364,8 @@ module "register_azure_backup_store" {
   command = [
     "gis", "register-az-backup-store",
     "--store", local.backup_store,
-    "--storage-account", module.site_core_info.storage_account_name,
-    "--account-endpoint-url", trimsuffix(module.site_core_info.storage_account_blob_endpoint, "/"),
+    "--storage-account", module.enterprise_core_info.storage_account_name,
+    "--account-endpoint-url", trimsuffix(module.enterprise_core_info.storage_account_blob_endpoint, "/"),
     "--client-id", data.azurerm_key_vault_secret.aks_identity_client_id.value,
     "--root", local.backup_root_dir,
     "--is-default"

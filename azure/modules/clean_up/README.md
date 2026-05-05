@@ -4,7 +4,7 @@
 Terraform module deletes files in specific directories on deployment VMs in specific roles.
 Optionally, if the uninstall_chef_client variable is set to true, the module also uninstalls Chef client on the instances.
 
-The module uses az_clean_up.py script to run {var.site-id}-clean-up Azure Run Command on the deployment's VMs in specific roles.
+The module uses az_clean_up.py script to run ${var.enterprise_id}-clean-up Azure Run Command on the deployment's VMs in specific roles.
 
 ## Requirements
 
@@ -26,16 +26,16 @@ On the machine where Terraform is executed:
 | Name | Type |
 |------|------|
 | [null_resource.clean_up](https://registry.terraform.io/providers/hashicorp/null/latest/docs/resources/resource) | resource |
-| [azurerm_key_vault.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
-| [azurerm_resources.site_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
+| [azurerm_key_vault.enterprise_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault) | data source |
+| [azurerm_resources.enterprise_vault](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
 
 ## Inputs
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| deployment_id | ArcGIS Enterprise deployment Id | `string` | n/a | yes |
+| deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | directories | List of directories to clean up | `list(string)` | `[]` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
-| site_id | ArcGIS Enterprise site Id | `string` | n/a | yes |
 | uninstall_chef_client | Set to true to uninstall Chef/Cinc Client | `bool` | `true` | no |
 <!-- END_TF_DOCS -->

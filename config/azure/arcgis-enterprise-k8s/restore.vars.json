@@ -1,8 +1,8 @@
 {
   "backup": null,
   "deployment_id": "enterprise-k8s",
+  "enterprise_id": "arcgis",
   "passcode": "<passcode>",
-  "site_id": "arcgis",
   "store": null,
   "timeout": 14400
 }

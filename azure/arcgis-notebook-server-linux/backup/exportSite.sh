@@ -15,7 +15,7 @@
 # limitations under the License.
 
 # This script backs up the ArcGIS Notebook Server deployment's config store
-# and arcgisworkspace directory in the site's backup blob container.
+# and arcgisworkspace directory in the enterprise's backup blob container.
 #
 # On the machine where the script is executed:
 # 

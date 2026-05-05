@@ -42,7 +42,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(cpu_usage_active) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId='${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT AVG(cpu_usage_active) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID='${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -74,7 +74,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(mem_available) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId='${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT AVG(mem_available) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID='${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -100,7 +100,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(processes_total) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT AVG(processes_total) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -124,7 +124,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(disk_free_megabytes) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(disk_free_megabytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
             visible    = false
           }],
           [{
@@ -155,7 +155,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(diskio_read_bytes_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(diskio_read_bytes_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -181,7 +181,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(diskio_write_bytes_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(diskio_write_bytes_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -207,7 +207,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(net_bytes_recv_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(net_bytes_recv_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
             region     = data.aws_region.current.region            
           }]
         ]
@@ -234,7 +234,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(net_bytes_sent_sec) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(net_bytes_sent_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -263,7 +263,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(cpu_usage_active) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId='${var.deployment_id}' AND cpu='cpu-total' GROUP BY InstanceId"
+            expression = "SELECT AVG(cpu_usage_active) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID='${var.deployment_id}' AND cpu='cpu-total' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -295,7 +295,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(mem_available) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId='${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT AVG(mem_available) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID='${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -321,7 +321,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(processes_total) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT AVG(processes_total) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -345,7 +345,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(disk_free) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT AVG(disk_free) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
           }]
         ]
         yAxis = {
@@ -372,7 +372,7 @@ locals {
           [{
             visible    = false
             id         = "expr1"
-            expression = "SELECT SUM(diskio_read_bytes) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(diskio_read_bytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
           }], [{
             expression = "expr1 / PERIOD(FIRST(expr1))"
           }]
@@ -400,7 +400,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(diskio_write_bytes) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(diskio_write_bytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
             visible    = false
           }],
           [{
@@ -430,7 +430,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(net_bytes_recv) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(net_bytes_recv) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
             visible    = false
           }],
           [{
@@ -460,7 +460,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(net_bytes_sent) FROM CWAgent WHERE SiteId='${var.site_id}' AND DeploymentId = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(net_bytes_sent) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
             visible    = false
           }],
           [{
@@ -499,7 +499,7 @@ locals {
 }
 
 resource "aws_cloudwatch_dashboard" "dashboard" {
-  dashboard_name = "${var.site_id}-${var.deployment_id}"
+  dashboard_name = "${var.enterprise_id}-${var.deployment_id}"
 
   dashboard_body = (var.platform == "windows" ?
     jsonencode({

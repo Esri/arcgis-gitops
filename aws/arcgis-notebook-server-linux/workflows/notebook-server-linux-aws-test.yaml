@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -44,8 +44,8 @@ jobs:
         docker build -t enterprise-admin-cli .
     - name: Run Tests
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        DEPLOYMENT_URL=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/deployment-url" --query "Parameter.Value" --output text)
-        PORTAL_URL=$(aws ssm get-parameter --name "/arcgis/$SITE_ID/$DEPLOYMENT_ID/portal-url" --query "Parameter.Value" --output text)
+        DEPLOYMENT_URL=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/$DEPLOYMENT_ID/deployment-url" --query "Parameter.Value" --output text)
+        PORTAL_URL=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/$DEPLOYMENT_ID/portal-url" --query "Parameter.Value" --output text)
         docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-nb-admin --nb-url $DEPLOYMENT_URL --url $PORTAL_URL

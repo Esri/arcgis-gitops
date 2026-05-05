@@ -46,15 +46,15 @@ The module reads the following Key Vault secrets:
 | Secret Name                                      | Description |
 |--------------------------------------------------|-------------|
 | ${var.deployment_id}-backend-pfx-password        | Password for the backend PFX certificate |
-| ${var.deployment_id}-deployment-fqdn             | Fully qualified domain name of the deployment |
+| ${var.deployment_id}-ingress-fqdn                | Fully qualified domain name of the ingress |
 | ${var.deployment_id}-notebook-server-web-context | ArcGIS Notebook Server web context |
 | ${var.deployment_id}-os                          | Operating system ID |
 | ${var.deployment_id}-portal-url                  | Portal for ArcGIS URL |
 | ${var.deployment_id}-storage-account-name        | Config store storage account name |
 | chef-client-url-${os}                            | Chef Client URL      |
 | cookbooks-url                                    | Chef cookbooks URL |
-| storage-account-key                              | Site storage account key |
-| storage-account-name                             | Site storage account name |
+| storage-account-key                              | Enterprise storage account key |
+| storage-account-name                             | Enterprise storage account name |
 | subnets                                          | VNet subnet IDs |
 | vm-identity-client-id                            | VM identity client ID |
 | vnet-id                                          | VNet ID |
@@ -82,9 +82,9 @@ The module reads the following Key Vault secrets:
 | az_copy_files | ../../modules/az_copy_files | n/a |
 | bootstrap_deployment | ../../modules/bootstrap | n/a |
 | clean_up | ../../modules/clean_up | n/a |
+| enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | keystore_file | ../../modules/run_chef | n/a |
 | root_cert | ../../modules/run_chef | n/a |
-| site_core_info | ../../modules/site_core_info | n/a |
 
 ## Resources
 
@@ -94,7 +94,7 @@ The module reads the following Key Vault secrets:
 | [azurerm_storage_blob.server_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault_secret.backend_pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.notebook_server_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.portal_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -114,23 +114,22 @@ The module reads the following Key Vault secrets:
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
-| deployment_id | Deployment Id | `string` | `"notebook-server-linux"` | no |
+| deployment_id | Deployment ID | `string` | `"notebook-server-linux"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | license_level | ArcGIS Notebook Server license level | `string` | `"standard"` | no |
 | log_level | ArcGIS Notebook Server log level | `string` | `"WARNING"` | no |
 | notebook_server_authorization_file_path | Local path of ArcGIS Notebook Server authorization file | `string` | n/a | yes |
 | notebook_server_authorization_options | Additional ArcGIS Notebook Server software authorization command line options | `string` | `""` | no |
-| portal_org_id | ArcGIS Enterprise organization Id | `string` | `null` | no |
+| portal_org_id | ArcGIS Enterprise organization ID | `string` | `null` | no |
 | portal_password | Portal for ArcGIS user password | `string` | n/a | yes |
 | portal_username | Portal for ArcGIS user name | `string` | n/a | yes |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
 | run_as_user | User name for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| arcgis_notebook_server_private_url | ArcGIS Notebook Server URL |
 | arcgis_notebook_server_url | ArcGIS Notebook Server URL |
 <!-- END_TF_DOCS -->

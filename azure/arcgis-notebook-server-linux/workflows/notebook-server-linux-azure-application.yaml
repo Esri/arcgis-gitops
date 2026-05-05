@@ -67,11 +67,11 @@ jobs:
     - name: Run Terraform
       id: terraform
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
         terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                        -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                       -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/application.tfstate"
+                       -backend-config="key=$ENTERPRISE_ID/azure/$DEPLOYMENT_ID/application.tfstate"
         az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
         az account set --subscription $ARM_SUBSCRIPTION_ID
         terraform apply -var-file $CONFIG_FILE -auto-approve -input=false

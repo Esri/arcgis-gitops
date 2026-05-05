@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,8 +23,8 @@
 # Key features:
 #
 # * Identifies and restores the latest valid recovery points for each resource type, 
-#   filtered by ArcGIS site and deployment IDs, and (optionally) by the backup time.
-# * Uses ArcGISSiteId, ArcGISDeploymentId, ArcGISRole, and ArcGISMachineRole
+#   filtered by ArcGISEnterpriseID and ArcGISDeploymentID, and (optionally) by the backup time.
+# * Uses ArcGISEnterpriseID, ArcGISDeploymentID, ArcGISRole, and ArcGISMachineRole
 #   tags to identify the deployment's resources to recover and the recovery points.
 # * Waits for the restore jobs to complete and logs progress.
 # * Updates configuration references such as SSM parameters, AWS Backup plan resource selections,
@@ -39,8 +39,8 @@ import time
 import logging
 
 # The script uses tags to identify the deployment's resources to recover and the recovery points.
-DEPLOYMENT_ID_TAG = 'ArcGISDeploymentId'
-SITE_ID_TAG       = 'ArcGISSiteId'
+DEPLOYMENT_ID_TAG = 'ArcGISDeploymentID'
+ENTERPRISE_ID_TAG = 'ArcGISEnterpriseID'
 ROLE_TAG          = 'ArcGISRole'
 MACHINE_ROLE_TAG  = 'ArcGISMachineRole'
 
@@ -65,13 +65,13 @@ ssm_client     = boto3.client('ssm')
 backup_client  = boto3.client('backup')
 tagging_client = boto3.client('resourcegroupstaggingapi')
 
-def get_config_store_resources(site_id, deployment_id):
+def get_config_store_resources(enterprise_id, deployment_id):
     paginator = tagging_client.get_paginator('get_resources')
         
     tag_filters = [
         {
-            'Key': SITE_ID_TAG,
-            'Values': [site_id]
+            'Key': ENTERPRISE_ID_TAG,
+            'Values': [enterprise_id]
         },
         {
             'Key': DEPLOYMENT_ID_TAG,
@@ -96,17 +96,17 @@ def get_config_store_resources(site_id, deployment_id):
 
 
 # The function recovers ArcGIS Server config store DynamoDB table
-# of the specified site and deployment from AWS Backup recovery points.
+# of the specified enterprise and deployment from AWS Backup recovery points.
 # Returns ARNs of the restored application resources.
-def restore_server_config_store(backup_vault, site_id, deployment_id, backup_date, backup_plan_id, backup_role_arn, test_mode):
+def restore_server_config_store(backup_vault, enterprise_id, deployment_id, backup_date, backup_plan_id, backup_role_arn, test_mode):
     # Find the recovery points for the DynamoDB table that were created before the specified backup date.
-    db_recovery_points = get_db_recovery_points(backup_vault, site_id, deployment_id, backup_date)
+    db_recovery_points = get_db_recovery_points(backup_vault, enterprise_id, deployment_id, backup_date)
 
     if len(db_recovery_points) == 0:
-        logger.info(f"No cloud config store recovery points found for deployment {site_id}/{deployment_id}.")
+        logger.info(f"No cloud config store recovery points found for deployment {enterprise_id}/{deployment_id}.")
         return
 
-    deployment_namespace = f"{site_id}-{deployment_id}"
+    deployment_namespace = f"{enterprise_id}-{deployment_id}"
 
     # Find recovery point of the config store DynamoDB table
     item = dynamodb_client.get_item(
@@ -131,7 +131,7 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
     if db_table_recovery_point is None:
         raise Exception(f"No recovery point found for DynamoDB table 'ArcGISConfigStore.{deployment_namespace}'.")
 
-    new_db_table_name = f"ArcGISConfigStore.{site_id}-{deployment_id}-{timestamp}"
+    new_db_table_name = f"ArcGISConfigStore.{enterprise_id}-{deployment_id}-{timestamp}"
 
     if test_mode:
         logger.info(f"Restoring recovery point '{db_table_recovery_point['RecoveryPointArn']}' ({db_table_recovery_point['CreationDate']}) to new DynamoDB table {new_db_table_name}...")
@@ -161,8 +161,8 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
             dynamodb_client.tag_resource(
                 ResourceArn=job['CreatedResourceArn'],
                 Tags=[{
-                    'Key': SITE_ID_TAG,
-                    'Value': site_id
+                    'Key': ENTERPRISE_ID_TAG,
+                    'Value': enterprise_id
                 },
                 {
                     'Key': DEPLOYMENT_ID_TAG,
@@ -183,8 +183,8 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
             dynamodb_client.tag_resource(
                 ResourceArn=original_db_table_arn,
                 Tags=[{
-                    'Key': SITE_ID_TAG,
-                    'Value': site_id
+                    'Key': ENTERPRISE_ID_TAG,
+                    'Value': enterprise_id
                 },
                 {
                     'Key': DEPLOYMENT_ID_TAG,
@@ -263,7 +263,7 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
                 SelectionId=selection['SelectionId']
             )
 
-            new_resources = get_config_store_resources(site_id, deployment_id)
+            new_resources = get_config_store_resources(enterprise_id, deployment_id)
 
             backup_client.create_backup_selection(
                 BackupPlanId=backup_plan_id,
@@ -283,13 +283,13 @@ def restore_server_config_store(backup_vault, site_id, deployment_id, backup_dat
 
 
 # Restore the deployment infrastructure from AWS backup 
-def restore_deployment_infrastructure(backup_vault, site_id, deployment_id, backup_date, backup_role_arn, test_mode):
+def restore_deployment_infrastructure(backup_vault, enterprise_id, deployment_id, backup_date, backup_role_arn, test_mode):
     # Retrieve recovery points for S3, EFS, and EC2 resources
-    s3_recovery_points  = get_recovery_points(backup_vault, 'S3', site_id, deployment_id, backup_date)
-    efs_recovery_points = get_recovery_points(backup_vault, 'EFS', site_id, deployment_id, backup_date)
-    ec2_recovery_points = get_recovery_points(backup_vault, 'EC2', site_id, deployment_id, backup_date)
+    s3_recovery_points  = get_recovery_points(backup_vault, 'S3', enterprise_id, deployment_id, backup_date)
+    efs_recovery_points = get_recovery_points(backup_vault, 'EFS', enterprise_id, deployment_id, backup_date)
+    ec2_recovery_points = get_recovery_points(backup_vault, 'EC2', enterprise_id, deployment_id, backup_date)
 
-    s3_buckets = deployment_s3_buckets(site_id, deployment_id)
+    s3_buckets = deployment_s3_buckets(enterprise_id, deployment_id)
     for role, bucket in s3_buckets.items():
         if role not in s3_recovery_points:
             raise Exception(f"No recovery point found for {role} S3 bucket '{bucket}'.")
@@ -298,7 +298,7 @@ def restore_deployment_infrastructure(backup_vault, site_id, deployment_id, back
         if test_mode:
             logger.info(f"Restoring {role} S3 bucket '{bucket}' from recovery point '{recovery_point['RecoveryPointArn']}' ({recovery_point['CreationDate']})...")
 
-    efs_file_systems = deployment_efs_file_systems(site_id, deployment_id)
+    efs_file_systems = deployment_efs_file_systems(enterprise_id, deployment_id)
     for role, file_system in efs_file_systems.items():
         if role not in efs_recovery_points:
             raise Exception(f"No recovery point found for {role} EFS file system '{file_system}'.")
@@ -307,7 +307,7 @@ def restore_deployment_infrastructure(backup_vault, site_id, deployment_id, back
         if test_mode:
             logger.info(f"Restoring {role} EFS file system '{file_system}' from recovery point '{recovery_point['RecoveryPointArn']}' ({recovery_point['CreationDate']})...")
 
-    ec2_instances = deployment_ec2_instances(site_id, deployment_id)
+    ec2_instances = deployment_ec2_instances(enterprise_id, deployment_id)
     for role, instance_id in ec2_instances.items():
         if role not in ec2_recovery_points:
             raise Exception(f"No recovery point found for {role} EC2 instance '{instance_id}'.")
@@ -343,18 +343,18 @@ def restore_deployment_infrastructure(backup_vault, site_id, deployment_id, back
                 IamRoleArn=backup_role_arn
             )['RestoreJobId'])
 
-    update_deployment_images(site_id, deployment_id, ec2_recovery_points)
+    update_deployment_images(enterprise_id, deployment_id, ec2_recovery_points)
 
     wait_for_restore_jobs(job_ids)
 
-def get_db_recovery_points(backup_vault, site_id, deployment_id, backup_time):
+def get_db_recovery_points(backup_vault, enterprise_id, deployment_id, backup_time):
     protected_resources = []
     paginator = backup_client.get_paginator('list_protected_resources_by_backup_vault')
     for page in paginator.paginate(BackupVaultName=backup_vault):
         protected_resources.extend(page['Results'])
 
     # Get all the recovery points in the vault for DynamoDB 
-    # belonging to the specified site and deployment ids and created before the specified date.
+    # belonging to the specified enterprise and deployment ids and created before the specified date.
     resource_recovery_points = []
     for protected_resource in protected_resources:
         if protected_resource['ResourceType'] != 'DynamoDB':
@@ -373,7 +373,8 @@ def get_db_recovery_points(backup_vault, site_id, deployment_id, backup_time):
                 ResourceArn=recovery_point['RecoveryPointArn']
             )['Tags']
 
-            if (SITE_ID_TAG in tags and tags[SITE_ID_TAG] == site_id and \
+            if (ENTERPRISE_ID_TAG in tags and tags[ENTERPRISE_ID_TAG] == enterprise_id and \
+               ENTERPRISE_ID_TAG in tags and tags[ENTERPRISE_ID_TAG] == enterprise_id and \
                DEPLOYMENT_ID_TAG in tags and tags[DEPLOYMENT_ID_TAG] == deployment_id) and \
                ROLE_TAG in tags and tags[ROLE_TAG] == CONFIG_STORE_ROLE:
                 resource_recovery_points.append(recovery_point)
@@ -385,16 +386,16 @@ def get_db_recovery_points(backup_vault, site_id, deployment_id, backup_time):
 
 
 # Retrieves recovery points for the specified resource type based on the specified 
-# site ID, deployment ID, and backup time.
+# enterprise ID, deployment ID, and backup time.
 # Returns a dictionary with recovery points for each resource role.
-def get_recovery_points(backup_vault, resource_type, site_id, deployment_id, backup_time):
+def get_recovery_points(backup_vault, resource_type, enterprise_id, deployment_id, backup_time):
     protected_resources = []
     paginator = backup_client.get_paginator('list_protected_resources_by_backup_vault')
     for page in paginator.paginate(BackupVaultName=backup_vault):
         protected_resources.extend(page['Results'])
 
     # Get all the recovery points in the vault for the specified resource type 
-    # belonging to the specified site and deployment ids and created before the specified date.
+    # belonging to the specified enterprise and deployment ids and created before the specified date.
     resource_recovery_points = []
     for protected_resource in protected_resources:
         if protected_resource['ResourceType'] != resource_type:
@@ -413,7 +414,8 @@ def get_recovery_points(backup_vault, resource_type, site_id, deployment_id, bac
                 ResourceArn=recovery_point['RecoveryPointArn']
             )['Tags']
 
-            if (SITE_ID_TAG in tags and tags[SITE_ID_TAG] == site_id and \
+            if (ENTERPRISE_ID_TAG in tags and tags[ENTERPRISE_ID_TAG] == enterprise_id and \
+               ENTERPRISE_ID_TAG in tags and tags[ENTERPRISE_ID_TAG] == enterprise_id and \
                DEPLOYMENT_ID_TAG in tags and tags[DEPLOYMENT_ID_TAG] == deployment_id):
                 resource_recovery_points.append(recovery_point)
 
@@ -435,14 +437,14 @@ def get_recovery_points(backup_vault, resource_type, site_id, deployment_id, bac
     return recovery_points
 
 
-# Retrieves EC2 instances for the specified site and deployment IDs.
-def deployment_ec2_instances(site_id, deployment_id):
+# Retrieves EC2 instances for the specified enterprise and deployment IDs.
+def deployment_ec2_instances(enterprise_id, deployment_id):
     instances = ec2_client.describe_instances(
         Filters=[
             {
-                'Name': f'tag:{SITE_ID_TAG}',
+                'Name': f'tag:{ENTERPRISE_ID_TAG}',
                 'Values': [
-                    site_id
+                    enterprise_id
                 ]
             },
             {
@@ -472,12 +474,12 @@ def deployment_ec2_instances(site_id, deployment_id):
     return instance_ids
 
 # Updates the deployment images in SSM Parameter Store.
-def update_deployment_images(site_id, deployment_id, ec2_recovery_points):
+def update_deployment_images(enterprise_id, deployment_id, ec2_recovery_points):
     for role, recovery_point in ec2_recovery_points.items():
         ami_id = recovery_point['RecoveryPointArn'].split('/')[-1]  # Extract AMI ID from ARN
 
         ssm_client.put_parameter(
-            Name=f"/arcgis/{site_id}/images/{deployment_id}/{role}",
+            Name=f"/arcgis/{enterprise_id}/images/{deployment_id}/{role}",
             Value=ami_id,
             Type="String",
             Overwrite=True,
@@ -486,13 +488,13 @@ def update_deployment_images(site_id, deployment_id, ec2_recovery_points):
 
         logger.info(f"Updated AMI for {role} role to backup AMI {ami_id}.")
 
-# Retrieves S3 buckets for the specified site and deployment IDs.
-def deployment_s3_buckets(site_id, deployment_id):
+# Retrieves S3 buckets for the specified enterprise and deployment IDs.
+def deployment_s3_buckets(enterprise_id, deployment_id):
     s3_buckets = {}
     
     # For some reason list_buckets paginator does not work.
     while True:
-        response = s3_client.list_buckets(Prefix=site_id)
+        response = s3_client.list_buckets(Prefix=enterprise_id)
 
         for bucket in response.get('Buckets', []):
             try:
@@ -502,14 +504,15 @@ def deployment_s3_buckets(site_id, deployment_id):
 
             tag_dict = {tag['Key']: tag['Value'] for tag in bucket_tagging['TagSet']}
 
-            if tag_dict.get(SITE_ID_TAG) == site_id and \
+            if tag_dict.get(ENTERPRISE_ID_TAG) == enterprise_id and \
+               tag_dict.get(ENTERPRISE_ID_TAG) == enterprise_id and \
                tag_dict.get(DEPLOYMENT_ID_TAG) == deployment_id and \
                ROLE_TAG in tag_dict:
                 s3_buckets[tag_dict[ROLE_TAG]] = bucket['Name']
 
         if 'NextContinuationToken' in response:
             response = s3_client.list_buckets(
-                Prefix=site_id,
+                Prefix=enterprise_id,
                 ContinuationToken=response['NextContinuationToken']
             )
         else:
@@ -555,15 +558,15 @@ def wait_for_running_restore_jobs():
         time.sleep(SLEEP_INTERVAL)
 
 
-# Retrieves the EFS file systems for the specified site and deployment IDs.
-def deployment_efs_file_systems(site_id, deployment_id):
+# Retrieves the EFS file systems for the specified enterprise and deployment IDs.
+def deployment_efs_file_systems(enterprise_id, deployment_id):
     file_systems = {}
 
     for file_system in efs_client.describe_file_systems()['FileSystems']:
-        # Skip file systems that are not tagged with ArcGISSiteId and ArcGISDeploymentId
+        # Skip file systems that are not tagged with ArcGISEnterpriseID and ArcGISDeploymentID
         tags = {tag['Key']: tag['Value'] for tag in file_system.get('Tags', [])}
-        if SITE_ID_TAG not in tags or DEPLOYMENT_ID_TAG not in tags or ROLE_TAG not in tags or \
-            tags.get(SITE_ID_TAG) != site_id or tags.get(DEPLOYMENT_ID_TAG) != deployment_id:
+        if ENTERPRISE_ID_TAG not in tags or DEPLOYMENT_ID_TAG not in tags or ROLE_TAG not in tags or \
+            tags.get(ENTERPRISE_ID_TAG) != enterprise_id or tags.get(DEPLOYMENT_ID_TAG) != deployment_id:
             continue
 
         role = tags.get(ROLE_TAG)
@@ -599,8 +602,8 @@ if __name__ == '__main__':
         prog='recover_deployment.py',
         description='Recovers deployment from AWS Backup.')
 
-    arg_parser.add_argument('-s', '--site-id', dest='site_id', required=True, help='ArcGIS Enterprise site Id')
-    arg_parser.add_argument('-d', '--deployment-id', dest='deployment_id', required=True, help='ArcGIS Enterprise deployment Id')
+    arg_parser.add_argument('-s', '--enterprise-id', dest='enterprise_id', required=True, help='ArcGIS Enterprise ID')
+    arg_parser.add_argument('-d', '--deployment-id', dest='deployment_id', required=True, help='ArcGIS Enterprise deployment ID')
     arg_parser.add_argument('-c', '--backup-time', dest='backup_time', default=None, help='Use recovery points that were created before the specified timestamp in ISO 8601 format (e.g., 2024-01-01T00:00:00Z)')
     arg_parser.add_argument('-t', '--test-mode', dest='test_mode', action="store_true", help='Run in test mode without making changes.')
 
@@ -611,29 +614,29 @@ if __name__ == '__main__':
     if args.backup_time:
         backup_time = parser.parse(args.backup_time)
 
-    logger.info(f"Recovering deployment {args.site_id}/{args.deployment_id} from AWS Backup created before {backup_time}...")
+    logger.info(f"Recovering deployment {args.enterprise_id}/{args.deployment_id} from AWS Backup created before {backup_time}...")
 
     backup_client = boto3.client('backup')
 
     backup_vault = ssm_client.get_parameter(
-        Name=f"/arcgis/{args.site_id}/backup/vault-name",
+        Name=f"/arcgis/{args.enterprise_id}/backup/vault-name",
         WithDecryption=True
     )['Parameter']['Value']
 
     backup_plan_id = ssm_client.get_parameter(
-        Name=f"/arcgis/{args.site_id}/{args.deployment_id}/backup/plan-id",
+        Name=f"/arcgis/{args.enterprise_id}/{args.deployment_id}/backup/plan-id",
         WithDecryption=True
     )['Parameter']['Value']
 
     backup_role_arn = ssm_client.get_parameter(
-        Name=f"/arcgis/{args.site_id}/iam/backup-role-arn",
+        Name=f"/arcgis/{args.enterprise_id}/iam/backup-role-arn",
         WithDecryption=True
     )['Parameter']['Value']
 
     # Restore server config store and infrastructure in test mode first
     # to ensure that all the required recovery points exist.
-    restore_server_config_store(backup_vault, args.site_id, args.deployment_id, backup_time, backup_plan_id, backup_role_arn, True)
-    restore_deployment_infrastructure(backup_vault, args.site_id, args.deployment_id, backup_time, backup_role_arn, True)
+    restore_server_config_store(backup_vault, args.enterprise_id, args.deployment_id, backup_time, backup_plan_id, backup_role_arn, True)
+    restore_deployment_infrastructure(backup_vault, args.enterprise_id, args.deployment_id, backup_time, backup_role_arn, True)
 
     if args.test_mode:
         logger.info("Running in test mode. No changes will be made.")
@@ -645,7 +648,7 @@ if __name__ == '__main__':
 
     logger.info("Starting recovery of the deployment...")
 
-    restore_server_config_store(backup_vault, args.site_id, args.deployment_id, backup_time, backup_plan_id, backup_role_arn, False)
-    restore_deployment_infrastructure(backup_vault, args.site_id, args.deployment_id, backup_time, backup_role_arn, False)
+    restore_server_config_store(backup_vault, args.enterprise_id, args.deployment_id, backup_time, backup_plan_id, backup_role_arn, False)
+    restore_deployment_infrastructure(backup_vault, args.enterprise_id, args.deployment_id, backup_time, backup_role_arn, False)
 
     logger.info("Deployment recovery completed.")

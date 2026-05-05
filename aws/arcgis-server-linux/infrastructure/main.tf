@@ -7,7 +7,7 @@
  *
  * The module launches one primary SSM-managed EC2 instance and node_count additional instances 
  * in the private VPC subnets or subnets specified by the subnet_ids input variable.
- * The instances are launched from images retrieved from '/arcgis/${var.site_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
+ * The instances are launched from images retrieved from '/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
  * The images must be created by the Packer Template for ArcGIS Server on Linux AMI. 
  *
  * For the primary EC2 instance the module creates an "A" record in the VPC Route 53 private hosted zone
@@ -32,9 +32,9 @@
  * * A CloudWatch dashboard that displays the CloudWatch metrics and logs of the deployment.
  *
  * The module also creates an AWS backup plan for the deployment that backs up all the EC2 
- * instances and EFS file system in the site's backup vault.
+ * instances and EFS file system in the enterprise's backup vault.
  *
- * All the created AWS resources are tagged with ArcGISSiteId and ArcGISDeploymentId tags.
+ * All the created AWS resources are tagged with ArcGISEnterpriseID and ArcGISDeploymentID tags.
  *
  * ## Requirements
  * 
@@ -54,33 +54,33 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn | ALB ARN |
- * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id | ALB security group ID |
- * | /arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
- * | /arcgis/${var.site_id}/${var.portal_deployment_id}/deployment-url | Deployment URL of Portal for ArcGIS (if portal_deployment_id is set) |
- * | /arcgis/${var.site_id}/backup/vault-name | Name of the AWS Backup vault |
- * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
- * | /arcgis/${var.site_id}/iam/instance-profile-name | IAM instance profile name |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
- * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
- * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
- * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
- * | /arcgis/${var.site_id}/vpc/id | VPC ID |
- * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+ * | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/arn | ALB ARN |
+ * | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/security-group-id | ALB security group ID |
+ * | /arcgis/${var.enterprise_id}/${var.ingress_id}/ingress-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
+ * | /arcgis/${var.enterprise_id}/${var.portal_deployment_id}/deployment-url | Deployment URL of Portal for ArcGIS (if portal_deployment_id is set) |
+ * | /arcgis/${var.enterprise_id}/backup/vault-name | Name of the AWS Backup vault |
+ * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.enterprise_id}/iam/instance-profile-name | IAM instance profile name |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/node | Node EC2 instances AMI ID |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
+ * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
+ * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
+ * | /arcgis/${var.enterprise_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+ * | /arcgis/${var.enterprise_id}/vpc/id | VPC ID |
+ * | /arcgis/${var.enterprise_id}/vpc/subnets | IDs of VPC subnets |
  *
  * The module writes the following SSM parameters:
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
- * | /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
- * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
- * | /arcgis/${var.site_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment | 
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
  */
 
 # Copyright 2024-2026 Esri
@@ -96,7 +96,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 terraform {
   backend "s3" {
     key = "terraform/arcgis-enterprise/arcgis-server/infrastructure.tfstate"
@@ -114,12 +114,12 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
-      ArcGISAutomation   = "arcgis-gitops"      
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISAutomation   = "arcgis-gitops"
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 }
@@ -127,20 +127,20 @@ provider "aws" {
 # Retrieve configuration parameters from SSM Parameter Store
 
 data "aws_ssm_parameter" "primary_ami" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/primary"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary"
 }
 
 data "aws_ssm_parameter" "node_ami" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/node"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/node"
 }
 
 data "aws_ssm_parameter" "portal_deployment_url" {
   count = var.portal_deployment_id == null ? 0 : 1
-  name = "/arcgis/${var.site_id}/${var.portal_deployment_id}/deployment-url"
+  name  = "/arcgis/${var.enterprise_id}/${var.portal_deployment_id}/deployment-url"
 }
 
 data "aws_ssm_parameter" "server_web_context" {
-  name  = "/arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context"
 }
 
 data "aws_ami" "ami" {
@@ -150,54 +150,54 @@ data "aws_ami" "ami" {
   }
 }
 
-data "aws_ssm_parameter" "alb_deployment_fqdn" {
-  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/deployment-fqdn"
+data "aws_ssm_parameter" "alb_ingress_fqdn" {
+  name = "/arcgis/${var.enterprise_id}/${var.ingress_id}/ingress-fqdn"
 }
 
 data "aws_ssm_parameter" "alb_security_group_id" {
-  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/security-group-id"
+  name = "/arcgis/${var.enterprise_id}/${var.ingress_id}/alb/security-group-id"
 }
-  
+
 data "aws_ssm_parameter" "alb_arn" {
-  name  = "/arcgis/${var.site_id}/${var.ingress_deployment_id}/alb/arn"
+  name = "/arcgis/${var.enterprise_id}/${var.ingress_id}/alb/arn"
 }
 
 data "aws_lb" "alb" {
-  arn   = data.aws_ssm_parameter.alb_arn.value
+  arn = data.aws_ssm_parameter.alb_arn.value
 }
 
 locals {
-  subnets = (length(var.subnet_ids) == 0 ? module.site_core_info.private_subnets : var.subnet_ids)
+  subnets = (length(var.subnet_ids) == 0 ? module.enterprise_core_info.private_subnets : var.subnet_ids)
 
   # Get value of ArcGISVersion tags from the AMI to copy them to the EC2 instances.
-  arcgis_version     = try(data.aws_ami.ami.tags.ArcGISVersion, null)
+  arcgis_version = try(data.aws_ami.ami.tags.ArcGISVersion, null)
 
   alb_security_group_id = nonsensitive(data.aws_ssm_parameter.alb_security_group_id.value)
   alb_arn               = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
   alb_dns_name          = data.aws_lb.alb.dns_name
-  deployment_fqdn       = nonsensitive(data.aws_ssm_parameter.alb_deployment_fqdn.value)
+  ingress_fqdn       = nonsensitive(data.aws_ssm_parameter.alb_ingress_fqdn.value)
   server_web_context    = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
 }
 
-module "site_core_info" {
-  source = "../../modules/site_core_info"
-  site_id = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 # Create and configure the deployment's EC2 security group 
 module "security_group" {
   source                = "../../modules/security_group"
-  name                  = "${var.site_id}-${var.deployment_id}-app"
-  vpc_id                = module.site_core_info.vpc_id
+  name                  = "${var.enterprise_id}-${var.deployment_id}-app"
+  vpc_id                = module.enterprise_core_info.vpc_id
   alb_security_group_id = local.alb_security_group_id
   alb_ports             = [80, 443, 6443]
 }
 
 resource "aws_ssm_parameter" "security_group_id" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/security-group-id"
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id"
   type        = "String"
   value       = module.security_group.id
-  description = "Deployment security group Id"
+  description = "Deployment security group ID"
 }
 
 # Create EFS file system for the deployment's file server
@@ -205,14 +205,14 @@ resource "aws_efs_file_system" "fileserver" {
   encrypted = true
 
   tags = {
-    Name = "${var.site_id}/${var.deployment_id}/fileserver"
+    Name       = "${var.enterprise_id}/${var.deployment_id}/fileserver"
     ArcGISRole = "fileserver"
   }
 }
 
 # Create EFS mount targets for the EFS file system in the deployment's subnets.
 resource "aws_efs_mount_target" "fileserver" {
-  count = length(local.subnets)
+  count           = length(local.subnets)
   file_system_id  = aws_efs_file_system.fileserver.id
   subnet_id       = local.subnets[count.index]
   security_groups = [module.security_group.id]
@@ -225,17 +225,17 @@ resource "aws_network_interface" "primary" {
   security_groups = [module.security_group.id]
 
   tags = {
-    Name = "${var.site_id}/${var.deployment_id}/primary"
+    Name = "${var.enterprise_id}/${var.deployment_id}/primary"
   }
 }
 
 # Create primary EC2 instance
 resource "aws_instance" "primary" {
-  ami                    = nonsensitive(data.aws_ssm_parameter.primary_ami.value)
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  iam_instance_profile   = module.site_core_info.instance_profile_name
-  monitoring             = true
+  ami                  = nonsensitive(data.aws_ssm_parameter.primary_ami.value)
+  instance_type        = var.instance_type
+  key_name             = var.key_name
+  iam_instance_profile = module.enterprise_core_info.instance_profile_name
+  monitoring           = true
 
 
   primary_network_interface {
@@ -256,38 +256,38 @@ resource "aws_instance" "primary" {
   }
 
   tags = {
-    Name              = "${var.site_id}/${var.deployment_id}/primary"
+    Name              = "${var.enterprise_id}/${var.deployment_id}/primary"
     ArcGISVersion     = local.arcgis_version
     ArcGISMachineRole = "primary"
   }
 
   volume_tags = {
-    Name               = "${var.site_id}/${var.deployment_id}/primary"
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    Name               = "${var.enterprise_id}/${var.deployment_id}/primary"
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
     ArcGISMachineRole  = "primary"
   }
 }
 
 resource "aws_network_interface" "nodes" {
-  count           = var.node_count
+  count = var.node_count
   # Distribute node instances in different subnets starting from the second subnet.
   subnet_id       = local.subnets[(count.index + 1) % length(local.subnets)]
   security_groups = [module.security_group.id]
 
   tags = {
-    Name = "${var.site_id}/${var.deployment_id}/node/${count.index + 1}"
+    Name = "${var.enterprise_id}/${var.deployment_id}/node/${count.index + 1}"
   }
 }
 
 # Create node EC2 instances
 resource "aws_instance" "nodes" {
-  count                  = var.node_count
-  ami                    = nonsensitive(data.aws_ssm_parameter.node_ami.value)
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  iam_instance_profile   = module.site_core_info.instance_profile_name
-  monitoring             = true
+  count                = var.node_count
+  ami                  = nonsensitive(data.aws_ssm_parameter.node_ami.value)
+  instance_type        = var.instance_type
+  key_name             = var.key_name
+  iam_instance_profile = module.enterprise_core_info.instance_profile_name
+  monitoring           = true
 
   primary_network_interface {
     network_interface_id = aws_network_interface.nodes[count.index].id
@@ -307,15 +307,15 @@ resource "aws_instance" "nodes" {
   }
 
   tags = {
-    Name              = "${var.site_id}/${var.deployment_id}/node"
+    Name              = "${var.enterprise_id}/${var.deployment_id}/node"
     ArcGISVersion     = local.arcgis_version
     ArcGISMachineRole = "node"
   }
 
   volume_tags = {
-    Name               = "${var.site_id}/${var.deployment_id}/node"
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    Name               = "${var.enterprise_id}/${var.deployment_id}/node"
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
     ArcGISMachineRole  = "node"
   }
 }
@@ -326,7 +326,7 @@ resource "aws_instance" "nodes" {
 module "server_https_alb_target" {
   source            = "../../modules/alb_target_group"
   name              = substr(local.server_web_context, 0, 6)
-  vpc_id            = module.site_core_info.vpc_id
+  vpc_id            = module.enterprise_core_info.vpc_id
   alb_arn           = local.alb_arn
   protocol          = "HTTPS"
   alb_port          = 443
@@ -340,12 +340,12 @@ module "server_https_alb_target" {
 # Mount /mnt/efs/ to the EFS file system on the EC2 instances.
 module "nfs_mount" {
   source        = "../../modules/ansible_playbook"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
   playbook      = "arcgis.common.efs_mount"
   external_vars = {
-    mount_point  = "/mnt/efs/"
+    mount_point    = "/mnt/efs/"
     file_system_id = aws_efs_file_system.fileserver.id
   }
   depends_on = [
@@ -353,11 +353,11 @@ module "nfs_mount" {
     aws_efs_mount_target.fileserver,
     aws_instance.primary,
     aws_instance.nodes
-  ]  
+  ]
 }
 # Create Route53 record for the primary EC2 instance in the VPC private hosted zone.
 resource "aws_route53_record" "primary" {
-  zone_id = module.site_core_info.hosted_zone_id
+  zone_id = module.enterprise_core_info.hosted_zone_id
   name    = "primary.${var.deployment_id}"
   type    = "A"
   ttl     = 300
@@ -366,7 +366,7 @@ resource "aws_route53_record" "primary" {
 
 # Create S3 bucket for the object store
 resource "aws_s3_bucket" "object_store" {
-  bucket_prefix = "${var.site_id}-object-store"
+  bucket_prefix = "${var.enterprise_id}-object-store"
   force_destroy = true
 
   tags = {
@@ -391,7 +391,7 @@ resource "aws_s3_bucket_ownership_controls" "object_store" {
 }
 
 resource "aws_ssm_parameter" "object_store_s3_bucket" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket"
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket"
   type        = "String"
   value       = aws_s3_bucket.object_store.bucket
   description = "Object store S3 bucket"
@@ -401,7 +401,7 @@ resource "aws_ssm_parameter" "object_store_s3_bucket" {
 module "cw_agent" {
   source        = "../../modules/cw_agent"
   platform      = "linux"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   depends_on = [
     aws_instance.primary,
@@ -411,10 +411,10 @@ module "cw_agent" {
 
 # Create CloudWatch dashboard for the deployment.
 module "dashboard" {
-  source        = "../../modules/dashboard"
-  platform      = "linux"
-  site_id       = var.site_id
-  deployment_id = var.deployment_id
+  source         = "../../modules/dashboard"
+  platform       = "linux"
+  enterprise_id  = var.enterprise_id
+  deployment_id  = var.deployment_id
   log_group_name = module.cw_agent.log_group_name
   depends_on = [
     module.cw_agent
@@ -422,25 +422,25 @@ module "dashboard" {
 }
 
 # Save the ALB DNS name to SSM parameter store for use by other modules.
-resource "aws_ssm_parameter" "deployment_fqdn" {
-  count       = var.ingress_deployment_id == null ? 0 : 1
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+resource "aws_ssm_parameter" "ingress_fqdn" {
+  count       = var.ingress_id == null ? 0 : 1
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
   type        = "String"
-  value       = local.deployment_fqdn
-  description = "Fully qualified domain name of the deployment"
+  value       = local.ingress_fqdn
+  description = "Fully qualified domain name of the ingress"
 }
 
 resource "aws_ssm_parameter" "deployment_url" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-url"
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url"
   type        = "String"
-  value       = "https://${local.deployment_fqdn}/${local.server_web_context}"
+  value       = "https://${local.ingress_fqdn}/${local.server_web_context}"
   description = "URL of the deployment"
 }
 
 # Save the Portal for ArcGIS URL to SSM parameter store for use by other modules.
 resource "aws_ssm_parameter" "portal_url" {
   count       = var.portal_deployment_id == null ? 0 : 1
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url"
   type        = "String"
   value       = nonsensitive(data.aws_ssm_parameter.portal_deployment_url[0].value)
   description = "Portal for ArcGIS URL"

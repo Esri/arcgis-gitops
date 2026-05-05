@@ -50,22 +50,22 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
-| /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
-| /arcgis/${var.site_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
-| /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
-| /arcgis/${var.site_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
-| /arcgis/${var.site_id}/chef-client-url/${os} | Chef Client URL for the operating system |
-| /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
-| /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system of the deployment |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
-| /arcgis/${var.site_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
-| /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
-| /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
-| /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
-| /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
-| /arcgis/${var.site_id}/vpc/id | VPC ID |
-| /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+| /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |
+| /arcgis/${var.enterprise_id}/cookbooks-url | Chef cookbooks URL |
+| /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
+| /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
+| /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+| /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
+| /arcgis/${var.enterprise_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+| /arcgis/${var.enterprise_id}/vpc/id | VPC ID |
+| /arcgis/${var.enterprise_id}/vpc/subnets | IDs of VPC subnets |
 
 ## Providers
 
@@ -88,10 +88,10 @@ The module reads the following SSM parameters:
 | begin_upgrade_standby | ../../modules/run_chef | n/a |
 | bootstrap_deployment | ../../modules/bootstrap | n/a |
 | clean_up | ../../modules/clean_up | n/a |
+| enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | keystore_file | ../../modules/run_chef | n/a |
 | root_cert | ../../modules/run_chef | n/a |
 | s3_copy_files | ../../modules/s3_copy_files | n/a |
-| site_core_info | ../../modules/site_core_info | n/a |
 
 ## Resources
 
@@ -100,12 +100,12 @@ The module reads the following SSM parameters:
 | [aws_ec2_tag.arcgis_version](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ec2_tag) | resource |
 | [aws_s3_object.keystore_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.portal_authorization_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
-| [aws_s3_object.root_cert_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
+| [aws_s3_object.root_certificate_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.server_authorization_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_instances.deployment](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
 | [aws_instances.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
-| [aws_ssm_parameter.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.os](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -126,22 +126,22 @@ The module reads the following SSM parameters:
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
-| aws_region | AWS region Id | `string` | n/a | yes |
+| aws_region | AWS region ID | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
-| deployment_id | Deployment Id | `string` | `"enterprise-base-linux"` | no |
+| deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
-| keystore_file_password | Password for keystore file with SSL certificate used by HTTPS listeners | `string` | `""` | no |
-| keystore_file_path | Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners | `string` | `null` | no |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |
-| portal_user_license_type_id | Portal for ArcGIS administrator user license type Id | `string` | `""` | no |
-| root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
+| portal_user_license_type_id | Portal for ArcGIS administrator user license type ID | `string` | `""` | no |
+| root_certificate_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
 | run_as_user | User name for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
 | security_question_answer | Primary ArcGIS Enterprise administrator security question answer | `string` | n/a | yes |
 | security_question_index | Primary ArcGIS Enterprise administrator security question index | `number` | `1` | no |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
 | server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
+| server_certificate_password | Password for TLS certificate in PKCS12 format installed on backend servers | `string` | `""` | no |
+| server_certificate_path | Local file path of TLS certificate in PKCS12 format installed on backend servers | `string` | `null` | no |
 
 ## Outputs
 

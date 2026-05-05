@@ -14,7 +14,7 @@
 
 # Deployment dashboard
 resource "azurerm_portal_dashboard" "deployment" {
-  name                = "${var.site_id}-${var.deployment_id}"
+  name                = "${var.enterprise_id}-${var.deployment_id}"
   resource_group_name = azurerm_resource_group.deployment_rg.name
   location            = azurerm_resource_group.deployment_rg.location
   dashboard_properties = jsonencode({
@@ -675,7 +675,7 @@ resource "azurerm_portal_dashboard" "deployment" {
   })
 
   tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
   }
 }

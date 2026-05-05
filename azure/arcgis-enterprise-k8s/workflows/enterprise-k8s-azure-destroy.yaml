@@ -60,10 +60,10 @@ jobs:
       - name: Update kubeconfig
         id: update-kubeconfig
         run: |
-          SITE_ID=$(jq -r '.site_id' $ORGANIZATION_CONFIG_FILE)
+          ENTERPRISE_ID=$(jq -r '.enterprise_id' $ORGANIZATION_CONFIG_FILE)
           az login --service-principal -u $ARM_CLIENT_ID -p $ARM_CLIENT_SECRET --tenant $ARM_TENANT_ID
           az account set --subscription $ARM_SUBSCRIPTION_ID
-          az aks get-credentials --resource-group "$SITE_ID"-k8s-cluster --name $SITE_ID --overwrite-existing
+          az aks get-credentials --resource-group "$ENTERPRISE_ID"-k8s-cluster --name $ENTERPRISE_ID --overwrite-existing
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.10.0"
@@ -71,23 +71,23 @@ jobs:
         id: destroy-organization
         working-directory: azure/arcgis-enterprise-k8s/organization
         run: |
-          SITE_ID=$(jq -r '.site_id' $ORGANIZATION_CONFIG_FILE)
+          ENTERPRISE_ID=$(jq -r '.enterprise_id' $ORGANIZATION_CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $ORGANIZATION_CONFIG_FILE)
           ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
           terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                         -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/organization.tfstate"
+                         -backend-config="key=$ENTERPRISE_ID/azure/$DEPLOYMENT_ID/organization.tfstate"
           terraform destroy -var-file $ORGANIZATION_CONFIG_FILE -auto-approve
       - name: Destroy Ingress
         id: destroy-ingress
         if: ${{ inputs.delete_namespace != false }}
         working-directory: azure/arcgis-enterprise-k8s/ingress
         run: |
-          SITE_ID=$(jq -r '.site_id' $INGRESS_CONFIG_FILE)
+          ENTERPRISE_ID=$(jq -r '.enterprise_id' $INGRESS_CONFIG_FILE)
           DEPLOYMENT_ID=$(jq -r '.deployment_id' $INGRESS_CONFIG_FILE)
           terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                         -backend-config="key=$SITE_ID/azure/$DEPLOYMENT_ID/ingress.tfstate"
+                         -backend-config="key=$ENTERPRISE_ID/azure/$DEPLOYMENT_ID/ingress.tfstate"
           terraform destroy -var-file $INGRESS_CONFIG_FILE -auto-approve
 
 

@@ -16,7 +16,7 @@ Supported Operating Systems:
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
-2. Create the core AWS resources, Chef automation resources, and Application Load Balancer for ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
+2. Create the core AWS resources, Chef automation resources, and Application Load Balancer for ArcGIS Enterprise using [arcgis-enterprise-core](../arcgis-enterprise-core/README.md) template.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 
@@ -26,9 +26,9 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of base ArcGIS Enterprise includes building images, provisioning AWS resources, configuring the applications, and testing the deployment web services.
 
-### 1. Set GitHub Actions Secrets for the Site
+### 1. Set GitHub Actions Secrets for the Enterprise
 
-Set the primary ArcGIS Enterprise site administrator credentials in the GitHub Actions secrets of the repository settings.
+Set the primary ArcGIS Enterprise administrator credentials in the GitHub Actions secrets of the repository settings.
 
 | Name                      | Description                                    |
 |---------------------------|------------------------------------------------|
@@ -115,7 +115,7 @@ Instructions:
 
 GitHub Actions workflow **enterprise-base-windows-aws-test** tests base ArcGIS Enterprise deployment.
 
-The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to publish a CSV file to the Portal for ArcGIS URL retrieved from /arcgis/${SITE_ID}/${DEPLOYMENT_ID}/deployment-url SSM parameter.
+The workflow uses test-publish-csv script from ArcGIS Enterprise Admin CLI to publish a CSV file to the Portal for ArcGIS URL retrieved from /arcgis/${ENTERPRISE_ID}/${DEPLOYMENT_ID}/deployment-url SSM parameter.
 
 Instructions:
 
@@ -130,7 +130,7 @@ The template supports:
 
 ### Application-level Backups
 
-The application-level base ArcGIS Enterprise deployment backups back up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the site's backup S3 bucket.
+The application-level base ArcGIS Enterprise deployment backups back up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the enterprise's backup S3 bucket.
 
 #### Creating Application-level Backups
 
@@ -166,13 +166,13 @@ Instructions:
 
 ### System-level backups
 
-The system-level base ArcGIS Enterprise deployment backups back up S3 buckets, DynamoDB tables, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the site's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
+The system-level base ArcGIS Enterprise deployment backups back up S3 buckets, DynamoDB tables, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the enterprise's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
 
 > System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or an edit to a feature service that is made during the backup process.
 
 #### Creating System-level Backups
 
-GitHub Actions workflow **enterprise-base-windows-aws-infrastructure** creates an AWS backup plan for the deployment that backs up the EC2 instances, Portal for ArcGIS content store S3 bucket, and ArcGIS Server object store S3 bucket created by the workflow in the site's AWS Backup vault. The backup schedule is controlled by the CRON expression set in the "backup_schedule" property in the [infrastructure.tfvars.json](../../config/aws/arcgis-enterprise-base-windows/infrastructure.tfvars.json) file.
+GitHub Actions workflow **enterprise-base-windows-aws-infrastructure** creates an AWS backup plan for the deployment that backs up the EC2 instances, Portal for ArcGIS content store S3 bucket, and ArcGIS Server object store S3 bucket created by the workflow in the enterprise's AWS Backup vault. The backup schedule is controlled by the CRON expression set in the "backup_schedule" property in the [infrastructure.tfvars.json](../../config/aws/arcgis-enterprise-base-windows/infrastructure.tfvars.json) file.
 
 If the deployment uses S3 and DynamoDB AWS storage services for ArcGIS Server configuration store, then the GitHub Actions workflow **enterprise-base-windows-aws-application** enables versioning for the configuration store S3 bucket, tags the S3 bucket and DynamoDB table, and adds them to the deployment's backup plan.
 

@@ -24,8 +24,8 @@ aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/A
 aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseImage --policy-document file://ArcGISEnterpriseImage.json --set-as-default --output text
 aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseInfrastructure --policy-document file://ArcGISEnterpriseInfrastructure.json --set-as-default --output text
 aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseK8s --policy-document file://ArcGISEnterpriseK8s.json --set-as-default --output text
-aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISSiteCore --policy-document file://ArcGISSiteCore.json --set-as-default --output text
-aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISSiteCoreDestroy --policy-document file://ArcGISSiteCoreDestroy.json --set-as-default --output text
-aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISSiteK8sCluster --policy-document file://ArcGISSiteK8sCluster.json --set-as-default --output text
-aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISSiteK8sClusterDestroy --policy-document file://ArcGISSiteK8sClusterDestroy.json --set-as-default --output text
+aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseCore --policy-document file://ArcGISEnterpriseCore.json --set-as-default --output text
+aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseCoreDestroy --policy-document file://ArcGISEnterpriseCoreDestroy.json --set-as-default --output text
+aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseK8sCluster --policy-document file://ArcGISEnterpriseK8sCluster.json --set-as-default --output text
+aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/ArcGISEnterpriseK8sClusterDestroy --policy-document file://ArcGISEnterpriseK8sClusterDestroy.json --set-as-default --output text
 aws iam create-policy-version --policy-arn arn:aws:iam::$AWS_ACCOUNT_ID:policy/TerraformBackend --policy-document file://TerraformBackend.json --set-as-default --output text

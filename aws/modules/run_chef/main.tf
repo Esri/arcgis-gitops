@@ -4,11 +4,11 @@
  * Terraform module run_chef runs Cinc client in zero mode on EC2 instances in specified roles.
  * 
  * The module runs ssm_run_chef.py python script that creates a SecureString SSM parameter with Chef JSON attributes and
- * runs {var.site-id}-run-chef SSM command on the deployment's EC2 instances in specific roles.
+ * runs {var.enterprise_id}-run-chef SSM command on the deployment's EC2 instances in specific roles.
  *
  * ## Requirements
  *
- * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.site_id}/s3/logs" SSM parameter.
+ * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
  *
  * On the machine where Terraform is executed:
  *
@@ -46,7 +46,7 @@ terraform {
 data "aws_region" "current" {}
 
 data "aws_ssm_parameter" "output_s3_bucket" {
-  name  = "/arcgis/${var.site_id}/s3/logs"
+  name  = "/arcgis/${var.enterprise_id}/s3/logs"
 }
 
 resource "null_resource" "run_chef" {
@@ -60,6 +60,6 @@ resource "null_resource" "run_chef" {
       AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
-    command = "python -m ssm_run_chef -s ${var.site_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -j ${var.parameter_name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)} -e ${var.execution_timeout}"
+    command = "python -m ssm_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -j ${var.parameter_name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)} -e ${var.execution_timeout}"
   }
 }

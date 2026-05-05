@@ -4,12 +4,12 @@
   "arcgis_server_patches": [],
   "arcgis_version": "12.0",
   "deployment_id": "enterprise-base-linux",
-  "os": "rhel9",
+  "enterprise_id": "arcgis",
   "os_disk_size": 256,
+  "os": "rhel9",
   "portal_web_context": "portal",
   "run_as_user": "arcgis",
   "server_web_context": "server",
-  "site_id": "arcgis",
   "skip_create_image": false,
   "vm_size": "Standard_D8s_v5"
 }

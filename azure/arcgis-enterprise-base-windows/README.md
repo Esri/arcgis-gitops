@@ -16,7 +16,7 @@ Supported Operating Systems:
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
-2. Create core Azure resources, Chef automation resources, and Application Gateway for the ArcGIS Enterprise site using [arcgis-site-core](../arcgis-site-core/README.md) template.
+2. Create core Azure resources, Chef automation resources, and Application Gateway for the ArcGIS Enterprise using [arcgis-enterprise-core](../arcgis-enterprise-core/README.md) template.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 
@@ -26,9 +26,9 @@ To enable the template's workflows, copy the .yaml files from the template's `wo
 
 Initial deployment of base ArcGIS Enterprise includes building images, provisioning Azure resources, configuring the applications, and testing the deployment web services.
 
-### 1. Set GitHub Actions Secrets for the Site
+### 1. Set GitHub Actions Secrets for the Enterprise
 
-Set the primary ArcGIS Enterprise site administrator, run as user, and VM administrator credentials in the GitHub Actions secrets of the repository settings.
+Set the primary ArcGIS Enterprise administrator, run as user, and VM administrator credentials in the GitHub Actions secrets of the repository settings.
 
 | Name                      | Description                                    |
 |---------------------------|------------------------------------------------|
@@ -120,7 +120,7 @@ Instructions:
 
 The template supports application-level base ArcGIS Enterprise backup and restore operations using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool.
 
-The application-level backup of base ArcGIS Enterprise deployment backs up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the "webgisdr-backups" blob container in the site's storage account.
+The application-level backup of base ArcGIS Enterprise deployment backs up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the "webgisdr-backups" blob container in the enterprise's storage account.
 
 ### Creating Application-level Backups
 
@@ -186,6 +186,6 @@ To prevent deployments from accessing the Internet, use "internal" subnets for V
 
 The disconnected deployments cannot access the system and application internet services such as ArcGIS Online, My Esri, Esri license server, package repositories, and time services.
 
-The application image builds run in "private" subnets that can access the internet. The image build installs the agents, Azure CLI, and system packages required by the applications. The application update and upgrade workflows use the storage account endpoints to access the private "repository" blob container in the site's storage account to get all the required files.
+The application image builds run in "private" subnets that can access the internet. The image build installs the agents, Azure CLI, and system packages required by the applications. The application update and upgrade workflows use the storage account endpoints to access the private "repository" blob container in the enterprise's storage account to get all the required files.
 
 The disconnected deployments must use authorization files that do not require internet access to the Esri license server, such as Esri Secure License File (ESLF) or ECP file (.ecp).  

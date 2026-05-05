@@ -24,22 +24,12 @@ variable "arcgis_enterprise_context" {
 }
 
 variable "aws_region" {
-  description = "AWS region Id"
+  description = "AWS region ID"
   type        = string
 }
 
-variable "deployment_fqdn" {
-  description = "The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
-  }
-}
- 
 variable "deployment_id" {
-  description = "ArcGIS Enterprise deployment Id"
+  description = "ArcGIS Enterprise deployment ID"
   type        = string
   default     = "enterprise-k8s"
 
@@ -55,6 +45,17 @@ variable "enable_access_log" {
   default     = true
 }
 
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
 variable "hosted_zone_id" {
   description = "The Route 53 public hosted zone ID for the domain"
   type        = string
@@ -66,21 +67,20 @@ variable "hosted_zone_id" {
   }
 }
 
+variable "ingress_fqdn" {
+  description = "The fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes"
+  type        = string
+
+  validation {
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.ingress_fqdn))
+    error_message = "The ingress_fqdn value must be a valid domain name."
+  }
+}
+
 variable "internal_load_balancer" {
   description = "If true, the load balancer scheme is set to 'internal'"
   type        = bool
   default     = false
-}
-
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
 }
 
 variable "ssl_certificate_arn" {

@@ -43,7 +43,7 @@ jobs:
         docker build -t enterprise-admin-cli .
     - name: Run Tests
       run: |
-        SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+        ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        DEPLOYMENT_URL=$(aws ssm get-parameter --name "/arcgis/${SITE_ID}/${DEPLOYMENT_ID}/deployment-url" --query "Parameter.Value" --output text)
+        DEPLOYMENT_URL=$(aws ssm get-parameter --name "/arcgis/${ENTERPRISE_ID}/${DEPLOYMENT_ID}/deployment-url" --query "Parameter.Value" --output text)
         docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-publish-csv --url $DEPLOYMENT_URL

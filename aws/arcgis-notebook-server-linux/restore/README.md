@@ -1,6 +1,6 @@
 # Restore Script for ArcGIS Notebook Server on Linux
 
-The `importSite.sh` script automates the process of restoring an ArcGIS Notebook Server deployment from a backup stored in the ArcGIS Enterprise site's backup S3 bucket (see [Back up and restore ArcGIS Notebook Server](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm)).
+The `importSite.sh` script automates the process of restoring an ArcGIS Notebook Server deployment from a backup stored in the ArcGIS Enterprise's backup S3 bucket (see [Back up and restore ArcGIS Notebook Server](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm)).
 
 The script is designed to be executed by ssm_run_shell_script python module on the primary EC2 instance of the ArcGIS Notebook Server deployment. It uses AWS CLI commands to interact with Amazon S3 for backup storage and AWS Systems Manager (SSM) Parameter Store to retrieve configuration details.
 
@@ -26,8 +26,8 @@ On the machine where the script is executed:
 The script reads the following SSM parameters:
 
 * `<json_attributes_parameter>`: SSM parameter containing a JSON object with the script input parameters
-* `/arcgis/${site_id}/s3/backup`: The backup S3 bucket name
-* `/arcgis/${site_id}/s3/region`: The backup S3 bucket region
+* `/arcgis/${backup_enterprise_id}/s3/backup`: The backup S3 bucket name
+* `/arcgis/${backup_enterprise_id}/s3/region`: The backup S3 bucket region
 
 <!-- BEGIN_TF_DOCS -->
 

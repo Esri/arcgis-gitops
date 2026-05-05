@@ -13,15 +13,15 @@ Installs CINC client and ArcGIS Chef Cookbooks on VMs in a deployment with speci
 Usage:
 
 ```shell
-python -m az_bootstrap [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-c CHEF_CLIENT_URL] [-k CHEF_COOKBOOKS_URL] [-v VAULT_NAME]
+python -m az_bootstrap [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-c CHEF_CLIENT_URL] [-k CHEF_COOKBOOKS_URL] [-v VAULT_NAME]
 ```
 
 Options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID            ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment Id
+  -s ENTERPRISE_ID      ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES      Machine roles
   -c CHEF_CLIENT_URL    Chef client blob store URL
   -k CHEF_COOKBOOKS_URL Chef cookbooks blob store URL
@@ -35,7 +35,7 @@ Deletes temporary files created by Chef runs on the deployment VMs in the specif
 Usage:
 
 ```shell
-python -m az_clean_up [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-p]
+python -m az_clean_up [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-p]
                       [-u] [-f DIRECTORIES] [-v VAULT_NAME]
 ```
 
@@ -43,8 +43,8 @@ Options:
 
 ```shell
   -h, --help        show this help message and exit
-  -s SITE_ID        Site Id
-  -d DEPLOYMENT_ID  Deployment Id
+  -s ENTERPRISE_ID  ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID  ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES  Machine roles
   -p                Run sysprep script
   -u                Uninstall Chef/Cinc Client
@@ -83,7 +83,7 @@ Runs Chef Client in solo mode on the deployment VMs in the specified roles.
 Usage:
 
 ```shell
-python -m az_run_chef [-h] [-s SITE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES]
+python -m az_run_chef [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES]
                       [-j JSON_ATTRIBUTES_SECRET] [-e EXECUTION_TIMEOUT]
                       [-v VAULT_NAME] [-l LOG_LEVEL]
 ```
@@ -92,8 +92,8 @@ Options:
 
 ```shell
   -h, --help            show this help message and exit
-  -s SITE_ID            Site Id
-  -d DEPLOYMENT_ID      Deployment Id
+  -s ENTERPRISE_ID      ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID      ArcGIS Enterprise deployment ID
   -m MACHINE_ROLES      Machine roles
   -j JSON_ATTRIBUTES_SECRET
                         Key Vault secret name of role attributes
@@ -109,16 +109,16 @@ Deletes VM images used by the specified deployment and Key Vault secrets referen
 Usage:
 
 ```shell
-python -m delete_deployment_images [-h] -s SITE_ID -d DEPLOYMENT_ID -u SUBSCRIPTION_ID
+python -m delete_deployment_images [-h] -s ENTERPRISE_ID -d DEPLOYMENT_ID -u SUBSCRIPTION_ID
 ```
 
 Options:
 
 ```shell
   -h, --help          show this help message and exit
-  -s SITE_ID          ArcGIS Enterprise site Id
-  -d DEPLOYMENT_ID    ArcGIS Enterprise deployment Id
-  -u SUBSCRIPTION_ID  Azure Subscription Id
+  -s ENTERPRISE_ID    ArcGIS Enterprise ID
+  -d DEPLOYMENT_ID    ArcGIS Enterprise deployment ID
+  -u SUBSCRIPTION_ID  Azure Subscription ID
 ```
 
 ## download_files
@@ -153,7 +153,7 @@ Queries the Esri patch notification service for patches for a given set of produ
 
 ## publish_artifact
 
-Retrieves VM image Id from packer-manifest.json file and saves in Azure Key Vault secret.
+Retrieves VM image ID from packer-manifest.json file and saves in Azure Key Vault secret.
 
 Usage:
 

@@ -1,0 +1,150 @@
+# Core AWS Resources for ArcGIS Enterprise
+
+This template provides workflows for provisioning:
+
+* Networking, storage, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise,
+* Chef Automation resources required for ArcGIS Enterprise configuration management using [Chef Cookbooks for ArcGIS](https://esri.github.io/arcgis-cookbook/),
+* Application Load Balancer for Windows and Linux Deployments, and
+* Amazon Elastic Kubernetes Service (EKS) cluster that meets ArcGIS Enterprise on Kubernetes system requirements.
+
+Before running the template workflows, configure the GitHub repository settings as described in the general [Instructions](../README.md#instructions) section.
+
+To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory, commit the changes to the Git branch, and push the branch to GitHub.
+
+> To prevent accidental destruction of the resources, don't enable *-destroy workflows until it is necessary.
+
+> Refer to READMEs of the Terraform modules for descriptions of specific configuration properties.
+
+![Platform Dependencies](platform-dependencies.png "Platform Dependencies")  
+
+## Create Core AWS Resources
+
+GitHub Actions workflow **enterprise-core-aws** creates core AWS resources for an ArcGIS Enterprise.
+
+The workflow uses [infrastructure-core](infrastructure-core/README.md) Terraform module with [infrastructure-core.tfvars.json](../../config/aws/arcgis-enterprise-core/infrastructure-core.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISEnterpriseCore
+
+Instructions:
+
+1. (Optional) Update "images" map in the config file to specify the EC2 AMIs for the operating systems IDs that will be used by the enterprise. Remove entries for operating systems that will not be used.
+   > Note that the AWS account IDs specified by "owner" property in the "images" map may be different in different AWS regions.
+2. (Optional) Change "availability_zones" property in the config file to the list of availability zones of the AWS region. If "availability_zones" list contains less than two elements, the first two available availability zones in the AWS region will be used. If you need to use specific availability zones or more than two availability zones, specify them in the "availability_zones" list.
+3. (Optional) Update the list of interface VPC endpoints specified by "interface_vpc_endpoints" property. Remove all the endpoints if the enterprise will not use the internal subnets.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run enterprise-core-aws workflow using the Git branch.
+
+## Create Chef Automation Resources
+
+GitHub Actions workflow **enterprise-automation-chef-aws** creates resources required for ArcGIS Enterprise deployments configuration management using Chef Cookbooks for ArcGIS.
+
+The workflow uses [automation-chef](automation-chef/README.md) Terraform module with [automation-chef.tfvars.json](../../config/aws/arcgis-enterprise-core/automation-chef.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISEnterpriseCore
+
+Instructions:
+
+1. (Optional) Update "chef_client_paths" map in the config file. Remove entries for operating systems that will not be used.
+2. Commit the changes to the Git branch and push the branch to GitHub.
+3. Run enterprise-automation-chef-aws workflow using the Git branch.
+
+## Create Application Load Balancer for Windows and Linux Deployments
+
+GitHub Actions workflow **enterprise-ingress-aws** creates an Application Load Balancer for Windows and Linux ArcGIS Enterprise deployments.
+
+The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tfvars.json](../../config/aws/arcgis-enterprise-core/ingress.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISEnterpriseCore
+
+Instructions:
+
+1. Provision or import SSL certificate for the base ArcGIS Enterprise domain name into AWS Certificate Manager service in the selected AWS region and set "ssl_certificate_arn" property to the certificate ARN.
+2. Set "ingress_fqdn" property to the ArcGIS Enterprise domain name.
+3. (Optional) Update "https_ports" array in the config file to specify the ports of the load balancer's HTTPS listeners  required for the enterprise.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run enterprise-ingress-aws workflow using the Git branch.
+6. Retrieve the DNS name of the load balancer created by the workflow and create a CNAME record for it within the DNS server of the base ArcGIS Enterprise domain name.
+
+> By default "waf_mode" property is set to "detect", that configures the Web Application Firewall (WAF) rules assigned to the Application Load Balancer to count and log suspicious requests instead of blocking them. It is strongly recommended that all deployments start out running in “detect” mode to avoid breaking workflows unexpectedly. Once the rules are fully tuned and WAF logs no longer reveal false positives, the WAF can be shifted into “protect” mode.
+
+## Deploy K8s Cluster
+
+GitHub Actions workflow **enterprise-k8s-cluster-aws** deploys an Amazon EKS cluster that meets the ArcGIS Enterprise on Kubernetes system requirements.
+
+The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8s-cluster.tfvars.json](../../config/aws/arcgis-enterprise-core/k8s-cluster.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISEnterpriseK8sCluster
+
+Instructions:
+
+1. Create an EC2 key pair in the selected AWS region and set "key_name" property in the config file to the key pair name. Save the private key in a secure location.
+2. Set "eks_version" property to the required EKS version.
+3. If specific subnets, or more than two subnets of each type are required for the EKS cluster, set "subnet_ids" property to the list of subnet IDs in the selected AWS region. By default, the first two subnets of each type (public, private, and internal) specified by the SSM parameters are used.
+4. Set "node_groups" property to the required node groups configuration.
+5. If the AWS region does not support [ECR pull through cache](https://docs.aws.amazon.com/AmazonECR/latest/userguide/pull-through-cache.html), change "pull_through_cache" property value to `false`.
+6. Commit the changes to the Git branch and push the branch to GitHub.
+7. Run enterprise-k8s-cluster-aws workflow using the Git branch.
+
+To run the EKS nodes in "internal" subnets:
+
+* Specify the subnet IDs in the "subnet_ids" property of the node groups.
+* Set "enable_waf" property to `false`.
+
+## Destroy K8s Cluster
+
+GitHub Actions workflow **enterprise-k8s-cluster-aws-destroy** destroys Amazon EKS cluster created by enterprise-k8s-cluster-aws workflow.
+
+The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8s-cluster.tfvars.json](../../config/aws/arcgis-enterprise-core/k8s-cluster.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISEnterpriseK8sClusterDestroy
+
+Instructions:
+
+1. Run enterprise-k8s-cluster-aws-destroy workflow using the Git branch.
+
+## Destroy Chef Automation Resources
+
+GitHub Actions workflow **enterprise-automation-chef-aws-destroy** destroys the AWS resources created by enterprise-automation-chef-aws workflow.
+
+The workflow uses [automation-chef](automation-chef/README.md) Terraform modules with [automation-chef.tfvars.json](../../config/aws/arcgis-enterprise-core/automation-chef.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISEnterpriseCoreDestroy
+
+Instructions:
+
+1. Run enterprise-automation-chef-aws-destroy workflow using the Git branch.
+
+## Destroy Core AWS Resources
+
+GitHub Actions workflow **enterprise-core-aws-destroy** destroys the AWS resources created by enterprise-core-aws workflow.
+
+The workflow uses [infrastructure-core](infrastructure-core/README.md) Terraform module with [infrastructure-core.tfvars.json](../../config/aws/arcgis-enterprise-core/infrastructure-core.tfvars.json) config file.
+
+Required IAM policies:
+
+* TerraformBackend
+* ArcGISEnterpriseCoreDestroy
+
+Instructions:
+
+1. Run enterprise-core-aws-destroy workflow using the Git branch.
+
+> Along with all other resources, enterprise-core-aws-destroy workflow destroys backups of all deployments.

@@ -1,0 +1,177 @@
+# Copyright 2024-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+variable "admin_email" {
+  description = "ArcGIS Enterprise administrator e-mail address"
+  type        = string
+}
+
+variable "app_gateway_subnets" {
+  description = "CIDR blocks of Application Gateway subnets"
+  type        = list(any)
+  default = [{
+    cidr_block = "10.4.0.0/16"
+    delegations = ["Microsoft.ServiceNetworking/trafficControllers"] 
+  },
+  {
+    cidr_block = "10.5.0.0/16"
+    delegations = ["Microsoft.Network/applicationGateways"] 
+  }]
+
+  validation {
+    condition = alltrue([
+      for b in var.app_gateway_subnets : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b.cidr_block))
+    ])
+    error_message = "All elements in app_gateway_subnets list must be in IPv4 CIDR block format."
+  }
+}
+
+variable "azure_region" {
+  description = "Azure region display name"
+  type        = string
+}
+
+variable "bastion_enabled" {
+  description = "Enable Azure Bastion host"
+  type        = bool
+  default     = true
+}
+
+variable "bastion_source_cidr_blocks" {
+  description = "CIDR blocks of bastion source traffic"
+  type        = list(string)
+  default     = ["0.0.0.0/0"]
+
+  validation {
+    condition = alltrue([
+      for b in var.bastion_source_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+    ])
+    error_message = "All elements in bastion_source_cidr_blocks list must be in IPv4 CIDR block format."
+  }
+}
+
+variable "bastion_subnet_cidr_block" {
+  description = "CIDR block of bastion subnet"
+  type        = string
+  default     = "10.1.0.0/24"
+
+  validation {
+    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.bastion_subnet_cidr_block))
+    error_message = "The bastion_subnet_cidr_block value must be in IPv4 CIDR block format."
+  }
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "images" {
+  description = "Azure VM images"
+  type        = map(any)
+  default     = {
+    windows2022 = {
+      publisher = "MicrosoftWindowsServer"
+      offer     = "WindowsServer"
+      sku       = "2022-datacenter-g2"
+      version   = null
+    }
+    windows2025 = {
+      publisher = "MicrosoftWindowsServer"
+      offer     = "WindowsServer"
+      sku       = "2025-datacenter-azure-edition"
+      version   = null
+    }
+    ubuntu24 = {
+      publisher = "Canonical"
+      offer     = "ubuntu-24_04-lts"
+      sku       = "server"
+      version   = null
+    }
+    rhel9 = {
+      publisher = "RedHat"
+      offer     = "RHEL"
+      sku       = "95_gen2"
+      version   = null
+    }
+  }
+}
+
+variable "internal_subnets_cidr_blocks" {
+  description = "CIDR blocks of internal subnets"
+  type        = list(string)
+  default = [
+    "10.2.0.0/16"
+  ]
+
+  validation {
+    condition = alltrue([
+      for b in var.internal_subnets_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+    ])
+    error_message = "All elements in internal_subnets_cidr_blocks list must be in IPv4 CIDR block format."
+  }
+}
+
+variable "private_dns_zones" {
+  description = "List of private DNS zones to link to the virtual network for name resolution of private endpoints"
+  type        = list(string)
+  default     = [
+    "privatelink.blob.core.windows.net",
+    "privatelink.documents.azure.com", 
+    "privatelink.file.core.windows.net", 
+    "privatelink.queue.core.windows.net", 
+    "privatelink.servicebus.windows.net",
+    "privatelink.table.core.windows.net" 
+  ]
+}
+
+variable "private_subnets_cidr_blocks" {
+  description = "CIDR blocks of private subnets"
+  type        = list(string)
+  default = [
+    "10.3.0.0/16"
+  ]
+
+  validation {
+    condition = alltrue([
+      for b in var.private_subnets_cidr_blocks : can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", b))
+    ])
+    error_message = "All elements in private_subnets_cidr_blocks list must be in IPv4 CIDR block format."
+  }
+}
+
+variable "service_endpoints" {
+  description = "Service endpoints of internal subnets"
+  type        = list(string)
+  default     = ["Microsoft.Storage"]
+}
+
+variable "vnet_cidr_block" {
+  description = "CIDR block for the enterprise's virtual network"
+  type        = string
+  default     = "10.0.0.0/8"
+
+  validation {
+    condition     = can(regex("^([0-9]{1,3}\\.){3}[0-9]{1,3}\\/[0-9]{1,2}$", var.vnet_cidr_block))
+    error_message = "The vnet_cidr_block value must be in IPv4 CIDR block format."
+  }
+}
+
+

@@ -28,33 +28,29 @@ variable "azure_region" {
   type        = string
 }
 
-variable "enabled_log_categories" {
-  description = "List of log categories to enable for the Application Gateway for Containers"
-  type        = list(string)
-  default     = [
-    "TrafficControllerAccessLog",
-    "TrafficControllerFirewallLog"
-  ]
+variable "ca_certificate_path" {
+  description = "File path to the CA certificate used to validate the backend TLS certificate"
+  type        = string
+}
+
+variable "ingress_fqdn" {
+  description = "Fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes"
+  type        = string
+
+  validation {
+    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.ingress_fqdn))
+    error_message = "The ingress_fqdn value must be a valid domain name."
+  }
 }
 
 variable "deployment_id" {
-  description = "ArcGIS Enterprise on Kubernetes deployment Id"
+  description = "ArcGIS Enterprise on Kubernetes deployment ID"
   type        = string
   default     = "enterprise-k8s"
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
-}
-
-variable "deployment_fqdn" {
-  description = "Fully qualified domain name (FQDN) to access ArcGIS Enterprise on Kubernetes"
-  type        = string
-
-  validation {
-    condition     = can(regex("^([a-z0-9]+(-[a-z0-9]+)*\\.)+[a-z]{2,}$", var.deployment_fqdn))
-    error_message = "The deployment_fqdn value must be a valid domain name."
   }
 }
 
@@ -80,6 +76,26 @@ variable "dns_zone_resource_group_name" {
   }
 }
 
+variable "enabled_log_categories" {
+  description = "List of log categories to enable for the Application Gateway for Containers"
+  type        = list(string)
+  default     = [
+    "TrafficControllerAccessLog",
+    "TrafficControllerFirewallLog"
+  ]
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
 variable "log_retention" {
   description = "Retention period in days for logs"
   type        = number
@@ -94,22 +110,6 @@ variable "tls_certificate_path" {
 variable "tls_private_key_path" {
   description = "File path to the TLS certificate's private key for the HTTPS listener"
   type        = string
-}
-
-variable "ca_certificate_path" {
-  description = "File path to the CA certificate used to validate the backend TLS certificate"
-  type        = string
-}
-
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
 }
 
 variable "waf_mode" {

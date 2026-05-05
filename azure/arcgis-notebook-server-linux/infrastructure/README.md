@@ -7,7 +7,7 @@ The Terraform module provisions Azure resources for ArcGIS Notebook Server deplo
 
 The module creates network interfaces in the first private subnet or the subnet specified by subnet_id input variable and
 launches one primary and N node VMs (configurable via node_count) in different zones of the specified Azure region.
-The VMs are launched from images retrieved from "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-node" secrets of the site's Key Vault.
+The VMs are launched from images retrieved from "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-node" secrets of the enterprise's Key Vault.
 The images must be created by the Packer Template for ArcGIS Notebook Server on Linux.
 
 The network interfaces are associated with the backend address pool "notebook-server" of the Application Gateway created by the ingress
@@ -31,7 +31,7 @@ uploads the certificate to the repository storage container.
 The deployment's Monitoring Subsystem consists of a shared dashboard in Azure Monitor that displays
 the key metrics of the deployment's VMs and storage infrastructure.
 
-All the created Azure resources are tagged with ArcGISSiteId and ArcGISDeploymentId tags.
+All the created Azure resources are tagged with ArcGISEnterpriseID and ArcGISDeploymentID tags.
 
 ## Requirements
 
@@ -46,30 +46,30 @@ On the machine where Terraform is executed:
 
 ### Secrets Read by the Module
 
-| Secret Name                                        | Description |
-|----------------------------------------------------|-------------|
-| ${var.deployment_id}-notebook-server-web-context   | Notebook Server web context |
-| ${var.deployment_id}-os                            | Operating system ID |
-| ${var.deployment_id}-vm-image-node                 | Node VM image ID |
-| ${var.deployment_id}-vm-image-primary              | Primary VM image ID |
-| ${var.ingress_deployment_id}-backend-address-pools | Application Gateway backend address pools |
-| ${var.ingress_deployment_id}-ca-private-key        | Private key of the ingress CA root certificate |
-| ${var.ingress_deployment_id}-ca-root-cert          | Root certificate used by Application Gateway to validate the backend's identity |  
-| ${var.ingress_deployment_id}-deployment-fqdn       | Ingress deployment FQDN |
-| ${var.portal_deployment_id}-deployment-url         | Portal deployment URL |
-| storage-account-key                                | Site storage account key |
-| storage-account-name                               | Site storage account name |
-| subnets                                            | VNet subnet IDs |
-| vm-identity-id                                     | User-assigned VM identity resource ID |
-| vm-identity-principal-id                           | User-assigned VM identity principal ID |
-| vnet-id                                            | VNet ID |
+| Secret Name                                      | Description |
+|--------------------------------------------------|-------------|
+| ${var.deployment_id}-notebook-server-web-context | Notebook Server web context |
+| ${var.deployment_id}-os                          | Operating system ID |
+| ${var.deployment_id}-vm-image-node               | Node VM image ID |
+| ${var.deployment_id}-vm-image-primary            | Primary VM image ID |
+| ${var.ingress_id}-backend-address-pools          | Application Gateway backend address pools |
+| ${var.ingress_id}-ca-private-key                 | Private key of the ingress CA root certificate |
+| ${var.ingress_id}-ca-root-cert                   | Root certificate used by Application Gateway to validate the backend's identity |  
+| ${var.ingress_id}-ingress-fqdn                   | Ingress FQDN |
+| ${var.portal_deployment_id}-deployment-url       | Portal deployment URL |
+| storage-account-key                              | Enterprise storage account key |
+| storage-account-name                             | Enterprise storage account name |
+| subnets                                          | VNet subnet IDs |
+| vm-identity-id                                   | User-assigned VM identity resource ID |
+| vm-identity-principal-id                         | User-assigned VM identity principal ID |
+| vnet-id                                          | VNet ID |
 
 ### Secrets Written by the Module
 
 | Secret Name                               | Description |
 |-------------------------------------------|-------------|
 | ${var.deployment_id}-backend-pfx-password | Password for the PFX certificate |
-| ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
+| ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
 | ${var.deployment_id}-deployment-url       | Deployment URL |
 | ${var.deployment_id}-portal-url           | Portal URL |
 | ${var.deployment_id}-storage-account-name | Config Store's storage account name |
@@ -87,15 +87,15 @@ On the machine where Terraform is executed:
 |------|--------|---------|
 | aznfs_mount | ../../modules/aznfs_mount | n/a |
 | backend_cert | ../../modules/backend_cert | n/a |
+| enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | lv_extend | ../../modules/lv_extend | n/a |
-| site_core_info | ../../modules/site_core_info | n/a |
 
 ## Resources
 
 | Name | Type |
 |------|------|
-| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
+| [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.portal_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
@@ -122,7 +122,7 @@ On the machine where Terraform is executed:
 | [random_password.pfx_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.node_vm_image_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.notebook_server_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.portal_deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -139,13 +139,13 @@ On the machine where Terraform is executed:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | azure_region | Azure region display name | `string` | n/a | yes |
-| deployment_id | ArcGIS Notebook Server deployment Id | `string` | `"notebook-server-linux"` | no |
+| deployment_id | ArcGIS Notebook Server deployment ID | `string` | `"notebook-server-linux"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_size | Maximum size of the NFS file share in GB | `number` | `1024` | no |
-| ingress_deployment_id | ArcGIS Enterprise ingress deployment Id | `string` | `"enterprise-ingress"` | no |
+| ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | node_count | Number of node VMs | `number` | `1` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
-| portal_deployment_id | Portal for ArcGIS deployment Id | `string` | `"enterprise-base-windows"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
+| portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `"enterprise-base-windows"` | no |
 | storage_replication_type | The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage) . | `string` | `"ZRS"` | no |
 | subnet_id | VMs subnet ID (by default, the first private subnet is used) | `string` | `null` | no |
 | vm_admin_password | VM administrator password | `string` | `null` | no |

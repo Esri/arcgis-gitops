@@ -46,20 +46,20 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
- * | /arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn | Fully qualified domain name of the deployment |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/os | Operating system of the deployment |
- * | /arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
- * | /arcgis/${var.site_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL | 
- * | /arcgis/${var.site_id}/chef-client-url/${os} | Chef Client URL for the operating system |
- * | /arcgis/${var.site_id}/cookbooks-url | Chef cookbooks URL |
- * | /arcgis/${var.site_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
- * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
- * | /arcgis/${var.site_id}/s3/repository | S3 bucket for the private repository |
- * | /arcgis/${var.site_id}/vpc/hosted-zone-id | VPC hosted zone ID |
- * | /arcgis/${var.site_id}/vpc/id | VPC ID |
- * | /arcgis/${var.site_id}/vpc/subnets | IDs of VPC subnets |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL | 
+ * | /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |
+ * | /arcgis/${var.enterprise_id}/cookbooks-url | Chef cookbooks URL |
+ * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
+ * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
+ * | /arcgis/${var.enterprise_id}/vpc/hosted-zone-id | VPC hosted zone ID |
+ * | /arcgis/${var.enterprise_id}/vpc/id | VPC ID |
+ * | /arcgis/${var.enterprise_id}/vpc/subnets | IDs of VPC subnets |
  *
  * > The module also writes multiple “attributes” SSM parameters used to run Chef.
  */
@@ -99,8 +99,8 @@ provider "aws" {
   default_tags {
     tags = {
       ArcGISAutomation   = "arcgis-gitops"
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 
@@ -110,30 +110,30 @@ provider "aws" {
 }
 
 data "aws_ssm_parameter" "os" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/os"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/os"
 }
 
 data "aws_ssm_parameter" "notebook_server_web_context" {
-  name = "/arcgis/${var.site_id}/images/${var.deployment_id}/notebook-server-web-context"
+  name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context"
 }
 
-data "aws_ssm_parameter" "deployment_fqdn" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/deployment-fqdn"
+data "aws_ssm_parameter" "ingress_fqdn" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
 }
 
 data "aws_ssm_parameter" "portal_url" {
-  name = "/arcgis/${var.site_id}/${var.deployment_id}/portal-url"
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url"
 }
 
 # Retrieve attributes of the primary EC2 instance
 data "aws_instance" "primary" {
   filter {
-    name   = "tag:ArcGISSiteId"
-    values = [var.site_id]
+    name   = "tag:ArcGISEnterpriseID"
+    values = [var.enterprise_id]
   }
 
   filter {
-    name   = "tag:ArcGISDeploymentId"
+    name   = "tag:ArcGISDeploymentID"
     values = [var.deployment_id]
   }
 
@@ -151,12 +151,12 @@ data "aws_instance" "primary" {
 # Retrieve attributes of all the deployment's EC2 instances
 data "aws_instances" "nodes" {
   filter {
-    name   = "tag:ArcGISSiteId"
-    values = [var.site_id]
+    name   = "tag:ArcGISEnterpriseID"
+    values = [var.enterprise_id]
   }
 
   filter {
-    name   = "tag:ArcGISDeploymentId"
+    name   = "tag:ArcGISDeploymentID"
     values = [var.deployment_id]
   }
 
@@ -187,7 +187,7 @@ locals {
   certificates_s3_prefix        = "software/certificates"
 
   mount_point                 = "/mnt/efs"
-  deployment_fqdn             = nonsensitive(data.aws_ssm_parameter.deployment_fqdn.value)
+  ingress_fqdn             = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
   os                          = nonsensitive(data.aws_ssm_parameter.os.value)
   notebook_server_web_context = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
   portal_url                  = nonsensitive(data.aws_ssm_parameter.portal_url.value)
@@ -196,22 +196,22 @@ locals {
   authorization_files_dir     = "/opt/software/authorization"
   certificates_dir            = "/opt/software/certificates"
 
-  keystore_file = var.keystore_file_path != null ? "${local.certificates_dir}/${basename(var.keystore_file_path)}" : ""
-  root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
+  keystore_file = var.server_certificate_path != null ? "${local.certificates_dir}/${basename(var.server_certificate_path)}" : ""
+  root_cert     = var.root_certificate_path != null ? "${local.certificates_dir}/${basename(var.root_certificate_path)}" : ""
 
   timestamp = formatdate("YYYYMMDDhhmm", timestamp())
 }
 
-module "site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 # Copy ArcGIS Notebook Server setup archives to the private repository S3 bucket
 module "s3_copy_files" {
   count       = var.is_upgrade ? 1 : 0
   source      = "../../modules/s3_copy_files"
-  bucket_name = module.site_core_info.s3_repository
+  bucket_name = module.enterprise_core_info.s3_repository
   index_file  = local.manifest_file_path
 }
 
@@ -219,25 +219,25 @@ module "s3_copy_files" {
 module "bootstrap_deployment" {
   source           = "../../modules/bootstrap"
   os               = local.os
-  site_id          = var.site_id
+  enterprise_id    = var.enterprise_id
   deployment_id    = var.deployment_id
   machine_roles    = ["primary", "node"]
-  output_s3_bucket = module.site_core_info.s3_logs
+  output_s3_bucket = module.enterprise_core_info.s3_logs
 }
 
 # Download ArcGIS Notebook Server setup archives to primary and node EC2 instances
 module "arcgis_notebook_server_files" {
   count          = var.is_upgrade ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/files"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/files"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "node"]
   json_attributes = templatefile(
     local.manifest_file_path,
     {
-      s3bucket = module.site_core_info.s3_repository
-      region   = module.site_core_info.s3_region
+      s3bucket = module.enterprise_core_info.s3_repository
+      region   = module.enterprise_core_info.s3_region
     }
   )
   execution_timeout = 1800
@@ -251,8 +251,8 @@ module "arcgis_notebook_server_files" {
 module "arcgis_notebook_server_upgrade" {
   count          = var.is_upgrade ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/upgrade"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/upgrade"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "node"]
   json_attributes = jsonencode({
@@ -305,8 +305,8 @@ module "arcgis_notebook_server_upgrade" {
 module "arcgis_notebook_server_patch" {
   count          = var.is_upgrade ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/patch"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/patch"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "node"]
   json_attributes = jsonencode({
@@ -339,8 +339,8 @@ module "arcgis_notebook_server_patch" {
 # Configure fileserver 
 module "arcgis_notebook_server_fileserver" {
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/${var.arcgis_version}/fileserver"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/${var.arcgis_version}/fileserver"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary"]
   json_attributes = jsonencode({
@@ -368,32 +368,32 @@ module "arcgis_notebook_server_fileserver" {
 
 # Upload ArcGIS Notebook Server authorization file to the private repository S3 bucket
 resource "aws_s3_object" "notebook_server_authorization_file" {
-  bucket = module.site_core_info.s3_repository
+  bucket = module.enterprise_core_info.s3_repository
   key    = "${local.authorization_files_s3_prefix}/${basename(var.notebook_server_authorization_file_path)}"
   source = var.notebook_server_authorization_file_path
 }
 
 # If specified, upload keystore file to the private repository S3 bucket
 resource "aws_s3_object" "keystore_file" {
-  count  = var.keystore_file_path != null ? 1 : 0
-  bucket = module.site_core_info.s3_repository
-  key    = "${local.certificates_s3_prefix}/${basename(var.keystore_file_path)}"
-  source = var.keystore_file_path
+  count  = var.server_certificate_path != null ? 1 : 0
+  bucket = module.enterprise_core_info.s3_repository
+  key    = "${local.certificates_s3_prefix}/${basename(var.server_certificate_path)}"
+  source = var.server_certificate_path
 }
 
 # If specified, upload root certificate file to the private repository S3 bucket
 resource "aws_s3_object" "root_cert_file" {
-  count  = var.root_cert_file_path != null ? 1 : 0
-  bucket = module.site_core_info.s3_repository
-  key    = "${local.certificates_s3_prefix}/${basename(var.root_cert_file_path)}"
-  source = var.root_cert_file_path
+  count  = var.root_certificate_path != null ? 1 : 0
+  bucket = module.enterprise_core_info.s3_repository
+  key    = "${local.certificates_s3_prefix}/${basename(var.root_certificate_path)}"
+  source = var.root_certificate_path
 }
 
 # Download ArcGIS Notebook Server authorization file to primary and node EC2 instances
 module "authorization_files" {
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/authorization-files"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/authorization-files"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "node"]
   json_attributes = jsonencode({
@@ -402,8 +402,8 @@ module "authorization_files" {
       repository = {
         local_archives = local.authorization_files_dir
         server = {
-          s3bucket = module.site_core_info.s3_repository
-          region   = module.site_core_info.s3_region
+          s3bucket = module.enterprise_core_info.s3_repository
+          region   = module.enterprise_core_info.s3_region
         }
         files = {
           "${basename(var.notebook_server_authorization_file_path)}" = {
@@ -424,10 +424,10 @@ module "authorization_files" {
 
 # Download keystore file to primary and node EC2 instances
 module "keystore_file" {
-  count          = var.keystore_file_path != null ? 1 : 0
+  count          = var.server_certificate_path != null ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/keystore-file"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/keystore-file"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "node"]
   json_attributes = jsonencode({
@@ -436,11 +436,11 @@ module "keystore_file" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          s3bucket = module.site_core_info.s3_repository
-          region   = module.site_core_info.s3_region
+          s3bucket = module.enterprise_core_info.s3_repository
+          region   = module.enterprise_core_info.s3_region
         }
         files = {
-          "${basename(var.keystore_file_path)}" = {
+          "${basename(var.server_certificate_path)}" = {
             subfolder = local.certificates_s3_prefix
           }
         }
@@ -458,10 +458,10 @@ module "keystore_file" {
 
 # Download root certificate file to primary and node EC2 instances
 module "root_cert" {
-  count          = var.root_cert_file_path != null ? 1 : 0
+  count          = var.root_certificate_path != null ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/root-cert"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/root-cert"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "node"]
   json_attributes = jsonencode({
@@ -470,11 +470,11 @@ module "root_cert" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          s3bucket = module.site_core_info.s3_repository
-          region   = module.site_core_info.s3_region
+          s3bucket = module.enterprise_core_info.s3_repository
+          region   = module.enterprise_core_info.s3_region
         }
         files = {
-          "${basename(var.root_cert_file_path)}" = {
+          "${basename(var.root_certificate_path)}" = {
             subfolder = local.certificates_s3_prefix
           }
         }
@@ -494,16 +494,16 @@ module "root_cert" {
 # Configure ArcGIS Notebook Server on primary EC2 instance
 module "arcgis_notebook_server_primary" {
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/primary"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/primary"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary"]
   json_attributes = jsonencode({
     tomcat = {
-      domain_name       = local.deployment_fqdn
+      domain_name       = local.ingress_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
-      keystore_password = var.keystore_file_password
+      keystore_password = var.server_certificate_password
     }
     arcgis = {
       version     = var.arcgis_version
@@ -525,7 +525,7 @@ module "arcgis_notebook_server_primary" {
         authorization_options = var.notebook_server_authorization_options
         license_level         = var.license_level
         keystore_file         = local.keystore_file
-        keystore_password     = var.keystore_file_password
+        keystore_password     = var.server_certificate_password
         root_cert             = local.root_cert
         root_cert_alias       = "rootcert"
         directories_root      = "${local.mount_point}/gisdata/notebookserver"
@@ -534,7 +534,7 @@ module "arcgis_notebook_server_primary" {
         log_level             = var.log_level
         config_store_type     = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AMAZON" ?
-          "NAMESPACE=${var.site_id}-${var.deployment_id};REGION=${data.aws_region.current.region}" :
+          "NAMESPACE=${var.enterprise_id}-${var.deployment_id};REGION=${data.aws_region.current.region}" :
         "${local.mount_point}/gisdata/notebookserver/config-store")
         config_store_connection_secret = ""
         install_system_requirements    = true
@@ -565,16 +565,16 @@ module "arcgis_notebook_server_primary" {
 module "arcgis_notebook_server_node" {
   count          = length(data.aws_instances.nodes.ids) > 0 ? 1 : 0
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/node"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/node"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["node"]
   json_attributes = jsonencode({
     tomcat = {
-      domain_name       = local.deployment_fqdn
+      domain_name       = local.ingress_fqdn
       install_path      = "/opt/tomcat_arcgis"
       keystore_file     = local.keystore_file
-      keystore_password = var.keystore_file_password
+      keystore_password = var.server_certificate_password
     }
     arcgis = {
       version     = var.arcgis_version
@@ -618,8 +618,8 @@ module "arcgis_notebook_server_node" {
 # Federate ArcGIS Notebook Server with Portal for ArcGIS
 module "arcgis_notebook_server_federation" {
   source         = "../../modules/run_chef"
-  parameter_name = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-notebook-server/federation"
-  site_id        = var.site_id
+  parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-notebook-server/federation"
+  enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary"]
   json_attributes = jsonencode({
@@ -632,8 +632,8 @@ module "arcgis_notebook_server_federation" {
         root_cert_alias = "notebookserver"
       }
       notebook_server = {
-        web_context_url = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
-        private_url     = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
+        web_context_url = "https://${local.ingress_fqdn}/${local.notebook_server_web_context}"
+        private_url     = "https://${local.ingress_fqdn}/${local.notebook_server_web_context}"
         admin_username  = var.admin_username
         admin_password  = var.admin_password
       }
@@ -658,7 +658,7 @@ module "backup" {
   arcgis_version     = var.arcgis_version
   backup_s3_bucket   = true
   deployment_id      = var.deployment_id
-  site_id            = var.site_id
+  enterprise_id      = var.enterprise_id
 
   depends_on = [
     module.arcgis_notebook_server_primary
@@ -669,7 +669,7 @@ module "backup" {
 # temporary files from primary and node EC2 instances.
 module "clean_up" {
   source                = "../../modules/clean_up"
-  site_id               = var.site_id
+  enterprise_id         = var.enterprise_id
   deployment_id         = var.deployment_id
   machine_roles         = ["primary", "node"]
   directories           = [local.software_dir]

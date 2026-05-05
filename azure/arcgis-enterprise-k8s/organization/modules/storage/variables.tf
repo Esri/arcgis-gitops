@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -17,19 +17,19 @@ variable "azure_region" {
   type        = string
 }
  
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
   type        = string
   default     = "arcgis"
 
   validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
 variable "deployment_id" {
-  description = "ArcGIS Enterprise deployment Id"
+  description = "ArcGIS Enterprise deployment ID"
   type        = string
   default     = "enterprise-k8s"
 
@@ -46,17 +46,17 @@ variable "cloud_config_json_file_path" {
 }
 
 variable "client_id" {
-  description = "Client Id of the AKS cluster identity"
+  description = "Client ID of the AKS cluster identity"
   type        = string
 }
 
 variable "principal_id" {
-  description = "Principal Id of the AKS cluster identity"
+  description = "Principal ID of the AKS cluster identity"
   type        = string
 }
 
 variable "subnet_id" {
-  description = "Subnet Id of the private endpoint"
+  description = "Subnet ID of the private endpoint"
   type        = string
 }
 

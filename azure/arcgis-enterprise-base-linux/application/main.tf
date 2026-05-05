@@ -48,11 +48,11 @@
  * |-------------------------------------------|-------------|
  * | subnets                                   | VNet subnet IDs |
  * | vnet-id                                   | VNet ID |
- * | storage-account-key                       | Site's storage account key |
- * | storage-account-name                      | Site's storage account name |
+ * | storage-account-key                       | Enterprise's storage account key |
+ * | storage-account-name                      | Enterprise's storage account name |
  * | vm-identity-client-id                     | VM identity client ID |
  * | ${var.deployment_id}-backend-pfx-password | Password for the backend PFX certificate |
- * | ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
+ * | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
  * | ${var.deployment_id}-portal-web-context   | Portal for ArcGIS web context |
  * | ${var.deployment_id}-server-web-context   | ArcGIS Server web context |
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
@@ -97,52 +97,52 @@ provider "azurerm" {
 
 data "azurerm_client_config" "current" {}
 
-data "azurerm_key_vault_secret" "deployment_fqdn" {
-  name         = "${var.deployment_id}-deployment-fqdn"
-  key_vault_id = module.site_core_info.vault_id
+data "azurerm_key_vault_secret" "ingress_fqdn" {
+  name         = "${var.deployment_id}-ingress-fqdn"
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "storage_account_name" {
   name         = "${var.deployment_id}-storage-account-name"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "vm_identity_client_id" {
   name         = "vm-identity-client-id"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "portal_web_context" {
   name         = "${var.deployment_id}-portal-web-context"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "server_web_context" {
   name         = "${var.deployment_id}-server-web-context"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "backend_pfx_password" {
   name         = "${var.deployment_id}-backend-pfx-password"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_key_vault_secret" "vm_image_os" {
   name         = "${var.deployment_id}-os"
-  key_vault_id = module.site_core_info.vault_id
+  key_vault_id = module.enterprise_core_info.vault_id
 }
 
 data "azurerm_virtual_machine" "primary" {
   name                = "primary"
-  resource_group_name = "${var.site_id}-${var.deployment_id}-rg"
+  resource_group_name = "${var.enterprise_id}-${var.deployment_id}-rg"
 }
 
 data "azurerm_resources" "standby" {
   type = "Microsoft.Compute/virtualMachines"
 
   required_tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
     ArcGISRole         = "standby"
   }
 }
@@ -150,7 +150,7 @@ data "azurerm_resources" "standby" {
 data "azurerm_virtual_machine" "standby" {
   count               = length(data.azurerm_resources.standby.resources) > 0 ? 1 : 0
   name                = data.azurerm_resources.standby.resources[0].name
-  resource_group_name = "${var.site_id}-${var.deployment_id}-rg"
+  resource_group_name = "${var.enterprise_id}-${var.deployment_id}-rg"
 }
 
 locals {
@@ -165,10 +165,10 @@ locals {
   authorization_files_prefix = "software/authorization/${var.deployment_id}/${var.arcgis_version}"
   certificates_prefix        = "software/certificates/${var.deployment_id}"
 
-  deployment_fqdn  = nonsensitive(data.azurerm_key_vault_secret.deployment_fqdn.value)
+  ingress_fqdn  = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
   primary_hostname = data.azurerm_virtual_machine.primary.private_ip_address
   standby_hostname = length(data.azurerm_resources.standby.resources) > 0 ? data.azurerm_virtual_machine.standby[0].private_ip_address : ""
-  
+
   mount_point             = "/mnt/fileserver"
   software_dir            = "/opt/software/*"
   authorization_files_dir = "/opt/software/authorization"
@@ -178,7 +178,7 @@ locals {
   primary_keystore_file = "${local.certificates_dir}/${local.primary_backend_cert}"
   standby_backend_cert  = length(data.azurerm_resources.standby.resources) > 0 ? "${local.standby_hostname}.pfx" : ""
   standby_keystore_file = length(data.azurerm_resources.standby.resources) > 0 ? "${local.certificates_dir}/${local.standby_backend_cert}" : ""
-  root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
+  root_cert             = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
 
   storage_account_name          = data.azurerm_key_vault_secret.storage_account_name.value
   storage_account_blob_endpoint = "https://${data.azurerm_key_vault_secret.storage_account_name.value}.blob.core.windows.net"
@@ -189,7 +189,7 @@ locals {
 
   cloud_config = var.config_store_type == "AZURE" ? jsonencode([{
     name      = "AZURE"
-    namespace = "${var.site_id}-${var.deployment_id}"
+    namespace = "${var.enterprise_id}-${var.deployment_id}"
     credential = {
       type = "USER-ASSIGNED-IDENTITY"
       secret = {
@@ -212,7 +212,7 @@ locals {
         type = "tableStore"
         connection = {
           subscriptionId         = data.azurerm_client_config.current.subscription_id
-          resourceGroupName      = "${var.site_id}-${var.deployment_id}-rg"
+          resourceGroupName      = "${var.enterprise_id}-${var.deployment_id}-rg"
           accountEndpointUrl     = "https://${local.cosmos_db_account_name}.documents.azure.com"
           databaseId             = "config-store"
           cosmosDBConnectionMode = "Gateway"
@@ -249,15 +249,15 @@ locals {
   }]
 }
 
-module "site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 module "az_copy_files" {
   count                         = var.is_upgrade ? 1 : 0
   source                        = "../../modules/az_copy_files"
-  storage_account_blob_endpoint = module.site_core_info.storage_account_blob_endpoint
+  storage_account_blob_endpoint = module.enterprise_core_info.storage_account_blob_endpoint
   container_name                = "repository"
   index_file                    = local.manifest_file_path
 }
@@ -265,7 +265,7 @@ module "az_copy_files" {
 # Install Chef Client and Chef Cookbooks for ArcGIS on all VMs of the deployment
 module "bootstrap_deployment" {
   source        = "../../modules/bootstrap"
-  site_id       = var.site_id
+  enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "standby"]
   os            = nonsensitive(data.azurerm_key_vault_secret.vm_image_os.value)
@@ -276,13 +276,13 @@ module "arcgis_enterprise_files" {
   count                  = var.is_upgrade ? 1 : 0
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-files"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary", "standby"]
   json_attributes = templatefile(
     local.manifest_file_path,
     {
-      account_name   = module.site_core_info.storage_account_name
+      account_name   = module.enterprise_core_info.storage_account_name
       container_name = "repository"
       client_id      = data.azurerm_key_vault_secret.vm_identity_client_id.value
     }
@@ -299,7 +299,7 @@ module "arcgis_enterprise_upgrade" {
   count                  = var.is_upgrade ? 1 : 0
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-upgrade"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -356,7 +356,7 @@ module "arcgis_enterprise_patch" {
   count                  = var.is_upgrade ? 1 : 0
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-patch"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -393,7 +393,7 @@ module "arcgis_enterprise_patch" {
 module "arcgis_enterprise_fileserver" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-fileserver"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary"]
   json_attributes = jsonencode({
@@ -423,7 +423,7 @@ module "arcgis_enterprise_fileserver" {
 # Upload ArcGIS Server authorization file to the private repository blob container
 resource "azurerm_storage_blob" "server_authorization_file" {
   name                   = "${local.authorization_files_prefix}/${basename(var.server_authorization_file_path)}"
-  storage_account_name   = module.site_core_info.storage_account_name
+  storage_account_name   = module.enterprise_core_info.storage_account_name
   storage_container_name = "repository"
   source                 = pathexpand(var.server_authorization_file_path)
   type                   = "Block"
@@ -433,7 +433,7 @@ resource "azurerm_storage_blob" "server_authorization_file" {
 # Upload Portal for ArcGIS authorization file to the private repository blob container
 resource "azurerm_storage_blob" "portal_authorization_file" {
   name                   = "${local.authorization_files_prefix}/${basename(var.portal_authorization_file_path)}"
-  storage_account_name   = module.site_core_info.storage_account_name
+  storage_account_name   = module.enterprise_core_info.storage_account_name
   storage_container_name = "repository"
   source                 = pathexpand(var.portal_authorization_file_path)
   type                   = "Block"
@@ -444,7 +444,7 @@ resource "azurerm_storage_blob" "portal_authorization_file" {
 resource "azurerm_storage_blob" "root_cert_file" {
   count                  = var.root_cert_file_path != null ? 1 : 0
   name                   = "${local.certificates_prefix}/${basename(var.root_cert_file_path)}"
-  storage_account_name   = module.site_core_info.storage_account_name
+  storage_account_name   = module.enterprise_core_info.storage_account_name
   storage_container_name = "repository"
   source                 = pathexpand(var.root_cert_file_path)
   type                   = "Block"
@@ -455,7 +455,7 @@ resource "azurerm_storage_blob" "root_cert_file" {
 module "authorization_files" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-authorization-files"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -465,7 +465,7 @@ module "authorization_files" {
       repository = {
         local_archives = local.authorization_files_dir
         server = {
-          account_name   = module.site_core_info.storage_account_name
+          account_name   = module.enterprise_core_info.storage_account_name
           container_name = "repository"
           auth_mode      = "login"
           client_id      = data.azurerm_key_vault_secret.vm_identity_client_id.value
@@ -498,7 +498,7 @@ module "authorization_files" {
 module "primary_keystore" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-primary-keystore-file"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary"]
   json_attributes = jsonencode({
@@ -508,7 +508,7 @@ module "primary_keystore" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          account_name   = module.site_core_info.storage_account_name
+          account_name   = module.enterprise_core_info.storage_account_name
           container_name = "repository"
           auth_mode      = "login"
           client_id      = data.azurerm_key_vault_secret.vm_identity_client_id.value
@@ -536,7 +536,7 @@ module "standby_keystore" {
   count                  = local.is_ha ? 1 : 0
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-standby-keystore-file"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["standby"]
   json_attributes = jsonencode({
@@ -546,7 +546,7 @@ module "standby_keystore" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          account_name   = module.site_core_info.storage_account_name
+          account_name   = module.enterprise_core_info.storage_account_name
           container_name = "repository"
           auth_mode      = "login"
           client_id      = data.azurerm_key_vault_secret.vm_identity_client_id.value
@@ -575,7 +575,7 @@ module "root_cert" {
   count                  = var.root_cert_file_path != null ? 1 : 0
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-root-cert"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary", "standby"]
   json_attributes = jsonencode({
@@ -585,7 +585,7 @@ module "root_cert" {
       repository = {
         local_archives = local.certificates_dir
         server = {
-          account_name   = module.site_core_info.storage_account_name
+          account_name   = module.enterprise_core_info.storage_account_name
           container_name = "repository"
           auth_mode      = "login"
           client_id      = data.azurerm_key_vault_secret.vm_identity_client_id.value
@@ -614,7 +614,7 @@ module "root_cert" {
 module "arcgis_enterprise_primary" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-primary"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary"]
   json_attributes = jsonencode({
@@ -629,8 +629,8 @@ module "arcgis_enterprise_primary" {
       server = {
         url                            = "https://${local.primary_hostname}:6443/arcgis"
         install_dir                    = "/opt"
-        private_url                    = "https://${local.deployment_fqdn}/${local.server_web_context}"
-        web_context_url                = "https://${local.deployment_fqdn}/${local.server_web_context}"
+        private_url                    = "https://${local.ingress_fqdn}/${local.server_web_context}"
+        web_context_url                = "https://${local.ingress_fqdn}/${local.server_web_context}"
         hostname                       = local.primary_hostname
         admin_username                 = var.admin_username
         admin_password                 = var.admin_password
@@ -651,7 +651,7 @@ module "arcgis_enterprise_primary" {
         services_dir_enabled           = true
         callback_functions_enabled     = true
         system_properties = {
-          WebContextURL = "https://${local.deployment_fqdn}/${local.server_web_context}"
+          WebContextURL = "https://${local.ingress_fqdn}/${local.server_web_context}"
         }
         data_items = local.data_items
       }
@@ -669,28 +669,28 @@ module "arcgis_enterprise_primary" {
           max_connections         = 150
           pitr                    = "enable"
           backup_type             = "s3"
-          backup_location         = "type=azure;location=datastore-backups/${var.deployment_id}/relational;name=re_default;username=${module.site_core_info.storage_account_name};password=${module.site_core_info.storage_account_key}"
+          backup_location         = "type=azure;location=datastore-backups/${var.deployment_id}/relational;name=re_default;username=${module.enterprise_core_info.storage_account_name};password=${module.enterprise_core_info.storage_account_key}"
         }
       }
       portal = {
-        url                      = "https://${local.primary_hostname}:7443/arcgis"
-        preferredidentifier      = "ip"
-        hostname                 = local.primary_hostname
-        hostidentifier           = local.primary_hostname
-        install_dir              = "/opt"
+        url                         = "https://${local.primary_hostname}:7443/arcgis"
+        preferredidentifier         = "ip"
+        hostname                    = local.primary_hostname
+        hostidentifier              = local.primary_hostname
+        install_dir                 = "/opt"
         install_system_requirements = true
-        private_url              = "https://${local.deployment_fqdn}/${local.portal_web_context}"
-        admin_username           = var.admin_username
-        admin_password           = var.admin_password
-        admin_email              = var.admin_email
-        admin_full_name          = var.admin_full_name
-        admin_description        = var.admin_description
-        security_question_index  = var.security_question_index
-        security_question_answer = var.security_question_answer
-        log_dir                  = "/opt/arcgis/portal/usr/arcgisportal/logs"
-        log_level                = var.log_level
-        content_store_type       = "cloudStore"
-        content_store_provider   = "Azure"
+        private_url                 = "https://${local.ingress_fqdn}/${local.portal_web_context}"
+        admin_username              = var.admin_username
+        admin_password              = var.admin_password
+        admin_email                 = var.admin_email
+        admin_full_name             = var.admin_full_name
+        admin_description           = var.admin_description
+        security_question_index     = var.security_question_index
+        security_question_answer    = var.security_question_answer
+        log_dir                     = "/opt/arcgis/portal/usr/arcgisportal/logs"
+        log_level                   = var.log_level
+        content_store_type          = "cloudStore"
+        content_store_provider      = "Azure"
         content_store_connection_string = {
           accountName             = local.storage_account_name
           accountEndpoint         = "blob.core.windows.net"
@@ -706,8 +706,8 @@ module "arcgis_enterprise_primary" {
         root_cert            = local.root_cert
         root_cert_alias      = "rootcert"
         system_properties = {
-          privatePortalURL = "https://${local.deployment_fqdn}/${local.portal_web_context}"
-          WebContextURL    = "https://${local.deployment_fqdn}/${local.portal_web_context}"
+          privatePortalURL = "https://${local.ingress_fqdn}/${local.portal_web_context}"
+          WebContextURL    = "https://${local.ingress_fqdn}/${local.portal_web_context}"
         }
       }
     }
@@ -735,7 +735,7 @@ module "arcgis_enterprise_standby" {
   count                  = local.is_ha ? 1 : 0
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-standby"
-  site_id                = var.site_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["standby"]
   json_attributes = jsonencode({
@@ -812,7 +812,7 @@ module "arcgis_enterprise_standby" {
 # temporary files from primary and standby VMs.
 module "clean_up" {
   source                = "../../modules/clean_up"
-  site_id               = var.site_id
+  enterprise_id         = var.enterprise_id
   deployment_id         = var.deployment_id
   machine_roles         = ["primary", "standby"]
   directories           = [local.software_dir]

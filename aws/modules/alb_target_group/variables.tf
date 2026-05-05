@@ -70,7 +70,7 @@ variable "target_instances" {
 }
 
 variable "vpc_id" {
-  description = "VPC Id"
+  description = "VPC ID"
   type        = string
 }
 

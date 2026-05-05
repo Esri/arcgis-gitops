@@ -5,7 +5,7 @@
  *
  * The module runs WebGISDR utility with 'import' option on primary EC2 instance of the deployment.
  *
- * The backup is retrieved from the backup S3 bucket of the site specified by "backup_site_id" input variable.
+ * The backup is retrieved from the backup S3 bucket of the enterprise specified by "backup_enterprise_id" input variable.
  *
  * ## Requirements
  *
@@ -23,8 +23,8 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.backup_site_id}/s3/backup | Backup S3 bucket |
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.backup_enterprise_id}/s3/backup | Backup S3 bucket |
+ * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
  */
 
 # Copyright 2024-2026 Esri
@@ -62,26 +62,26 @@ provider "aws" {
   default_tags {
     tags = {
       ArcGISAutomation   = "arcgis-gitops"      
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 }
 
 locals {
-  shared_location = "\\\\\\\\primary.${var.deployment_id}.${var.site_id}.internal\\\\arcgisbackup\\\\webgisdr"
+  shared_location = "\\\\\\\\primary.${var.deployment_id}.${var.enterprise_id}.internal\\\\arcgisbackup\\\\webgisdr"
 }
 
-module "backup_site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.backup_site_id
+module "backup_enterprise_core_info" {
+  source  = "../../modules/enterprise_core_info"
+  enterprise_id = var.backup_enterprise_id
 }
 
 # Run webgisdr utility with import option on primary EC2 instance.
 module "arcgis_enterprise_webgisdr_import" {
   source            = "../../modules/run_chef"
-  parameter_name    = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/webgisdr/import"
-  site_id           = var.site_id
+  parameter_name    = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/webgisdr/import"
+  enterprise_id           = var.enterprise_id
   deployment_id     = var.deployment_id
   machine_roles     = ["primary"]
   execution_timeout = var.execution_timeout
@@ -102,16 +102,16 @@ module "arcgis_enterprise_webgisdr_import" {
           INCLUDE_SCENE_TILE_CACHES       = false
           BACKUP_STORE_PROVIDER           = "AmazonS3"
           S3_ENCRYPTED                    = false
-          S3_BUCKET                       = module.backup_site_core_info.s3_backup
+          S3_BUCKET                       = module.backup_enterprise_core_info.s3_backup
           S3_CREDENTIALTYPE               = "IAMRole"
-          S3_REGION                       = module.backup_site_core_info.s3_region
+          S3_REGION                       = module.backup_enterprise_core_info.s3_region
           #S3_BACKUP_NAME                 = "<backup file name>"
           # In 11.4 PORTAL_BACKUP_S3_BUCKET property was renamed to BACKUP_S3_BUCKET
           # Keeping both properties for backward compatibility
-          BACKUP_S3_BUCKET                = module.backup_site_core_info.s3_backup
-          BACKUP_S3_REGION                = module.backup_site_core_info.s3_region
-          PORTAL_BACKUP_S3_BUCKET         = module.backup_site_core_info.s3_backup
-          PORTAL_BACKUP_S3_REGION         = module.backup_site_core_info.s3_region
+          BACKUP_S3_BUCKET                = module.backup_enterprise_core_info.s3_backup
+          BACKUP_S3_REGION                = module.backup_enterprise_core_info.s3_region
+          PORTAL_BACKUP_S3_BUCKET         = module.backup_enterprise_core_info.s3_backup
+          PORTAL_BACKUP_S3_REGION         = module.backup_enterprise_core_info.s3_region
         }
       }
     }

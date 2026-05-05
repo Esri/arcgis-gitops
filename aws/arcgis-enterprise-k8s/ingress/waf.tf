@@ -13,12 +13,12 @@
 # limitations under the License.
 
 resource "aws_cloudwatch_log_group" "waf_logs" {
-  name              = "aws-waf-logs-${var.site_id}-${var.deployment_id}"
+  name              = "aws-waf-logs-${var.enterprise_id}-${var.deployment_id}"
   retention_in_days = 30
 }
 
 resource "aws_wafv2_web_acl" "arcgis_enterprise" {
-  name        = "${var.site_id}-${var.deployment_id}-waf"
+  name        = "${var.enterprise_id}-${var.deployment_id}-waf"
   description = "ArcGIS Enterprise WAF Rules"
   scope       = "REGIONAL"
 

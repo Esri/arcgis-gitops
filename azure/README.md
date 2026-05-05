@@ -9,7 +9,7 @@ The workflows require:
 * ArcGIS Online user account to download ArcGIS Enterprise installation media from [MyEsri](https://my.esri.com)
 * (For Kubernetes platform) Docker Hub account that has access to private repositories with ArcGIS Enterprise on Kubernetes container images
 * Authorization files for ArcGIS Enterprise software
-* SSL certificates for the ArcGIS Enterprise site domain names
+* SSL certificates for the ArcGIS Enterprise domain names
 
 On Windows and Linux platforms the workflows use:
 
@@ -32,11 +32,11 @@ Basic knowledge of Git and Microsoft Azure is required to use the templates. Kno
 
 ## Templates
 
-An *ArcGIS Enterprise site* in this context is a group of *deployments* that typically include a [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) or [ArcGIS Enterprise on Kubernetes deployment](https://enterprise-k8s.arcgis.com/en/latest/deploy/system-architecture.htm) plus [additional server deployments](https://enterprise.arcgis.com/en/get-started/latest/windows/additional-server-deployment.htm) in different roles.
+An *ArcGIS Enterprise* in this context is a group of *deployments* that typically include a [base ArcGIS Enterprise deployment](https://enterprise.arcgis.com/en/get-started/latest/windows/base-arcgis-enterprise-deployment.htm) or [ArcGIS Enterprise on Kubernetes deployment](https://enterprise-k8s.arcgis.com/en/latest/deploy/system-architecture.htm) plus [additional server deployments](https://enterprise.arcgis.com/en/get-started/latest/windows/additional-server-deployment.htm) in different roles.
 
 The following templates are available for Microsoft Azure:
 
-* [arcgis-site-core](arcgis-site-core/README.md) - Provision core Azure resources for ArcGIS Enterprise site
+* [arcgis-enterprise-core](arcgis-enterprise-core/README.md) - Provision core Azure resources for ArcGIS Enterprise
 * [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) - Base ArcGIS Enterprise on Linux deployment operations
 * [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
 * [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment in AKS
@@ -64,9 +64,9 @@ The specific guidance for using the templates depends on the use case and may in
 
 [Create a new private GitHub repository](https://github.com/new?template_name=arcgis-gitops&template_owner=Esri&description=ArcGIS%20Enterprise%20on%20Azure&name=arcgis-enterprise) from https://github.com/esri/arcgis-gitops template repository.
 
-Use a separate GitHub repository for each ArcGIS Enterprise site and separate Git branches for different environments.
+Use a separate GitHub repository for each ArcGIS Enterprise and separate Git branches for different environments.
 
-> When operating multiple similar ArcGIS Enterprise sites, consider first forking and modifying https://github.com/esri/arcgis-gitops template repository and then creating repositories for the sites from the modified template.
+> When operating multiple similar ArcGIS Enterprises, consider first forking and modifying https://github.com/esri/arcgis-gitops template repository and then creating repositories for the enterprises from the modified template.
 
 ### 2. Create Required Azure Resources
 
@@ -87,7 +87,7 @@ Configure secrets and variables for GitHub Actions in the repository settings.
 | AZURE_CLIENT_ID        | Service principal client ID       |
 | AZURE_CLIENT_SECRET    | Service principal client secret   |
 | AZURE_TENANT_ID        | Microsoft Entra tenant ID         |
-| ENTERPRISE_ADMIN_EMAIL | Site administrator e-mail address |
+| ENTERPRISE_ADMIN_EMAIL | Enterprise administrator e-mail address |
 | ARCGIS_ONLINE_USERNAME | ArcGIS Online user name           |
 | ARCGIS_ONLINE_PASSWORD | ArcGIS Online user password       |
 
@@ -113,10 +113,10 @@ Run **validate-settings-azure** GitHub Actions workflow to validate the settings
 
 ### 4. Use the Templates
 
-Follow the [arcgis-site-core](arcgis-site-core/README.md) template instructions to provision core Azure resources for the ArcGIS Enterprise site.
+Follow the [arcgis-enterprise-core](arcgis-enterprise-core/README.md) template instructions to provision core Azure resources for the ArcGIS Enterprise.
 
 > Consult the README files of the other templates to create and operate the required ArcGIS Enterprise deployments.
 
-Use **verify-site-config-azure** GitHub Actions workflow to verify the site configuration before running any other workflows. The workflow checks integrity of configuration of the deployments specified by "deployments" array in [site-index.json](../config/azure/site-index.json) file.
+Use **verify-enterprise-config-azure** GitHub Actions workflow to verify the enterprise configuration before running any other workflows. The workflow checks integrity of configuration of the deployments specified by "deployments" array in [enterprise-index.json](../config/azure/enterprise-index.json) file.
 
-> Consider triggering verify-site-config-azure workflow by pull requests to the main branch to verify the configuration changes before merging them into the main branch.
+> Consider triggering verify-enterprise-config-azure workflow by pull requests to the main branch to verify the configuration changes before merging them into the main branch.

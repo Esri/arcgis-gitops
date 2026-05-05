@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -15,16 +15,16 @@
 # System-level backups using AWS Backup service.
 
 data "aws_ssm_parameter" "backup_role_arn" {
-  name = "/arcgis/${var.site_id}/iam/backup-role-arn"
+  name = "/arcgis/${var.enterprise_id}/iam/backup-role-arn"
 }
 
 data "aws_ssm_parameter" "backup_vault_name" {
-  name = "/arcgis/${var.site_id}/backup/vault-name"
+  name = "/arcgis/${var.enterprise_id}/backup/vault-name"
 }
 
 # Create a backup plan for the deployment.
 resource "aws_backup_plan" "deployment_backup" {
-  name = "${var.site_id}-${var.deployment_id}"
+  name = "${var.enterprise_id}-${var.deployment_id}"
 
   rule {
     rule_name         = "scheduled-deployment-backup"
@@ -38,17 +38,17 @@ resource "aws_backup_plan" "deployment_backup" {
 }
 
 resource "aws_ssm_parameter" "backup_plan_id" {
-  name        = "/arcgis/${var.site_id}/${var.deployment_id}/backup/plan-id"
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id"
   type        = "String"
   value       = aws_backup_plan.deployment_backup.id
-  description = "Backup plan ID for the deployment ${var.site_id}/${var.deployment_id}"
+  description = "Backup plan ID for the deployment ${var.enterprise_id}/${var.deployment_id}"
 }
 
 # Add all the deployment's EC2 instances, S3 buckets, and EFS file systems to 
 # the backup plan resources.
 resource "aws_backup_selection" "infrastructure" {
   iam_role_arn = nonsensitive(data.aws_ssm_parameter.backup_role_arn.value)
-  name         = "${var.site_id}-${var.deployment_id}-infrastructure"
+  name         = "${var.enterprise_id}-${var.deployment_id}-infrastructure"
   plan_id      = aws_backup_plan.deployment_backup.id
 
   resources = var.node_count > 0 ? [

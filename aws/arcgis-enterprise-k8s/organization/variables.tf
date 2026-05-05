@@ -97,7 +97,7 @@ variable "authorization_file_path" {
 }
 
 variable "aws_region" {
-  description = "AWS region Id"
+  description = "AWS region ID"
   type        = string
 }
 
@@ -132,7 +132,7 @@ variable "configure_wait_time_min" {
 }
 
 variable "deployment_id" {
-  description = "ArcGIS Enterprise deployment Id"
+  description = "ArcGIS Enterprise deployment ID"
   type        = string
   default     = "enterprise-k8s"
 
@@ -146,6 +146,17 @@ variable "enterprise_admin_cli_version" {
   description = "ArcGIS Enterprise Admin CLI image tag"
   type        = string
   default     = "0.5.0"
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
 }
 
 variable "image_repository_prefix" {
@@ -207,17 +218,6 @@ variable "security_question_index" {
   validation {
     condition     = var.security_question_index > 0 && var.security_question_index < 15
     error_message = "The security_question_index value must be an number between 1 and 14."
-  }
-}
-
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 

@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-variable "azure_region" {
-  description = "Azure region display name"
-  type        = string
-}
-
 variable "admin_password" {
   description = "Portal for ArcGIS administrator user password"
   type        = string
@@ -39,6 +34,11 @@ variable "admin_username" {
   }
 }
 
+variable "azure_region" {
+  description = "Azure region display name"
+  type        = string
+}
+
 variable "backup_restore_mode" {
   description = "Type of backup"
   type        = string
@@ -50,13 +50,24 @@ variable "backup_restore_mode" {
 }
 
 variable "deployment_id" {
-  description = "Deployment Id"
+  description = "Deployment ID"
   type        = string
   default     = "enterprise-base-linux"
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
@@ -86,15 +97,4 @@ variable "run_as_user" {
   description = "User name for the account used to run Portal for ArcGIS"
   type        = string
   default     = "arcgis"
-}
-
-variable "site_id" {
-  description = "ArcGIS site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
 }

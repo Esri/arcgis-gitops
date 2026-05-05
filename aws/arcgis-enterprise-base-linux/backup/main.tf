@@ -22,8 +22,8 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
- * | /arcgis/${var.site_id}/s3/backup | S3 bucket for the backup |
- * | /arcgis/${var.site_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
+ * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
  */
 
 # Copyright 2024-2026 Esri
@@ -39,7 +39,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 terraform {
   backend "s3" {
     key = "terraform/arcgis/enterprise-base-linux/backup.tfstate"
@@ -57,12 +57,12 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
-      ArcGISAutomation   = "arcgis-gitops"      
-      ArcGISSiteId       = var.site_id
-      ArcGISDeploymentId = var.deployment_id
+      ArcGISAutomation   = "arcgis-gitops"
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
     }
   }
 }
@@ -71,16 +71,16 @@ locals {
   shared_location = "/mnt/efs/gisdata/arcgisbackup/webgisdr"
 }
 
-module "site_core_info" {
-  source         = "../../modules/site_core_info"
-  site_id        = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 # Run webgisdr utility on primary EC2 instance.
 module "arcgis_enterprise_webgisdr_export" {
   source            = "../../modules/run_chef"
-  parameter_name    = "/arcgis/${var.site_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/webgisdr/export"
-  site_id           = var.site_id
+  parameter_name    = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/webgisdr/export"
+  enterprise_id     = var.enterprise_id
   deployment_id     = var.deployment_id
   machine_roles     = ["primary"]
   execution_timeout = var.execution_timeout
@@ -100,15 +100,15 @@ module "arcgis_enterprise_webgisdr_export" {
           INCLUDE_SCENE_TILE_CACHES       = false
           BACKUP_STORE_PROVIDER           = "AmazonS3"
           S3_ENCRYPTED                    = false
-          S3_BUCKET                       = module.site_core_info.s3_backup
+          S3_BUCKET                       = module.enterprise_core_info.s3_backup
           S3_CREDENTIALTYPE               = "IAMRole"
-          S3_REGION                       = module.site_core_info.s3_region
+          S3_REGION                       = module.enterprise_core_info.s3_region
           # In 11.4 PORTAL_BACKUP_S3_BUCKET property was renamed to BACKUP_S3_BUCKET
           # Keeping both properties for backward compatibility
-          BACKUP_S3_BUCKET                = module.site_core_info.s3_backup
-          BACKUP_S3_REGION                = module.site_core_info.s3_region
-          PORTAL_BACKUP_S3_BUCKET         = module.site_core_info.s3_backup
-          PORTAL_BACKUP_S3_REGION         = module.site_core_info.s3_region
+          BACKUP_S3_BUCKET        = module.enterprise_core_info.s3_backup
+          BACKUP_S3_REGION        = module.enterprise_core_info.s3_region
+          PORTAL_BACKUP_S3_BUCKET = module.enterprise_core_info.s3_backup
+          PORTAL_BACKUP_S3_REGION = module.enterprise_core_info.s3_region
         }
       }
     }

@@ -19,37 +19,37 @@
  * * A Kubernetes HealthCheckPolicy resource for the gateway
  * * A Web Application Firewall policy and associates it with the Application Gateway
  * * A policy association with the gateway Kubernetes resource
- * * A private DNS zone and a CNAME record that points the deployment's FQDN
+ * * A private DNS zone and a CNAME record that points the ingress FQDN
  * 
  * If a public DNS zone name and resource group name are provided, a CNAME record in the DNS zone
- * that points the deployment's FQDN to the Application Gateway's frontend DNS name
+ * that points the ingress FQDN to the Application Gateway's frontend DNS name
  * 
  * The ingress monitoring subsystem consists of:
  *
- * * An Azure Monitor metric alert that notifies the site's alert action group when
+ * * An Azure Monitor metric alert that notifies the enterprise's alert action group when
  *   the Application Gateway's healthy host count is 0
  * * A Log Analytics workspace that collects the Application Gateway's logs
- * * A shared dashboard "{var.site_id}-{var.deployment_id}-ingress" that visualizes 
+ * * A shared dashboard "{var.enterprise_id}-{var.deployment_id}-ingress" that visualizes 
  *   the key metrics and logs of the Application Gateway for Containers
  *
  * ## Key Vault Secrets
  *
  * ### Secrets Read by the Module
  *
- * | Key Vault secret name | Description |
- * |--------------------|-------------|
- * | site-alerts-action-group-id | Site's alert action group ID |
- * | storage-account-key | Site's storage account key |
- * | storage-account-name | Site's storage account name |
- * | subnets | VNet subnet IDs |
- * | vm-identity-id | VM identity ID |
- * | vnet-id | VNet ID |
+ * | Key Vault secret name             | Description |
+ * |-----------------------------------|-------------|
+ * | enterprise-alerts-action-group-id | Enterprise's alert action group ID |
+ * | storage-account-key               | Enterprise's storage account key |
+ * | storage-account-name              | Enterprise's storage account name |
+ * | subnets                           | VNet subnet IDs |
+ * | vm-identity-id                    | VM identity ID |
+ * | vnet-id                           | VNet ID |
  *
  * ### Secrets Written by the Module
  *
- * | Secret Name | Description |
- * |-------------|-------------|
- * | ${var.deployment_id}-deployment-fqdn | Deployment's FQDN |
+ * | Secret Name                          | Description |
+ * |--------------------------------------|-------------|
+ * | ${var.deployment_id}-ingress-fqdn | Ingress FQDN |
  *
  * ## Requirements
  * 
@@ -108,37 +108,37 @@ locals {
   listener_tls_secret = "listener-tls-secret"
   ca_bundle_secret    = "ca-bundle-secret"
 
-  # Split the deployment FQDN into DNS zone name and CNAME record
-  parts = split(".", var.deployment_fqdn)
-  first_dot_index = length(local.parts[0]) 
-  cname_record = substr(var.deployment_fqdn, 0, local.first_dot_index)
-  private_dns_zone_name = substr(var.deployment_fqdn, local.first_dot_index + 1, -1)
+  # Split the ingress FQDN into DNS zone name and CNAME record
+  parts                 = split(".", var.ingress_fqdn)
+  first_dot_index       = length(local.parts[0])
+  cname_record          = substr(var.ingress_fqdn, 0, local.first_dot_index)
+  private_dns_zone_name = substr(var.ingress_fqdn, local.first_dot_index + 1, -1)
 }
 
-module "site_core_info" {
-  source  = "../../modules/site_core_info"
-  site_id = var.site_id
+module "enterprise_core_info" {
+  source        = "../../modules/enterprise_core_info"
+  enterprise_id = var.enterprise_id
 }
 
 resource "azurerm_resource_group" "deployment_rg" {
-  name     = "${var.site_id}-${var.deployment_id}-ingress"
+  name     = "${var.enterprise_id}-${var.deployment_id}-ingress"
   location = var.azure_region
 }
 
 # Create an Application Gateway for Containers
 resource "azurerm_application_load_balancer" "ingress" {
-  name                = "${var.site_id}-${var.deployment_id}"
-  location            = azurerm_resource_group.deployment_rg.location
+  name     = "${var.enterprise_id}-${var.deployment_id}"
+  location = azurerm_resource_group.deployment_rg.location
   # The AGC must be created in the cluster resource group because the ALB controller's
   # managed identity scope is limited to the cluster resource group.
-  resource_group_name = "${var.site_id}-k8s-cluster"
+  resource_group_name = "${var.enterprise_id}-k8s-cluster"
 }
 
 # Associate the Application Gateway with app-gateway-subnet-1 subnet
 resource "azurerm_application_load_balancer_subnet_association" "ingress" {
   name                         = azurerm_application_load_balancer.ingress.name
   application_load_balancer_id = azurerm_application_load_balancer.ingress.id
-  subnet_id                    = module.site_core_info.app_gateway_subnets[0]
+  subnet_id                    = module.enterprise_core_info.app_gateway_subnets[0]
 }
 
 # Create a frontend for the deployment in the Application Load Balancer
@@ -288,7 +288,7 @@ resource "kubernetes_manifest" "tls_policy" {
         group     = ""
       }
       default = {
-        sni = var.deployment_fqdn
+        sni = var.ingress_fqdn
         ports = [{
           port = 443
         }]
@@ -331,7 +331,7 @@ resource "kubernetes_manifest" "health_check_policy" {
         unhealthyThreshold = 3
         port               = 443
         http = {
-          host = var.deployment_fqdn
+          host = var.ingress_fqdn
           path = "/${var.arcgis_enterprise_context}/admin"
           match = {
             statusCodes = [{
@@ -384,55 +384,55 @@ resource "kubernetes_manifest" "waf_policy" {
 # Application Gateway for Containers does not support private IP addresses (and private front ends).
 # CNAME record cannot be used in the apex @ record of the DNS zone.
 # Private DNS zones do not support alias A records.
-# So the private DNS zone is not created for var.deployment_fqdn but for 
+# So the private DNS zone is not created for var.ingress_fqdn but for 
 # the upper level domain.
-resource "azurerm_private_dns_zone" "deployment_fqdn" {
+resource "azurerm_private_dns_zone" "ingress_fqdn" {
   name                = local.private_dns_zone_name
   resource_group_name = azurerm_resource_group.deployment_rg.name
 
   tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
   }
 }
 
 # Private DNS Zone Virtual Network Link
 resource "azurerm_private_dns_zone_virtual_network_link" "dns_vnet_link" {
-  name                  = azurerm_private_dns_zone.deployment_fqdn.name
+  name                  = azurerm_private_dns_zone.ingress_fqdn.name
   resource_group_name   = azurerm_resource_group.deployment_rg.name
-  private_dns_zone_name = azurerm_private_dns_zone.deployment_fqdn.name
-  virtual_network_id    = module.site_core_info.vnet_id
+  private_dns_zone_name = azurerm_private_dns_zone.ingress_fqdn.name
+  virtual_network_id    = module.enterprise_core_info.vnet_id
 }
 
-# Create a record in the private DNS zone that points the deployment's FQDN 
+# Create a record in the private DNS zone that points the ingress FQDN 
 # to the Application Gateway's frontend DNS name.
 resource "azurerm_private_dns_cname_record" "private_cname" {
   name                = local.cname_record
-  zone_name           = azurerm_private_dns_zone.deployment_fqdn.name
+  zone_name           = azurerm_private_dns_zone.ingress_fqdn.name
   resource_group_name = azurerm_resource_group.deployment_rg.name
   ttl                 = 3600
   record              = azurerm_application_load_balancer_frontend.public_frontend.fully_qualified_domain_name
 }
 
-# Create a CNAME record in the public DNS zone that points the deployment's FQDN 
+# Create a CNAME record in the public DNS zone that points the ingress FQDN 
 # to the Application Gateway's frontend FQDN if var.dns_zone_name is set.
 resource "azurerm_dns_cname_record" "public_cname" {
   count               = var.dns_zone_name != null && var.dns_zone_resource_group_name != null ? 1 : 0
-  name                = trimsuffix(var.deployment_fqdn, ".${var.dns_zone_name}")
+  name                = trimsuffix(var.ingress_fqdn, ".${var.dns_zone_name}")
   zone_name           = var.dns_zone_name
   resource_group_name = var.dns_zone_resource_group_name
   ttl                 = 3600
-  record = azurerm_application_load_balancer_frontend.public_frontend.fully_qualified_domain_name
+  record              = azurerm_application_load_balancer_frontend.public_frontend.fully_qualified_domain_name
 }
 
-# Store the deployment FQDN in Key Vault
-resource "azurerm_key_vault_secret" "deployment_fqdn" {
-  name         = "${var.deployment_id}-deployment-fqdn"
-  value        = var.deployment_fqdn
-  key_vault_id = module.site_core_info.vault_id
+# Store the ingress FQDN in Key Vault
+resource "azurerm_key_vault_secret" "ingress_fqdn" {
+  name         = "${var.deployment_id}-ingress-fqdn"
+  value        = var.ingress_fqdn
+  key_vault_id = module.enterprise_core_info.vault_id
 
   tags = {
-    ArcGISSiteId       = var.site_id
-    ArcGISDeploymentId = var.deployment_id
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
   }
 }

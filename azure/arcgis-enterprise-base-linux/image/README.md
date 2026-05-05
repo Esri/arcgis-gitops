@@ -1,6 +1,6 @@
 # Packer Template for Base ArcGIS Enterprise on Linux Images
 
-The Packer template builds a VM image for a specific base ArcGIS Enterprise deployment on Linux and publishes it to the site Image Gallery.
+The Packer template builds a VM image for a specific base ArcGIS Enterprise deployment on Linux and publishes it to the enterprise Image Gallery.
 
 The VM image is built from the operating system's base image specified by Key Vault secret "vm-image-${var.os}".
 
@@ -24,7 +24,7 @@ and "${var.deployment_id}-vm-image-standby" Key Vault secrets.
 ## Requirements
 
 VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" 
-must be created in the site Image Gallery before running the template.
+must be created in the enterprise Image Gallery before running the template.
 
 On the machine where Packer is executed:
 
@@ -43,7 +43,7 @@ The template reads the following Key Vault secrets:
 |---------------------------|-------------|
 | chef-client-url-${var.os} | Chef Client URL |
 | cookbooks-url             | Chef Cookbooks for ArcGIS archive URL |
-| image-gallery-name        | Site Image Gallery name |
+| image-gallery-name        | enterprise Image Gallery name |
 | storage-account-name      | Private repository storage account name |
 | vm-identity-client-id     | Managed identity client ID |
 | vm-identity-id            | Managed identity resource ID |
@@ -68,13 +68,13 @@ The template writes the following Key Vault secrets:
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
-| deployment_id | Deployment Id | `string` | `"enterprise-base-linux"` | no |
-| os | Operating system Id | `string` | `"rhel9"` | no |
+| deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
+| os | Operating system ID | `string` | `"rhel9"` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 | skip_create_image | If true, Packer will not create the image | `bool` | `false` | no |
 | vault_name | Name of the Azure Key Vault | `string` | | yes |
 | vm_size | Azure VM size | `string` | `"Standard_D8s_v5"` | no |

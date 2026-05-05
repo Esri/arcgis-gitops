@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
  
-variable "aws_region" {
-  description = "AWS region Id"
-  type        = string
-}
-
 variable "admin_email" {
   description = "ArcGIS Server administrator e-mail address"
   type        = string
@@ -61,6 +56,11 @@ variable "arcgis_version" {
   }
 }
 
+variable "aws_region" {
+  description = "AWS region ID"
+  type        = string
+}
+
 variable "config_store_type" {
   description = "ArcGIS Server configuration store type"
   type        = string
@@ -78,13 +78,24 @@ variable "config_store_type" {
 }
 
 variable "deployment_id" {
-  description = "Deployment Id"
+  description = "Deployment ID"
   type        = string
   default     = "server-linux"
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
@@ -106,7 +117,7 @@ variable "log_level" {
 }
 
 variable "portal_org_id" {
-  description = "ArcGIS Enterprise organization Id"
+  description = "ArcGIS Enterprise organization ID"
   type        = string
   default     = null
 }
@@ -123,6 +134,17 @@ variable "portal_username" {
   type        = string
   default     = null
 } 
+
+variable "root_certificate_path" {
+  description = "Local path of root certificate file in PEM format"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.root_certificate_path == null || try(fileexists(var.root_certificate_path), false)
+    error_message = "The root_certificate_path value must be a valid file path."
+  }
+}
 
 variable "run_as_user" {
   description = "User name for the account used to run ArcGIS Server."
@@ -145,6 +167,24 @@ variable "server_authorization_options" {
   type        = string
   sensitive   = true
   default     = ""
+}
+
+variable "server_certificate_password" {
+  description = "Password for TLS certificate in PKCS12 format installed on backend servers"
+  type        = string
+  sensitive   = true
+  default     = ""
+}
+
+variable "server_certificate_path" {
+  description = "Local path of TLS certificate in PKCS12 format installed on backend servers"
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.server_certificate_path == null || try(fileexists(var.server_certificate_path), false)
+    error_message = "The server_certificate_path value must be a valid file path."
+  }  
 }
 
 variable "server_functions" {
@@ -177,17 +217,6 @@ variable "services_dir_enabled" {
   default     = true
 }
 
-variable "site_id" {
-  description = "ArcGIS Enterprise site Id"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.site_id))
-    error_message = "The site_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
-}
-
 variable "system_properties" {
   description = "ArcGIS Server system properties"
   type        = map(any)
@@ -198,33 +227,4 @@ variable "use_webadaptor" {
   description = "If true, ArcGIS Web Adaptor will be registered with ArcGIS Server."
   type        = bool
   default     = false
-}
-
-variable "keystore_file_path" {
-  description = "Local path of keystore file in PKCS12 format with SSL certificate used by HTTPS listeners"
-  type        = string
-  default     = null
-
-  validation {
-    condition     = var.keystore_file_path == null || try(fileexists(var.keystore_file_path), false)
-    error_message = "The keystore_file_path value must be a valid file path."
-  }  
-}
-
-variable "keystore_file_password" {
-  description = "Password for keystore file with SSL certificate used by HTTPS listeners"
-  type        = string
-  sensitive   = true
-  default     = ""
-}
-
-variable "root_cert_file_path" {
-  description = "Local path of root certificate file in PEM format used by ArcGIS Server"
-  type        = string
-  default     = null
-
-  validation {
-    condition     = var.root_cert_file_path == null || try(fileexists(var.root_cert_file_path), false)
-    error_message = "The root_cert_file_path value must be a valid file path."
-  }
 }

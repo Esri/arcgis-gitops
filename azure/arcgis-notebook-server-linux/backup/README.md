@@ -1,6 +1,6 @@
 # Backup Script for ArcGIS Notebook Server on Linux
 
-The `exportSite.sh` script automates the process of backing up an ArcGIS Notebook Server deployment and securely storing the backup in the ArcGIS Enterprise site's backup blob storage (see [Back up and restore ArcGIS Notebook Server](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm)).
+The `exportSite.sh` script automates the process of backing up an ArcGIS Notebook Server deployment and securely storing the backup in the ArcGIS Enterprise's backup blob storage (see [Back up and restore ArcGIS Notebook Server](https://enterprise.arcgis.com/en/notebook/latest/administer/linux/back-up-and-restore-arcgis-notebook-server.htm)).
 
 The script is designed to be executed by az_run_shell_script python module on the primary VM of the ArcGIS Notebook Server deployment. It uses Azure CLI commands to interact with Azure Blob Storage.
 
@@ -17,3 +17,7 @@ On the machine where the script is executed:
 
 * Azure CLI must be installed and available in the PATH.
 * jq command-line JSON processor must be installed.
+
+<!-- BEGIN_TF_DOCS -->
+
+<!-- END_TF_DOCS -->

@@ -13,7 +13,7 @@
 # limitations under the License.
 
 resource "azurerm_web_application_firewall_policy" "arcgis_enterprise" {
-  name                = "${var.site_id}-${var.deployment_id}-waf"
+  name                = "${var.enterprise_id}-${var.deployment_id}-waf"
   resource_group_name = azurerm_resource_group.deployment_rg.name
   location            = azurerm_resource_group.deployment_rg.location
 

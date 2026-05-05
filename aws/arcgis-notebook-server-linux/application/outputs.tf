@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,13 +12,8 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-output "arcgis_notebook_server_private_url" {
-  description = "ArcGIS Notebook Server URL"
-  value       = "https://${local.deployment_fqdn}:11443/arcgis"
-}
-
 output "arcgis_notebook_server_url" {
   description = "ArcGIS Notebook Server URL"
-  value       = "https://${local.deployment_fqdn}/${local.notebook_server_web_context}"
+  value       = "https://${local.ingress_fqdn}/${local.notebook_server_web_context}"
 }
 

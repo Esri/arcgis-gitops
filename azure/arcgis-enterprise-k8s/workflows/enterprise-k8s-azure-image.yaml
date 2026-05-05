@@ -1,4 +1,4 @@
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -39,8 +39,8 @@ jobs:
         uses: actions/checkout@v4
       - name: Build Admin CLI Image
         run: |
-          SITE_ID=$(jq -r '.site_id' $CONFIG_FILE)
+          ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
           ADMIN_CLI_VERSION=$(jq -r '.version' $ADMIN_CLI_METADATA_FILE)
           chmod +x ./build-admin-cli-image.sh
-          ./build-admin-cli-image.sh enterprise-admin-cli $ADMIN_CLI_VERSION ${{ github.workspace }}/enterprise-admin-cli $SITE_ID
+          ./build-admin-cli-image.sh enterprise-admin-cli $ADMIN_CLI_VERSION ${{ github.workspace }}/enterprise-admin-cli $ENTERPRISE_ID
   

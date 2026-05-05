@@ -48,11 +48,11 @@ The module reads the following Key Vault secrets:
 |-------------------------------------------|-------------|
 | subnets                                   | VNet subnet IDs |
 | vnet-id                                   | VNet ID |
-| storage-account-key                       | Site's storage account key |
-| storage-account-name                      | Site's storage account name |
+| storage-account-key                       | Enterprise's storage account key |
+| storage-account-name                      | Enterprise's storage account name |
 | vm-identity-client-id                     | VM identity client ID |
 | ${var.deployment_id}-backend-pfx-password | Password for the backend PFX certificate |
-| ${var.deployment_id}-deployment-fqdn      | Deployment's FQDN |
+| ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
 | ${var.deployment_id}-portal-web-context   | Portal for ArcGIS web context |
 | ${var.deployment_id}-server-web-context   | ArcGIS Server web context |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
@@ -78,9 +78,9 @@ The module reads the following Key Vault secrets:
 | az_copy_files | ../../modules/az_copy_files | n/a |
 | bootstrap_deployment | ../../modules/bootstrap | n/a |
 | clean_up | ../../modules/clean_up | n/a |
+| enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | primary_keystore | ../../modules/run_chef | n/a |
 | root_cert | ../../modules/run_chef | n/a |
-| site_core_info | ../../modules/site_core_info | n/a |
 | standby_keystore | ../../modules/run_chef | n/a |
 
 ## Resources
@@ -92,13 +92,14 @@ The module reads the following Key Vault secrets:
 | [azurerm_storage_blob.server_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
 | [azurerm_key_vault_secret.backend_pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
-| [azurerm_key_vault_secret.deployment_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.portal_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.server_web_context](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_image_os](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_resources.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/resources) | data source |
+| [azurerm_virtual_machine.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_machine) | data source |
 | [azurerm_virtual_machine.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/virtual_machine) | data source |
 
 ## Inputs
@@ -116,18 +117,18 @@ The module reads the following Key Vault secrets:
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
-| deployment_id | Deployment Id | `string` | `"enterprise-base-linux"` | no |
+| deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
+| enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |
-| portal_user_license_type_id | Portal for ArcGIS administrator user license type Id | `string` | `""` | no |
+| portal_user_license_type_id | Portal for ArcGIS administrator user license type ID | `string` | `""` | no |
 | root_cert_file_path | Local path of root certificate file in PEM format used by ArcGIS Server and Portal for ArcGIS | `string` | `null` | no |
 | run_as_user | User name for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
 | security_question_answer | Primary ArcGIS Enterprise administrator security question answer | `string` | n/a | yes |
 | security_question_index | Primary ArcGIS Enterprise administrator security question index | `number` | `1` | no |
 | server_authorization_file_path | Local path of ArcGIS Server authorization file | `string` | n/a | yes |
 | server_authorization_options | Additional ArcGIS Server software authorization command line options | `string` | `""` | no |
-| site_id | ArcGIS Enterprise site Id | `string` | `"arcgis"` | no |
 
 ## Outputs
 

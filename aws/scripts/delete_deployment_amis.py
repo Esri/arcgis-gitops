@@ -22,12 +22,12 @@ if __name__ == '__main__':
         prog='delete_deployment_amis.py',
         description='Deletes AMIs used by the specified deployment and SSM parameters referencing the AMIs.')
 
-    parser.add_argument('-s', dest='site_id', required=True, help='ArcGIS Enterprise site Id')
-    parser.add_argument('-d', dest='deployment_id', required=True, help='ArcGIS Enterprise deployment Id')
+    parser.add_argument('-s', dest='enterprise_id', required=True, help='ArcGIS Enterprise ID')
+    parser.add_argument('-d', dest='deployment_id', required=True, help='ArcGIS Enterprise deployment ID')
 
     args = parser.parse_args()
 
-    print(f'Deleting AMIs for deployment \"{args.deployment_id}\" in site \"{args.site_id}\"...')
+    print(f'Deleting AMIs for deployment \"{args.deployment_id}\" in enterprise \"{args.enterprise_id}\"...')
 
     ec2_client = boto3.client('ec2')
     ssm_client = boto3.client('ssm')
@@ -37,12 +37,12 @@ if __name__ == '__main__':
         Owners=['self'],
         Filters=[
             {
-                'Name': 'tag:ArcGISDeploymentId',
+                'Name': 'tag:ArcGISDeploymentID',
                 'Values': [args.deployment_id]
             },
             {
-                'Name': 'tag:ArcGISSiteId',
-                'Values': [args.site_id]
+                'Name': 'tag:ArcGISEnterpriseID',
+                'Values': [args.enterprise_id]
             }
         ],
         MaxResults=1000
@@ -73,7 +73,7 @@ if __name__ == '__main__':
                 'Key': 'Name',
                 'Option': 'BeginsWith',
                 'Values': [
-                    f'/arcgis/{args.site_id}/images/{args.deployment_id}/'
+                    f'/arcgis/{args.enterprise_id}/images/{args.deployment_id}/'
                 ]
             }
         ]

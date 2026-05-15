@@ -176,8 +176,6 @@ locals {
   keystore_file = "${local.certificates_dir}/${local.ingress_fqdn}.pfx"
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
 
-  # timestamp = formatdate("YYYYMMDDhhmm", timestamp())
-  # namespace = replace("${var.enterprise_id}${var.deployment_id}", "/[^a-zA-Z0-9]/", "")
   namespace = local.storage_account_name
 }
 

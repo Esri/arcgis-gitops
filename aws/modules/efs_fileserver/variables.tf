@@ -44,7 +44,7 @@ variable "fileserver_deployment_id" {
 }
 
 variable "referenced_security_group_id" {
-  description = "List of security group IDs to reference in the EFS file system security group ingress rules. "
+  description = "Security group ID to reference in the EFS file system security group ingress rules. "
   type        = string
 }
 

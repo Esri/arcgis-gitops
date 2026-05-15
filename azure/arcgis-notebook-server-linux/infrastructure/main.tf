@@ -485,6 +485,7 @@ module "aznfs_fileserver" {
   deployment_id            = var.fileserver_deployment_id != null ? var.fileserver_deployment_id : var.deployment_id
   enterprise_id            = var.enterprise_id
   fileserver_deployment_id = var.fileserver_deployment_id
+  fileserver_size          = var.fileserver_size
   key_vault_id             = module.enterprise_core_info.vault_id
   location                 = azurerm_resource_group.deployment_rg.location
   resource_group_name      = azurerm_resource_group.deployment_rg.name

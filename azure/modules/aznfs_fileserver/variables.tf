@@ -33,7 +33,7 @@ variable "deployment_id" {
 }
 
 variable "fileserver_deployment_id" {
-  description = "Use the EFS filesystem from the deployment with the given ID. If not specified, a dedicated EFS filesystem will be created for this deployment."
+  description = "Use the NFS file share from the deployment with the given ID. If not specified, a dedicated NFS file share will be created for this deployment."
   type        = string
   default     = null
 
@@ -81,7 +81,7 @@ variable "storage_replication_type" {
 }
 
 variable "subnet_id" {
-  description = "EFS target subnet ID."
+  description = "NFS file share subnet ID."
   type        = string
 }
 

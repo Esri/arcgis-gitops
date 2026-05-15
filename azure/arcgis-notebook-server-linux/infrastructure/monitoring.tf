@@ -557,7 +557,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       metrics = [
                         {
                           resourceMetadata = {
-                            id = module.aznfs_fileserver.storage_account.id
+                            id = module.aznfs_fileserver.storage_account_id
                           }
                           name = "Ingress"
                           aggregationType = 1
@@ -568,7 +568,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         },
                         {
                           resourceMetadata = {
-                            id = module.aznfs_fileserver.storage_account.id
+                            id = module.aznfs_fileserver.storage_account_id
                           }
                           name = "Egress"
                           aggregationType = 1
@@ -632,7 +632,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       metrics = [
                         {
                           resourceMetadata = {
-                            id = module.aznfs_fileserver.storage_account.id
+                            id = module.aznfs_fileserver.storage_account_id
                           }
                           name = "UsedCapacity",
                           aggregationType = 4,

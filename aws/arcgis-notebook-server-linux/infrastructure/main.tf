@@ -5,7 +5,7 @@
  *
  * ![Infrastructure for ArcGIS Notebook Server on Linux](arcgis-notebook-server-linux-infrastructure.png "Infrastructure for ArcGIS Notebook Server on Linux")  
  *
- * The module launches a primary instance and N node instances (configurable via node_count)
+ * The module launches a primary instance and N node (configurable via node_count)
  * SSM-managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
  * The instances are launched from images retrieved from '/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
  * The images must be created by the Packer Template for ArcGIS Notebook Server on Linux AMI. 
@@ -16,7 +16,9 @@
  * > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module
  *   is applied again after the SSM parameter value was modified by a new image build.
  *
- * A highly available EFS file system is created and mounted to the EC2 instances. 
+ * If fileserver_deployment_id input variable is not specified, a new EFS file system will be created for this deployment. 
+ * Otherwise, the module retrieves the file system ID and security group ID of the specified deployment from SSM parameters.
+ * The file server deployment must be of the same platform (Linux) and must use the same VPC subnets.
  *
  * The module creates target groups that target the EC2 instances and associates 
  * the target groups with the deployment's load balancer listeners.
@@ -51,6 +53,8 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is not null) |
+ * | /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is not null) |
  * | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/arn | ALB ARN |
  * | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/security-group-id | ALB security group ID |
  * | /arcgis/${var.enterprise_id}/${var.ingress_id}/ingress-fqdn | Fully qualified domain name of the ALB deployment |
@@ -72,7 +76,10 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is null) |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is null) |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | ArcGIS Notebook Server URL |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
@@ -140,10 +147,27 @@ data "aws_ami" "ami" {
 }
 
 locals {
-  subnets = (length(var.subnet_ids) == 0 ? module.enterprise_core_info.private_subnets : var.subnet_ids)
-
   # Get value of ArcGISVersion tags from the AMI to copy them to the EC2 instances.
   arcgis_version = try(data.aws_ami.ami.tags.ArcGISVersion, null)
+  namespace = "${var.enterprise_id}${random_id.unique_name_suffix.hex}"
+  subnets = (length(var.subnet_ids) == 0 ? module.enterprise_core_info.private_subnets : var.subnet_ids)
+}
+
+resource "random_id" "unique_name_suffix" {
+  keepers = {
+    enterprise_id = var.enterprise_id
+    deployment_id = var.deployment_id
+  }
+
+  byte_length = 8
+}
+
+resource "aws_ssm_parameter" "namespace" {
+  count       = var.ingress_id == null ? 0 : 1
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+  type        = "String"
+  value       = local.namespace
+  description = "Namespace of the deployment used to generate unique resource names"
 }
 
 module "enterprise_core_info" {
@@ -158,24 +182,6 @@ module "security_group" {
   vpc_id                = module.enterprise_core_info.vpc_id
   alb_security_group_id = local.alb_security_group_id
   alb_ports             = [80, 443, 11443]
-}
-
-# Create EFS file system for the deployment's file server
-resource "aws_efs_file_system" "fileserver" {
-  encrypted = true
-
-  tags = {
-    Name       = "${var.enterprise_id}/${var.deployment_id}/fileserver"
-    ArcGISRole = "fileserver"
-  }
-}
-
-# Create EFS mount targets for the EFS file system in the deployment's subnets.
-resource "aws_efs_mount_target" "fileserver" {
-  count           = length(local.subnets)
-  file_system_id  = aws_efs_file_system.fileserver.id
-  subnet_id       = local.subnets[count.index]
-  security_groups = [module.security_group.id]
 }
 
 # Create network interface for the primary EC2 instance.
@@ -279,17 +285,30 @@ resource "aws_instance" "nodes" {
   }
 }
 
+# Create EFS file system or reference existing EFS file system for the deployment's file server.
+# If fileserver_deployment_id is not specified, a new EFS file system will be created for this deployment. 
+# Otherwise, the module will attempt to retrieve the file system ID and 
+# security group ID from SSM parameters of the specified deployment.
+module "efs_fileserver" {
+  source                       = "../../modules/efs_fileserver"
+  enterprise_id                = var.enterprise_id
+  deployment_id                = var.deployment_id
+  fileserver_deployment_id     = var.fileserver_deployment_id
+  referenced_security_group_id = module.security_group.id
+  subnet_ids                   = local.subnets
+  vpc_id                       = module.enterprise_core_info.vpc_id
+}
+
 # Mount /mnt/efs/ to the EFS file system on the EC2 instances.
 module "efs_mount" {
   source         = "../../modules/efs_mount"
   enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "node"]
-  file_system_id = aws_efs_file_system.fileserver.id
+  file_system_id = module.efs_fileserver.file_system_id
   mount_point    = "/mnt/efs/"
   depends_on = [
-    aws_efs_file_system.fileserver,
-    aws_efs_mount_target.fileserver,
+    module.efs_fileserver,
     aws_instance.primary,
     aws_instance.nodes
   ]

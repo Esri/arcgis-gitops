@@ -6,8 +6,6 @@ set -x # Enable debug mode to print each command before execution
 # Create the mount point directory if it doesn't exist
 sudo mkdir -p $MOUNT_POINT
 
-NETWORK_PATH="$STORAGE_ACCOUNT_NAME.file.core.windows.net:/$STORAGE_ACCOUNT_NAME/$FILE_SHARE_NAME"
-
 sudo mount -t aznfs $NETWORK_PATH $MOUNT_POINT -o vers=4,minorversion=1,sec=sys,nconnect=4
 
 # Add the mount to /etc/fstab for persistence if not already present

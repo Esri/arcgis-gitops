@@ -1,13 +1,13 @@
 /**
  * # Infrastructure Terraform Module for Base ArcGIS Enterprise on Linux
  *
- * The Terraform module provisions AWS resources for base ArcGIS Enterprise deployment on Linux platform.
+ * The Terraform module provisions AWS resources for Base ArcGIS Enterprise deployment on Linux platform.
  *
  * ![Infrastructure for Base ArcGIS Enterprise on Linux](arcgis-enterprise-base-linux-infrastructure.png "Infrastructure for Base ArcGIS Enterprise on Linux")  
  *
  * The module launches two (or one, if "is_ha" input variable is set to false) SSM-managed EC2 instances in the private VPC subnets or subnets specified by "subnet_ids" input variable.
  * The instances are launched from images retrieved from "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}" SSM parameters. 
- * The image must be created by the Packer Template for Base ArcGIS Enterprise on Linux. 
+ * The images must be created by the Packer Template for Base ArcGIS Enterprise on Linux. 
  *
  * For the EC2 instances, the module creates "A" records in the VPC Route 53 private 
  * hosted zone to make the instances addressable using permanent DNS names.
@@ -20,7 +20,7 @@
  *
  * A highly available EFS file system is created and mounted to the EC2 instances. 
  *
- * For the portal content and object store the module creates S3 bucket and stores their names in SSM parameters.
+ * For the portal content and object store the module creates S3 buckets and stores their names in SSM parameters.
  * 
  * The deployment's Monitoring Subsystem consists of:
  *
@@ -43,7 +43,7 @@
  *
  * ## Troubleshooting
  *
- * Use Session Manager connection in AWS Console for SSH access to the EC2 instances.
+ * Use Session Manager connection in AWS Console for shell access to the EC2 instances.
  *
  * ## SSM Parameters
  *
@@ -72,8 +72,11 @@
  * |--------------------|-------------|
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup-plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/content-s3-bucket | Portal for ArcGIS content store S3 bucket |
- * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | Portal for ArcGIS URL of the deployment |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/file-system-id | Deployment EFS file system ID |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/security-group-id | Deployment EFS file system security group ID |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | Object store S3 bucket |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
  */
@@ -143,11 +146,30 @@ data "aws_ami" "ami" {
 }
 
 locals {
+  arcgis_template_id = "arcgis-enterprise-base"
+  # Get values of ArcGISTemplateId and ArcGISVersion tags from the AMI to copy them to the EC2 instances.
+  arcgis_version = try(data.aws_ami.ami.tags.ArcGISVersion, null)
+  namespace      = "${var.enterprise_id}${random_id.unique_name_suffix.hex}"
   primary_subnet = length(var.subnet_ids) < 2 ? module.enterprise_core_info.private_subnets[0] : var.subnet_ids[0]
   standby_subnet = length(var.subnet_ids) < 2 ? module.enterprise_core_info.private_subnets[1] : var.subnet_ids[1]
-  # Get values of ArcGISTemplateId and ArcGISVersion tags from the AMI to copy them to the EC2 instances.
-  arcgis_template_id = "arcgis-enterprise-base"
-  arcgis_version     = try(data.aws_ami.ami.tags.ArcGISVersion, null)
+  subnets        = [local.primary_subnet, local.standby_subnet]
+}
+
+resource "random_id" "unique_name_suffix" {
+  keepers = {
+    enterprise_id = var.enterprise_id
+    deployment_id = var.deployment_id
+  }
+
+  byte_length = 8
+}
+
+resource "aws_ssm_parameter" "namespace" {
+  count       = var.ingress_id == null ? 0 : 1
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+  type        = "String"
+  value       = local.namespace
+  description = "Namespace of the deployment used to generate unique resource names"
 }
 
 module "enterprise_core_info" {
@@ -171,42 +193,29 @@ resource "aws_ssm_parameter" "security_group_id" {
   description = "Deployment security group ID"
 }
 
-resource "aws_efs_file_system" "fileserver" {
-  # creation_token = "${var.enterprise_id}-${var.deployment_id}-fileserver"
-  encrypted = true
-
-  tags = {
-    Name       = "${var.enterprise_id}/${var.deployment_id}/fileserver"
-    ArcGISRole = "fileserver"
-  }
+# Create and mount EFS file system for the deployment
+module "efs_fileserver" {
+  source                       = "../../modules/efs_fileserver"
+  enterprise_id                = var.enterprise_id
+  deployment_id                = var.deployment_id
+  fileserver_deployment_id     = null
+  referenced_security_group_id = module.security_group.id
+  subnet_ids                   = local.subnets
+  vpc_id                       = module.enterprise_core_info.vpc_id
 }
 
-resource "aws_efs_mount_target" "primary" {
-  file_system_id  = aws_efs_file_system.fileserver.id
-  subnet_id       = local.primary_subnet
-  security_groups = [module.security_group.id]
-}
-
-resource "aws_efs_mount_target" "standby" {
-  count           = var.is_ha ? 1 : 0
-  file_system_id  = aws_efs_file_system.fileserver.id
-  subnet_id       = local.standby_subnet
-  security_groups = [module.security_group.id]
-}
-
+# Mount the EFS file system to the EC2 instances
 module "efs_mount" {
   source         = "../../modules/efs_mount"
   enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
   machine_roles  = ["primary", "standby"]
-  file_system_id = aws_efs_file_system.fileserver.id
+  file_system_id = module.efs_fileserver.file_system_id
   mount_point    = "/mnt/efs/"
   depends_on = [
-    aws_efs_file_system.fileserver,
+    module.efs_fileserver,
     aws_instance.primary,
-    aws_instance.standby,
-    aws_efs_mount_target.primary,
-    aws_efs_mount_target.standby
+    aws_instance.standby
   ]
 }
 
@@ -331,7 +340,7 @@ resource "aws_route53_record" "standby" {
 
 # Create S3 bucket for the portal content
 resource "aws_s3_bucket" "portal_content" {
-  bucket_prefix = "${var.enterprise_id}-portal-content"
+  bucket        = "${local.namespace}-portal-content"
   force_destroy = true
 
   tags = {
@@ -366,7 +375,7 @@ resource "aws_ssm_parameter" "portal_content_s3_bucket" {
 
 # Create S3 bucket for the object store
 resource "aws_s3_bucket" "object_store" {
-  bucket_prefix = "${var.enterprise_id}-object-store"
+  bucket        = "${local.namespace}-object-store"
   force_destroy = true
 
   tags = {

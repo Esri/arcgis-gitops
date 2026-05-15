@@ -32,11 +32,6 @@ variable "enterprise_id" {
   }
 } 
 
-variable "file_share_name" {
-  description = "Name of file share within the storage account"
-  type = string
-}
-
 variable "machine_roles" {
   description = "List of machine roles"
   type = list(string)
@@ -45,10 +40,11 @@ variable "machine_roles" {
 variable "mount_point" {
   description = "NFS mount point"
   type = string
-  default = "/mnt/efs"
+  default = "/mnt/fileserver"
 }
 
-variable "storage_account_name" {
-  description = "Azure Storage Account Name"
+variable "network_path" {
+  description = "NFS network path in format <storage_account_name>.file.core.windows.net:/<storage_account_name>/<file_share_name>"
   type = string
 }
+

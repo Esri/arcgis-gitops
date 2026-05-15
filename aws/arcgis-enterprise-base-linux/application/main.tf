@@ -53,6 +53,7 @@
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |
  * | /arcgis/${var.enterprise_id}/cookbooks-url | Chef cookbooks URL |
@@ -115,6 +116,10 @@ provider "aws" {
 
 data "aws_ssm_parameter" "ingress_fqdn" {
   name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
+}
+
+data "aws_ssm_parameter" "namespace" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
 }
 
 data "aws_ssm_parameter" "os" {
@@ -221,6 +226,7 @@ locals {
   authorization_files_s3_prefix = "software/authorization/${var.arcgis_version}"
   certificates_s3_prefix        = "software/certificates"
 
+  namespace               = nonsensitive(data.aws_ssm_parameter.namespace.value)
   mount_point             = "/mnt/efs"
   ingress_fqdn            = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
   os                      = nonsensitive(data.aws_ssm_parameter.os.value)
@@ -242,7 +248,7 @@ locals {
   cloud_config = var.config_store_type == "AMAZON" ? jsonencode([
     {
       name      = "AWS"
-      namespace = "${var.enterprise_id}-${var.deployment_id}"
+      namespace = local.namespace
       region    = data.aws_region.current.id
       credential = {
         type = "IAM-ROLE"
@@ -282,7 +288,7 @@ locals {
   ) : null
 
   // Register S3 object store when config_store_type is not AMAZON
-  data_items = var.config_store_type == "AMAZON" ? [] : [{
+  cloud_stores = var.config_store_type == "AMAZON" ? [] : [{
     path     = "/cloudStores/cloudObjectStore"
     type     = "objectStore"
     provider = "amazon"
@@ -301,6 +307,22 @@ locals {
       encryptAttributes = ["info.connectionString"]
     }
   }]
+
+  # If fileserver_raster_store variable is set to true, configure raster store 
+  # to use EFS filesystem by registering a data item. 
+  raster_stores = var.fileserver_raster_store ? [
+    {
+      path = "/rasterStores/RasterStore",
+      type = "rasterStore",
+      info = {
+        connectionString = jsonencode({
+          path = "${local.mount_point}/${local.namespace}/arcgisserver/rasterstore"
+        })
+        connectionType = "fileShare"
+      }
+  }] : []
+
+  data_items = concat(local.cloud_stores, local.raster_stores)
 }
 
 module "enterprise_core_info" {
@@ -521,8 +543,9 @@ module "arcgis_enterprise_fileserver" {
       configure_cloud_settings = false
       fileserver = {
         directories = [
-          "${local.mount_point}/gisdata/arcgisserver",
-          "${local.mount_point}/gisdata/arcgisbackup/webgisdr"
+          "${local.mount_point}/${local.namespace}/arcgisserver",
+          "${local.mount_point}/${local.namespace}/arcgisserver/rasterstore",
+          "${local.mount_point}/${local.namespace}/arcgisbackup/webgisdr"
         ]
         shares = [
         ]
@@ -718,12 +741,12 @@ module "arcgis_enterprise_primary" {
         keystore_password     = var.server_certificate_password
         root_cert             = local.root_cert
         root_cert_alias       = "rootcert"
-        directories_root      = "${local.mount_point}/gisdata/arcgisserver"
+        directories_root      = "${local.mount_point}/${local.namespace}/arcgisserver"
         log_dir               = "/opt/arcgis/server/usr/logs"
         log_level             = var.log_level
         config_store_type     = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
-        config_store_connection_string = "${local.mount_point}/gisdata/arcgisserver/config-store"
+        config_store_connection_string = "${local.mount_point}/${local.namespace}/arcgisserver/config-store"
         cloud_config                   = local.cloud_config
         install_system_requirements    = true
         wa_name                        = local.server_web_context
@@ -750,7 +773,7 @@ module "arcgis_enterprise_primary" {
           # Point-in-time recovery (PITR) must be enabled in relational ArcGIS Data Store for WebGISDR tool to work in "incremental" backup-restore mode.
           pitr            = "enable"
           backup_type     = "s3"
-          backup_location = "type=s3;location=${nonsensitive(module.enterprise_core_info.s3_backup)}/relational-${local.timestamp};name=re_default;region=${module.enterprise_core_info.s3_region}"
+          backup_location = "type=s3;location=${nonsensitive(module.enterprise_core_info.s3_backup)}/relational-${local.namespace};name=re_default;region=${module.enterprise_core_info.s3_region}"
         }
       }
       portal = {

@@ -29,12 +29,13 @@
 # * blob_container: the name of the blob container in the storage account where the backup is stored
 # * vm_identity_client_id: the client ID of the VM's user assigned managed identity
 # * run_as_user: the user that the ArcGIS Notebook Server processes run as, used to set ownership of the restored workspace directory
+# * namespace: the namespace of the ArcGIS Notebook Server deployment
 
 set -e
 
 ADMIN_URL="https://localhost:11443/arcgis/admin"
 STAGING_LOCATION="/opt/tmp"
-WORKSPACE_DIRECTORY="/mnt/fileserver/gisdata/notebookserver/directories/arcgisworkspace"
+WORKSPACE_DIRECTORY="/mnt/fileserver/$namespace/notebookserver/directories/arcgisworkspace"
 
 if ! command -v jq &> /dev/null; then
   echo "Error: jq is not installed. Please install jq and try again."

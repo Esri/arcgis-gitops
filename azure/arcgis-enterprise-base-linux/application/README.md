@@ -119,6 +119,7 @@ The module reads the following Key Vault secrets:
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
+| fileserver_raster_store | If true, the NFS file share will be used for raster store. | `bool` | `true` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
 | log_level | ArcGIS Enterprise applications log level | `string` | `"WARNING"` | no |
 | portal_authorization_file_path | Local path of Portal for ArcGIS authorization file | `string` | n/a | yes |

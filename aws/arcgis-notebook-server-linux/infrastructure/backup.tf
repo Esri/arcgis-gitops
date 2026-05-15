@@ -1,4 +1,4 @@
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -51,12 +51,15 @@ resource "aws_backup_selection" "infrastructure" {
   name         = "${var.enterprise_id}-${var.deployment_id}-infrastructure"
   plan_id      = aws_backup_plan.deployment_backup.id
 
-  resources = var.node_count > 0 ? [
-    aws_instance.primary.arn,
-    aws_instance.nodes[0].arn,
-    aws_efs_file_system.fileserver.arn
-  ] : [
-    aws_instance.primary.arn,
-    aws_efs_file_system.fileserver.arn
-  ]
+  resources = concat(
+    [
+      aws_instance.primary.arn
+    ],
+    var.node_count > 0 ? [
+      aws_instance.nodes[0].arn,
+    ] : [],
+    var.fileserver_deployment_id == null ? [
+      module.efs_fileserver.file_system_arn
+    ] : []
+  )
 }

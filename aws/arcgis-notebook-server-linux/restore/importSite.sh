@@ -27,7 +27,6 @@ JSON_ATTRIBUTES_PARAMETER='<json_attributes_parameter>'
 
 ADMIN_URL="https://localhost:11443/arcgis/admin"
 STAGING_LOCATION="/tmp"
-WORKSPACE_DIRECTORY="/mnt/efs/gisdata/notebookserver/directories/arcgisworkspace"
 
 # Get the script input parameters in JSON format from SSM Parameter Store
 attributes=$(aws ssm get-parameter --name $JSON_ATTRIBUTES_PARAMETER --query 'Parameter.Value' --with-decryption --output text)
@@ -45,6 +44,7 @@ fi
 # Get the parameters from the JSON string
 ADMIN_PASSWORD=$(echo $attributes | jq -r '.admin_password')
 ADMIN_USERNAME=$(echo $attributes | jq -r '.admin_username')
+ENTERPRISE_ID=$(echo $attributes | jq -r '.enterprise_id')
 BACKUP_ENTERPRISE_ID=$(echo $attributes | jq -r '.backup_enterprise_id')
 DEPLOYMENT_ID=$(echo $attributes | jq -r '.deployment_id')
 RUN_AS_USER=$(echo $attributes | jq -r '.run_as_user')
@@ -53,6 +53,9 @@ S3_PREFIX=$(echo $attributes | jq -r '.s3_prefix')
 # Get the backup S3 bucket and region from SSM Parameter Store
 BACKUP_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$BACKUP_ENTERPRISE_ID/s3/backup" --query "Parameter.Value" --output text)
 S3_REGION=$(aws ssm get-parameter --name "/arcgis/$BACKUP_ENTERPRISE_ID/s3/region" --query "Parameter.Value" --output text)
+NAMESPACE=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/$DEPLOYMENT_ID/namespace" --query "Parameter.Value" --output text)
+
+WORKSPACE_DIRECTORY="/mnt/efs/$NAMESPACE/notebookserver/directories/arcgisworkspace"
 
 # Get the last modified backup file key from S3
 LAST_BACKUP_KEY=$(aws s3api list-objects-v2 --bucket $BACKUP_S3_BUCKET --prefix $S3_PREFIX --query "sort_by(Contents,&LastModified)[-1].Key" --output text)

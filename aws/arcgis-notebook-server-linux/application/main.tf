@@ -48,6 +48,7 @@
  * |--------------------|-------------|
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL | 
@@ -121,6 +122,10 @@ data "aws_ssm_parameter" "ingress_fqdn" {
   name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
 }
 
+data "aws_ssm_parameter" "namespace" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+}
+
 data "aws_ssm_parameter" "portal_url" {
   name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url"
 }
@@ -187,7 +192,7 @@ locals {
   certificates_s3_prefix        = "software/certificates"
 
   mount_point                 = "/mnt/efs"
-  ingress_fqdn             = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
+  ingress_fqdn                = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
   os                          = nonsensitive(data.aws_ssm_parameter.os.value)
   notebook_server_web_context = nonsensitive(data.aws_ssm_parameter.notebook_server_web_context.value)
   portal_url                  = nonsensitive(data.aws_ssm_parameter.portal_url.value)
@@ -199,7 +204,7 @@ locals {
   keystore_file = var.server_certificate_path != null ? "${local.certificates_dir}/${basename(var.server_certificate_path)}" : ""
   root_cert     = var.root_certificate_path != null ? "${local.certificates_dir}/${basename(var.root_certificate_path)}" : ""
 
-  timestamp = formatdate("YYYYMMDDhhmm", timestamp())
+  namespace = nonsensitive(data.aws_ssm_parameter.namespace.value)
 }
 
 module "enterprise_core_info" {
@@ -349,7 +354,7 @@ module "arcgis_notebook_server_fileserver" {
       run_as_user = var.run_as_user
       fileserver = {
         directories = [
-          "${local.mount_point}/gisdata/notebookserver"
+          "${local.mount_point}/${local.namespace}/notebookserver"
         ]
         shares = [
         ]
@@ -528,14 +533,14 @@ module "arcgis_notebook_server_primary" {
         keystore_password     = var.server_certificate_password
         root_cert             = local.root_cert
         root_cert_alias       = "rootcert"
-        directories_root      = "${local.mount_point}/gisdata/notebookserver"
-        workspace             = "${local.mount_point}/gisdata/notebookserver/directories/arcgisworkspace"
-        log_dir               = "${local.mount_point}/gisdata/notebookserver/logs"
+        directories_root      = "${local.mount_point}/${local.namespace}/notebookserver"
+        workspace             = "${local.mount_point}/${local.namespace}/notebookserver/directories/arcgisworkspace"
+        log_dir               = "${local.mount_point}/${local.namespace}/notebookserver/logs"
         log_level             = var.log_level
         config_store_type     = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AMAZON" ?
-          "NAMESPACE=${var.enterprise_id}-${var.deployment_id};REGION=${data.aws_region.current.region}" :
-        "${local.mount_point}/gisdata/notebookserver/config-store")
+          "NAMESPACE=${local.namespace};REGION=${data.aws_region.current.region}" :
+          "${local.mount_point}/${local.namespace}/notebookserver/config-store")
         config_store_connection_secret = ""
         install_system_requirements    = true
         wa_name                        = local.notebook_server_web_context
@@ -592,7 +597,7 @@ module "arcgis_notebook_server_node" {
         admin_username              = var.admin_username
         admin_password              = var.admin_password
         license_level               = var.license_level
-        log_dir                     = "${local.mount_point}/gisdata/notebookserver/logs"
+        log_dir                     = "${local.mount_point}/${local.namespace}/notebookserver/logs"
         authorization_file          = "${local.authorization_files_dir}/${basename(var.notebook_server_authorization_file_path)}"
         authorization_options       = var.notebook_server_authorization_options
         install_system_requirements = true

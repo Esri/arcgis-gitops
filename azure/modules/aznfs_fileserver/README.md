@@ -50,13 +50,13 @@ On the machine where Terraform is executed:
 |------|-------------|------|---------|:--------:|
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
-| fileserver_deployment_id | Use the EFS filesystem from the deployment with the given ID. If not specified, a dedicated EFS filesystem will be created for this deployment. | `string` | `null` | no |
+| fileserver_deployment_id | Use the NFS file share from the deployment with the given ID. If not specified, a dedicated NFS file share will be created for this deployment. | `string` | `null` | no |
 | fileserver_size | Maximum size of the NFS file share in GB | `number` | `1024` | no |
 | key_vault_id | ID of the Key Vault | `string` | n/a | yes |
 | location | Azure region where the file server resources will be created or are located (if fileserver_deployment_id is specified). | `string` | n/a | yes |
 | resource_group_name | Name of the resource group where the file server resources will be created or are located (if fileserver_deployment_id is specified). | `string` | n/a | yes |
 | storage_replication_type | The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage). | `string` | `"ZRS"` | no |
-| subnet_id | EFS target subnet ID. | `string` | n/a | yes |
+| subnet_id | NFS file share subnet ID. | `string` | n/a | yes |
 | unique_name_suffix | A unique suffix to append to the names of created resources to avoid naming conflicts. | `string` | n/a | yes |
 
 ## Outputs

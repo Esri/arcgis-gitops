@@ -58,7 +58,7 @@ The module writes the following SSM parameters:
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | fileserver_deployment_id | Use the EFS filesystem from the deployment with the given ID. If not specified, a dedicated EFS filesystem will be created for this deployment. | `string` | `null` | no |
-| referenced_security_group_id | List of security group IDs to reference in the EFS file system security group ingress rules. | `string` | n/a | yes |
+| referenced_security_group_id | Security group ID to reference in the EFS file system security group ingress rules. | `string` | n/a | yes |
 | subnet_ids | EFS target subnet IDs. | `list(string)` | n/a | yes |
 | vpc_id | VPC ID | `string` | n/a | yes |
 

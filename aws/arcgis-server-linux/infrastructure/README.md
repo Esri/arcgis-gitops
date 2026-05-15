@@ -17,7 +17,7 @@ to make the instance addressable using a permanent DNS name.
   is applied again after the SSM parameter value was modified by a new image build.
 
 If fileserver_deployment_id input variable is not specified, a new EFS file system will be created for this deployment.
-Otherwise, the module retrieves the file system ID and security group ID of the specified deployment from SSM parameters .
+Otherwise, the module retrieves the file system ID and security group ID of the specified deployment from SSM parameters.
 
 The module creates target groups that target the EC2 instances and associates
 the target groups with the deployment's load balancer listeners.

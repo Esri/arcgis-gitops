@@ -5,7 +5,7 @@
  *
  * ![Infrastructure for ArcGIS Notebook Server on Linux](arcgis-notebook-server-linux-infrastructure.png "Infrastructure for ArcGIS Notebook Server on Linux")  
  *
- * The module launches a primary instance and N node (configurable via node_count)
+ * The module launches a primary instance and N node instances (configurable via node_count)
  * SSM-managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
  * The instances are launched from images retrieved from '/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}' SSM parameters. 
  * The images must be created by the Packer Template for ArcGIS Notebook Server on Linux AMI. 

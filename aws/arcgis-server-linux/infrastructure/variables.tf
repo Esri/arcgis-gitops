@@ -51,6 +51,17 @@ variable "enterprise_id" {
   }
 }
 
+variable "fileserver_deployment_id" {
+  description = "Use the EFS filesystem from the deployment with the given ID. If not specified, a dedicated EFS filesystem will be created for this deployment."
+  type        = string
+  default     = null
+
+  validation {
+    condition     = var.fileserver_deployment_id == null || can(regex("^[a-z0-9-]{3,25}$", var.fileserver_deployment_id))
+    error_message = "The fileserver_deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
 variable "ingress_id" {
   description = "Ingress ID"
   type        = string

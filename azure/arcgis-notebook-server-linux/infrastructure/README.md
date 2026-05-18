@@ -1,12 +1,12 @@
 <!-- BEGIN_TF_DOCS -->
 # Infrastructure Terraform Module for ArcGIS Notebook Server on Linux
 
-The Terraform module provisions Azure resources for ArcGIS Notebook Server deployment on Linux platform.
+The Terraform module provisions Azure resources for ArcGIS Notebook Server deployment on the Linux platform.
 
 ![Infrastructure for ArcGIS Notebook Server on Linux](arcgis-notebook-server-linux-infrastructure.png "Infrastructure for ArcGIS Notebook Server on Linux")  
 
 The module creates network interfaces in the first private subnet or the subnet specified by subnet_id input variable and
-launches one primary and N node VMs (configurable via node_count) in different zones of the specified Azure region.
+launches one primary and N node VMs (configurable via node_count) in a Virtual Machine Scale Set (VMSS) across two different zones of the specified Azure region.
 The VMs are launched from images retrieved from "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-node" secrets of the enterprise's Key Vault.
 The images must be created by the Packer Template for ArcGIS Notebook Server on Linux.
 
@@ -19,11 +19,13 @@ For the VMs the module creates "A" records in the internal private DNS zone to m
   is applied again after the image IDs in the Key Vault secrets were modified by a new image build.
 
 The module creates two storage accounts: one for ArcGIS Notebook Server config store and another for file store with "fileserver" NFS file share.
-The config store storage account is secured with private endpoints and only accessible from the VMs.
-The VM identity is granted access to the config store storage account.
-The file share is mounted to all the VMs.
+The storage accounts use private endpoints and are only accessible from the subnet of the VMs.
+The managed identity of the VMs is granted "Storage Blob Data Contributor" and "Storage Table Data Contributor" roles to access the config store storage account.
+The creation of the file store is conditional: if fileserver_deployment_id is `null`, the module provisions a new storage account and NFS share.
+If an ID is provided, the module instead mounts the existing NFS share from that specified deployment to all virtual machines.
+Both deployments must be on the same platform (Linux or Windows) and in the same VNet subnet.
 
-The module also extends the root volume on the VMs and mounts the file share to the VMs.
+The module also extends the root volume of the VMs and mounts the file share to the VMs.
 
 The module creates a certificate for backend services/endpoints signed by the ingress CA and
 uploads the certificate to the repository storage container.
@@ -46,28 +48,30 @@ On the machine where Terraform is executed:
 
 ### Secrets Read by the Module
 
-| Secret Name                                      | Description |
-|--------------------------------------------------|-------------|
-| ${var.deployment_id}-notebook-server-web-context | Notebook Server web context |
-| ${var.deployment_id}-os                          | Operating system ID |
-| ${var.deployment_id}-vm-image-node               | Node VM image ID |
-| ${var.deployment_id}-vm-image-primary            | Primary VM image ID |
-| ${var.ingress_id}-backend-address-pools          | Application Gateway backend address pools |
-| ${var.ingress_id}-ca-private-key                 | Private key of the ingress CA root certificate |
-| ${var.ingress_id}-ca-root-cert                   | Root certificate used by Application Gateway to validate the backend's identity |  
-| ${var.ingress_id}-ingress-fqdn                   | Ingress FQDN |
-| ${var.portal_deployment_id}-deployment-url       | Portal deployment URL |
-| storage-account-key                              | Enterprise storage account key |
-| storage-account-name                             | Enterprise storage account name |
-| subnets                                          | VNet subnet IDs |
-| vm-identity-id                                   | User-assigned VM identity resource ID |
-| vm-identity-principal-id                         | User-assigned VM identity principal ID |
-| vnet-id                                          | VNet ID |
+| Secret Name                                        | Description |
+|----------------------------------------------------|-------------|
+| ${var.deployment_id}-notebook-server-web-context   | Notebook Server web context |
+| ${var.deployment_id}-os                            | Operating system ID |
+| ${var.deployment_id}-vm-image-node                 | Node VM image ID |
+| ${var.deployment_id}-vm-image-primary              | Primary VM image ID |
+| ${var.fileserver_deployment_id}-aznfs-network-path | NFS network path for the file server (if ${var.fileserver_deployment_id} is not null) |
+| ${var.ingress_id}-backend-address-pools            | Application Gateway backend address pools |
+| ${var.ingress_id}-ca-private-key                   | Private key of the ingress CA root certificate |
+| ${var.ingress_id}-ca-root-cert                     | Root certificate used by Application Gateway to validate the backend's identity |  
+| ${var.ingress_id}-ingress-fqdn                     | Ingress FQDN |
+| ${var.portal_deployment_id}-deployment-url         | Portal deployment URL |
+| storage-account-key                                | Enterprise storage account key |
+| storage-account-name                               | Enterprise storage account name |
+| subnets                                            | VNet subnet IDs |
+| vm-identity-id                                     | User-assigned VM identity resource ID |
+| vm-identity-principal-id                           | User-assigned VM identity principal ID |
+| vnet-id                                            | VNet ID |
 
 ### Secrets Written by the Module
 
 | Secret Name                               | Description |
 |-------------------------------------------|-------------|
+| ${var.deployment_id}-aznfs-network-path   | NFS network path for the file server (if ${var.fileserver_deployment_id} is null) |
 | ${var.deployment_id}-backend-pfx-password | Password for the PFX certificate |
 | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
 | ${var.deployment_id}-deployment-url       | Deployment URL |
@@ -94,6 +98,7 @@ On the machine where Terraform is executed:
 
 | Name | Type |
 |------|------|
+| [azurerm_key_vault_secret.aznfs_network_path](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
@@ -121,6 +126,7 @@ On the machine where Terraform is executed:
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_password.pfx_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
+| [azurerm_key_vault_secret.aznfs_network_path](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.node_vm_image_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -141,7 +147,8 @@ On the machine where Terraform is executed:
 | azure_region | Azure region display name | `string` | n/a | yes |
 | deployment_id | ArcGIS Notebook Server deployment ID | `string` | `"notebook-server-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
-| fileserver_size | Maximum size of the NFS file share in GB | `number` | `1024` | no |
+| fileserver_deployment_id | Use the NFS file share from the deployment with the given ID. If not specified, a dedicated NFS file share will be created for this deployment. | `string` | `null` | no |
+| fileserver_size | Maximum size of the NFS file share in GB. The setting is applied when fileserver_deployment_id variable is not set. | `number` | `1024` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | node_count | Number of node VMs | `number` | `1` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |

@@ -72,8 +72,11 @@ The module writes the following SSM parameters:
 |--------------------|-------------|
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup-plan-id | Backup plan ID for the deployment |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/content-s3-bucket | Portal for ArcGIS content store S3 bucket |
-| /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | Portal for ArcGIS URL of the deployment |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/file-system-id | Deployment EFS file system ID |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/security-group-id | Deployment EFS file system security group ID |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | Object store S3 bucket |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
 
@@ -82,6 +85,7 @@ The module writes the following SSM parameters:
 | Name | Version |
 |------|---------|
 | aws | ~> 6.37 |
+| random | n/a |
 
 ## Modules
 
@@ -89,6 +93,7 @@ The module writes the following SSM parameters:
 |------|--------|---------|
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
+| efs_fileserver | ../../modules/efs_fileserver | n/a |
 | efs_mount | ../../modules/efs_mount | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | portal_https_alb_target | ../../modules/alb_target_group | n/a |
@@ -101,9 +106,6 @@ The module writes the following SSM parameters:
 |------|------|
 | [aws_backup_plan.deployment_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_plan) | resource |
 | [aws_backup_selection.infrastructure](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_selection) | resource |
-| [aws_efs_file_system.fileserver](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_file_system) | resource |
-| [aws_efs_mount_target.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_mount_target) | resource |
-| [aws_efs_mount_target.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_mount_target) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_instance.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_network_interface.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
@@ -119,9 +121,11 @@ The module writes the following SSM parameters:
 | [aws_ssm_parameter.backup_plan_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.deployment_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.namespace](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.object_store_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.portal_content_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.alb_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |

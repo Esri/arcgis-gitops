@@ -65,6 +65,17 @@
         {
             "Effect": "Allow",
             "Action": [
+                "ec2:AuthorizeSecurityGroupIngress",
+                "ec2:RevokeSecurityGroupIngress"
+            ],
+            "Resource": [
+                "arn:aws:ec2:*:*:security-group/*",
+                "arn:aws:ec2:*:*:security-group-rule/*"
+            ]
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
                 "ssm:AddTagsToResource",
                 "ssm:CancelCommand",
                 "ssm:DeleteParameter",
@@ -109,6 +120,8 @@
                 "elasticfilesystem:ClientMount",
                 "elasticfilesystem:CreateFileSystem",
                 "elasticfilesystem:CreateMountTarget",
+                "elasticfilesystem:DeleteFileSystem",
+                "elasticfilesystem:DeleteMountTarget",
                 "elasticfilesystem:DescribeAccessPoints",
                 "elasticfilesystem:DescribeBackupPolicy",
                 "elasticfilesystem:DescribeFileSystemPolicy",

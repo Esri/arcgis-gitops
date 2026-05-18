@@ -1,12 +1,12 @@
 /**
  * # Infrastructure Terraform Module for ArcGIS Notebook Server on Linux
  *
- * The Terraform module provisions Azure resources for ArcGIS Notebook Server deployment on Linux platform.
+ * The Terraform module provisions Azure resources for ArcGIS Notebook Server deployment on the Linux platform.
  *
  * ![Infrastructure for ArcGIS Notebook Server on Linux](arcgis-notebook-server-linux-infrastructure.png "Infrastructure for ArcGIS Notebook Server on Linux")  
  *
  * The module creates network interfaces in the first private subnet or the subnet specified by subnet_id input variable and
- * launches one primary and N node VMs (configurable via node_count) in different zones of the specified Azure region.
+ * launches one primary and N node VMs (configurable via node_count) in a Virtual Machine Scale Set (VMSS) across two different zones of the specified Azure region.
  * The VMs are launched from images retrieved from "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-node" secrets of the enterprise's Key Vault. 
  * The images must be created by the Packer Template for ArcGIS Notebook Server on Linux. 
  *  
@@ -19,11 +19,13 @@
  *   is applied again after the image IDs in the Key Vault secrets were modified by a new image build.
  *
  * The module creates two storage accounts: one for ArcGIS Notebook Server config store and another for file store with "fileserver" NFS file share.
- * The config store storage account is secured with private endpoints and only accessible from the VMs.
- * The VM identity is granted access to the config store storage account.
- * The file share is mounted to all the VMs. 
+ * The storage accounts use private endpoints and are only accessible from the subnet of the VMs.
+ * The managed identity of the VMs is granted "Storage Blob Data Contributor" and "Storage Table Data Contributor" roles to access the config store storage account.
+ * The creation of the file store is conditional: if fileserver_deployment_id is `null`, the module provisions a new storage account and NFS share. 
+ * If an ID is provided, the module instead mounts the existing NFS share from that specified deployment to all virtual machines.
+ * Both deployments must be on the same platform (Linux) and in the same VNet subnet.
  *
- * The module also extends the root volume on the VMs and mounts the file share to the VMs. 
+ * The module also extends the root volume of the VMs and mounts the file share to the VMs. 
  *
  * The module creates a certificate for backend services/endpoints signed by the ingress CA and 
  * uploads the certificate to the repository storage container.
@@ -46,28 +48,30 @@
  *
  * ### Secrets Read by the Module
  *
- * | Secret Name                                      | Description |
- * |--------------------------------------------------|-------------|
- * | ${var.deployment_id}-notebook-server-web-context | Notebook Server web context |
- * | ${var.deployment_id}-os                          | Operating system ID |
- * | ${var.deployment_id}-vm-image-node               | Node VM image ID |
- * | ${var.deployment_id}-vm-image-primary            | Primary VM image ID |
- * | ${var.ingress_id}-backend-address-pools          | Application Gateway backend address pools |
- * | ${var.ingress_id}-ca-private-key                 | Private key of the ingress CA root certificate |
- * | ${var.ingress_id}-ca-root-cert                   | Root certificate used by Application Gateway to validate the backend's identity |  
- * | ${var.ingress_id}-ingress-fqdn                   | Ingress FQDN |
- * | ${var.portal_deployment_id}-deployment-url       | Portal deployment URL |
- * | storage-account-key                              | Enterprise storage account key |
- * | storage-account-name                             | Enterprise storage account name |
- * | subnets                                          | VNet subnet IDs |
- * | vm-identity-id                                   | User-assigned VM identity resource ID |
- * | vm-identity-principal-id                         | User-assigned VM identity principal ID |
- * | vnet-id                                          | VNet ID |
+ * | Secret Name                                        | Description |
+ * |----------------------------------------------------|-------------|
+ * | ${var.deployment_id}-notebook-server-web-context   | Notebook Server web context |
+ * | ${var.deployment_id}-os                            | Operating system ID |
+ * | ${var.deployment_id}-vm-image-node                 | Node VM image ID |
+ * | ${var.deployment_id}-vm-image-primary              | Primary VM image ID |
+ * | ${var.fileserver_deployment_id}-aznfs-network-path | NFS network path for the file server (if ${var.fileserver_deployment_id} is not null) |
+ * | ${var.ingress_id}-backend-address-pools            | Application Gateway backend address pools |
+ * | ${var.ingress_id}-ca-private-key                   | Private key of the ingress CA root certificate |
+ * | ${var.ingress_id}-ca-root-cert                     | Root certificate used by Application Gateway to validate the backend's identity |  
+ * | ${var.ingress_id}-ingress-fqdn                     | Ingress FQDN |
+ * | ${var.portal_deployment_id}-deployment-url         | Portal deployment URL |
+ * | storage-account-key                                | Enterprise storage account key |
+ * | storage-account-name                               | Enterprise storage account name |
+ * | subnets                                            | VNet subnet IDs |
+ * | vm-identity-id                                     | User-assigned VM identity resource ID |
+ * | vm-identity-principal-id                           | User-assigned VM identity principal ID |
+ * | vnet-id                                            | VNet ID |
  *
  * ### Secrets Written by the Module
  *
  * | Secret Name                               | Description |
  * |-------------------------------------------|-------------|
+ * | ${var.deployment_id}-aznfs-network-path   | NFS network path for the file server (if ${var.fileserver_deployment_id} is null) | 
  * | ${var.deployment_id}-backend-pfx-password | Password for the PFX certificate |
  * | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
  * | ${var.deployment_id}-deployment-url       | Deployment URL |
@@ -169,11 +173,6 @@ data "azurerm_private_dns_zone" "privatelink_blob" {
 
 data "azurerm_private_dns_zone" "privatelink_table" {
   name                = "privatelink.table.core.windows.net"
-  resource_group_name = "${var.enterprise_id}-infrastructure-core"
-}
-
-data "azurerm_private_dns_zone" "privatelink_file" {
-  name                = "privatelink.file.core.windows.net"
   resource_group_name = "${var.enterprise_id}-infrastructure-core"
 }
 
@@ -463,61 +462,6 @@ resource "azurerm_role_assignment" "table_store" {
   skip_service_principal_aad_check = true
 }
 
-# Storage Account with NFS File Share
-resource "azurerm_storage_account" "file_store" {
-  name                = "nfs${random_id.unique_name_suffix.hex}"
-  resource_group_name = azurerm_resource_group.deployment_rg.name
-  location            = azurerm_resource_group.deployment_rg.location
-
-  account_tier             = "Premium"
-  account_kind             = "FileStorage" # Required for NFS
-  account_replication_type = var.storage_replication_type
-
-  # NFS also requires this:
-  https_traffic_only_enabled = false
-
-  # Ensure HNS is disabled 
-  is_hns_enabled = false
-
-  network_rules {
-    default_action             = "Deny"
-    virtual_network_subnet_ids = [local.subnet_id]
-  }
-
-  tags = {
-    ArcGISEnterpriseID = var.enterprise_id
-    ArcGISDeploymentID = var.deployment_id
-    ArcGISRole         = "file-store"
-  }
-}
-
-# Create a private endpoint for the storage account to enable secure, private connectivity from the VMs to the storage account.
-resource "azurerm_private_endpoint" "file_store_pe" {
-  name                = "${azurerm_storage_account.file_store.name}-pe"
-  location            = azurerm_resource_group.deployment_rg.location
-  resource_group_name = azurerm_resource_group.deployment_rg.name
-  subnet_id           = local.subnet_id
-
-  private_service_connection {
-    name                           = "storage-connection"
-    private_connection_resource_id = azurerm_storage_account.file_store.id
-    subresource_names              = ["file"] # Target the File service
-    is_manual_connection           = false
-  }
-
-  private_dns_zone_group {
-    name                 = "storage-dns-group"
-    private_dns_zone_ids = [data.azurerm_private_dns_zone.privatelink_file.id]
-  }
-}
-
-resource "azurerm_storage_share" "fileserver" {
-  name               = "fileserver"
-  storage_account_id = azurerm_storage_account.file_store.id
-  enabled_protocol   = "NFS"
-  quota              = var.fileserver_size
-}
-
 # Extend the root volume on the VMs.
 module "lv_extend" {
   source        = "../../modules/lv_extend"
@@ -531,10 +475,23 @@ module "lv_extend" {
 
   depends_on = [
     azurerm_linux_virtual_machine.primary,
-    azurerm_linux_virtual_machine.nodes,
-    azurerm_storage_share.fileserver,
-    azurerm_private_endpoint.file_store_pe
+    azurerm_linux_virtual_machine.nodes
   ]
+}
+
+# Create the file server or mount the existing one, and get the network path for mounting the share to the VMs.
+module "aznfs_fileserver" {
+  source                   = "../../modules/aznfs_fileserver"
+  deployment_id            = var.fileserver_deployment_id != null ? var.fileserver_deployment_id : var.deployment_id
+  enterprise_id            = var.enterprise_id
+  fileserver_deployment_id = var.fileserver_deployment_id
+  fileserver_size          = var.fileserver_size
+  key_vault_id             = module.enterprise_core_info.vault_id
+  location                 = azurerm_resource_group.deployment_rg.location
+  resource_group_name      = azurerm_resource_group.deployment_rg.name
+  storage_replication_type = var.storage_replication_type
+  subnet_id                = local.subnet_id
+  unique_name_suffix       = random_id.unique_name_suffix.hex
 }
 
 # Mount the file share to the VMs.
@@ -546,12 +503,12 @@ module "aznfs_mount" {
     "primary",
     "node"
   ]
-  storage_account_name = azurerm_storage_account.file_store.name
-  file_share_name      = azurerm_storage_share.fileserver.name
-  mount_point          = "/mnt/fileserver"
+  network_path = module.aznfs_fileserver.aznfs_network_path
+  mount_point  = "/mnt/fileserver"
 
   depends_on = [
-    module.lv_extend
+    module.lv_extend,
+    module.aznfs_fileserver
   ]
 }
 

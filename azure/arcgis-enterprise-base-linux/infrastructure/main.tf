@@ -10,9 +10,9 @@
  * - Launches one or two Linux VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
  * - VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-standby".
  *   These images must be built using the Packer template for ArcGIS Enterprise on Linux.
+ *   > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
  * - Creates "A" records in the VNet's private DNS zone, enabling permanent DNS names for the VMs.
  *   VMs can be addressed as primary.<deployment_id>.<enterprise_id>.internal and standby.<deployment_id>.<enterprise_id>.internal.
- *   > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
  * - Provisions an Azure Storage Account with blob containers for portal content and object store.
  *   The storage account name is stored in the Key Vault secret "${var.deployment_id}-storage-account-name".
  * - Provisions an NFS Azure Files storage account (file_store) with a "fileserver" NFS share mounted to the VMs.
@@ -58,6 +58,7 @@
  * | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
  * | ${var.deployment_id}-deployment-url       | Portal for ArcGIS URL of the deployment |
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
+ * | ${var.deployment_id}-aznfs-network-path   | Network path for the NFS file share |
  */
 
 # Copyright 2026 Esri
@@ -147,11 +148,6 @@ data "azurerm_private_dns_zone" "privatelink_blob" {
   resource_group_name = "${var.enterprise_id}-infrastructure-core"
 }
 
-data "azurerm_private_dns_zone" "privatelink_file" {
-  name                = "privatelink.file.core.windows.net"
-  resource_group_name = "${var.enterprise_id}-infrastructure-core"
-}
-
 data "azurerm_private_dns_zone" "cosmos_private_dns_zone" {
   count               = var.is_ha ? 1 : 0
   name                = "privatelink.documents.azure.com"
@@ -165,7 +161,7 @@ data "azurerm_private_dns_zone" "servicebus_private_dns_zone" {
 }
 
 locals {
-  ingress_fqdn         = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
+  ingress_fqdn            = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
   portal_web_context      = nonsensitive(data.azurerm_key_vault_secret.portal_web_context.value)
   zones                   = var.is_ha ? ["1", "2"] : ["1"]
   subnet_id               = var.subnet_id != null ? var.subnet_id : element(module.enterprise_core_info.private_subnets, 0)
@@ -460,57 +456,6 @@ resource "azurerm_key_vault_secret" "storage_account_name" {
   }
 }
 
-# Storage Account with NFS File Share for fileserver
-resource "azurerm_storage_account" "file_store" {
-  name                = "nfs${random_id.unique_name_suffix.hex}"
-  resource_group_name = azurerm_resource_group.deployment_rg.name
-  location            = azurerm_resource_group.deployment_rg.location
-
-  account_tier             = "Premium"
-  account_kind             = "FileStorage"
-  account_replication_type = var.storage_replication_type
-
-  https_traffic_only_enabled = false
-  is_hns_enabled             = false
-
-  network_rules {
-    default_action             = "Deny"
-    virtual_network_subnet_ids = [local.subnet_id]
-  }
-
-  tags = {
-    ArcGISEnterpriseID = var.enterprise_id
-    ArcGISDeploymentID = var.deployment_id
-    ArcGISRole         = "file-store"
-  }
-}
-
-resource "azurerm_private_endpoint" "file_store_pe" {
-  name                = "${azurerm_storage_account.file_store.name}-pe"
-  location            = azurerm_resource_group.deployment_rg.location
-  resource_group_name = azurerm_resource_group.deployment_rg.name
-  subnet_id           = local.subnet_id
-
-  private_service_connection {
-    name                           = "storage-connection"
-    private_connection_resource_id = azurerm_storage_account.file_store.id
-    subresource_names              = ["file"]
-    is_manual_connection           = false
-  }
-
-  private_dns_zone_group {
-    name                 = "storage-dns-group"
-    private_dns_zone_ids = [data.azurerm_private_dns_zone.privatelink_file.id]
-  }
-}
-
-resource "azurerm_storage_share" "fileserver" {
-  name               = "fileserver"
-  storage_account_id = azurerm_storage_account.file_store.id
-  enabled_protocol   = "NFS"
-  quota              = var.fileserver_size
-}
-
 # Extend the root volume on the VMs.
 module "lv_extend" {
   source        = "../../modules/lv_extend"
@@ -521,24 +466,36 @@ module "lv_extend" {
 
   depends_on = [
     azurerm_linux_virtual_machine.primary,
-    azurerm_linux_virtual_machine.standby,
-    azurerm_storage_share.fileserver,
-    azurerm_private_endpoint.file_store_pe
+    azurerm_linux_virtual_machine.standby
   ]
+}
+
+# Provision the NFS file server and share. 
+module "aznfs_fileserver" {
+  source                   = "../../modules/aznfs_fileserver"
+  enterprise_id            = var.enterprise_id
+  deployment_id            = var.deployment_id
+  fileserver_size          = var.fileserver_size
+  key_vault_id             = module.enterprise_core_info.vault_id
+  location                 = azurerm_resource_group.deployment_rg.location
+  resource_group_name      = azurerm_resource_group.deployment_rg.name
+  storage_replication_type = var.storage_replication_type
+  subnet_id                = local.subnet_id
+  unique_name_suffix       = random_id.unique_name_suffix.hex
 }
 
 # Mount the file share to the VMs.
 module "aznfs_mount" {
-  source               = "../../modules/aznfs_mount"
-  enterprise_id        = var.enterprise_id
-  deployment_id        = var.deployment_id
-  machine_roles        = ["primary", "standby"]
-  storage_account_name = azurerm_storage_account.file_store.name
-  file_share_name      = azurerm_storage_share.fileserver.name
-  mount_point          = "/mnt/fileserver"
+  source        = "../../modules/aznfs_mount"
+  enterprise_id = var.enterprise_id
+  deployment_id = var.deployment_id
+  machine_roles = ["primary", "standby"]
+  network_path  = module.aznfs_fileserver.aznfs_network_path
+  mount_point   = "/mnt/fileserver"
 
   depends_on = [
-    module.lv_extend
+    module.lv_extend,
+    module.aznfs_fileserver
   ]
 }
 

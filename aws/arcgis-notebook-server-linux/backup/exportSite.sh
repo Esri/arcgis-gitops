@@ -28,7 +28,6 @@ JSON_ATTRIBUTES_PARAMETER='<json_attributes_parameter>'
 # Deployment-specific variables
 ADMIN_URL="https://localhost:11443/arcgis/admin"
 STAGING_LOCATION="/tmp"
-WORKSPACE_DIRECTORY="/mnt/efs/gisdata/notebookserver/directories/arcgisworkspace"
 
 # Get the script input parameters in JSON format from SSM Parameter Store
 attributes=$(aws ssm get-parameter --name $JSON_ATTRIBUTES_PARAMETER --query 'Parameter.Value' --with-decryption --output text)
@@ -53,6 +52,9 @@ S3_PREFIX=$(echo $attributes | jq -r '.s3_prefix')
 # Get the S3 bucket and region from SSM Parameter Store
 BACKUP_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/s3/backup" --query "Parameter.Value" --output text)
 S3_REGION=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/s3/region" --query "Parameter.Value" --output text)
+NAMESPACE=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/$DEPLOYMENT_ID/namespace" --query "Parameter.Value" --output text)
+
+WORKSPACE_DIRECTORY="/mnt/efs/$NAMESPACE/notebookserver/directories/arcgisworkspace"
 
 # Generate a token for the admin user and export the site
 TOKEN_JSON=$(curl -k --request POST --data "username=$ADMIN_USERNAME&password=$ADMIN_PASSWORD&client=referer&referer=referer&f=json" $ADMIN_URL/generateToken)

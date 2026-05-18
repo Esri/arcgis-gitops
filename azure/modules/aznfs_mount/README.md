@@ -34,8 +34,7 @@ On the machine where Terraform is executed:
 |------|-------------|------|---------|:--------:|
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
-| file_share_name | Name of file share within the storage account | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
-| mount_point | NFS mount point | `string` | `"/mnt/efs"` | no |
-| storage_account_name | Azure Storage Account Name | `string` | n/a | yes |
+| mount_point | NFS mount point | `string` | `"/mnt/fileserver"` | no |
+| network_path | NFS network path in format <storage_account_name>.file.core.windows.net:/<storage_account_name>/<file_share_name> | `string` | n/a | yes |
 <!-- END_TF_DOCS -->

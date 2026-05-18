@@ -48,6 +48,7 @@ The module reads the following SSM parameters:
 |--------------------|-------------|
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
@@ -100,6 +101,7 @@ The module reads the following SSM parameters:
 | [aws_instances.nodes](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.namespace](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.notebook_server_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.os](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -134,6 +136,5 @@ The module reads the following SSM parameters:
 
 | Name | Description |
 |------|-------------|
-| arcgis_notebook_server_private_url | ArcGIS Notebook Server URL |
 | arcgis_notebook_server_url | ArcGIS Notebook Server URL |
 <!-- END_TF_DOCS -->

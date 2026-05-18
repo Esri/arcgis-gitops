@@ -16,7 +16,8 @@ to make the instance addressable using a permanent DNS name.
 > Note that the EC2 instance will be terminated and recreated if the Terraform module
   is applied again after the SSM parameter value was modified by a new image build.
 
-A highly available EFS file system is created and mounted on the EC2 instances.
+If fileserver_deployment_id input variable is not specified, a new EFS file system will be created for this deployment.
+Otherwise, the module retrieves the file system ID and security group ID of the specified deployment from SSM parameters.
 
 The module creates target groups that target the EC2 instances and associates
 the target groups with the deployment's load balancer listeners.
@@ -54,6 +55,8 @@ The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
+| /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is not null) |
+| /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is not null) |
 | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/arn | ALB ARN |
 | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/security-group-id | ALB security group ID |
 | /arcgis/${var.enterprise_id}/${var.ingress_id}/ingress-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
@@ -75,9 +78,12 @@ The module writes the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is null) |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is null) |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
-| /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
@@ -87,6 +93,7 @@ The module writes the following SSM parameters:
 | Name | Version |
 |------|---------|
 | aws | ~> 6.10 |
+| random | n/a |
 
 ## Modules
 
@@ -94,6 +101,7 @@ The module writes the following SSM parameters:
 |------|--------|---------|
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
+| efs_fileserver | ../../modules/efs_fileserver | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | nfs_mount | ../../modules/ansible_playbook | n/a |
 | security_group | ../../modules/security_group | n/a |
@@ -105,8 +113,6 @@ The module writes the following SSM parameters:
 |------|------|
 | [aws_backup_plan.deployment_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_plan) | resource |
 | [aws_backup_selection.infrastructure](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_selection) | resource |
-| [aws_efs_file_system.fileserver](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_file_system) | resource |
-| [aws_efs_mount_target.fileserver](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/efs_mount_target) | resource |
 | [aws_instance.nodes](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
 | [aws_network_interface.nodes](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/network_interface) | resource |
@@ -118,9 +124,11 @@ The module writes the following SSM parameters:
 | [aws_ssm_parameter.backup_plan_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.deployment_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.namespace](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.object_store_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.portal_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_lb.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/lb) | data source |
 | [aws_ssm_parameter.alb_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -142,6 +150,7 @@ The module writes the following SSM parameters:
 | backup_schedule | Backup schedule in cron format | `string` | `"cron(0 0 * * ? *)"` | no |
 | deployment_id | ArcGIS Server deployment ID | `string` | `"server-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
+| fileserver_deployment_id | Use the EFS filesystem from the deployment with the given ID. If not specified, a dedicated EFS filesystem will be created for this deployment. | `string` | `null` | no |
 | ingress_id | Ingress ID | `string` | `"enterprise-ingress"` | no |
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |

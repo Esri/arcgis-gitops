@@ -66,6 +66,9 @@ repo_gpgcheck=0
 gpgkey=https://packages.microsoft.com/keys/microsoft.asc
 EOT
 
+# Waiting for Azure IMDS and RHUI to settle...
+sleep 60
+
 # Refresh and Install
 sudo dnf clean all
 sudo dnf makecache

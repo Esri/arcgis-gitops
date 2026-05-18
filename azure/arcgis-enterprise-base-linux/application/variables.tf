@@ -118,6 +118,12 @@ variable "enterprise_id" {
   }
 }
 
+variable "fileserver_raster_store" {
+  description = "If true, the NFS file share will be used for raster store."
+  type        = bool
+  default     = true
+}
+
 variable "is_upgrade" {
   description = "Flag to indicate if this is an upgrade deployment"
   type        = bool

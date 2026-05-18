@@ -10,9 +10,9 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 - Launches one or two Linux VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
 - VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-standby".
   These images must be built using the Packer template for ArcGIS Enterprise on Linux.
+  > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
 - Creates "A" records in the VNet's private DNS zone, enabling permanent DNS names for the VMs.
   VMs can be addressed as primary.<deployment_id>.<enterprise_id>.internal and standby.<deployment_id>.<enterprise_id>.internal.
-  > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
 - Provisions an Azure Storage Account with blob containers for portal content and object store.
   The storage account name is stored in the Key Vault secret "${var.deployment_id}-storage-account-name".
 - Provisions an NFS Azure Files storage account (file_store) with a "fileserver" NFS share mounted to the VMs.
@@ -58,6 +58,7 @@ On the machine where Terraform is executed:
 | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
 | ${var.deployment_id}-deployment-url       | Portal for ArcGIS URL of the deployment |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
+| ${var.deployment_id}-aznfs-network-path   | Network path for the NFS file share |
 
 ## Providers
 
@@ -84,6 +85,7 @@ On the machine where Terraform is executed:
 | [azurerm_cosmosdb_sql_database.config_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_database) | resource |
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
+| [azurerm_key_vault_secret.aznfs_network_path](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |

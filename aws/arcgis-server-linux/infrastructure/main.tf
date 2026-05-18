@@ -16,7 +16,9 @@
  * > Note that the EC2 instance will be terminated and recreated if the Terraform module
  *   is applied again after the SSM parameter value was modified by a new image build.
  *
- * A highly available EFS file system is created and mounted on the EC2 instances. 
+ * If fileserver_deployment_id input variable is not specified, a new EFS file system will be created for this deployment. 
+ * Otherwise, the module retrieves the file system ID and security group ID of the specified deployment from SSM parameters.
+ * The file server deployment must be of the same platform (Linux) and must use the same VPC subnets.
  *
  * The module creates target groups that target the EC2 instances and associates 
  * the target groups with the deployment's load balancer listeners.
@@ -54,6 +56,8 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is not null) |
+ * | /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is not null) |
  * | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/arn | ALB ARN |
  * | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/security-group-id | ALB security group ID |
  * | /arcgis/${var.enterprise_id}/${var.ingress_id}/ingress-fqdn | Fully qualified domain name of the base ArcGIS Enterprise deployment |
@@ -75,9 +79,12 @@
  *
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is null) |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is null) |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment | 
- * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | ArcGIS Server URL |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
@@ -175,8 +182,19 @@ locals {
   alb_security_group_id = nonsensitive(data.aws_ssm_parameter.alb_security_group_id.value)
   alb_arn               = nonsensitive(data.aws_ssm_parameter.alb_arn.value)
   alb_dns_name          = data.aws_lb.alb.dns_name
-  ingress_fqdn       = nonsensitive(data.aws_ssm_parameter.alb_ingress_fqdn.value)
+  ingress_fqdn          = nonsensitive(data.aws_ssm_parameter.alb_ingress_fqdn.value)
   server_web_context    = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
+
+  namespace = "${var.enterprise_id}${random_id.unique_name_suffix.hex}"
+}
+
+resource "random_id" "unique_name_suffix" {
+  keepers = {
+    enterprise_id = var.enterprise_id
+    deployment_id = var.deployment_id
+  }
+
+  byte_length = 8
 }
 
 module "enterprise_core_info" {
@@ -198,24 +216,6 @@ resource "aws_ssm_parameter" "security_group_id" {
   type        = "String"
   value       = module.security_group.id
   description = "Deployment security group ID"
-}
-
-# Create EFS file system for the deployment's file server
-resource "aws_efs_file_system" "fileserver" {
-  encrypted = true
-
-  tags = {
-    Name       = "${var.enterprise_id}/${var.deployment_id}/fileserver"
-    ArcGISRole = "fileserver"
-  }
-}
-
-# Create EFS mount targets for the EFS file system in the deployment's subnets.
-resource "aws_efs_mount_target" "fileserver" {
-  count           = length(local.subnets)
-  file_system_id  = aws_efs_file_system.fileserver.id
-  subnet_id       = local.subnets[count.index]
-  security_groups = [module.security_group.id]
 }
 
 # Create network interface for the primary EC2 instance.
@@ -337,6 +337,20 @@ module "server_https_alb_target" {
   target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.nodes : n.id])
 }
 
+# Create EFS file system or reference existing EFS file system for the deployment's file server.
+# If fileserver_deployment_id is not specified, a new EFS file system will be created for this deployment. 
+# Otherwise, the module will attempt to retrieve the file system ID and 
+# security group ID from SSM parameters of the specified deployment.
+module "efs_fileserver" {
+  source                       = "../../modules/efs_fileserver"
+  enterprise_id                = var.enterprise_id
+  deployment_id                = var.deployment_id
+  fileserver_deployment_id     = var.fileserver_deployment_id
+  referenced_security_group_id = module.security_group.id
+  subnet_ids                   = local.subnets
+  vpc_id                       = module.enterprise_core_info.vpc_id
+}
+
 # Mount /mnt/efs/ to the EFS file system on the EC2 instances.
 module "nfs_mount" {
   source        = "../../modules/ansible_playbook"
@@ -346,11 +360,10 @@ module "nfs_mount" {
   playbook      = "arcgis.common.efs_mount"
   external_vars = {
     mount_point    = "/mnt/efs/"
-    file_system_id = aws_efs_file_system.fileserver.id
+    file_system_id = module.efs_fileserver.file_system_id
   }
   depends_on = [
-    aws_efs_file_system.fileserver,
-    aws_efs_mount_target.fileserver,
+    module.efs_fileserver,
     aws_instance.primary,
     aws_instance.nodes
   ]
@@ -366,7 +379,7 @@ resource "aws_route53_record" "primary" {
 
 # Create S3 bucket for the object store
 resource "aws_s3_bucket" "object_store" {
-  bucket_prefix = "${var.enterprise_id}-object-store"
+  bucket        = "${local.namespace}-object-store"
   force_destroy = true
 
   tags = {
@@ -419,6 +432,14 @@ module "dashboard" {
   depends_on = [
     module.cw_agent
   ]
+}
+
+resource "aws_ssm_parameter" "namespace" {
+  count       = var.ingress_id == null ? 0 : 1
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+  type        = "String"
+  value       = local.namespace
+  description = "Namespace of the deployment used to generate unique resource names"
 }
 
 # Save the ALB DNS name to SSM parameter store for use by other modules.

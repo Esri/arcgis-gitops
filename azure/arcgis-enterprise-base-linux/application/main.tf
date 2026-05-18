@@ -165,7 +165,7 @@ locals {
   authorization_files_prefix = "software/authorization/${var.deployment_id}/${var.arcgis_version}"
   certificates_prefix        = "software/certificates/${var.deployment_id}"
 
-  ingress_fqdn  = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
+  ingress_fqdn     = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
   primary_hostname = data.azurerm_virtual_machine.primary.private_ip_address
   standby_hostname = length(data.azurerm_resources.standby.resources) > 0 ? data.azurerm_virtual_machine.standby[0].private_ip_address : ""
 
@@ -180,16 +180,17 @@ locals {
   standby_keystore_file = length(data.azurerm_resources.standby.resources) > 0 ? "${local.certificates_dir}/${local.standby_backend_cert}" : ""
   root_cert             = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
 
-  storage_account_name          = data.azurerm_key_vault_secret.storage_account_name.value
-  storage_account_blob_endpoint = "https://${data.azurerm_key_vault_secret.storage_account_name.value}.blob.core.windows.net"
+  storage_account_name          = nonsensitive(data.azurerm_key_vault_secret.storage_account_name.value)
+  storage_account_blob_endpoint = "https://${local.storage_account_name}.blob.core.windows.net"
+  namespace                     = local.storage_account_name
   cosmos_db_account_name        = local.storage_account_name
   service_bus_namespace         = local.storage_account_name
 
   is_ha = length(data.azurerm_resources.standby.resources) > 0
 
   cloud_config = var.config_store_type == "AZURE" ? jsonencode([{
-    name      = "AZURE"
-    namespace = "${var.enterprise_id}-${var.deployment_id}"
+    name       = "AZURE"
+    namespace  = local.namespace
     credential = {
       type = "USER-ASSIGNED-IDENTITY"
       secret = {
@@ -229,7 +230,9 @@ locals {
     }]
   }]) : null
 
-  data_items = var.config_store_type == "AZURE" ? [] : [{
+  # If config_store_type is set to AZURE, The object store will be configured to use Azure Blob Storage 
+  # in the cloud_config JSON. Otherwise, configure the object store by registering a data item.
+  cloud_stores = var.config_store_type == "AZURE" ? [] : [{
     path     = "/cloudStores/cloudObjectStore"
     type     = "objectStore"
     provider = "azure"
@@ -247,6 +250,22 @@ locals {
       encryptAttributes = ["info.connectionString"]
     }
   }]
+
+  # If fileserver_raster_store variable is set to true, configure raster store 
+  # to use NFS file share by registering a data item. 
+  raster_stores = var.fileserver_raster_store ? [
+    {
+      path = "/rasterStores/RasterStore",
+      type = "rasterStore",
+      info = {
+        connectionString = jsonencode({
+          path = "${local.mount_point}/${local.namespace}/arcgisserver/rasterstore"
+        })
+        connectionType = "fileShare"
+      }
+  }] : []
+
+  data_items = concat(local.cloud_stores, local.raster_stores)
 }
 
 module "enterprise_core_info" {
@@ -403,8 +422,9 @@ module "arcgis_enterprise_fileserver" {
       configure_cloud_settings = false
       fileserver = {
         directories = [
-          "${local.mount_point}/gisdata/arcgisserver",
-          "${local.mount_point}/gisdata/arcgisbackup/webgisdr"
+          "${local.mount_point}/${local.namespace}/arcgisserver",
+          "${local.mount_point}/${local.namespace}/arcgisserver/rasterstore",
+          "${local.mount_point}/${local.namespace}/arcgisbackup/webgisdr"
         ]
         shares = []
       }
@@ -641,11 +661,11 @@ module "arcgis_enterprise_primary" {
         cert_alias                     = "servercert"
         root_cert                      = local.root_cert
         root_cert_alias                = "rootcert"
-        directories_root               = "${local.mount_point}/gisdata/arcgisserver"
+        directories_root               = "${local.mount_point}/${local.namespace}/arcgisserver"
         log_dir                        = "/opt/arcgis/server/usr/logs"
         log_level                      = var.log_level
         config_store_type              = var.config_store_type
-        config_store_connection_string = "${local.mount_point}/gisdata/arcgisserver/config-store"
+        config_store_connection_string = "${local.mount_point}/${local.namespace}/arcgisserver/config-store"
         cloud_config                   = local.cloud_config
         install_system_requirements    = true
         services_dir_enabled           = true
@@ -669,7 +689,7 @@ module "arcgis_enterprise_primary" {
           max_connections         = 150
           pitr                    = "enable"
           backup_type             = "s3"
-          backup_location         = "type=azure;location=datastore-backups/${var.deployment_id}/relational;name=re_default;username=${module.enterprise_core_info.storage_account_name};password=${module.enterprise_core_info.storage_account_key}"
+          backup_location         = "type=azure;location=datastore-backups/${var.deployment_id}/${local.namespace}/relational;name=re_default;username=${module.enterprise_core_info.storage_account_name};password=${module.enterprise_core_info.storage_account_key}"
         }
       }
       portal = {

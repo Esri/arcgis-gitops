@@ -51,6 +51,7 @@
  * |--------------------|-------------|
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL (if server_role input variable is specified) | 
  * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
@@ -112,6 +113,10 @@ data "aws_ssm_parameter" "ingress_fqdn" {
   name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn"
 }
 
+data "aws_ssm_parameter" "namespace" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+}
+
 data "aws_ssm_parameter" "server_web_context" {
   name = "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context"
 }
@@ -151,23 +156,23 @@ data "aws_instance" "primary" {
 data "aws_region" "current" {}
 
 locals {
-  server_manifest_path    = "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
-  server_manifest         = jsondecode(file(local.server_manifest_path))
   archives_dir            = local.server_manifest.arcgis.repository.local_archives
-  patches_dir             = local.server_manifest.arcgis.repository.local_patches
-  mount_point             = "/mnt/efs"
-  ingress_fqdn         = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
-  server_web_context      = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
-  primary_hostname        = data.aws_instance.primary.private_ip
-  software_dir            = "/opt/software/*"
   authorization_files_dir = "/opt/software/authorization"
+  ingress_fqdn            = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
   keystore_file           = "/opt/software/certificate.pfx"
-  timestamp               = formatdate("YYYYMMDDhhmm", timestamp())
+  mount_point             = "/mnt/efs"
+  namespace               = nonsensitive(data.aws_ssm_parameter.namespace.value)
+  patches_dir             = local.server_manifest.arcgis.repository.local_patches
+  primary_hostname        = data.aws_instance.primary.private_ip
+  server_manifest         = jsondecode(file(local.server_manifest_path))
+  server_manifest_path    = "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
+  server_web_context      = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
+  software_dir            = "/opt/software/*"
 
   cloud_config = var.config_store_type == "AMAZON" ? jsonencode([
     {
       name      = "AWS"
-      namespace = "${var.enterprise_id}-${var.deployment_id}"
+      namespace = local.namespace
       region    = data.aws_region.current.id
       credential = {
         type = "IAM-ROLE"
@@ -305,8 +310,8 @@ module "arcgis_server_fileserver" {
   external_vars = {
     run_as_user = var.run_as_user
     fileserver_directories = [
-      "${local.mount_point}/gisdata/arcgisserver",
-      "${local.mount_point}/gisdata/arcgisserver/backups",
+      "${local.mount_point}/${local.namespace}/arcgisserver",
+      "${local.mount_point}/${local.namespace}/arcgisserver/backups",
     ]
   }
   depends_on = [
@@ -355,10 +360,10 @@ module "arcgis_server_primary" {
     authorization_options = var.server_authorization_options
     admin_username        = var.admin_username
     admin_password        = var.admin_password
-    directories_root      = "${local.mount_point}/gisdata/arcgisserver"
+    directories_root      = "${local.mount_point}/${local.namespace}/arcgisserver"
     config_store_type     = var.config_store_type
     # If cloud_config is set, config_store_connection_string is ignored
-    config_store_connection_string = "${local.mount_point}/gisdata/arcgisserver/config-store"
+    config_store_connection_string = "${local.mount_point}/${local.namespace}/arcgisserver/config-store"
     cloud_config                   = local.cloud_config
     config_store_connection_secret = ""
     log_level                      = var.log_level

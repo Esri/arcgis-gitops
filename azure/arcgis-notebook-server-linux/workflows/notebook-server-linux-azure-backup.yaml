@@ -60,5 +60,6 @@ jobs:
         KV_NAME=$(az keyvault list --query "[?tags.ArcGISEnterpriseID=='$ENTERPRISE_ID' && tags.ArcGISRole=='enterprise-vault'].name" -o tsv)
         STORAGE_ACCOUNT_NAME=$(az keyvault secret show --vault-name $KV_NAME --name "storage-account-name" --query "value" -o tsv)
         VM_IDENTITY_CLIENT_ID=$(az keyvault secret show --vault-name $KV_NAME --name "vm-identity-client-id" --query "value" -o tsv)
-        export JSON_PARAMETERS=$(cat $CONFIG_FILE | jq ".admin_username += \"$ADMIN_USERNAME\"" | jq ".admin_password += \"$ADMIN_PASSWORD\"" | jq ".storage_account_name += \"$STORAGE_ACCOUNT_NAME\"" | jq ".vm_identity_client_id += \"$VM_IDENTITY_CLIENT_ID\"" | base64)
+        NAMESPACE=$(az keyvault secret show --vault-name $KV_NAME --name "$DEPLOYMENT_ID-storage-account-name" --query "value" -o tsv)
+        export JSON_PARAMETERS=$(cat $CONFIG_FILE | jq ".admin_username += \"$ADMIN_USERNAME\"" | jq ".admin_password += \"$ADMIN_PASSWORD\"" | jq ".storage_account_name += \"$STORAGE_ACCOUNT_NAME\"" | jq ".vm_identity_client_id += \"$VM_IDENTITY_CLIENT_ID\"" | jq ".namespace += \"$NAMESPACE\"" | base64)
         python -m az_run_shell_script -s $ENTERPRISE_ID -d $DEPLOYMENT_ID -m primary -f exportSite.sh -v $KV_NAME -e 600

@@ -50,9 +50,8 @@ resource "null_resource" "mount" {
   provisioner "local-exec" {
     environment = {
       JSON_PARAMETERS = base64encode(jsonencode({
-        STORAGE_ACCOUNT_NAME = var.storage_account_name
-        FILE_SHARE_NAME      = var.file_share_name
-        MOUNT_POINT          = var.mount_point
+        NETWORK_PATH = var.network_path
+        MOUNT_POINT  = var.mount_point
       }))
     }
 

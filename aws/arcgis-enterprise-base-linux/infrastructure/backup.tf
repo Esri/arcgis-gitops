@@ -51,16 +51,15 @@ resource "aws_backup_selection" "infrastructure" {
   name         = "${var.enterprise_id}-${var.deployment_id}-infrastructure"
   plan_id      = aws_backup_plan.deployment_backup.id
 
-  resources = var.is_ha ? [
-    aws_instance.primary.arn,
-    aws_instance.standby[0].arn,
-    aws_s3_bucket.portal_content.arn,
-    aws_s3_bucket.object_store.arn,
-    aws_efs_file_system.fileserver.arn
-  ] : [
-    aws_instance.primary.arn,
-    aws_s3_bucket.portal_content.arn,
-    aws_s3_bucket.object_store.arn,
-    aws_efs_file_system.fileserver.arn
-  ]
+  resources = concat(
+    [
+      aws_instance.primary.arn,
+      aws_s3_bucket.portal_content.arn,
+      aws_s3_bucket.object_store.arn,      
+      module.efs_fileserver.file_system_arn
+    ],
+    var.is_ha ? [
+      aws_instance.standby[0].arn
+    ] : []
+  )
 }

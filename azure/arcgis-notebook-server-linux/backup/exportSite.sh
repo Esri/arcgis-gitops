@@ -28,13 +28,14 @@
 # * storage_account_name: the name of the Azure storage account where the backup will be stored
 # * blob_container: the name of the blob container in the storage account where the backup will be stored
 # * vm_identity_client_id: the client ID of the VM's user assigned managed identity
+# * namespace: the namespace of the ArcGIS Notebook Server deployment
 
 set -e
 
 # Deployment-specific variables
 ADMIN_URL="https://localhost:11443/arcgis/admin"
 STAGING_LOCATION="/opt/tmp"
-WORKSPACE_DIRECTORY="/mnt/fileserver/gisdata/notebookserver/directories/arcgisworkspace"
+WORKSPACE_DIRECTORY="/mnt/fileserver/$namespace/notebookserver/directories/arcgisworkspace"
 
 if ! command -v jq &> /dev/null; then
   echo "Error: jq is not installed. Please install jq and try again."

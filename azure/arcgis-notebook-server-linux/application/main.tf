@@ -164,7 +164,7 @@ locals {
   certificates_prefix        = "software/certificates/${var.deployment_id}"
 
   mount_point                 = "/mnt/fileserver"
-  ingress_fqdn             = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
+  ingress_fqdn                = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
   notebook_server_web_context = nonsensitive(data.azurerm_key_vault_secret.notebook_server_web_context.value)
   portal_url                  = nonsensitive(data.azurerm_key_vault_secret.portal_url.value)
   primary_hostname            = data.azurerm_virtual_machine.primary.private_ip_address
@@ -176,8 +176,7 @@ locals {
   keystore_file = "${local.certificates_dir}/${local.ingress_fqdn}.pfx"
   root_cert     = var.root_cert_file_path != null ? "${local.certificates_dir}/${basename(var.root_cert_file_path)}" : ""
 
-  timestamp = formatdate("YYYYMMDDhhmm", timestamp())
-  namespace = replace("${var.enterprise_id}${var.deployment_id}", "/[^a-zA-Z0-9]/", "")
+  namespace = local.storage_account_name
 }
 
 module "enterprise_core_info" {
@@ -328,7 +327,7 @@ module "arcgis_notebook_server_fileserver" {
       run_as_user = var.run_as_user
       fileserver = {
         directories = [
-          "${local.mount_point}/gisdata/notebookserver"
+          "${local.mount_point}/${local.namespace}/notebookserver"
         ]
         shares = [
         ]
@@ -519,14 +518,15 @@ module "arcgis_notebook_server_primary" {
         cert_alias            = "servercert"
         root_cert             = local.root_cert
         root_cert_alias       = "rootcert"
-        directories_root      = "${local.mount_point}/gisdata/notebookserver"
-        workspace             = "${local.mount_point}/gisdata/notebookserver/directories/arcgisworkspace"
-        log_dir               = "${local.mount_point}/gisdata/notebookserver/logs"
+        directories_root      = "${local.mount_point}/${local.namespace}/notebookserver"
+        workspace             = "${local.mount_point}/${local.namespace}/notebookserver/directories/arcgisworkspace"
+        log_dir               = "${local.mount_point}/${local.namespace}/notebookserver/logs"
         log_level             = var.log_level
         config_store_type     = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AZURE" ?
           "NAMESPACE=${local.namespace};AccountName=${local.storage_account_name};CredentialType=UserAssignedIdentity;ManagedIdentityClientId=${data.azurerm_key_vault_secret.vm_identity_client_id.value}" :
-        "${local.mount_point}/gisdata/notebookserver/config-store")
+          "${local.mount_point}/${local.namespace}/notebookserver/config-store"
+        )
         config_store_connection_secret = ""
         install_system_requirements    = true
         wa_name                        = local.notebook_server_web_context
@@ -588,7 +588,7 @@ module "arcgis_notebook_server_node" {
         cert_alias                  = "servercert"
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        log_dir                     = "${local.mount_point}/gisdata/notebookserver/logs"
+        log_dir                     = "${local.mount_point}/${local.namespace}/notebookserver/logs"
         authorization_file          = "${local.authorization_files_dir}/${basename(var.notebook_server_authorization_file_path)}"
         authorization_options       = var.notebook_server_authorization_options
         install_system_requirements = true

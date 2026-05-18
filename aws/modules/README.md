@@ -9,8 +9,9 @@ A Terraform module can call other modules to include their resources into the co
 * [clean_up](clean_up/README.md) - deletes files in specific directories on EC2 instances
 * [cw_agent](cw_agent/README.md) - configures CloudWatch agent on the deployment EC2 instances
 * [dashboard](dashboard/README.md) - creates CloudWatch dashboard for deployment monitoring
-* [efs_mount](nfs_mount/README.md) - mounts EFS file system targets on EC2 instances in a deployment
+* [efs_fileserver](efs_fileserver/README.md) - creates or references an EFS file system for the deployment's file server
+* [efs_mount](efs_mount/README.md) - mounts EFS file system targets on EC2 instances in a deployment
+* [enterprise_core_info](enterprise_core_info/README.md) - retrieves names and Ids of core AWS resources from AWS Systems Manager parameters
 * [run_chef](run_chef/README.md) - runs Cinc Client in local mode on EC2 instances
 * [s3_copy_files](s3_copy_files/README.md) - copies files from local file system, public URLs, and, My Esri repository to S3 bucket
 * [security_group](security_group/README.md) - creates and configures EC2 security group for a deployment
-* [enterprise_core_info](enterprise_core_info/README.md) - retrieves names and Ids of core AWS resources from AWS Systems Manager parameters

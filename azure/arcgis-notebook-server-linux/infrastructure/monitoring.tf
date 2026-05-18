@@ -21,7 +21,7 @@ resource "azurerm_portal_dashboard" "deployment" {
     lenses = {
       "0" = {
         order = 0
-        parts = {
+        parts = merge({
           "0" = { // Available Memory Bytes
             metadata = {
               inputs = [{
@@ -530,6 +530,7 @@ resource "azurerm_portal_dashboard" "deployment" {
               y       = 4
             }
           }
+        }, var.fileserver_deployment_id == null ? {
           "4" = { // Storage account metrics
             position = {
               x       = 0
@@ -556,7 +557,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       metrics = [
                         {
                           resourceMetadata = {
-                            id = azurerm_storage_account.file_store.id
+                            id = module.aznfs_fileserver.storage_account_id
                           }
                           name = "Ingress"
                           aggregationType = 1
@@ -567,7 +568,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         },
                         {
                           resourceMetadata = {
-                            id = azurerm_storage_account.file_store.id
+                            id = module.aznfs_fileserver.storage_account_id
                           }
                           name = "Egress"
                           aggregationType = 1
@@ -631,7 +632,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       metrics = [
                         {
                           resourceMetadata = {
-                            id = azurerm_storage_account.file_store.id
+                            id = module.aznfs_fileserver.storage_account_id
                           }
                           name = "UsedCapacity",
                           aggregationType = 4,
@@ -669,7 +670,7 @@ resource "azurerm_portal_dashboard" "deployment" {
               }
             }
           }
-        }
+        } : {})
       }
     }
   })

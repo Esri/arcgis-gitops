@@ -49,12 +49,12 @@
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL | 
  * | /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |
  * | /arcgis/${var.enterprise_id}/cookbooks-url | Chef cookbooks URL |
  * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context | 
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
  * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
  * | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |

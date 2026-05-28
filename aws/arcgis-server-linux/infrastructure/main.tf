@@ -23,9 +23,6 @@
  * The module creates target groups that target the EC2 instances and associates 
  * the target groups with the deployment's load balancer listeners.
  * 
- * By default the HTTPS listener on port 443 is forwarded to instance port 6443. 
- * Set the use_webadaptor input variable to true to use port 443.
- *  
  * The deployment's Monitoring Subsystem consists of:
  *
  * * A CloudWatch log group
@@ -330,10 +327,10 @@ module "server_https_alb_target" {
   alb_arn           = local.alb_arn
   protocol          = "HTTPS"
   alb_port          = 443
-  instance_port     = var.use_webadaptor ? 443 : 6443
+  instance_port     = 443
   health_check_path = "/${local.server_web_context}/rest/info/healthcheck"
   web_context       = local.server_web_context
-  priority          = 110
+  priority          = var.listener_rule_priority
   target_instances  = concat([aws_instance.primary.id], [for n in aws_instance.nodes : n.id])
 }
 
@@ -352,22 +349,20 @@ module "efs_fileserver" {
 }
 
 # Mount /mnt/efs/ to the EFS file system on the EC2 instances.
-module "nfs_mount" {
-  source        = "../../modules/ansible_playbook"
-  enterprise_id = var.enterprise_id
-  deployment_id = var.deployment_id
-  machine_roles = ["primary", "node"]
-  playbook      = "arcgis.common.efs_mount"
-  external_vars = {
-    mount_point    = "/mnt/efs/"
-    file_system_id = module.efs_fileserver.file_system_id
-  }
+module "efs_mount" {
+  source         = "../../modules/efs_mount"
+  enterprise_id  = var.enterprise_id
+  deployment_id  = var.deployment_id
+  machine_roles  = ["primary", "node"]
+  file_system_id = module.efs_fileserver.file_system_id
+  mount_point    = "/mnt/efs/"
   depends_on = [
     module.efs_fileserver,
     aws_instance.primary,
     aws_instance.nodes
   ]
 }
+
 # Create Route53 record for the primary EC2 instance in the VPC private hosted zone.
 resource "aws_route53_record" "primary" {
   zone_id = module.enterprise_core_info.hosted_zone_id

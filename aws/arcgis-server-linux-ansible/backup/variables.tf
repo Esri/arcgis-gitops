@@ -12,11 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
  
-variable "aws_region" {
-  description = "AWS region ID"
-  type        = string
-}
-
 variable "admin_password" {
   description = "ArcGIS Server administrator user password"
   type        = string
@@ -39,25 +34,30 @@ variable "admin_username" {
   }
 }
 
-variable "backup_enterprise_id" {
-  description = "ArcGIS Enterprise ID of the backup to restore from"
+variable "aws_region" {
+  description = "AWS region ID"
   type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.backup_enterprise_id))
-    error_message = "The backup_enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
 }
 
 variable "deployment_id" {
   description = "Deployment ID"
   type        = string
-  default     = "server-linux"
+  default     = "server-linux-ansible"
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
+  }
+}
+
+variable "enterprise_id" {
+  description = "ArcGIS Enterprise ID"
+  type        = string
+  default     = "arcgis"
+
+  validation {
+    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
+    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
 }
 
@@ -71,15 +71,4 @@ variable "s3_prefix" {
   description = "Backup S3 object keys prefix"
   type        = string
   default     = "arcgis-server-backups"
-}
-
-variable "enterprise_id" {
-  description = "ArcGIS Enterprise ID"
-  type        = string
-  default     = "arcgis"
-
-  validation {
-    condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
-    error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
-  }
 }

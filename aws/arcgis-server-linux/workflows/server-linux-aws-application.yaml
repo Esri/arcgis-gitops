@@ -53,14 +53,10 @@ jobs:
     - name: Link Config Directory
       id: symlink
       run: ln -s ${{ github.workspace }}/config ~/config
-    - name: Install Boto3 and Ansible
+    - name: Install Boto3
       id: install-boto3
       run: |
         pip install boto3
-        pip install "ansible>=9.0,<10.0"
-    - name: Install Ansible Collections
-      id: install-collections
-      run: ansible-galaxy collection install ${{ github.workspace }}/ansible_collections/arcgis -p /usr/share/ansible/collections
     - uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: "1.10.0"

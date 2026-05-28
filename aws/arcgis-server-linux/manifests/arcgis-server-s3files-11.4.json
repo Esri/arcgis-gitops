@@ -7,25 +7,48 @@
       "server": {
         "url": "https://downloads.arcgis.com",
         "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
-        "s3bucket": "{{ bucket_name }}",
-        "region": "{{ region }}"
+        "s3bucket": "${s3bucket}",
+        "region": "${region}"
       },
       "patch_notification": {
         "products": [
-          "ArcGIS Server"
+          "ArcGIS Server",
+          "ArcGIS Web Adaptor (Java)"
         ],
         "versions": [
           "11.4"
         ],
         "patches": [
-          "ArcGIS-114-S-*-linux.tar"
+          "ArcGIS-114-S-*-linux.tar",
+          "ArcGIS-114-WAJ-*.tar",
+          "ArcGIS-114-WAJ-*.tar.gz"
         ],
         "subfolder": "software/arcgis/11.4/patches"
       },
+      "metadata": {
+        "java_tarball": "OpenJDK17U-jdk_x64_linux_hotspot_17.0.12_7.tar.gz",
+        "java_version": "17.0.12+7",
+        "tomcat_tarball": "apache-tomcat-9.0.91.tar.gz",
+        "tomcat_version": "9.0.91"
+      },      
       "files": {
         "ArcGIS_Server_Linux_114_192977.tar.gz": {
           "subfolder": "software/arcgis/11.4",
           "sha256": "1B766ECDF0B16635F195EBD25151C4E2E7755197C743AE8D25790A07CB4E9B61"
+        },
+        "ArcGIS_Web_Adaptor_Java_Linux_114_192983.tar.gz": {
+          "subfolder": "software/arcgis/11.4",
+          "sha256": "D01B9EBFF0FEA724266128F57369D0CAF9F4EC99C21DFA386634BAACAFBCBE55"
+        },
+        "apache-tomcat-9.0.91.tar.gz": {
+          "url": "https://archive.apache.org/dist/tomcat/tomcat-9/v9.0.91/bin/apache-tomcat-9.0.91.tar.gz",
+          "subfolder": "software/thirdparty/11.4",
+          "sha256": "0C5B29CA1D3A31BBB8FAB6AD1FEED8A3702ED325D14839550A6774C76C90B856"
+        },
+        "OpenJDK17U-jdk_x64_linux_hotspot_17.0.12_7.tar.gz": {
+          "url": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.12%2B7/OpenJDK17U-jdk_x64_linux_hotspot_17.0.12_7.tar.gz",
+          "subfolder": "software/thirdparty/11.4",
+          "sha256": "9D4DD339BF7E6A9DCBA8347661603B74C61AB2A5083AE67BF76DA6285DA8A778"
         }
       }
     }

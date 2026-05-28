@@ -1,0 +1,36 @@
+{
+  "arcgis": {
+    "version": "11.5",
+    "repository": {
+      "local_archives": "/opt/software/archives",
+      "local_patches": "/opt/software/archives/patches",
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "{{ bucket_name }}",
+        "region": "{{ region }}"
+      },
+      "patch_notification": {
+        "products": [
+          "ArcGIS Server"
+        ],
+        "versions": [
+          "11.5"
+        ],
+        "patches": [
+          "ArcGIS-115-S-*-linux.tar"
+        ],
+        "subfolder": "software/arcgis/11.5/patches"
+      },
+      "files": {
+        "ArcGIS_Server_Linux_115_195440.tar.gz": {
+          "subfolder": "software/arcgis/11.5",
+          "sha256": "CEAF2FEE93F43B43BA625848FC17F2DFC8C933F3B535A5CC1EE4D479656BFBB7"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
+}

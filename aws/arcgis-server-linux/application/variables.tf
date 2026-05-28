@@ -56,6 +56,12 @@ variable "arcgis_version" {
   }
 }
 
+variable "arcgis_web_adaptor_patches" {
+  description = "File names of ArcGIS Web Adaptor patches to install."
+  type        = list(string)
+  default     = []
+}
+
 variable "aws_region" {
   description = "AWS region ID"
   type        = string
@@ -221,10 +227,4 @@ variable "system_properties" {
   description = "ArcGIS Server system properties"
   type        = map(any)
   default     = {}
-}
-
-variable "use_webadaptor" {
-  description = "If true, ArcGIS Web Adaptor will be registered with ArcGIS Server."
-  type        = bool
-  default     = false
 }

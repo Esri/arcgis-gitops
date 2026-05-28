@@ -84,6 +84,17 @@ variable "key_name" {
   type        = string
 }
 
+variable "listener_rule_priority" {
+  description = "Priority of the ALB listener rule that forwards traffic to this deployment. The priority must be unique among all listener rules associated with the same ALB listener."
+  type        = number
+  default     = 110
+
+  validation {
+    condition     = var.listener_rule_priority >= 1 && var.listener_rule_priority <= 50000
+    error_message = "The listener_rule_priority value must be between 1 and 50000."
+  }
+}
+
 variable "node_count" {
   description = "Number of node EC2 instances"
   type        = number
@@ -138,10 +149,4 @@ variable "subnet_ids" {
   description = "EC2 instances subnet IDs (by default, the first two private VPC subnets are used)"
   type        = list(string)
   default     = []
-}
-
-variable "use_webadaptor" {
-  description = "If true, port 443 is used as the instance HTTPS port, otherwise 6443 is used."
-  type        = bool
-  default     = false
 }

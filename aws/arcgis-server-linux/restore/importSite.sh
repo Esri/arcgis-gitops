@@ -77,7 +77,13 @@ if [ ! -f "$STAGING_LOCATION/$BACKUP_FILE" ]; then
 fi
 
 echo "Importing site from backup file: s3://$BACKUP_S3_BUCKET/$LAST_BACKUP_KEY"
-TOKEN_JSON=$(curl -k --silent --show-error --request POST --data "username=$ADMIN_USERNAME&password=$ADMIN_PASSWORD&client=requestip&expiration=60&f=json" "$ADMIN_URL/generateToken")
+TOKEN_JSON=$(curl -k --silent --show-error --request POST \
+  --data-urlencode "username=$ADMIN_USERNAME" \
+  --data-urlencode "password=$ADMIN_PASSWORD" \
+  --data-urlencode "client=requestip" \
+  --data-urlencode "expiration=60" \
+  --data-urlencode "f=json" \
+  "$ADMIN_URL/generateToken")
 
 if [ $? -ne 0 ]; then
   echo "Error: Failed to generate token."
@@ -91,7 +97,11 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-RESPONSE_JSON=$(curl -k --silent --show-error --request POST --data "location=$STAGING_FILE_PATH&token=$TOKEN&f=json" "$ADMIN_URL/importSite")
+RESPONSE_JSON=$(curl -k --silent --show-error --request POST \
+  --data-urlencode "location=$STAGING_FILE_PATH" \
+  --data-urlencode "token=$TOKEN" \
+  --data-urlencode "f=json" \
+  "$ADMIN_URL/importSite")
 STATUS=$(echo "$RESPONSE_JSON" | jq -r '.status // empty')
 
 if [ "$STATUS" == "success" ]; then

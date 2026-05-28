@@ -57,8 +57,8 @@ Instructions:
 
 1. Set "arcgis_server_patches" property to the list of patch file names that must be installed on the images.
 2. Set "server_web_context" property to the ArcGIS Server web context.
-2. Commit the changes to a Git branch and push the branch to GitHub.
-3. Run server-linux-aws-image workflow using the branch.
+3. Commit the changes to a Git branch and push the branch to GitHub.
+4. Run server-linux-aws-image workflow using the branch.
 
 ### 3. Provision AWS Resources
 

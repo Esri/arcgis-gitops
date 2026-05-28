@@ -44,7 +44,7 @@ resource "aws_ssm_parameter" "backup_plan_id" {
   description = "Backup plan ID for the deployment ${var.enterprise_id}/${var.deployment_id}"
 }
 
-# Add all the deployment's EC2 instances, S3 buckets, and EFS file systems to 
+# Add primary and node[0] deployment's EC2 instances, S3 buckets, and EFS file systems to 
 # the backup plan resources.
 resource "aws_backup_selection" "infrastructure" {
   iam_role_arn = nonsensitive(data.aws_ssm_parameter.backup_role_arn.value)

@@ -53,7 +53,13 @@ BACKUP_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/s3/backu
 S3_REGION=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/s3/region" --query "Parameter.Value" --output text)
 
 # Generate a token for the admin user and export the site
-TOKEN_JSON=$(curl -k --silent --show-error --request POST --data "username=$ADMIN_USERNAME&password=$ADMIN_PASSWORD&client=requestip&expiration=60&f=json" "$ADMIN_URL/generateToken")
+TOKEN_JSON=$(curl -k --silent --show-error --request POST \
+  --data-urlencode "username=$ADMIN_USERNAME" \
+  --data-urlencode "password=$ADMIN_PASSWORD" \
+  --data-urlencode "client=requestip" \
+  --data-urlencode "expiration=60" \
+  --data-urlencode "f=json" \
+  "$ADMIN_URL/generateToken")
 if [ $? -ne 0 ]; then
   echo "Error: Failed to generate token."
   exit 1
@@ -66,7 +72,11 @@ if [ -z "$TOKEN" ]; then
   exit 1
 fi
 
-RESPONSE_JSON=$(curl -k --silent --show-error --request POST --data "location=$STAGING_LOCATION&token=$TOKEN&f=json" "$ADMIN_URL/exportSite")
+RESPONSE_JSON=$(curl -k --silent --show-error --request POST \
+  --data-urlencode "location=$STAGING_LOCATION" \
+  --data-urlencode "token=$TOKEN" \
+  --data-urlencode "f=json" \
+  "$ADMIN_URL/exportSite")
 STATUS=$(echo "$RESPONSE_JSON" | jq -r '.status // empty')
 LOCATION=$(echo "$RESPONSE_JSON" | jq -r '.location // empty')
 

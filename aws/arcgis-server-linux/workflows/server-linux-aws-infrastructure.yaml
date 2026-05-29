@@ -40,7 +40,7 @@ jobs:
     name: Provision AWS Resources
     runs-on: ubuntu-24.04
     outputs:
-      alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
+      deployment_url: ${{ steps.output.outputs.deployment_url }}
     defaults:
       run:
         working-directory: aws/arcgis-server-linux/infrastructure
@@ -50,14 +50,10 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Install Boto3 and Ansible
+    - name: Install Boto3
       id: install-boto3
       run: |
         pip install boto3
-        pip install "ansible>=9.0,<10.0"
-    - name: Install Ansible Collections
-      id: install-collections
-      run: ansible-galaxy collection install ${{ github.workspace }}/ansible_collections/arcgis -p /usr/share/ansible/collections
     - uses: hashicorp/setup-terraform@v3
       with:
         terraform_version: "1.10.0"

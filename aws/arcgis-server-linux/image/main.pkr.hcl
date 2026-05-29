@@ -16,15 +16,12 @@
  * 
  * 1. Install CloudWatch Agent
  * 2. Download setups from the private repository S3 bucket.
- * 3. Install ArcGIS Server
- * 4. Install ArcGIS Server patches
- * 5. Delete unused files
- *
- * If the "use_webadaptor" variable is set to true, the template will also:
- *
- * 1. Install OpenJDK
- * 2. Install Apache Tomcat
- * 3. Install ArcGIS Web Adaptor with name specified by "server_web_context" variable.
+ * 3. Install OpenJDK
+ * 4. Install Apache Tomcat
+ * 5. Install ArcGIS Server
+ * 6. Install ArcGIS Web Adaptor with name specified by "server_web_context" variable.
+ * 7. Install ArcGIS Server and ArcGIS Web Adaptor patches
+ * 8. Delete unused files
  * 
  * ID of the built AMI is saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary"
  * and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/node" SSM parameters.
@@ -35,10 +32,8 @@
  *
  * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
  * * Path to aws/scripts directory must be added to PYTHONPATH
- * * Ansible 2.16 or later must be installed
- * * arcgis.common, arcgis.server, and arcgis.webadaptor Ansible collections must be installed
  * * AWS CLI must be installed and configured
- * * AWS credentials must be configured
+ * * AWS credentials must be configured.
  * * My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
  *
  * ## SSM Parameters
@@ -47,6 +42,8 @@
  * 
  * | SSM parameter name | Description |
  * |--------------------|-------------|
+ * | /arcgis/${var.enterprise_id}/chef-client-url/${var.os} | URL of the Chef client installer |
+ * | /arcgis/${var.enterprise_id}/cookbooks-url | URL of the Chef cookbooks archive |
  * | /arcgis/${var.enterprise_id}/iam/instance-profile-name | IAM instance profile name|
  * | /arcgis/${var.enterprise_id}/images/${var.os} | Source AMI ID|
  * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM commands output |
@@ -59,9 +56,9 @@
  * | SSM parameter name | Description |
  * |--------------------|-------------|
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/node | Node AMI ID |
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context name |
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system identifier |
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary AMI ID |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context name |
  */
 
 # Copyright 2024-2026 Esri
@@ -117,6 +114,16 @@ data "amazon-parameterstore" "s3_region" {
   region = var.aws_region
 }
 
+data "amazon-parameterstore" "chef_client_url" {
+  name  = "/arcgis/${var.enterprise_id}/chef-client-url/${var.os}"
+  region = var.aws_region  
+}
+
+data "amazon-parameterstore" "chef_cookbooks_url" {
+  name  = "/arcgis/${var.enterprise_id}/cookbooks-url"
+  region = var.aws_region  
+}
+
 locals {
   machine_role = "packer"
   timestamp = formatdate("YYYYMMDDhhmm", timestamp())
@@ -137,65 +144,14 @@ locals {
 
   user_data = contains(["rhel8", "rhel9"], var.os) ? local.rhel_user_data : null
 
-  inventory = yamlencode({
-    plugin = "amazon.aws.aws_ec2"
-    regions = [ 
-      var.aws_region
-    ]
-    compose = {
-      ansible_host = "instance_id"
-    }
-    filters = {
-      "instance-state-name" = "running"
-      "tag:ArcGISEnterpriseID" = var.enterprise_id
-      "tag:ArcGISDeploymentID" = var.deployment_id
-      "tag:ArcGISMachineRole" = local.machine_role
-    }
-  })
-
-  arcgis_server_manifest_path =  "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
-  server_manifest    = jsondecode(file(local.arcgis_server_manifest_path))
-  archives_dir       = local.server_manifest.arcgis.repository.local_archives
-  patches_dir        = local.server_manifest.arcgis.repository.local_patches
-
-  arcgis_webadaptor_manifest_path =  "${abspath(path.root)}/../manifests/arcgis-webadaptor-s3files-${var.arcgis_version}.json"
-  webadaptor_manifest = jsondecode(file(local.arcgis_webadaptor_manifest_path))
-  java_tarball        = local.webadaptor_manifest.arcgis.repository.metadata.java_tarball
-  java_version        = local.webadaptor_manifest.arcgis.repository.metadata.java_version
-  tomcat_tarball      = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_tarball
-  tomcat_version      = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_version  
-
-  server_vars = yamlencode({
-    ansible_aws_ssm_bucket_name = data.amazon-parameterstore.s3_logs.value
-    ansible_aws_ssm_region = data.amazon-parameterstore.s3_region.value
-    ansible_connection = "aws_ssm"
-    arcgis_server_patches = var.arcgis_server_patches
-    arcgis_version = var.arcgis_version
-    bucket_name = data.amazon-parameterstore.s3_repository.value
-    local_repository =  local.archives_dir
-    patches_directory = local.patches_dir
-    manifest = local.arcgis_server_manifest_path
-    region = var.aws_region
-    run_as_user = var.run_as_user
-    # ansible_python_interpreter="/usr/bin/python3"
-  })
-
-  webadaptor_vars = yamlencode({
-    ansible_aws_ssm_bucket_name = data.amazon-parameterstore.s3_logs.value
-    ansible_aws_ssm_region = data.amazon-parameterstore.s3_region.value
-    ansible_connection = "aws_ssm"
-    arcgis_version = var.arcgis_version
-    wa_name = var.server_web_context
-    bucket_name = data.amazon-parameterstore.s3_repository.value
-    local_repository =  local.archives_dir
-    manifest = local.arcgis_webadaptor_manifest_path
-    region = var.aws_region
-    jdk_version = local.java_version
-    jdk_setup_archive = local.java_tarball
-    tomcat_version = local.tomcat_version
-    tomcat_setup_archive = local.tomcat_tarball
-    # ansible_python_interpreter="/usr/bin/python3"
-  })
+  manifest_file_path =  "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
+  manifest           = jsondecode(file(local.manifest_file_path))
+  archives_dir       = local.manifest.arcgis.repository.local_archives
+  patches_dir        = local.manifest.arcgis.repository.local_patches
+  java_tarball       = local.manifest.arcgis.repository.metadata.java_tarball
+  java_version       = local.manifest.arcgis.repository.metadata.java_version
+  tomcat_tarball     = local.manifest.arcgis.repository.metadata.tomcat_tarball
+  tomcat_version     = local.manifest.arcgis.repository.metadata.tomcat_version  
 }
 
 source "amazon-ebs" "main" {
@@ -239,6 +195,24 @@ build {
     "source.amazon-ebs.main"
   ]
 
+  # Copy files to private S3 repository
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
+    command = "python -m s3_copy_files -f ${local.manifest_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
+  }
+
+  # Install AWS CLI
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
+    command = "python -m ssm_install_awscli -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -b ${data.amazon-parameterstore.s3_logs.value}"
+  }
+  
   # Install CloudWatch Agent
   provisioner "shell-local" {
     env = {
@@ -257,44 +231,113 @@ build {
     command = "python -m ssm_package -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonEFSUtils -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
-  # Download setups from private S3 repository and install ArcGIS Server   
+  # Bootstrap
   provisioner "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    inline = [
-      "echo '${local.server_vars}' > /tmp/server_vars.yaml",
-      "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
-      "python -m s3_copy_files -f ${local.arcgis_server_manifest_path} -b ${data.amazon-parameterstore.s3_repository.value}",      
-      "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
-      "ansible-playbook arcgis.common.system -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
-      "ansible-playbook arcgis.server.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",      
-      "ansible-playbook arcgis.server.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
-      "ansible-playbook arcgis.server.patch -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
-      "ansible-playbook arcgis.common.clean -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml"
-    ]
+    command = "python -m ssm_bootstrap -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -c ${data.amazon-parameterstore.chef_client_url.value} -k ${data.amazon-parameterstore.chef_cookbooks_url.value} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
-  # Download setups from private S3 repository and install ArcGIS Web Adaptor
+  # Download setups
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+      JSON_ATTRIBUTES = base64encode(templatefile(
+        local.manifest_file_path, 
+        { 
+          s3bucket = data.amazon-parameterstore.s3_repository.value, 
+          region = data.amazon-parameterstore.s3_region.value
+        }))
+    }
+
+    command = "python -m ssm_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.enterprise_id}/attributes/arcgis-server/image/${var.arcgis_version}/${var.os}/s3files -b ${data.amazon-parameterstore.s3_logs.value} -e 1200"
+  }
+
+  # Install
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+      JSON_ATTRIBUTES = base64encode(jsonencode({
+        java = {
+          version = local.java_version
+          tarball_path = "${local.archives_dir}/${local.java_tarball}"
+        }
+        tomcat = {
+          version = local.tomcat_version
+          tarball_path = "${local.archives_dir}/${local.tomcat_tarball}"
+          install_path = "/opt/tomcat_arcgis_${local.tomcat_version}"
+        }
+        arcgis = {
+          version = var.arcgis_version
+          run_as_user = var.run_as_user
+          repository = {
+            archives = local.archives_dir
+            setups = "/opt/software/setups"
+          }
+          web_server = {
+            webapp_dir = "/opt/tomcat_arcgis_${local.tomcat_version}/webapps"
+          }
+          server = {
+            install_dir = "/opt"
+            configure_autostart = true
+            install_system_requirements = true
+            wa_name = var.server_web_context
+          }
+          web_adaptor = {
+            install_dir = "/opt"
+          }
+        }
+        run_list = [
+          "recipe[arcgis-enterprise::system]",
+          "recipe[esri-tomcat::openjdk]",
+          "recipe[esri-tomcat]",
+          "recipe[arcgis-enterprise::install_server]",
+          "recipe[arcgis-enterprise::install_server_wa]"
+        ]
+      }))
+    }
+
+    command = "python -m ssm_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.enterprise_id}/attributes/arcgis-server/image/${var.arcgis_version}/${var.os}/install -b ${data.amazon-parameterstore.s3_logs.value} -e 3600"
+  }
+
+  # Install patches
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+      JSON_ATTRIBUTES = base64encode(jsonencode({
+        arcgis = {
+          version = var.arcgis_version
+          run_as_user = var.run_as_user
+          repository = {
+            patches = local.patches_dir
+          }
+          server = {
+            install_dir = "/opt"
+            patches = var.arcgis_server_patches
+          }
+          web_adaptor = {
+            install_dir = "/opt"
+            patches = var.arcgis_web_adaptor_patches
+          }
+        }
+        run_list = [
+          "recipe[arcgis-enterprise::install_patches]"
+        ]
+      }))
+    }
+
+    command = "python -m ssm_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.enterprise_id}/attributes/arcgis-server/image/${var.arcgis_version}/${var.os}/patches -b ${data.amazon-parameterstore.s3_logs.value} -e 3600"
+  }
+
+  # Clean up
   provisioner "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    inline = var.use_webadaptor ? [
-      "echo '${local.webadaptor_vars}' > /tmp/webadaptor_vars.yaml",
-      "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
-      "python -m s3_copy_files -f ${local.arcgis_webadaptor_manifest_path} -b ${data.amazon-parameterstore.s3_repository.value}",
-      "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
-      "ansible-playbook arcgis.webadaptor.openjdk -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
-      "ansible-playbook arcgis.webadaptor.tomcat -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
-      "ansible-playbook arcgis.webadaptor.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
-      "ansible-playbook arcgis.webadaptor.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
-      "ansible-playbook arcgis.common.clean -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml"
-    ] : [
-      "echo 'ArcGIS Web Adaptor installation is not enabled.'"
-    ]
+    command = "python -m ssm_clean_up -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -f ${local.software_dir} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
   # Save the build artifacts metadata in packer-manifest.json file.

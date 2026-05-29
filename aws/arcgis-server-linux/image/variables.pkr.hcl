@@ -29,6 +29,12 @@ variable "arcgis_version" {
   }
 }
 
+variable "arcgis_web_adaptor_patches" {
+  description = "File names of ArcGIS Web Adaptor patches to install."
+  type        = list(string)
+  default     = []
+}
+
 variable "aws_region" {
   description = "AWS region ID"
   type        = string
@@ -64,13 +70,13 @@ variable "instance_type" {
 }
 
 variable "os" {
-  description = "Operating system ID (rhel9)"
+  description = "Operating system ID (rhel9|ubuntu22|ubuntu24)"
   type        = string
   default     = "rhel9"
 
   validation {
-    condition     = contains(["rhel9"], var.os)
-    error_message = "Valid values for os variable are rhel9."
+    condition     = contains(["rhel9", "ubuntu22", "ubuntu24"], var.os)
+    error_message = "Valid values for os variable are rhel9, ubuntu22, and ubuntu24."
   }
 }
 
@@ -92,7 +98,7 @@ variable "run_as_user" {
 }
 
 variable "server_web_context" {
-  description = "ArcGIS Web Adaptor name"
+  description = "ArcGIS Server web context"
   type        = string
   default     = "arcgis"
 }
@@ -101,10 +107,4 @@ variable "skip_create_ami" {
   description = "If true, Packer will not create the AMI. Useful for setting to true during a build test stage."
   type = bool
   default = false
-}
-
-variable "use_webadaptor" {
-  description = "If true, OpenJDK, Apache Tomcat, and ArcGIS Web Adaptor will be installed on the AMI."
-  type        = bool
-  default     = false
 }

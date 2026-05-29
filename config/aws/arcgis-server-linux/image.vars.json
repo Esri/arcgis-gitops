@@ -3,6 +3,7 @@
     "ArcGIS-120-S-*-linux.tar"
   ],
   "arcgis_version": "12.0",
+  "arcgis_web_adaptor_patches": [],
   "deployment_id": "server-linux",
   "enterprise_id": "arcgis",
   "instance_type": "m7i.2xlarge",
@@ -10,6 +11,5 @@
   "root_volume_size": 100,
   "run_as_user": "arcgis",
   "server_web_context": "arcgis",
-  "skip_create_ami": false,
-  "use_webadaptor": true
+  "skip_create_ami": false
 }

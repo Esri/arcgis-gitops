@@ -38,11 +38,12 @@ An *ArcGIS Enterprise* in this context is a group of *deployments* that typicall
 The following templates are available for AWS:
 
 * [arcgis-enterprise-core](arcgis-enterprise-core/README.md) - Provision core AWS resources for ArcGIS Enterprise
-* [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) - Base ArcGIS Enterprise on Windows deployment operations
-* [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) - Base ArcGIS Enterprise on Linux deployment operations
-* [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment operations
-* [arcgis-notebook-server-linux](arcgis-notebook-server-linux/README.md) - ArcGIS Notebook Server on Linux deployment operations
-* [arcgis-server-linux](arcgis-server-linux/README.md) - ArcGIS Server on Linux deployment operations
+* [arcgis-enterprise-base-windows](arcgis-enterprise-base-windows/README.md) - Base ArcGIS Enterprise on Windows deployment
+* [arcgis-enterprise-base-linux](arcgis-enterprise-base-linux/README.md) - Base ArcGIS Enterprise on Linux deployment
+* [arcgis-enterprise-k8s](arcgis-enterprise-k8s/README.md) - ArcGIS Enterprise on Kubernetes deployment
+* [arcgis-notebook-server-linux](arcgis-notebook-server-linux/README.md) - ArcGIS Notebook Server on Linux deployment
+* [arcgis-server-linux](arcgis-server-linux/README.md) - ArcGIS Server on Linux deployment
+* [arcgis-server-linux-ansible](arcgis-server-linux-ansible/README.md) - ArcGIS Server on Linux deployment with Ansible (Experimental)
 
 ## Triggering Workflows
 

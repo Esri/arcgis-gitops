@@ -2,7 +2,7 @@
 
 This template provides GitHub Actions workflows for [ArcGIS Server deployment](https://enterprise.arcgis.com/en/server/latest/install/linux/welcome-to-the-arcgis-for-server-install-guide.htm) operations on Linux platforms.
 
-The template supports both standalone and federated ArcGIS Server deployments. Optionally, the deployments may include ArcGIS Web Adaptor and use Application Load Balancer of base ArcGIS Enterprise deployments.
+The template supports both standalone and federated ArcGIS Server deployments.
 
 Supported ArcGIS Server versions:
 
@@ -13,11 +13,13 @@ Supported ArcGIS Server versions:
 Supported Linux distributions:
 
 * Red Hat Enterprise Linux 9
+* Ubuntu 22.04 LTS
+* Ubuntu 24.04 LTS
 
 Before running the template workflows:
 
 1. Configure the GitHub repository settings as described in the [Instructions](../README.md#instructions) section.
-2. Provision core AWS resources for ArcGIS Enterprise using [arcgis-enterprise-core](../arcgis-enterprise-core/README.md) template.
+2. Create the core AWS resources, Chef automation resources, and Application Load Balancer for ArcGIS Enterprise using [arcgis-enterprise-core](../arcgis-enterprise-core/README.md) template.
 
 To enable the template's workflows, copy the .yaml files from the template's `workflows` directory to `/.github/workflows` directory in `main` branch, commit the changes, and push the branch to GitHub.
 
@@ -29,7 +31,7 @@ Initial deployment of ArcGIS Server includes building images, provisioning AWS r
 
 ### 1. Set GitHub Actions Secrets for the Enterprise
 
-If ArcGIS Server is deployed as a standalone server or federated with ArcGIS Enterprise on Kubernetes, set the primary ArcGIS Server site administrator credentials in the GitHub Actions secrets of the repository settings.
+Set the primary ArcGIS Server site administrator credentials in the GitHub Actions secrets of the repository settings.
 
 | Name                      | Description                                |
 |---------------------------|--------------------------------------------|
@@ -48,13 +50,13 @@ The workflow uses: [image](image/README.md) Packer template with [image.vars.jso
 
 Required IAM policies:
 
-* TerraformBackend (allows S3 operations required by Ansible SSM connection)
+* TerraformBackend
 * ArcGISEnterpriseImage
 
 Instructions:
 
 1. Set "arcgis_server_patches" property to the list of patch file names that must be installed on the images.
-2. If ArcGIS Web Adaptor is required, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
+2. Set "server_web_context" property to the ArcGIS Server web context.
 3. Commit the changes to a Git branch and push the branch to GitHub.
 4. Run server-linux-aws-image workflow using the branch.
 
@@ -81,10 +83,9 @@ Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
 2. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
-3. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
-4. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "portal_deployment_id" to ID of the Portal for ArcGIS deployment.
-5. Commit the changes to the Git branch and push the branch to GitHub.
-6. Run server-linux-aws-infrastructure workflow using the branch.
+3. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "portal_deployment_id" to ID of the Portal for ArcGIS deployment.
+4. Commit the changes to the Git branch and push the branch to GitHub.
+5. Run server-linux-aws-infrastructure workflow using the branch.
 
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.
 

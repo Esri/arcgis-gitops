@@ -20,12 +20,11 @@ on:
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
-  TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
-  TF_VAR_admin_username: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
-  TF_VAR_admin_password: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
+  ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
   PYTHONPATH: ${{ github.workspace }}/aws/scripts
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-linux/restore.tfvars.json
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-server-linux/restore.vars.json
 
 concurrency:
   group: ${{ github.ref_name }}
@@ -43,21 +42,15 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-    - name: Install Boto3 and Ansible
+    - name: Install boto3
       id: install-boto3
-      run: |
-        pip install boto3
-        pip install "ansible>=9.0,<10.0"
-    - name: Install Ansible Collections
-      id: install-collections
-      run: ansible-galaxy collection install ${{ github.workspace }}/ansible_collections/arcgis -p /usr/share/ansible/collections
-    - uses: hashicorp/setup-terraform@v3
-      with:
-        terraform_version: "1.10.0"
-    - name: Run Terraform
-      id: terraform
+      run: pip install boto3
+    - name: Import Site
+      id: import-site
       run: |
         ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$ENTERPRISE_ID/aws/$DEPLOYMENT_ID/restore.tfstate" -backend-config="region=$TF_VAR_aws_region"
-        terraform apply -var-file $CONFIG_FILE -auto-approve -input=false
+        LOGS_S3_BUCKET=$(aws ssm get-parameter --name "/arcgis/$ENTERPRISE_ID/s3/logs" --query "Parameter.Value" --output text)
+        export JSON_ATTRIBUTES=$(cat $CONFIG_FILE | jq ".admin_username += \"$ADMIN_USERNAME\"" | jq ".admin_password += \"$ADMIN_PASSWORD\"" | base64)
+        JSON_ATTRIBUTES_PARAMETER="/arcgis/$ENTERPRISE_ID/attributes/$DEPLOYMENT_ID/restore"
+        python -m ssm_run_shell_script -s $ENTERPRISE_ID -d $DEPLOYMENT_ID -m primary -j $JSON_ATTRIBUTES_PARAMETER -f importSite.sh -b $LOGS_S3_BUCKET -e 600

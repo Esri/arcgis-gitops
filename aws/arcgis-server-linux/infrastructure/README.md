@@ -18,12 +18,10 @@ to make the instance addressable using a permanent DNS name.
 
 If fileserver_deployment_id input variable is not specified, a new EFS file system will be created for this deployment.
 Otherwise, the module retrieves the file system ID and security group ID of the specified deployment from SSM parameters.
+The file server deployment must be of the same platform (Linux) and must use the same VPC subnets.
 
 The module creates target groups that target the EC2 instances and associates
 the target groups with the deployment's load balancer listeners.
-
-By default the HTTPS listener on port 443 is forwarded to instance port 6443.
-Set the use_webadaptor input variable to true to use port 443.
 
 The deployment's Monitoring Subsystem consists of:
 
@@ -102,8 +100,8 @@ The module writes the following SSM parameters:
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
 | efs_fileserver | ../../modules/efs_fileserver | n/a |
+| efs_mount | ../../modules/efs_mount | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
-| nfs_mount | ../../modules/ansible_playbook | n/a |
 | security_group | ../../modules/security_group | n/a |
 | server_https_alb_target | ../../modules/alb_target_group | n/a |
 
@@ -154,13 +152,13 @@ The module writes the following SSM parameters:
 | ingress_id | Ingress ID | `string` | `"enterprise-ingress"` | no |
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
+| listener_rule_priority | Priority of the ALB listener rule that forwards traffic to this deployment. The priority must be unique among all listener rules associated with the same ALB listener. | `number` | `110` | no |
 | node_count | Number of node EC2 instances | `number` | `1` | no |
 | portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `null` | no |
 | root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
 | root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |
-| use_webadaptor | If true, port 443 is used as the instance HTTPS port, otherwise 6443 is used. | `bool` | `false` | no |
 
 ## Outputs
 

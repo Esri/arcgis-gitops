@@ -40,7 +40,7 @@ jobs:
     name: Provision AWS Resources
     runs-on: ubuntu-24.04
     outputs:
-      alb_dns_name: ${{ steps.output.outputs.alb_dns_name }}
+      deployment_url: ${{ steps.output.outputs.deployment_url }}
     defaults:
       run:
         working-directory: aws/arcgis-server-linux/infrastructure

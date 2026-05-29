@@ -103,7 +103,7 @@
 
 terraform {
   backend "s3" {
-    key = "terraform/arcgis-enterprise/arcgis-server/infrastructure.tfstate"
+    key = "terraform/arcgis/arcgis-server-linux/infrastructure.tfstate"
   }
 
   required_providers {

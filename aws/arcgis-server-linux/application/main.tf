@@ -622,11 +622,9 @@ module "arcgis_server_primary" {
         cloud_config                   = local.cloud_config
         install_system_requirements    = true
         wa_name                        = local.server_web_context
-        services_dir_enabled           = true
+        services_dir_enabled           = var.services_dir_enabled
         callback_functions_enabled     = true
-        system_properties = {
-          WebContextURL = "https://${local.ingress_fqdn}/${local.server_web_context}"
-        }
+        system_properties              = var.system_properties
       }
       web_adaptor = {
         install_dir            = "/opt"

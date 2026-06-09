@@ -1,0 +1,70 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "/opt/software/archives",
+      "local_patches": "/opt/software/archives/patches",
+      "azure_cli": {
+        "install_dir": "/usr"
+      },
+      "server": {
+        "account_name": "${account_name}",
+        "container_name": "${container_name}",
+        "auth_mode": "login",
+        "client_id": "${client_id}"
+      },
+      "patch_notification": {
+        "products": [
+          "ArcGIS Notebook Server",
+          "ArcGIS Web Adaptor (Java)"
+        ],
+        "versions": [
+          "12.1"
+        ],
+        "patches": [
+          "ArcGIS-121-NS-*.tar",
+          "ArcGIS-121-NS-*.tar.gz",
+          "ArcGIS-121-WAJ-*.tar",
+          "ArcGIS-121-WAJ-*.tar.gz"
+        ],
+        "subfolder": "software/arcgis/12.1/patches"
+      },
+      "metadata": {
+        "java_tarball": "OpenJDK17U-jdk_x64_linux_hotspot_17.0.15_6.tar.gz",
+        "java_version": "17.0.15+6",
+        "tomcat_tarball": "apache-tomcat-10.1.41.tar.gz",
+        "tomcat_version": "10.1.41"
+      },
+      "files": {
+        "ArcGIS_Notebook_Docker_Advanced_121_200176.tar.gz": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "AB60A25825DA9AEA7AF7804B5EB741707A4BEB865F12702153705121B4F22686"
+        },
+        "ArcGIS_Notebook_Docker_Standard_121_200175.tar.gz": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "36C1C6709D13D9F0E18217AA84D4403B905A848FFA35C1D35DDAF548080F0EFF"
+        },
+        "ArcGIS_Notebook_Server_Linux_121_200216.tar.gz": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "2E2CE725D058F3569ECFA5A3F3FC9B5CCBA820EA52FF56E49FE015C21C55738E"
+        },
+        "ArcGIS_Web_Adaptor_Java_Linux_121_200209.tar.gz": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "555F397E578101567B8346538438720ED30F1BB56342DC5DC832E30F733042FC"
+        },
+        "apache-tomcat-10.1.41.tar.gz": {
+          "url": "https://archive.apache.org/dist/tomcat/tomcat-10/v10.1.41/bin/apache-tomcat-10.1.41.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "1F7CC8CCE2D5F4ACD35491D0FA2ABAFA6DDD9BB0425B57B277310FDE5FF2FCB3"
+        },
+        "OpenJDK17U-jdk_x64_linux_hotspot_17.0.15_6.tar.gz": {
+          "url": "https://github.com/adoptium/temurin17-binaries/releases/download/jdk-17.0.15%2B6/OpenJDK17U-jdk_x64_linux_hotspot_17.0.15_6.tar.gz",
+          "subfolder": "thirdparty",
+          "sha256": "9616877C733C9249328EA9BD83A5C8C30E0F9A7AF180CAC8FFDA9034161C2DF2"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::azure_files]"
+  ]
+}

@@ -123,7 +123,7 @@ The module reads the following SSM parameters:
 | arcgis_data_store_patches | File names of ArcGIS Data Store patches to install. | `list(string)` | `[]` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install. | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"12.1"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region ID | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |

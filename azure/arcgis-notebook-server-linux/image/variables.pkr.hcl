@@ -19,13 +19,13 @@ variable "arcgis_notebook_server_patches" {
 }
 
 variable "arcgis_version" {
-  description = "ArcGIS Enterprise version"
+  description = "ArcGIS Notebook Server version"
   type        = string
-  default     = "12.0"
+  default     = "12.1"
 
   validation {
-    condition     = contains(["11.4", "11.5", "12.0"], var.arcgis_version)
-    error_message = "Valid value for arcgis_version variable are 11.4, 11.5, and 12.0."
+    condition     = contains(["11.4", "11.5", "12.0", "12.1"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.4, 11.5, 12.0, and 12.1."
   }
 }
 
@@ -61,7 +61,7 @@ variable "deployment_id" {
 variable "docker_version" {
   description = "Version of Docker CE to install on the image"
   type        = string
-  default     = "28.5.2"
+  default     = "29.3.1"
 }
 
 variable "enterprise_id" {
@@ -112,11 +112,11 @@ variable "os" {
 variable "os_disk_size" {
   description = "OS disk size in GB"
   type        = number
-  default     = 128
+  default     = 256
 
   validation {
-    condition     = var.os_disk_size >= 100   && var.os_disk_size <= 16384
-    error_message = "The os_disk_size value must be between 100 and 16384."
+    condition     = var.os_disk_size >= 128   && var.os_disk_size <= 16384
+    error_message = "The os_disk_size value must be between 128 and 16384."
   }
 }
 

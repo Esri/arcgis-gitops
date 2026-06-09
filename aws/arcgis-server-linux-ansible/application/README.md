@@ -116,7 +116,7 @@ The module reads the following SSM parameters:
 | admin_password | Primary ArcGIS Server administrator user password | `string` | n/a | yes |
 | admin_username | Primary ArcGIS Server administrator user name | `string` | `"siteadmin"` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Server version | `string` | `"12.0"` | no |
+| arcgis_version | ArcGIS Server version | `string` | `"12.1"` | no |
 | aws_region | AWS region ID | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_id | Deployment ID | `string` | `"server-linux-ansible"` | no |

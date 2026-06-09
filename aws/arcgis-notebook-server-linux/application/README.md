@@ -49,12 +49,12 @@ The module reads the following SSM parameters:
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
-| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
-| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-url | Portal for ArcGIS URL |
 | /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |
 | /arcgis/${var.enterprise_id}/cookbooks-url | Chef cookbooks URL |
 | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the deployment |
 | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
 | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
 | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
@@ -112,8 +112,8 @@ The module reads the following SSM parameters:
 |------|-------------|------|---------|:--------:|
 | admin_password | Primary ArcGIS Notebook Server administrator user password | `string` | n/a | yes |
 | admin_username | Primary ArcGIS Notebook Server administrator user name | `string` | `"siteadmin"` | no |
-| arcgis_notebook_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Notebook Server version | `string` | `"12.0"` | no |
+| arcgis_notebook_server_patches | File names of ArcGIS Notebook Server patches to install. | `list(string)` | `[]` | no |
+| arcgis_version | ArcGIS Notebook Server version | `string` | `"12.1"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region ID | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |

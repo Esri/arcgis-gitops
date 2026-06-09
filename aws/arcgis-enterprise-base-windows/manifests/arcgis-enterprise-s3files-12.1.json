@@ -1,0 +1,79 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "C:\\Software\\Archives",
+      "local_patches": "C:\\Software\\Archives\\Patches",      
+      "server": {
+        "url": "https://downloads.arcgis.com",
+        "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",
+        "s3bucket": "${s3bucket}",
+        "region": "${region}"        
+      },
+      "patch_notification": {
+        "products": [
+            "Portal for ArcGIS",
+            "ArcGIS Server",
+            "ArcGIS Data Store",
+            "ArcGIS Web Adaptor (IIS)"
+        ],
+        "versions": [
+          "12.1"
+        ],
+        "patches": [ 
+          "ArcGIS-121-*.msp"
+        ],
+        "subfolder": "software/arcgis/12.1/patches"
+      },
+      "metadata": {
+        "dotnet_setup": "dotnet-hosting-10.0.1-win.exe",
+        "web_deploy_setup": "webdeploy_amd64_en-US.msi"
+      },
+      "files": {
+        "ArcGIS_Server_Windows_121_200157.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "A2F655ED64F88F701E7A254A76D045C134CB911DB8A4C8055AB43F08843E836D"
+        },
+        "ArcGIS_Server_Windows_121_200157.exe.001": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "6EFCB34B593E064F5ACB54A2D5D1620B88A7DA9DC65EBCAC88827F3BD64D6719"
+        },
+        "Portal_for_ArcGIS_Windows_121_200161.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "6459751B1839C0719E9CD9C38C3CF788F13B40BA63B7C28B58985C2FC89D5F8B"
+        },
+        "Portal_for_ArcGIS_Windows_121_200161.exe.001": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "8FF35A524DD5B1813EC6006AC1C9EA1120C9C0CFD64671E926C4B5D11D3AFED3"
+        },
+        "Portal_for_ArcGIS_Web_Styles_Windows_121_200163.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "AA88C9E8195FB417B4EAB1C4EF41A6702414A41497BBABA3FD2139D6675DF8C9"
+        },
+        "ArcGIS_DataStore_Windows_121_200164.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "9C5D4BC77EB6B00766CAF15301BF3C3D2E0559F41D70E788AF1499AC640F1DDC"
+        },
+        "ArcGIS_DataStore_Windows_121_200164.exe.001": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "76EC8044C6DA50FB3397ED7EB6B1DE408618A653CC4BFBE866618CAE26D25E56"
+        },        
+        "ArcGIS_Web_Adaptor_for_Microsoft_IIS_121_200166.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "FC6656CC5728C34B9652DF8F8BD139791FFBB7CFFD0CFDC0A3DCE6AC4E993228"
+        },
+        "dotnet-hosting-10.0.1-win.exe": {
+          "url": "https://builds.dotnet.microsoft.com/dotnet/aspnetcore/Runtime/10.0.1/dotnet-hosting-10.0.1-win.exe",
+          "subfolder": "thirdparty",
+          "sha256": "7C06B48625B798E9BCACB2CC08B8CA8B1BB916835632B5E0DFCE08326149F90E"
+        },
+        "webdeploy_amd64_en-US.msi": {
+          "url": "https://download.microsoft.com/download/webdeploy_amd64_en-US.msi",
+          "subfolder": "thirdparty"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
+}

@@ -64,18 +64,18 @@ The template writes the following Key Vault secrets:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | arcgis_notebook_server_patches | File names of ArcGIS Notebook Server patches to install | `string` | `[]` | no |
-| arcgis_version | ArcGIS Notebook Server version | `string` | `"12.0"` | no |
+| arcgis_version | ArcGIS Notebook Server version | `string` | `"12.1"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
 | azure_cli_version | Version of Azure CLI to install on the image | `string` | `"2.76.0"` | no |
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
 | deployment_id | Deployment ID | `string` | `"notebook-server-linux"` | no |
-| docker_version | Version of Docker CE to install on the image | `string` | `"28.5.2"` | no |
+| docker_version | Version of Docker CE to install on the image | `string` | `"29.3.1"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | gpu_ready | If true, the image is built with GPU support | `bool` | `false` | no |
 | license_level | ArcGIS Notebook Server license level | `string` | `"standard"` | no |
 | notebook_server_web_context | ArcGIS Notebook Server web context | `string` | `"notebooks"` | no |
 | os | Operating system ID (rhel9\|ubuntu24) | `string` | `"rhel9"` | no |
-| os_disk_size | OS disk size in GB | `number` | `128` | no |
+| os_disk_size | OS disk size in GB | `number` | `256` | no |
 | run_as_user | User account used to run ArcGIS Notebook Server | `string` | `"arcgis"` | no |
 | skip_create_image | If true, Packer will not create the image | `bool` | `false` | no |
 | vault_name | Name of the Azure Key Vault | `string` | n/a | yes |

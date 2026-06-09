@@ -7,6 +7,7 @@ Supported ArcGIS Enterprise versions:
 * 11.4
 * 11.5
 * 12.0
+* 12.1
 
 Supported Operating Systems:
 

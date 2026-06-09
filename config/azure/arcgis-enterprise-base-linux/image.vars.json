@@ -1,8 +1,14 @@
 {
-  "arcgis_data_store_patches": [],
-  "arcgis_portal_patches": [],
-  "arcgis_server_patches": [],
-  "arcgis_version": "12.0",
+  "arcgis_data_store_patches": [
+    "ArcGIS-121-DS-*-linux.tar"
+  ],
+  "arcgis_portal_patches": [
+    "ArcGIS-121-PFA-*-linux.tar"
+  ],
+  "arcgis_server_patches": [
+    "ArcGIS-121-S-*-linux.tar"
+  ],
+  "arcgis_version": "12.1",
   "deployment_id": "enterprise-base-linux",
   "enterprise_id": "arcgis",
   "os_disk_size": 256,

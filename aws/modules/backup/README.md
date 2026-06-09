@@ -39,9 +39,9 @@ The module reads the following SSM parameters:
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| arcgis_application | ArcGIS Enterprise application type (server\|notebook-store) | `string` | `"server"` | no |
+| arcgis_application | ArcGIS Enterprise application type (server\|notebook-server) | `string` | `"server"` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | n/a | yes |
-| backup_s3_bucket | Backup the config store S3 bucket | `bool` | `false` | no |
+| backup_s3_bucket | Back up the config store S3 bucket | `bool` | `false` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 <!-- END_TF_DOCS -->

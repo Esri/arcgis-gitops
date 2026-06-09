@@ -1,5 +1,5 @@
 ---
-# Copyright 2024-2025 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -16,12 +16,11 @@
 # This playbook installs ArcGIS Server on the machine, and configures 
 # systemd service for ArcGIS Server.
 #
-# The playbook supports ArcGIS Server 11.2 and 11.3 versions.
 
 - name: Install ArcGIS Server
   hosts: all
   vars:
-    arcgis_version: '12.0'
+    arcgis_version: '12.1'
     local_repository: '/opt/software/archives'
     arcgis_server_setup_archive:
       "11.2" : ArcGIS_Server_Linux_112_188327.tar.gz
@@ -29,6 +28,7 @@
       "11.4" : ArcGIS_Server_Linux_114_192977.tar.gz
       "11.5" : ArcGIS_Server_Linux_115_195440.tar.gz
       "12.0" : ArcGIS_Server_Linux_120_197810.tar.gz
+      "12.1" : ArcGIS_Server_Linux_121_200205.tar.gz
     setups_directory: '/opt/software/setups'
     install_dir: '/opt'
     run_as_user: 'arcgis'

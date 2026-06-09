@@ -61,7 +61,7 @@ The template writes the following SSM parameters:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | arcgis_notebook_server_patches | File names of ArcGIS Notebook Server patches to install | `string` | `[]` | no |
-| arcgis_version | ArcGIS Notebook Server version | `string` | `"12.0"` | no |
+| arcgis_version | ArcGIS Notebook Server version | `string` | `"12.1"` | no |
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install | `string` | `[]` | no |
 | aws_region | AWS region ID | `string` | `env("AWS_DEFAULT_REGION")` | no |
 | deployment_id | Deployment ID | `string` | `"notebook-server-linux"` | no |

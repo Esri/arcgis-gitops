@@ -13,7 +13,7 @@
 # limitations under the License.
 
 variable "arcgis_application" {
-  description = "ArcGIS Enterprise application type (server|notebook-store)"
+  description = "ArcGIS Enterprise application type (server|notebook-server)"
   type        = string
   default     = "server"
 
@@ -52,7 +52,7 @@ variable "enterprise_id" {
 
 # In ArcGIS Server 12.0 and later the config store S3 bucket must be pre-created.
 variable "backup_s3_bucket" {
-  description = "Backup the config store S3 bucket"
+  description = "Back up the config store S3 bucket"
   type        = bool
   default     = false
 }

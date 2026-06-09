@@ -114,7 +114,7 @@ The module reads the following Key Vault secrets:
 | arcgis_data_store_patches | File names of ArcGIS Data Store patches to install. | `list(string)` | `[]` | no |
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install. | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install. | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Enterprise version | `string` | `"12.0"` | no |
+| arcgis_version | ArcGIS Enterprise version | `string` | `"12.1"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |

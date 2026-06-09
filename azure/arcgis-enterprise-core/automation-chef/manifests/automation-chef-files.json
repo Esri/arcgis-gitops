@@ -17,10 +17,10 @@
           "subfolder": "cinc",
           "sha256": "2a5f202b14b4481fa66c3371d536c44964dac3b44d5d03b3a1052db651b54e57"
         },
-        "arcgis-5.3.0-cookbooks.tar.gz": {
-          "path": "cookbooks/arcgis-5.3.0-cookbooks.tar.gz",
+        "arcgis-5.4.0-cookbooks.tar.gz": {
+          "path": "cookbooks/arcgis-5.4.0-cookbooks.tar.gz",
           "subfolder": "cookbooks",
-          "sha256": "16C57C177643C01F22888BD6E12613E608F2E0146F33E51E337F494E90B6E4C4"
+          "sha256": "143F92565166B0D085782C9215E46AAFF70E158250790558CC5D3845AAE52697"
         }
       }
     }

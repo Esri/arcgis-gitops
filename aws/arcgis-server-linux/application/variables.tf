@@ -79,7 +79,7 @@ variable "config_store_type" {
 
   validation {
     condition = var.config_store_type == "AMAZON" ? contains(["12.0", "12.1"], var.arcgis_version) : true
-    error_message = "config_store_type \"AMAZON\" is supported with ArcGIS Enterprise versions 12.0 and later."
+    error_message = "config_store_type \"AMAZON\" is supported with ArcGIS Server versions 12.0 and later."
   }
 }
 

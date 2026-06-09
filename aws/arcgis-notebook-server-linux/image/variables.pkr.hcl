@@ -19,7 +19,7 @@ variable "arcgis_notebook_server_patches" {
 }
 
 variable "arcgis_version" {
-  description = "ArcGIS Enterprise version"
+  description = "ArcGIS Notebook Server version"
   type        = string
   default     = "12.1"
 

@@ -39,7 +39,7 @@ jobs:
         working-directory: aws/arcgis-enterprise-k8s/ingress
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Update kubeconfig
         id: update-kubeconfig
         run: |

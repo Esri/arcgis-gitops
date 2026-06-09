@@ -45,7 +45,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Link Config Directory
       run: ln -s ${{ github.workspace }}/config ~/config
     - name: Install Boto3

@@ -51,7 +51,7 @@ jobs:
         working-directory: azure/arcgis-enterprise-k8s/organization
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Link config directory
         id: symlink
         run: ln -s ${{ github.workspace }}/config ~/config

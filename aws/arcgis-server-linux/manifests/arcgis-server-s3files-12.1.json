@@ -1,6 +1,6 @@
 {
   "arcgis": {
-    "version": "12.0",
+    "version": "12.1",
     "repository": {
       "local_archives": "/opt/software/archives",
       "local_patches": "/opt/software/archives/patches",

@@ -25,7 +25,7 @@
         "subfolder": "software/arcgis/12.1/patches"
       },
       "metadata": {
-        "dotnet_setup": "dotnet-hosting-8.0.16-win.exe",
+        "dotnet_setup": "dotnet-hosting-10.0.1-win.exe",
         "web_deploy_setup": "webdeploy_amd64_en-US.msi"
       },
       "files": {

@@ -72,11 +72,11 @@ variable "arcgis_server_patches" {
 variable "arcgis_version" {
   description = "ArcGIS Enterprise version"
   type        = string
-  default     = "12.0"
+  default     = "12.1"
 
   validation {
-    condition     = contains(["11.4", "11.5", "12.0"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.4, 11.5, and 12.0."
+    condition     = contains(["11.4", "11.5", "12.0", "12.1"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.4, 11.5, 12.0, and 12.1."
   }
 }
 

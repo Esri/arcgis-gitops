@@ -63,7 +63,7 @@ The template writes the following SSM parameters:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `list(string)` | `[]` | no |
-| arcgis_version | ArcGIS Server version | `string` | `"12.0"` | no |
+| arcgis_version | ArcGIS Server version | `string` | `"12.1"` | no |
 | aws_region | AWS region ID | `string` | `env("AWS_DEFAULT_REGION")` | no |
 | deployment_id | Deployment ID | `string` | `"server-linux-ansible"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |

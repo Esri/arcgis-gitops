@@ -1,8 +1,8 @@
 {
   "arcgis_server_patches": [
-    "ArcGIS-120-S-*-linux.tar"
+    "ArcGIS-121-S-*-linux.tar"
   ],
-  "arcgis_version": "12.0",
+  "arcgis_version": "12.1",
   "arcgis_web_adaptor_patches": [],
   "deployment_id": "server-linux",
   "enterprise_id": "arcgis",

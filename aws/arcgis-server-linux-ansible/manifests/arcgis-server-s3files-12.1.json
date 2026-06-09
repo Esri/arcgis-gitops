@@ -1,6 +1,6 @@
 {
   "arcgis": {
-    "version": "11.5",
+    "version": "12.1",
     "repository": {
       "local_archives": "/opt/software/archives",
       "local_patches": "/opt/software/archives/patches",
@@ -15,19 +15,22 @@
           "ArcGIS Server"
         ],
         "versions": [
-          "11.5"
+          "12.1"
         ],
         "patches": [
-          "ArcGIS-115-S-*-linux.tar"
+          "ArcGIS-121-S-*-linux.tar"
         ],
-        "subfolder": "software/arcgis/11.5/patches"
+        "subfolder": "software/arcgis/12.1/patches"
       },
       "files": {
-        "ArcGIS_Server_Linux_115_195440.tar.gz": {
-          "subfolder": "software/arcgis/11.5",
-          "sha256": "CEAF2FEE93F43B43BA625848FC17F2DFC8C933F3B535A5CC1EE4D479656BFBB7"
+        "ArcGIS_Server_Linux_121_200205.tar.gz": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "95D049C338655FB2903F824406951061F087EB8070F7D25500845B01B582BCF0"
         }
       }
     }
-  }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::s3files2]"
+  ]
 }

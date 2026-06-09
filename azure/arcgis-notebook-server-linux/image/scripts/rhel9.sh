@@ -92,7 +92,7 @@ sudo dnf install -y dnf-plugins-core
 sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 sudo dnf install -y docker-ce-$DOCKER_CE_PACKAGE_VERSION docker-ce-cli-$DOCKER_CE_CLI_PACKAGE_VERSION containerd.io docker-buildx-plugin docker-compose-plugin
 sudo mkdir -p /docker-data # Create the data-root directory for Docker in the root partition
-echo '{"iptables": true, "data-root": "/docker-data"}' | sudo tee /etc/docker/daemon.json
+echo '{"features": {"containerd-snapshotter": false}, "iptables": true, "data-root": "/docker-data"}' | sudo tee /etc/docker/daemon.json
 sudo systemctl enable --now docker
 
 # Reject Docker containers access to EC2 instance metadata IP address.

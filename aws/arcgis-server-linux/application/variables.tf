@@ -48,11 +48,11 @@ variable "arcgis_server_patches" {
 variable "arcgis_version" {
   description = "ArcGIS Server version"
   type        = string
-  default     = "12.0"
+  default     = "12.1"
 
   validation {
-    condition     = contains(["11.4", "11.5", "12.0"], var.arcgis_version)
-    error_message = "Valid values for arcgis_version variable are 11.4, 11.5, and 12.0."
+    condition     = contains(["11.4", "11.5", "12.0", "12.1"], var.arcgis_version)
+    error_message = "Valid values for arcgis_version variable are 11.4, 11.5, 12.0, and 12.1."
   }
 }
 
@@ -78,7 +78,7 @@ variable "config_store_type" {
   }
 
   validation {
-    condition = var.config_store_type == "AMAZON" ? contains(["12.0"], var.arcgis_version) : true
+    condition = var.config_store_type == "AMAZON" ? contains(["12.0", "12.1"], var.arcgis_version) : true
     error_message = "config_store_type \"AMAZON\" is supported with ArcGIS Enterprise versions 12.0 and later."
   }
 }

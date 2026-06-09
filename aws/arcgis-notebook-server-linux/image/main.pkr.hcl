@@ -210,7 +210,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
     }
 
-    command = "python -m s3_copy_files -f ${local.manifest_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
+    command = "python -u -m s3_copy_files -f ${local.manifest_file_path} -b ${data.amazon-parameterstore.s3_repository.value}"
   }
 
   # Install AWS CLI

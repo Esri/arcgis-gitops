@@ -67,7 +67,9 @@ def copy_file(url: str, path: str, filename: str, subfolder: str, container_clie
             
             with open(filepath, 'rb') as f:
                 sha256_hash = hashlib.sha256()
-                sha256_hash.update(f.read())
+                # Read in 1MB chunks (1024 * 1024 bytes)
+                for chunk in iter(lambda: f.read(1048576), b""):
+                    sha256_hash.update(chunk)
                 print("SHA-256=" + sha256_hash.hexdigest())
                 if sha256_hash.hexdigest().lower() != sha256:
                     raise Exception(

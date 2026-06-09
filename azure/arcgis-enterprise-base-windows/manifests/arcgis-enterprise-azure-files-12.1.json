@@ -1,0 +1,62 @@
+{
+  "arcgis": {
+    "repository": {
+      "local_archives": "C:\\Software\\Archives",
+      "local_patches": "C:\\Software\\Archives\\Patches",
+      "server": {
+        "account_name": "${account_name}",
+        "container_name": "${container_name}",
+        "auth_mode": "login",
+        "client_id": "${client_id}"
+      },
+      "patch_notification": {
+        "products": [
+          "Portal for ArcGIS",
+          "ArcGIS Server",
+          "ArcGIS Data Store"
+        ],
+        "versions": [
+          "12.1"
+        ],
+        "patches": [
+          "ArcGIS-121-*.msp"
+        ],
+        "subfolder": "software/arcgis/12.1/patches"
+      },
+      "metadata": {},
+      "files": {
+        "ArcGIS_Server_Windows_121_200157.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "A2F655ED64F88F701E7A254A76D045C134CB911DB8A4C8055AB43F08843E836D"
+        },
+        "ArcGIS_Server_Windows_121_200157.exe.001": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "6EFCB34B593E064F5ACB54A2D5D1620B88A7DA9DC65EBCAC88827F3BD64D6719"
+        },
+        "Portal_for_ArcGIS_Windows_121_200161.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "6459751B1839C0719E9CD9C38C3CF788F13B40BA63B7C28B58985C2FC89D5F8B"
+        },
+        "Portal_for_ArcGIS_Windows_121_200161.exe.001": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "8FF35A524DD5B1813EC6006AC1C9EA1120C9C0CFD64671E926C4B5D11D3AFED3"
+        },
+        "Portal_for_ArcGIS_Web_Styles_Windows_121_200163.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "AA88C9E8195FB417B4EAB1C4EF41A6702414A41497BBABA3FD2139D6675DF8C9"
+        },
+        "ArcGIS_DataStore_Windows_121_200164.exe": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "9C5D4BC77EB6B00766CAF15301BF3C3D2E0559F41D70E788AF1499AC640F1DDC"
+        },
+        "ArcGIS_DataStore_Windows_121_200164.exe.001": {
+          "subfolder": "software/arcgis/12.1",
+          "sha256": "76EC8044C6DA50FB3397ED7EB6B1DE408618A653CC4BFBE866618CAE26D25E56"
+        }
+      }
+    }
+  },
+  "run_list": [
+    "recipe[arcgis-repository::azure_files]"
+  ]
+}

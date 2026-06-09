@@ -29,8 +29,5 @@
         }
       }
     }
-  },
-  "run_list": [
-    "recipe[arcgis-repository::s3files2]"
-  ]
+  }
 }

@@ -15,7 +15,7 @@
 variable "arcgis_cookbooks_path" {
   description = "Blob name of Chef cookbooks for ArcGIS distribution archive in the repository bucket"
   type        = string
-  default     = "cookbooks/arcgis-5.3.0-cookbooks.tar.gz"
+  default     = "cookbooks/arcgis-5.4.0-cookbooks.tar.gz"
 
   validation {
     condition     = can(regex("^[a-zA-Z0-9!_.*'()-]+(\\/[a-zA-Z0-9!_.*'()-]+)*$", var.arcgis_cookbooks_path))

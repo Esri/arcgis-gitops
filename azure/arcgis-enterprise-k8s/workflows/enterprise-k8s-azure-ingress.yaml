@@ -42,7 +42,7 @@ jobs:
         working-directory: azure/arcgis-enterprise-k8s/ingress
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Update kubeconfig
         id: update-kubeconfig
         run: |
@@ -53,7 +53,7 @@ jobs:
       - name: Link Config Directory
         id: symlink
         run: ln -s ${{ github.workspace }}/config ~/config
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.10.0"
       - name: Run Terraform

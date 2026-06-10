@@ -39,7 +39,7 @@ jobs:
         working-directory: aws/arcgis-server-linux-ansible/image
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Install Boto3 and Ansible
         id: install-boto3
         run: |
@@ -48,7 +48,7 @@ jobs:
       - name: Install Ansible Collections
         id: install-collections
         run: ansible-galaxy collection install ${{ github.workspace }}/ansible_collections/arcgis -p /usr/share/ansible/collections
-      - uses: hashicorp/setup-packer@v3
+      - uses: hashicorp/setup-packer@v3.3.0
         with:
           version: "1.11.2"
       - name: Run Packer

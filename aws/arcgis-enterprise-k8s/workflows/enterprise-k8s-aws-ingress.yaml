@@ -39,7 +39,7 @@ jobs:
         working-directory: aws/arcgis-enterprise-k8s/ingress
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Update kubeconfig
         id: update-kubeconfig
         run: |
@@ -47,7 +47,7 @@ jobs:
           [[ "$AWS_REGION" == "null" || "$AWS_REGION" == "" ]] && AWS_REGION=$TF_VAR_aws_region
           ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
           aws eks update-kubeconfig --region $AWS_REGION --name $ENTERPRISE_ID
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.10.0"
       - name: Run Terraform

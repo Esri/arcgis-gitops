@@ -45,10 +45,10 @@ jobs:
         working-directory: aws/arcgis-notebook-server-linux/infrastructure    
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Install Boto3
       run: pip install boto3
-    - uses: hashicorp/setup-terraform@v3
+    - uses: hashicorp/setup-terraform@v4
       with:
         terraform_version: "1.10.0"
     - name: Print mode

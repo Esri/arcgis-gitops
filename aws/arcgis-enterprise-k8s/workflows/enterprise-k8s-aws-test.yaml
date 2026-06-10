@@ -35,7 +35,7 @@ jobs:
       pull-requests: write
     steps:
     - name: Checkout
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Run Tests
       run: |
         AWS_REGION=$(jq -r '.aws_region' $CONFIG_FILE)

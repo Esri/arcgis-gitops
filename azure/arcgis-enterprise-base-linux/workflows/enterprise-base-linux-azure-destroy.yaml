@@ -51,14 +51,14 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Link config directory
         id: symlink
         run: ln -s ${{ github.workspace }}/config ~/config
       - name: Azure SDK for Python
         id: install-azure-sdk
         run: pip install azure-identity azure-keyvault-secrets azure-mgmt-compute azure-mgmt-keyvault azure-storage-blob
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.10.0"
       - name: Destroy Application

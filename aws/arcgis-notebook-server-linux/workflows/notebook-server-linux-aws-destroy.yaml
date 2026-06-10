@@ -46,13 +46,13 @@ jobs:
       pull-requests: write
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
       - name: Link Config Directory
         run: ln -s ${{ github.workspace }}/config ~/config
       - name: Install boto3
         id: install-boto3
         run: pip install boto3
-      - uses: hashicorp/setup-terraform@v3
+      - uses: hashicorp/setup-terraform@v4
         with:
           terraform_version: "1.10.0"
       - name: Destroy Application

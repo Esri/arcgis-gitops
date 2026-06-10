@@ -1,4 +1,4 @@
-# Copyright 2026 Esri
+# Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -12,41 +12,38 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-name: enterprise-ingress-aws-destroy
+name: enterprise-base-windows-aws-test
 
 on: 
   workflow_dispatch:
-
+ 
 env:
   AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  TERRAFORM_BACKEND_S3_BUCKET: ${{ vars.TERRAFORM_BACKEND_S3_BUCKET }}
-  TF_VAR_aws_region: ${{ vars.AWS_DEFAULT_REGION }}
-  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-core/ingress.tfvars.json
-
-concurrency:
-  group: ${{ github.ref_name }}
+  AWS_DEFAULT_REGION: ${{ vars.AWS_DEFAULT_REGION }}
+  ADMIN_USERNAME: ${{ secrets.ENTERPRISE_ADMIN_USERNAME }}
+  ADMIN_PASSWORD: ${{ secrets.ENTERPRISE_ADMIN_PASSWORD }}
+  CONFIG_FILE: ${{ github.workspace }}/config/aws/arcgis-enterprise-base-windows/infrastructure.tfvars.json
 
 jobs:
-  destroy:
-    name: Destroy ArcGIS Enterprise Ingress
+  test:
+    name: Test Deployment
     runs-on: ubuntu-24.04
     defaults:
       run:
-        working-directory: aws/arcgis-enterprise-core/ingress
+        working-directory: ${{ github.workspace }}/enterprise-admin-cli
     permissions:
       contents: read
       pull-requests: write
     steps:
     - name: Checkout
       uses: actions/checkout@v5
-    - uses: hashicorp/setup-terraform@v4
-      with:
-        terraform_version: "1.10.0"
-    - name: Run Terraform Destroy
-      id: terraform-destroy
+    - name: Build Container Image
+      run: |
+        docker build -t enterprise-admin-cli .
+    - name: Run Tests
       run: |
         ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
         DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$ENTERPRISE_ID/aws/$DEPLOYMENT_ID/ingress.tfstate" -backend-config="region=$TF_VAR_aws_region" 
-        terraform destroy -var-file $CONFIG_FILE -auto-approve
+        DEPLOYMENT_URL=$(aws ssm get-parameter --name "/arcgis/${ENTERPRISE_ID}/${DEPLOYMENT_ID}/deployment-url" --query "Parameter.Value" --output text)
+        docker run -e ARCGIS_ENTERPRISE_USER=$ADMIN_USERNAME -e ARCGIS_ENTERPRISE_PASSWORD=$ADMIN_PASSWORD enterprise-admin-cli gis test-publish-csv --url $DEPLOYMENT_URL

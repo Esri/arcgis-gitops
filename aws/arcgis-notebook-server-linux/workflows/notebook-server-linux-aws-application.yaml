@@ -55,7 +55,7 @@ jobs:
     - name: Install boto3
       id: install-boto3
       run: pip install Boto3
-    - uses: hashicorp/setup-terraform@v3
+    - uses: hashicorp/setup-terraform@v4
       with:
         terraform_version: "1.10.0"
     - name: Run Terraform 

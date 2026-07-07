@@ -37,7 +37,7 @@ See: https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/
 | azure_region | Azure region display name | `string` | n/a | yes |
 | cluster_name | Name of the AKS cluster | `string` | n/a | yes |
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
-| grafana_major_version | Major version of Grafana to deploy | `number` | `11` | no |
+| grafana_major_version | Major version of Grafana to deploy | `number` | `12` | no |
 | resource_group_name | AKS cluster resource group name | `string` | n/a | yes |
 
 ## Outputs

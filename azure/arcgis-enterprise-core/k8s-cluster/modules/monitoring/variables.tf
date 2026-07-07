@@ -35,7 +35,7 @@ variable "enterprise_id" {
 variable "grafana_major_version" {
   description = "Major version of Grafana to deploy"
   type        = number
-  default     = 11
+  default     = 12
 }
 
 variable "resource_group_name" {

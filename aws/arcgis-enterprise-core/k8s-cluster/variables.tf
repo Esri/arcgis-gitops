@@ -51,10 +51,10 @@ variable "ecr_repository_prefix" {
 variable "eks_version" {
   description = "The desired Kubernetes version for the EKS cluster"
   type        = string
-  default     = "1.33"
+  default     = "1.35"
   validation {
     condition     = can(regex("^[0-9]+\\.[0-9]+$", var.eks_version))
-    error_message = "The eks_version value must be in the format of major.minor, for example, 1.33"
+    error_message = "The eks_version value must be in the format of major.minor, for example, 1.35"
   }
 }
 
@@ -120,9 +120,9 @@ variable "node_groups" {
   default = [
     {
       name             = "default"
-      instance_type    = "m7i.2xlarge"
+      instance_type    = "m7i.4xlarge"
       root_volume_size = 1024
-      desired_size     = 4
+      desired_size     = 5
       max_size         = 8
       min_size         = 4
       subnet_ids       = []

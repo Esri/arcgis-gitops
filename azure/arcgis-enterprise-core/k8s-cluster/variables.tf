@@ -58,9 +58,9 @@ variable "default_node_pool" {
   })
   default = {
     name            = "default"
-    vm_size         = "Standard_D8s_v5"
+    vm_size         = "Standard_D16s_v5"
     os_disk_size_gb = 1024
-    node_count      = 4
+    node_count      = 5
     max_count       = 8
     min_count       = 4
   }
@@ -80,7 +80,7 @@ variable "enterprise_id" {
 variable "kubernetes_version" {
   description = "AKS Kubernetes version"
   type        = string
-  default     = "1.33.5"
+  default     = "1.35.3"
 }
 
 variable "subnet_id" {

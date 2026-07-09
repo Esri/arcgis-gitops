@@ -18,6 +18,7 @@
                 "sns:GetSubscriptionAttributes",
                 "sns:ListTagsForResource",
                 "sns:SetTopicAttributes",
+                "sns:Subscribe",                
                 "sns:TagResource"
             ],
             "Resource": "*"

@@ -15,7 +15,8 @@
                 "sns:DeleteTopic",
                 "sns:GetTopicAttributes",
                 "sns:GetSubscriptionAttributes",
-                "sns:ListTagsForResource"
+                "sns:ListTagsForResource",
+                "sns:Unsubscribe"
             ],
             "Resource": "*"
         },

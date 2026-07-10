@@ -56,8 +56,8 @@ jobs:
       id: terraform-init
       run: |
         ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
-        DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
-        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$ENTERPRISE_ID/aws/$DEPLOYMENT_ID/ingress.tfstate" -backend-config="region=$TF_VAR_aws_region" 
+        INGRESS_ID=$(jq -r '.ingress_id' $CONFIG_FILE)
+        terraform init -backend-config="bucket=$TERRAFORM_BACKEND_S3_BUCKET" -backend-config="key=$ENTERPRISE_ID/aws/$INGRESS_ID/ingress.tfstate" -backend-config="region=$TF_VAR_aws_region" 
     - name: Terraform Apply
       id: terraform-apply
       if: github.event.inputs.terraform_command != 'plan'

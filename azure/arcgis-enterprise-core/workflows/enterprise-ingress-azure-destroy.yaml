@@ -51,10 +51,10 @@ jobs:
         id: terraform-init
         run: |
           ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)
-          DEPLOYMENT_ID=$(jq -r '.deployment_id' $CONFIG_FILE)
+          INGRESS_ID=$(jq -r '.ingress_id' $CONFIG_FILE)
           terraform init -backend-config="storage_account_name=$TERRAFORM_BACKEND_STORAGE_ACCOUNT_NAME" \
                          -backend-config="container_name=$TERRAFORM_BACKEND_CONTAINER_NAME" \
-                         -backend-config="key=$ENTERPRISE_ID/azure/$DEPLOYMENT_ID/ingress.tfstate"
+                         -backend-config="key=$ENTERPRISE_ID/azure/$INGRESS_ID/ingress.tfstate"
       - name: Terraform Destroy
         id: terraform-destroy
         run: terraform destroy -var-file $CONFIG_FILE -auto-approve -input=false

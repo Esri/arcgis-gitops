@@ -22,7 +22,7 @@ Represents an Azure role that the service principal or identity must hold.
 Attributes:
 
 - role name: e.g., `Contributor`, `User Access Administrator`, `Storage Blob Data Owner`
-- scope: resource group, subscription, storage account, key vault, namespace
+- scope: management group, subscription, resource group, or resource (for example, a storage account, Key Vault, or AKS resource)
 - purpose: resource management, role assignment, data access, or operator-side setup
 
 ### Principal
@@ -44,7 +44,7 @@ Each workflow requires one or more RBAC roles for its principal and, in some cas
 | --- | --- | --- | --- |
 | Core Azure | Provision shared enterprise resources | `Contributor`, `User Access Administrator` | Resource group or subscription |
 | Base Linux/Windows | Create deployment infrastructure | `Contributor`, `User Access Administrator` | Resource group or subscription |
-| Base Linux/Windows | Backend state storage | `Storage Blob Data Owner` | Storage account or container |
+| Base Linux/Windows | Backend state storage | `Storage Blob Data Contributor` | Storage account or container |
 | Application workflows | Configure deployment | `Contributor` | Deployment resource group |
 
 This catalog is intentionally compact so that reviewers can validate each workflow without reading Terraform implementation details.

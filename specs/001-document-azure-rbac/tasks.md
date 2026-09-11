@@ -31,7 +31,7 @@
 
 - [X] T003 Validate the actual Azure role assignments used by the Terraform implementation in [azure/arcgis-enterprise-core/infrastructure-core/main.tf](../../azure/arcgis-enterprise-core/infrastructure-core/main.tf) and [azure/arcgis-enterprise-base-windows/infrastructure/main.tf](../../azure/arcgis-enterprise-base-windows/infrastructure/main.tf) to confirm the least-privilege pattern for provisioning and storage access
 - [X] T004 [P] Map each workflow family to its required roles and scopes using the decisions captured in [specs/001-document-azure-rbac/research.md](research.md) and [specs/001-document-azure-rbac/data-model.md](data-model.md)
-- [X] T005 [P] Confirm the final wording pattern for each workflow section: `Contributor`, `User Access Administrator`, and `Storage Blob Data Owner` on the Terraform state storage account where applicable
+- [X] T005 [P] Confirm the final wording pattern for each workflow section: `Contributor` for management operations, `User Access Administrator` only where Terraform creates role assignments, and `Storage Blob Data Contributor` on the Terraform state storage account where applicable
 
 **Checkpoint**: Foundation ready - user story implementation can now begin in parallel.
 

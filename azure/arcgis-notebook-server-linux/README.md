@@ -36,7 +36,7 @@ The workflow uses: [image](image/README.md) Packer template with [image.vars.jso
 Required service principal roles:
 
 * Contributor
-* User Access Administrator
+* Storage Blob Data Contributor role on the deployment repository storage account
 
 > Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 

@@ -16,7 +16,7 @@ The repo’s Azure workflow READMEs currently instruct operators to grant the wo
 Use a consistent least-privilege pattern across the Azure template READMEs:
 
 - Provisioning workflows: `Contributor` + `User Access Administrator` at the target resource group or subscription scope.
-- Terraform backend access: `Storage Blob Data Owner` on the backend storage account or container.
+- Terraform backend access: `Storage Blob Data Contributor` on the backend storage account or container.
 - Application or operational workflows: `Contributor` at the relevant resource group scope, unless a different workflow-specific data role is required.
 - Runtime role assignments required by AKS or Azure-managed data services remain documented where they are workflow-specific and not generalized to the entire template set.
 

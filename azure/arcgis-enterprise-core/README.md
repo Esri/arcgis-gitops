@@ -43,7 +43,6 @@ The workflow uses [automation-chef](automation-chef/README.md) Terraform module 
 Required service principal roles:
 
 * Contributor
-* User Access Administrator
 
 > Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 

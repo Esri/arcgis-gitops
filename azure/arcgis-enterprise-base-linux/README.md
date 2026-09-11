@@ -53,7 +53,7 @@ The workflow uses [image](image/README.md) Packer template with [image.vars.json
 Required service principal roles:
 
 * Contributor
-* User Access Administrator
+* Storage Blob Data Contributor role on the deployment repository storage account
 
 > Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
@@ -96,7 +96,6 @@ The workflow uses [application](application/README.md) Terraform module with [ap
 Required service principal roles:
 
 * Contributor
-* User Access Administrator
 * Storage Blob Data Owner role on the Terraform state storage account
 
 > Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.

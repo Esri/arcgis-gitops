@@ -74,7 +74,9 @@ Create a service principal in Microsoft Entra ID that will be used by the workfl
 
 > The templates use the same Azure credentials for all the workflows. To implement the principle of least privilege and enforce separation of duties, consider modifying the workflows to use different Azure credentials for different workflows. Consider using separate service principals for core infrastructure, deployments infrastructure, and application workflows.  
 
-Create an Azure storage account and a blob container in the account for the [Terraform backend](https://developer.hashicorp.com/terraform/language/settings/backends/azurerm). Assign the service principal the "Storage Blob Data Owner" role at the storage account or container scope.
+Create an Azure storage account and a blob container in the account for the [Terraform backend](https://developer.hashicorp.com/terraform/language/settings/backends/azurerm). Assign the service principal the minimum data-plane access it requires for the backend, typically `Storage Blob Data Owner` at the storage account or container scope.
+
+> The templates are documented to follow least privilege. For provisioning workflows, the service principal typically needs `Contributor` and `User Access Administrator` on the target resource group or subscription scope, rather than a blanket `Owner` assignment at subscription scope. The README files for each workflow list the workflow-specific minimum roles.
 
 ### 3. GitHub Repository Settings
 

@@ -55,7 +55,10 @@ The workflow uses [image](image/README.md) Packer template with [image.vars.json
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 
@@ -71,7 +74,10 @@ The workflow uses [infrastructure](infrastructure/README.md) Terraform template 
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Workflow Inputs:
 
@@ -173,7 +179,10 @@ The workflow uses [infrastructure](infrastructure/README.md) and [application](a
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 

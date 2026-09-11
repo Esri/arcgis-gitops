@@ -23,7 +23,10 @@ The workflow uses [infrastructure-core](infrastructure-core/README.md) Terraform
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 
@@ -39,7 +42,10 @@ The workflow uses [automation-chef](automation-chef/README.md) Terraform module 
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 
@@ -55,7 +61,10 @@ The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tf
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 
@@ -76,7 +85,10 @@ The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Required Azure providers:
 
@@ -100,7 +112,10 @@ The workflow uses [k8s-cluster](k8s-cluster/README.md) Terraform module with [k8
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 
@@ -114,7 +129,10 @@ The workflow uses [ingress](ingress/README.md) Terraform module with [ingress.tf
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 
@@ -128,7 +146,10 @@ The workflow uses [automation-chef](automation-chef/README.md) Terraform modules
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 
@@ -142,7 +163,10 @@ The workflow uses [infrastructure-core](infrastructure-core/README.md) Terraform
 
 Required service principal roles:
 
-* Owner role at the subscription scope
+* Contributor
+* User Access Administrator
+
+> Apply these roles at the target resource group scope or at the subscription scope only when the workflow must create or manage resource groups or shared enterprise resources outside a single deployment resource group.
 
 Instructions:
 

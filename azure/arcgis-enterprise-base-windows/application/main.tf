@@ -1,3 +1,17 @@
+# Copyright 2025-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Application Terraform Module for Base ArcGIS Enterprise on Windows
  *
@@ -63,20 +77,6 @@
  *   for Chef Client runs to the VMs. These secrets are deleted at the end of the runs.
  */
 
-# Copyright 2025-2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 terraform {
   backend "azurerm" {
     key = "terraform/arcgis/enterprise-base-windows/application.tfstate"
@@ -131,6 +131,11 @@ data "azurerm_key_vault_secret" "vm_identity_client_id" {
   key_vault_id = module.enterprise_core_info.vault_id
 }
 
+data "azurerm_key_vault_secret" "fileserver_private_dns" {
+  name         = "${var.deployment_id}-fileserver-private-dns"
+  key_vault_id = module.enterprise_core_info.vault_id
+}
+
 data "azurerm_virtual_machine" "primary" {
   name                = "primary"
   resource_group_name = "${var.enterprise_id}-${var.deployment_id}-rg"
@@ -165,7 +170,7 @@ locals {
   certificates_prefix        = "software/certificates/${var.deployment_id}"
 
   ingress_fqdn        = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
-  fileserver_hostname = "primary.${var.deployment_id}.${var.enterprise_id}.internal"
+  fileserver_hostname = nonsensitive(data.azurerm_key_vault_secret.fileserver_private_dns.value)
   primary_hostname    = data.azurerm_virtual_machine.primary.private_ip_address
   standby_hostname    = length(data.azurerm_resources.standby.resources) > 0 ? data.azurerm_virtual_machine.standby[0].private_ip_address : ""
 
@@ -268,7 +273,7 @@ module "bootstrap_deployment" {
   source        = "../../modules/bootstrap"
   enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
-  machine_roles = ["primary", "standby"]
+  machine_roles = ["primary", "standby", "fileserver"]
   os            = var.os
 }
 
@@ -384,13 +389,13 @@ module "arcgis_enterprise_patch" {
 }
 
 # Configure fileserver for ArcGIS Server directories and WebGIS DR staging location.
-# Create the required network shares and directories in the primary VM.
+# Create the required network shares and directories on the dedicated file-server VM.
 module "arcgis_enterprise_fileserver" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-fileserver"
   enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
-  machine_roles          = ["primary"]
+  machine_roles          = ["fileserver"]
   json_attributes = jsonencode({
     arcgis = {
       version                  = var.arcgis_version
@@ -399,12 +404,12 @@ module "arcgis_enterprise_fileserver" {
       configure_cloud_settings = false
       fileserver = {
         directories = [
-          "C:\\data\\arcgisserver",
-          "C:\\data\\arcgisbackup\\webgisdr"
+          "D:\\data\\arcgisserver",
+          "D:\\data\\arcgisbackup\\webgisdr"
         ]
         shares = [
-          "C:\\data\\arcgisserver",
-          "C:\\data\\arcgisbackup"
+          "D:\\data\\arcgisserver",
+          "D:\\data\\arcgisbackup"
         ]
       }
     }
@@ -422,33 +427,30 @@ module "arcgis_enterprise_fileserver" {
 
 # Upload ArcGIS Server authorization file to the private repository blob container
 resource "azurerm_storage_blob" "server_authorization_file" {
-  name                   = "${local.authorization_files_prefix}/${basename(var.server_authorization_file_path)}"
-  storage_account_name   = module.enterprise_core_info.storage_account_name
-  storage_container_name = "repository"
-  source                 = pathexpand(var.server_authorization_file_path)
-  type                   = "Block"
-  content_md5            = filemd5(pathexpand(var.server_authorization_file_path))
+  name                 = "${local.authorization_files_prefix}/${basename(var.server_authorization_file_path)}"
+  storage_container_id = "${module.enterprise_core_info.storage_account_id}/blobServices/default/containers/repository"
+  source               = pathexpand(var.server_authorization_file_path)
+  type                 = "Block"
+  content_md5          = filemd5(pathexpand(var.server_authorization_file_path))
 }
 
 # Upload Portal for ArcGIS authorization file to the private repository blob container
 resource "azurerm_storage_blob" "portal_authorization_file" {
-  name                   = "${local.authorization_files_prefix}/${basename(var.portal_authorization_file_path)}"
-  storage_account_name   = module.enterprise_core_info.storage_account_name
-  storage_container_name = "repository"
-  source                 = pathexpand(var.portal_authorization_file_path)
-  type                   = "Block"
-  content_md5            = filemd5(pathexpand(var.portal_authorization_file_path))
+  name                 = "${local.authorization_files_prefix}/${basename(var.portal_authorization_file_path)}"
+  storage_container_id = "${module.enterprise_core_info.storage_account_id}/blobServices/default/containers/repository"
+  source               = pathexpand(var.portal_authorization_file_path)
+  type                 = "Block"
+  content_md5          = filemd5(pathexpand(var.portal_authorization_file_path))
 }
 
 # If specified, upload root certificate file to the private repository blob container
 resource "azurerm_storage_blob" "root_cert_file" {
-  count                  = var.root_cert_file_path != null ? 1 : 0
-  name                   = "${local.certificates_prefix}/${basename(var.root_cert_file_path)}"
-  storage_account_name   = module.enterprise_core_info.storage_account_name
-  storage_container_name = "repository"
-  source                 = pathexpand(var.root_cert_file_path)
-  type                   = "Block"
-  content_md5            = filemd5(pathexpand(var.root_cert_file_path))
+  count                = var.root_cert_file_path != null ? 1 : 0
+  name                 = "${local.certificates_prefix}/${basename(var.root_cert_file_path)}"
+  storage_container_id = "${module.enterprise_core_info.storage_account_id}/blobServices/default/containers/repository"
+  source               = pathexpand(var.root_cert_file_path)
+  type                 = "Block"
+  content_md5          = filemd5(pathexpand(var.root_cert_file_path))
 }
 
 # Download ArcGIS Server authorization file to primary and standby VMs

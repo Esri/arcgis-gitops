@@ -1,3 +1,17 @@
+# Copyright 2025-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Restore Terraform Module for Base ArcGIS Enterprise on Windows
  *
@@ -44,20 +58,6 @@
  *   secrets are retrieved by backup_enterprise_core_info module.
  */
 
-# Copyright 2025-2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 terraform {
   backend "azurerm" {
     key = "terraform/arcgis/enterprise-base-windows/restore.tfstate"
@@ -81,12 +81,12 @@ provider "azurerm" {
 }
 
 module "backup_enterprise_core_info" {
-  source  = "../../modules/enterprise_core_info"
+  source        = "../../modules/enterprise_core_info"
   enterprise_id = var.backup_enterprise_id
 }
 
 module "target_enterprise_core_info" {
-  source  = "../../modules/enterprise_core_info"
+  source        = "../../modules/enterprise_core_info"
   enterprise_id = var.enterprise_id
 }
 
@@ -95,8 +95,13 @@ data "azurerm_key_vault_secret" "vm_identity_client_id" {
   key_vault_id = module.target_enterprise_core_info.vault_id
 }
 
+data "azurerm_key_vault_secret" "fileserver_private_dns" {
+  name         = "${var.deployment_id}-fileserver-private-dns"
+  key_vault_id = module.target_enterprise_core_info.vault_id
+}
+
 locals {
-  shared_location = "\\\\\\\\primary.${var.deployment_id}.${var.enterprise_id}.internal\\\\arcgisbackup\\\\webgisdr"
+  shared_location = "\\\\\\\\${nonsensitive(data.azurerm_key_vault_secret.fileserver_private_dns.value)}\\\\arcgisbackup\\\\webgisdr"
 }
 
 # Run webgisdr utility with import option on the primary VM.
@@ -106,7 +111,7 @@ locals {
 module "arcgis_enterprise_webgisdr_import" {
   source                 = "../../modules/run_chef"
   json_attributes_secret = "${var.deployment_id}-webgisdr-import"
-  enterprise_id                = var.enterprise_id
+  enterprise_id          = var.enterprise_id
   deployment_id          = var.deployment_id
   machine_roles          = ["primary"]
   execution_timeout      = var.execution_timeout
@@ -118,30 +123,30 @@ module "arcgis_enterprise_webgisdr_import" {
         install_dir      = "C:\\Program Files\\ArcGIS\\Portal"
         webgisdr_timeout = var.execution_timeout
         webgisdr_properties = {
-          PORTAL_ADMIN_URL                    = var.portal_admin_url
-          PORTAL_ADMIN_USERNAME               = var.admin_username
-          PORTAL_ADMIN_PASSWORD               = var.admin_password
-          PORTAL_ADMIN_PASSWORD_ENCRYPTED     = false
-          BACKUP_RESTORE_MODE                 = var.backup_restore_mode
-          SHARED_LOCATION                     = local.shared_location
-          INCLUDE_SCENE_TILE_CACHES           = false
-          BACKUP_STORE_PROVIDER               = "AzureBlob"
-          AZURE_BLOB_ACCOUNT_NAME             = module.backup_enterprise_core_info.storage_account_name
+          PORTAL_ADMIN_URL                = var.portal_admin_url
+          PORTAL_ADMIN_USERNAME           = var.admin_username
+          PORTAL_ADMIN_PASSWORD           = var.admin_password
+          PORTAL_ADMIN_PASSWORD_ENCRYPTED = false
+          BACKUP_RESTORE_MODE             = var.backup_restore_mode
+          SHARED_LOCATION                 = local.shared_location
+          INCLUDE_SCENE_TILE_CACHES       = false
+          BACKUP_STORE_PROVIDER           = "AzureBlob"
+          AZURE_BLOB_ACCOUNT_NAME         = module.backup_enterprise_core_info.storage_account_name
           # AZURE_BLOB_ACCOUNT_KEY              = module.backup_enterprise_core_info.storage_account_key
-          AZURE_BLOB_ACCOUNT_ENDPOINT_SUFFIX  = "core.windows.net"
-          AZURE_BLOB_CONTAINER_NAME           = "webgisdr-backups"
+          AZURE_BLOB_ACCOUNT_ENDPOINT_SUFFIX = "core.windows.net"
+          AZURE_BLOB_CONTAINER_NAME          = "webgisdr-backups"
           # AZURE_BLOB_CREDENTIALTYPE           = "accessKey"
           # AZURE_BLOB_ACCOUNT_KEY_ENCRYPTED    = false
-          AZURE_BLOB_CREDENTIALTYPE           = "userAssignedIdentity"
-          AZURE_BLOB_USER_MI_CLIENT_ID        = data.azurerm_key_vault_secret.vm_identity_client_id.value
-          BACKUP_BLOB_ACCOUNT_NAME            = module.backup_enterprise_core_info.storage_account_name
+          AZURE_BLOB_CREDENTIALTYPE    = "userAssignedIdentity"
+          AZURE_BLOB_USER_MI_CLIENT_ID = data.azurerm_key_vault_secret.vm_identity_client_id.value
+          BACKUP_BLOB_ACCOUNT_NAME     = module.backup_enterprise_core_info.storage_account_name
           # BACKUP_BLOB_ACCOUNT_KEY             = module.backup_enterprise_core_info.storage_account_key
           BACKUP_BLOB_ACCOUNT_ENDPOINT_SUFFIX = "core.windows.net"
           BACKUP_BLOB_CONTAINER_NAME          = "content-backups"
           # BACKUP_BLOB_CREDENTIALTYPE          = "accessKey"
           # BACKUP_BLOB_ACCOUNT_KEY_ENCRYPTED   = false
-          BACKUP_BLOB_CREDENTIALTYPE          = "userAssignedIdentity"
-          BACKUP_BLOB_USER_MI_CLIENT_ID       = data.azurerm_key_vault_secret.vm_identity_client_id.value
+          BACKUP_BLOB_CREDENTIALTYPE    = "userAssignedIdentity"
+          BACKUP_BLOB_USER_MI_CLIENT_ID = data.azurerm_key_vault_secret.vm_identity_client_id.value
         }
       }
     }

@@ -20,7 +20,7 @@ Then the module:
 * If specified, copies the root certificate file to the private repository blob container
 * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository blob container to primary and standby VMs
 * Downloads the keystore and root certificate files from the private repository blob container to the primary and standby VMs
-* Creates the required network shares and directories in the primary VM
+* Creates the required network shares and `D:` directories on the base deployment's dedicated file-server VM
 * Configures base ArcGIS Enterprise on the primary VM
 * Configures base ArcGIS Enterprise on the standby VM
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from the primary and standby VMs
@@ -50,6 +50,7 @@ The module reads the following Key Vault secrets:
 |-------------------------------------------|-------------|
 | ${var.deployment_id}-backend-pfx-password | Password for the backend PFX certificate |
 | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
+| ${var.deployment_id}-fileserver-private-dns | Base-owned file-server private DNS name |
 | ${var.deployment_id}-portal-web-context   | Portal for ArcGIS Web Adaptor web context |
 | ${var.deployment_id}-server-web-context   | ArcGIS Server Web Adaptor web context |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |

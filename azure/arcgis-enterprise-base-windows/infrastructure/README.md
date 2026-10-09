@@ -19,6 +19,8 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
 - Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container.
 - Creates an Azure Monitor dashboard for monitoring key VM metrics.
+- Always creates a dedicated Windows file-server VM in the primary subnet, inheriting the same subnet NSG as the primary and standby VMs without a dedicated NSG or NIC-level NSG association. Includes a fixed 256 GB Standard SSD OS disk, configurable `D:` data disk, private DNS record, and Key Vault metadata. Base deployments cannot reference another deployment's file server.
+- Protects the dedicated file-server VM and its OS/data disks with a daily Azure Backup policy in a deployment Recovery Services vault.
 - Tags all resources with ArcGISEnterpriseID and ArcGISDeploymentID for easy identification.
 
 ## Requirements
@@ -56,6 +58,9 @@ On the machine where Terraform is executed:
 | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
 | ${var.deployment_id}-deployment-url       | Portal for ArcGIS URL of the deployment |
 | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
+| ${var.deployment_id}-fileserver-private-dns | Dedicated file-server private DNS name |
+| ${var.deployment_id}-fileserver-security-group-id | Subnet network security group ID shared by file-server, primary and standby VMs |
+| ${var.deployment_id}-fileserver-vm-id | Dedicated file-server VM ID |
 
 ## Providers
 
@@ -69,6 +74,7 @@ On the machine where Terraform is executed:
 | Name | Source | Version |
 |------|--------|---------|
 | backend_cert | ../../modules/backend_cert | n/a |
+| azvm_fileserver | ../../modules/azvm_fileserver | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | loopback_alias | ../../modules/loopback_alias | n/a |
 
@@ -76,6 +82,8 @@ On the machine where Terraform is executed:
 
 | Name | Type |
 |------|------|
+| [azurerm_backup_policy_vm.fileserver](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/backup_policy_vm) | resource |
+| [azurerm_backup_protected_vm.fileserver](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/backup_protected_vm) | resource |
 | [azurerm_cosmosdb_account.deployment_cosmosdb](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_account) | resource |
 | [azurerm_cosmosdb_sql_database.config_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_database) | resource |
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
@@ -93,6 +101,7 @@ On the machine where Terraform is executed:
 | [azurerm_private_endpoint.cosmos_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_private_endpoint.servicebus_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_resource_group.deployment_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
+| [azurerm_recovery_services_vault.deployment](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/recovery_services_vault) | resource |
 | [azurerm_role_assignment.cosmosdb_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_role_assignment.cosmosdb_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_role_assignment.servicebus_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
@@ -127,6 +136,13 @@ On the machine where Terraform is executed:
 | azure_region | Azure region display name | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
+| fileserver_backup_retention_days | Number of daily file-server VM recovery points to retain | `number` | `30` | no |
+| fileserver_backup_time | UTC start time for the daily file-server VM backup | `string` | `"23:00"` | no |
+| fileserver_data_disk_iops | Provisioned data disk IOPS for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
+| fileserver_data_disk_size_gb | Data disk size in GB for the dedicated Windows file-server VM | `number` | `2048` | no |
+| fileserver_data_disk_storage_account_type | Data disk storage account type for the dedicated Windows file-server VM | `string` | `"Premium_LRS"` | no |
+| fileserver_data_disk_throughput_mbps | Provisioned data disk throughput in MB/s for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
+| fileserver_vm_size | Azure VM size for the dedicated Windows file-server VM | `string` | `"Standard_D8s_v5"` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | os_disk_size | OS disk size in GB | `number` | `1024` | no |
@@ -142,4 +158,7 @@ On the machine where Terraform is executed:
 | Name | Description |
 |------|-------------|
 | deployment_url | Portal for ArcGIS URL |
+| fileserver_private_dns | Private DNS name of the dedicated Windows file-server VM |
+| fileserver_recovery_vault_name | Recovery Services vault protecting the dedicated Windows file-server VM |
+| fileserver_security_group_id | Subnet network security group ID shared by the Windows file server, primary and standby VMs |
 <!-- END_TF_DOCS -->

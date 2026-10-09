@@ -1,3 +1,17 @@
+# Copyright 2024-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Infrastructure Terraform Module for base ArcGIS Enterprise on Windows
  *
@@ -8,6 +22,10 @@
  * The module launches two (or one, if "is_ha" input variable is set to false) SSM-managed EC2 instances in the private VPC subnets or subnets specified by "subnet_ids" input variable. 
  * The EC2 instances are launched from images retrieved from "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}" SSM parameters. 
  * The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows. 
+ *
+ * Primary and standby EC2 instances are created after the fileserver module completes,
+ * including its DNS record, access rules, and data disk initialization, so recovered
+ * ArcGIS services can access the fileserver when they start.
  *
  * For the EC2 instances the module creates "A" records in the VPC Route 53 private hosted zone
  * to make the instances addressable using permanent DNS names.
@@ -74,20 +92,6 @@
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
  */
 
-# Copyright 2024-2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 terraform {
   backend "s3" {
     key = "terraform/arcgis/enterprise-base-windows/infrastructure.tfstate"
@@ -139,7 +143,6 @@ data "aws_ami" "ami" {
 locals {
   primary_subnet = length(var.subnet_ids) < 2 ? module.enterprise_core_info.private_subnets[0] : var.subnet_ids[0]
   standby_subnet = length(var.subnet_ids) < 2 ? module.enterprise_core_info.private_subnets[1] : var.subnet_ids[1]
-
   # Get values of ArcGISTemplateId and ArcGISVersion tags from the AMI to copy them to the EC2 instances.
   arcgis_template_id = "arcgis-enterprise-base"
   arcgis_version     = try(data.aws_ami.ami.tags.ArcGISVersion, null)
@@ -234,6 +237,27 @@ resource "aws_instance" "primary" {
     ArcGISDeploymentID = var.deployment_id
     ArcGISMachineRole  = "primary"
   }
+
+  depends_on = [module.ec2_fileserver]
+}
+
+module "ec2_fileserver" {
+  source                       = "../../modules/ec2_fileserver"
+  enterprise_id                = var.enterprise_id
+  deployment_id                = var.deployment_id
+  instance_type                = var.fileserver_instance_type
+  key_name                     = var.key_name
+  iam_instance_profile         = module.enterprise_core_info.instance_profile_name
+  subnet_id                    = local.primary_subnet
+  vpc_id                       = module.enterprise_core_info.vpc_id
+  referenced_security_group_id = module.security_group.id
+  hosted_zone_id               = module.enterprise_core_info.hosted_zone_id
+  arcgis_template_id           = local.arcgis_template_id
+  arcgis_version               = local.arcgis_version
+  data_volume_size             = var.fileserver_data_volume_size
+  data_volume_type             = var.fileserver_data_volume_type
+  data_volume_iops             = var.fileserver_data_volume_iops
+  data_volume_throughput       = var.fileserver_data_volume_throughput
 }
 
 resource "aws_network_interface" "standby" {
@@ -285,6 +309,8 @@ resource "aws_instance" "standby" {
     ArcGISDeploymentID = var.deployment_id
     ArcGISMachineRole  = "standby"
   }
+
+  depends_on = [module.ec2_fileserver]
 }
 
 resource "aws_route53_record" "primary" {
@@ -377,7 +403,8 @@ module "cw_agent" {
   deployment_id = var.deployment_id
   depends_on = [
     aws_instance.primary,
-    aws_instance.standby
+    aws_instance.standby,
+    module.ec2_fileserver
   ]
 }
 

@@ -17,6 +17,8 @@
 # retrieves from S3 and prints outputs of the command invocations.
 
 import argparse
+import re
+import time
 import boto3
 import ssm_utils
 
@@ -24,6 +26,76 @@ import ssm_utils
 WAIT_TIMEOUT = 600
 SEND_TIMEOUT = 600 
 EXECUTION_TIMEOUT = 1800
+INSTALL_ATTEMPTS = 4
+RETRY_DELAY = 30
+MSI_BUSY = re.compile(r'\b(?:exit|error|return|response)\s+code\s*[:=]?\s*1618\b', re.IGNORECASE)
+
+
+def wait_for_package_invocations(ssm_client, command_id):
+    deadline = time.monotonic() + EXECUTION_TIMEOUT
+    paginator = ssm_client.get_paginator('list_command_invocations')
+    while time.monotonic() < deadline:
+        invocations = [invocation
+                       for page in paginator.paginate(CommandId=command_id, Details=True)
+                       for invocation in page['CommandInvocations']]
+        if invocations and all(invocation['Status'] not in
+                               ('Pending', 'InProgress', 'Delayed', 'Cancelling')
+                               for invocation in invocations):
+            return invocations
+        time.sleep(ssm_utils.SLEEP_TIME)
+    print('Package command invocations timed out.')
+    return []
+
+
+def installer_is_busy(s3_client, s3_bucket, deployment_id, command_id, invocation):
+    for plugin in invocation.get('CommandPlugins', []):
+        if plugin.get('ResponseCode') == 1618 or MSI_BUSY.search(plugin.get('Output', '')):
+            return True
+    prefix = '{0}/{1}/{2}/'.format(deployment_id, command_id, invocation['InstanceId'])
+    objects = s3_client.list_objects_v2(Bucket=s3_bucket, Prefix=prefix, MaxKeys=1000)
+    for item in objects.get('Contents', []):
+        if item['Key'].rsplit('/', 1)[-1] not in ('stdout', 'stderr'):
+            continue
+        body = s3_client.get_object(Bucket=s3_bucket, Key=item['Key'])['Body']
+        try:
+            output = body.read().decode('UTF-8', 'ignore')
+        finally:
+            body.close()
+        if MSI_BUSY.search(output):
+            return True
+    return False
+
+
+def install_package(ssm_client, s3_client, ssm_filters, package, version, s3_bucket, deployment_id):
+    targets = {'Targets': ssm_filters}
+    for attempt in range(INSTALL_ATTEMPTS):
+        command_id = ssm_client.send_command(
+            **targets,
+            DocumentName='AWS-ConfigureAWSPackage',
+            TimeoutSeconds=SEND_TIMEOUT,
+            Comment='Installs AWS package on EC2 instances.',
+            Parameters={'action': ['Install'], 'name': [package], 'version': [version]},
+            OutputS3BucketName=s3_bucket,
+            OutputS3KeyPrefix=deployment_id
+        )['Command']['CommandId']
+        invocations = wait_for_package_invocations(ssm_client, command_id)
+        ssm_utils.print_command_output(s3_client, deployment_id, command_id, s3_bucket)
+        if not invocations:
+            return False
+        failures = [invocation for invocation in invocations if invocation['Status'] != 'Success']
+        if not failures:
+            return True
+        if attempt == INSTALL_ATTEMPTS - 1 or any(
+                invocation['Status'] != 'Failed' or not installer_is_busy(
+                    s3_client, s3_bucket, deployment_id, command_id, invocation)
+                for invocation in failures):
+            return False
+        delay = RETRY_DELAY * (2 ** attempt)
+        targets = {'InstanceIds': [invocation['InstanceId'] for invocation in failures]}
+        print('MSI installer busy (1618); retrying {0} in {1} seconds (attempt {2}/{3}).'
+              .format(targets['InstanceIds'], delay, attempt + 2, INSTALL_ATTEMPTS))
+        time.sleep(delay)
+    return False
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(
@@ -71,22 +143,6 @@ if __name__ == '__main__':
     if not ssm_utils.wait_for_target_instances(ec2_client, ssm_client, ec2_filters, ssm_filters, WAIT_TIMEOUT):
         exit(1)
 
-    command_id = ssm_client.send_command(
-        Targets=ssm_filters,
-        DocumentName='AWS-ConfigureAWSPackage',
-        TimeoutSeconds=SEND_TIMEOUT,
-        Comment='Installs AWS package on EC2 instances.',
-        Parameters = { 
-            'action': ['Install'],
-            'name': [args.package],
-            'version': [args.version]
-        },    
-        OutputS3BucketName=args.s3_bucket,
-        OutputS3KeyPrefix=args.deployment_id
-    )['Command']['CommandId']
-
-    status = ssm_utils.wait_for_command_invocations(ssm_client, command_id, EXECUTION_TIMEOUT)
-
-    ssm_utils.print_command_output(s3_client, args.deployment_id, command_id, args.s3_bucket)
-
-    exit(0 if status == 'Success' else 1)
+    success = install_package(ssm_client, s3_client, ssm_filters, args.package,
+                              args.version, args.s3_bucket, args.deployment_id)
+    exit(0 if success else 1)

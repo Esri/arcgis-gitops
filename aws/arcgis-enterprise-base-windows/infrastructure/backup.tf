@@ -53,11 +53,13 @@ resource "aws_backup_selection" "infrastructure" {
 
   resources = var.is_ha ? [
     aws_instance.primary.arn,
+    module.ec2_fileserver.instance_arn,
     aws_instance.standby[0].arn,
     aws_s3_bucket.portal_content.arn,
     aws_s3_bucket.object_store.arn
-  ] : [
+    ] : [
     aws_instance.primary.arn,
+    module.ec2_fileserver.instance_arn,
     aws_s3_bucket.portal_content.arn,
     aws_s3_bucket.object_store.arn
   ]

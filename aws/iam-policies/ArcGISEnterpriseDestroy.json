@@ -55,6 +55,43 @@
         {
             "Effect": "Allow",
             "Action": [
+                "ssm:DescribeAssociation",
+                "ssm:DeleteAssociation"
+            ],
+            "Resource": "arn:aws:ssm:*:*:association/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
+                "ssm:DescribeAssociation",
+                "ssm:DeleteAssociation",
+                "ec2:DetachVolume"
+            ],
+            "Resource": "arn:aws:ec2:*:*:instance/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ec2:DetachVolume",
+            "Resource": "arn:aws:ec2:*:*:volume/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": [
                 "elasticfilesystem:DescribeAccessPoints",
                 "elasticfilesystem:DescribeBackupPolicy",
                 "elasticfilesystem:DescribeFileSystemPolicy",

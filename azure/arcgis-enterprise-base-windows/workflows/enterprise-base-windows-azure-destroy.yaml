@@ -87,24 +87,32 @@ jobs:
           OS=$(jq -r '.os' $IMAGE_CONFIG_FILE)
           VAULT_NAME=$(az keyvault list --query "[?tags.ArcGISEnterpriseID=='$ENTERPRISE_ID' && tags.ArcGISRole=='enterprise-vault'].name" -o tsv)
           IMAGE_GALLERY_NAME=$(az keyvault secret show --name "image-gallery-name" --vault-name "$VAULT_NAME" --query "value" -o tsv)
-          DEFINITION_NAME="$DEPLOYMENT_ID-$ARCGIS_VERSION-$OS"
           RESOURCE_GROUP="$ENTERPRISE_ID-infrastructure-core"
-          echo "Checking for existing versions in $DEFINITION_NAME..."
-          VERSIONS=$(az sig image-version list \
+          DEFINITIONS=$(az sig image-definition list \
             --resource-group "$RESOURCE_GROUP" \
             --gallery-name "$IMAGE_GALLERY_NAME" \
-            --gallery-image-definition "$DEFINITION_NAME" \
             --query "[].name" -o tsv)
-          for VERSION in $VERSIONS; do
-            echo "Deleting image version: $VERSION"
-            az sig image-version delete \
+          for DEFINITION_NAME in "$DEPLOYMENT_ID-$ARCGIS_VERSION-$OS" "$DEPLOYMENT_ID-fileserver-$OS"; do
+            if ! grep -Fxq "$DEFINITION_NAME" <<< "$DEFINITIONS"; then
+              continue
+            fi
+            echo "Checking for existing versions in $DEFINITION_NAME..."
+            VERSIONS=$(az sig image-version list \
               --resource-group "$RESOURCE_GROUP" \
               --gallery-name "$IMAGE_GALLERY_NAME" \
               --gallery-image-definition "$DEFINITION_NAME" \
-              --gallery-image-version "$VERSION"
+              --query "[].name" -o tsv)
+            for VERSION in $VERSIONS; do
+              echo "Deleting image version: $VERSION"
+              az sig image-version delete \
+                --resource-group "$RESOURCE_GROUP" \
+                --gallery-name "$IMAGE_GALLERY_NAME" \
+                --gallery-image-definition "$DEFINITION_NAME" \
+                --gallery-image-version "$VERSION"
+            done
+            echo "Deleting image definition: $DEFINITION_NAME"
+            az sig image-definition delete \
+              --resource-group "$RESOURCE_GROUP" \
+              --gallery-name "$IMAGE_GALLERY_NAME" \
+              --gallery-image-definition "$DEFINITION_NAME"
           done
-          echo "Deleting image definition: $DEFINITION_NAME"
-          az sig image-definition delete \
-            --resource-group "$RESOURCE_GROUP" \
-            --gallery-name "$IMAGE_GALLERY_NAME" \
-            --gallery-image-definition "$DEFINITION_NAME"

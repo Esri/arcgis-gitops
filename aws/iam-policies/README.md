@@ -30,6 +30,8 @@ Use update-iam-policies.sh script to create new versions of the IAM policies cre
 ./update-iam-policies.sh
 ```
 
+For base Windows file servers, update the **existing** ArcGISEnterpriseInfrastructure and ArcGISEnterpriseDestroy policies in place; do not create another policy or IAM user. Before updating either version, run the [FR-013 policy preflight](../../specs/002-dedicated-file-server-vm/quickstart.md#aws-iam-policy-preflight-fr-013), obtain IAM-owner review, and check the actual workflow user's attachments, permissions boundary, and applicable SCPs. Sharing a workflow user's credentials combines the permissions of all its attached policies, so review that effective permission set for infrastructure, recovery, and destroy. Only run an AWS apply or destroy after approved disposable create/update/replacement and teardown checks, with rollback evidence. Updating a document locally does not update an attached policy version in AWS.
+
 ## Deleting the IAM Policies
 
 Use delete-iam-policies.sh script to delete the IAM policies created by create-iam-policies.sh script:

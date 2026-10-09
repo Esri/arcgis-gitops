@@ -1,3 +1,17 @@
+# Copyright 2024-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Packer Template for Base ArcGIS Enterprise AMIs
  * 
@@ -54,24 +68,11 @@
  * |--------------------|-------------|
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary AMI ID for the deployment |
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby | Standby AMI ID for the deployment |
+ * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/fileserver | Built file-server AMI ID |
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the AMI |
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
  * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
  */
-
-# Copyright 2024-2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 packer {
   required_plugins {
@@ -83,43 +84,43 @@ packer {
 }
 
 data "amazon-parameterstore" "source_ami" {
-  name = "/arcgis/${var.enterprise_id}/images/${var.os}"
-  region = var.aws_region  
+  name   = "/arcgis/${var.enterprise_id}/images/${var.os}"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "subnets" {
-  name = "/arcgis/${var.enterprise_id}/vpc/subnets"
-  region = var.aws_region    
+  name   = "/arcgis/${var.enterprise_id}/vpc/subnets"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "instance_profile_name" {
-  name = "/arcgis/${var.enterprise_id}/iam/instance-profile-name"
-  region = var.aws_region    
+  name   = "/arcgis/${var.enterprise_id}/iam/instance-profile-name"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_repository" {
-  name  = "/arcgis/${var.enterprise_id}/s3/repository"
-  region = var.aws_region    
+  name   = "/arcgis/${var.enterprise_id}/s3/repository"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_logs" {
-  name  = "/arcgis/${var.enterprise_id}/s3/logs"
-  region = var.aws_region    
+  name   = "/arcgis/${var.enterprise_id}/s3/logs"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_region" {
-  name  = "/arcgis/${var.enterprise_id}/s3/region"
-  region = var.aws_region    
+  name   = "/arcgis/${var.enterprise_id}/s3/region"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "chef_client_url" {
-  name  = "/arcgis/${var.enterprise_id}/chef-client-url/${var.os}"
-  region = var.aws_region    
+  name   = "/arcgis/${var.enterprise_id}/chef-client-url/${var.os}"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "chef_cookbooks_url" {
-  name  = "/arcgis/${var.enterprise_id}/cookbooks-url"
-  region = var.aws_region    
+  name   = "/arcgis/${var.enterprise_id}/cookbooks-url"
+  region = var.aws_region
 }
 
 locals {
@@ -131,11 +132,13 @@ locals {
   web_deploy_setup   = local.manifest.arcgis.repository.metadata.web_deploy_setup
 
   timestamp = formatdate("YYYYMMDDhhmm", timestamp())
-  
-  main_machine_role = "packer-main"
-  main_ami_name  = "arcgis-enterprise-base-${var.arcgis_version}-${var.os}-${local.timestamp}"
-  main_ami_description = "Base ArcGIS Enterprise ${var.arcgis_version} AMI for ${var.os}"
-  
+
+  main_machine_role          = "packer-main"
+  fileserver_machine_role    = "packer-fileserver"
+  main_ami_name              = "arcgis-enterprise-base-${var.arcgis_version}-${var.os}-${local.timestamp}"
+  main_ami_description       = "Base ArcGIS Enterprise ${var.arcgis_version} AMI for ${var.os}"
+  fileserver_ami_description = "ArcGIS Enterprise file-server AMI for ${var.os}"
+
   software_dir = "C:/Software/*"
 
   # Platform-specific attributes
@@ -144,32 +147,54 @@ locals {
 }
 
 source "amazon-ebs" "main" {
-  region        = var.aws_region
-  ami_name      = local.main_ami_name
-  ami_description = local.main_ami_description
-  instance_type = var.instance_type
-  source_ami    = data.amazon-parameterstore.source_ami.value
-  subnet_id     = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
+  region               = var.aws_region
+  ami_name             = local.main_ami_name
+  ami_description      = local.main_ami_description
+  instance_type        = var.instance_type
+  source_ami           = data.amazon-parameterstore.source_ami.value
+  subnet_id            = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
   iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
-  communicator = "none"
-  
+  communicator         = "none"
+
   launch_block_device_mappings {
     device_name = "/dev/sda1"
     volume_type = "gp3"
     volume_size = var.root_volume_size
     // encrypted   = true    
-    iops        = 16000
-    throughput  = 1000
+    iops                  = 16000
+    throughput            = 1000
     delete_on_termination = true
   }
 
   run_tags = {
     Name               = local.main_ami_name
     ArcGISAutomation   = "arcgis-gitops"
-    ArcGISEnterpriseID = var.enterprise_id    
+    ArcGISEnterpriseID = var.enterprise_id
     ArcGISVersion      = var.arcgis_version
-    ArcGISDeploymentID = var.deployment_id    
+    ArcGISDeploymentID = var.deployment_id
     ArcGISMachineRole  = local.main_machine_role
+  }
+
+  skip_create_ami = var.skip_create_ami
+}
+
+source "amazon-ebs" "fileserver" {
+  region               = var.aws_region
+  ami_name             = "arcgis-enterprise-fileserver-${var.arcgis_version}-${var.os}-${local.timestamp}"
+  ami_description      = local.fileserver_ami_description
+  instance_type        = var.instance_type
+  source_ami           = data.amazon-parameterstore.source_ami.value
+  subnet_id            = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
+  iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
+  communicator         = "none"
+
+  run_tags = {
+    Name               = "arcgis-enterprise-fileserver-${var.arcgis_version}-${var.os}-${local.timestamp}"
+    ArcGISAutomation   = "arcgis-gitops"
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISVersion      = var.arcgis_version
+    ArcGISDeploymentID = var.deployment_id
+    ArcGISMachineRole  = local.fileserver_machine_role
   }
 
   skip_create_ami = var.skip_create_ami
@@ -177,7 +202,7 @@ source "amazon-ebs" "main" {
 
 build {
   name = var.deployment_id
- 
+
   sources = [
     "source.amazon-ebs.main"
   ]
@@ -223,11 +248,11 @@ build {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(templatefile(
-        local.manifest_file_path, 
-        { 
-          s3bucket = data.amazon-parameterstore.s3_repository.value, 
-          region = data.amazon-parameterstore.s3_region.value
-        }))
+        local.manifest_file_path,
+        {
+          s3bucket = data.amazon-parameterstore.s3_repository.value,
+          region   = data.amazon-parameterstore.s3_region.value
+      }))
     }
 
     command = "python -m ssm_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.main_machine_role} -j /arcgis/${var.enterprise_id}/attributes/arcgis-enterprise-base/image/${var.arcgis_version}/${var.os}/s3files -b ${data.amazon-parameterstore.s3_logs.value} -e 1200"
@@ -239,40 +264,40 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
-          version = var.arcgis_version
-          run_as_user = var.run_as_user
-          run_as_password = var.run_as_password
+          version                    = var.arcgis_version
+          run_as_user                = var.run_as_user
+          run_as_password            = var.run_as_password
           configure_windows_firewall = true
           configure_cloud_settings   = false
           repository = {
             archives = local.archives_dir
-            setups = "C:\\Software\\Setups"
+            setups   = "C:\\Software\\Setups"
           }
           server = {
-            install_dir = "C:\\Program Files\\ArcGIS\\Server"
+            install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
             install_system_requirements = true
-            wa_name = var.server_web_context
+            wa_name                     = var.server_web_context
           }
           web_adaptor = {
             install_system_requirements = true
-            dotnet_setup_path = "${local.archives_dir}\\${local.dotnet_setup}"
-            web_deploy_setup_path = "${local.archives_dir}\\${local.web_deploy_setup}"
-            admin_access = true
-            reindex_portal_content = false
+            dotnet_setup_path           = "${local.archives_dir}\\${local.dotnet_setup}"
+            web_deploy_setup_path       = "${local.archives_dir}\\${local.web_deploy_setup}"
+            admin_access                = true
+            reindex_portal_content      = false
           }
           data_store = {
-            install_dir = "C:\\Program Files\\ArcGIS\\DataStore"
-            setup_options = "ADDLOCAL=relational"
-            data_dir = "C:\\arcgisdatastore"
+            install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
+            setup_options               = "ADDLOCAL=relational"
+            data_dir                    = "C:\\arcgisdatastore"
             install_system_requirements = true
-            preferredidentifier = "ip"
+            preferredidentifier         = "ip"
           }
           portal = {
-            install_dir = "C:\\Program Files\\ArcGIS\\Portal"
+            install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
             install_system_requirements = true
-            data_dir = "C:\\arcgisportal"
-            preferredidentifier = "hostname"
-            wa_name = var.portal_web_context
+            data_dir                    = "C:\\arcgisportal"
+            preferredidentifier         = "hostname"
+            wa_name                     = var.portal_web_context
           }
         }
         run_list = [
@@ -297,7 +322,7 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
-          version = var.arcgis_version
+          version                  = var.arcgis_version
           configure_cloud_settings = false
           repository = {
             patches = local.patches_dir
@@ -336,7 +361,7 @@ build {
   # Save the build artifacts metadata in packer-manifest.json file.
   # Note: New builds add new artifacts to packer-manifest.json file.
   post-processor "manifest" {
-    output = "main-packer-manifest.json"
+    output     = "main-packer-manifest.json"
     strip_path = true
     custom_data = {
       ami_description = local.main_ami_description
@@ -371,6 +396,52 @@ build {
 
   post-processor "shell-local" {
     command = "aws ssm put-parameter --name /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context --value ${var.server_web_context} --overwrite --type String --region ${var.aws_region}"
+  }
+}
+
+build {
+  name = "${var.deployment_id}-fileserver"
+
+  sources = ["source.amazon-ebs.fileserver"]
+
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
+    command = "python -m ssm_install_awscli -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -b ${data.amazon-parameterstore.s3_logs.value}"
+  }
+
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
+    command = "python -m ssm_package -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
+  }
+
+  provisioner "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
+    command = "python -m ssm_clean_up -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -p true -u false -b ${data.amazon-parameterstore.s3_logs.value}"
+  }
+
+  post-processor "manifest" {
+    output     = "fileserver-packer-manifest.json"
+    strip_path = true
+    custom_data = {
+      ami_description = local.fileserver_ami_description
+    }
+  }
+
+  post-processor "shell-local" {
+    env = {
+      AWS_DEFAULT_REGION = var.aws_region
+    }
+
+    command = "python -m publish_artifact -p /arcgis/${var.enterprise_id}/images/${var.deployment_id}/fileserver -f fileserver-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }
 

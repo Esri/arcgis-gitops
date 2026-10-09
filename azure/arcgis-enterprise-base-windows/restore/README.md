@@ -8,6 +8,10 @@ The module runs the WebGISDR utility with 'import' option on the primary VM of t
 The backup is retrieved from the "webgisdr-backups" and "content-backups" blob containers in the storage
 account of the enterprise specified by "backup_enterprise_id" input variable.
 
+The WebGISDR staging path always resolves `${var.deployment_id}-fileserver-private-dns`, which identifies the target base deployment's own file server.
+
+If the dedicated file-server VM or data disk was lost, first restore the `fileserver` protected VM from the deployment's Recovery Services vault. Verify that its data disk is mounted as `D:`, its private DNS record resolves, and the `arcgisbackup` and `arcgisserver` shares are available before running this module. Reconcile a replacement VM with Terraform state before the next infrastructure apply.
+
 ## Requirements
 
 The base ArcGIS Enterprise must be configured on the deployment by application terraform module for base ArcGIS Enterprise on Windows.
@@ -34,6 +38,7 @@ The module reads the following Key Vault secrets:
 
 | Key Vault secret name | Description |
 |-----------------------|-------------|
+| ${var.deployment_id}-fileserver-private-dns | Target base deployment's file-server private DNS name |
 | storage-account-key   | Enterprise's storage account key |
 | storage-account-name  | Enterprise's storage account name |
 | subnets               | VNet subnets IDs |

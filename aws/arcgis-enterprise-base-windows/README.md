@@ -81,7 +81,7 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
-2. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+2. If required, change "instance_type" and "root_volume_size" for the ArcGIS machines. Every base deployment creates and owns a dedicated file-server VM in its primary subnet and security group. Configure it with "fileserver_instance_type" and the "fileserver_data_volume_*" properties.
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run the enterprise-base-windows-aws-infrastructure workflow using the branch.
 
@@ -167,7 +167,7 @@ Instructions:
 
 ### System-level backups
 
-The system-level base ArcGIS Enterprise deployment backups back up S3 buckets, DynamoDB tables, and EC2 instances of the deployment using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the enterprise's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
+The system-level base ArcGIS Enterprise deployment backups back up S3 buckets, DynamoDB tables, and EC2 instances of the deployment, including its dedicated file-server VM and attached data disk, using [AWS Backup](https://docs.aws.amazon.com/aws-backup/latest/devguide/whatisbackup.html) service. The backups are stored in the enterprise's AWS Backup vault. These backups can be used to restore the entire deployment in case of a disaster.
 
 > System-level backups do not guarantee application consistency. This means that while the recovery system will often be successfully restored and operated, in some cases application level inconsistencies could occur, i.e. a publishing process that is underway or an edit to a feature service that is made during the backup process.
 

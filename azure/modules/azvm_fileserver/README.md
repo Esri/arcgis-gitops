@@ -23,12 +23,6 @@ those rules. Use approved infrastructure automation to apply or roll back the
 change. Rolling back to the previous module recreates the dedicated NSG and NIC
 association.
 
-Run the mocked network regression plans without Azure credentials:
-
-```powershell
-terraform -chdir=azure\modules\azvm_fileserver test
-```
-
 ## Data Disk Initialization
 
 The owning deployment attaches its managed data disk at LUN 0. The
@@ -54,16 +48,6 @@ fail explicitly. Before success, the script rechecks the disk identity, D:
 partition, NTFS filesystem, native mount mapping, and online/writable state,
 then writes, reads, and deletes a uniquely named probe. Any error returns exit
 code 1 with its original message and script stack trace.
-
-Run the local mocked regression suite from the repository root:
-
-```powershell
-powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -File azure\scripts\tests\test_fileserver_disks.ps1
-```
-
-The suite requires Terraform and Windows PowerShell. It executes the exact
-Terraform-rendered extension command through `cmd.exe`, substitutes all storage
-operations, and confines probe files to a temporary test directory.
 
 ### Recovery from an Earlier False Success
 

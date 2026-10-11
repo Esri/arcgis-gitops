@@ -1,3 +1,17 @@
+# Copyright 2024-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Application Terraform Module for Base ArcGIS Enterprise on Windows
  *
@@ -64,20 +78,6 @@
  * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output | 
  * | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
  */
-
-# Copyright 2024-2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 terraform {
   backend "s3" {
@@ -181,7 +181,7 @@ data "aws_instances" "standby" {
 }
 
 data "aws_instance" "standby" {
-  count = length(data.aws_instances.standby.ids) > 0 ? 1 : 0
+  count       = length(data.aws_instances.standby.ids) > 0 ? 1 : 0
   instance_id = data.aws_instances.standby.ids[0]
 }
 
@@ -205,6 +205,10 @@ data "aws_instances" "deployment" {
 
 data "aws_region" "current" {}
 
+data "aws_ssm_parameter" "fileserver_private_dns" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns"
+}
+
 locals {
   manifest_file_path = "../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
   manifest           = jsondecode(file(local.manifest_file_path))
@@ -216,14 +220,15 @@ locals {
   authorization_files_s3_prefix = "software/authorization/${var.arcgis_version}"
   certificates_s3_prefix        = "software/certificates"
 
-  ingress_fqdn    = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
+  ingress_fqdn       = nonsensitive(data.aws_ssm_parameter.ingress_fqdn.value)
   os                 = nonsensitive(data.aws_ssm_parameter.os.value)
   portal_web_context = nonsensitive(data.aws_ssm_parameter.portal_web_context.value)
   server_web_context = nonsensitive(data.aws_ssm_parameter.server_web_context.value)
   # primary_hostname   = "primary.${var.deployment_id}.${var.enterprise_id}.internal"
   # standby_hostname   = "standby.${var.deployment_id}.${var.enterprise_id}.internal"
-  primary_hostname   = data.aws_instance.primary.private_ip
-  standby_hostname   = length(data.aws_instances.standby.ids) > 0 ? data.aws_instance.standby[0].private_ip : ""
+  primary_hostname    = data.aws_instance.primary.private_ip
+  standby_hostname    = length(data.aws_instances.standby.ids) > 0 ? data.aws_instance.standby[0].private_ip : ""
+  fileserver_hostname = nonsensitive(data.aws_ssm_parameter.fileserver_private_dns.value)
 
   software_dir            = "C:\\Software\\*"
   authorization_files_dir = "C:\\Software\\AuthorizationFiles"
@@ -238,7 +243,7 @@ locals {
     {
       name      = "AWS"
       namespace = "${var.enterprise_id}-${var.deployment_id}"
-      region    = data.aws_region.current.id
+      region    = data.aws_region.current.region
       credential = {
         type = "IAM-ROLE"
       }
@@ -248,7 +253,7 @@ locals {
         category = "storage"
         connection = {
           bucketName        = nonsensitive(data.aws_ssm_parameter.object_store.value)
-          regionEndpointUrl = "https://s3.${data.aws_region.current.id}.amazonaws.com"
+          regionEndpointUrl = "https://s3.${data.aws_region.current.region}.amazonaws.com"
           rootDir           = "arcgis"
         }
         }, {
@@ -256,14 +261,14 @@ locals {
         name     = "Amazon Dynamo DB"
         category = "storage"
         connection = {
-          regionEndpointUrl = "https://dynamodb.${data.aws_region.current.id}.amazonaws.com"
+          regionEndpointUrl = "https://dynamodb.${data.aws_region.current.region}.amazonaws.com"
         }
         }, {
         type     = "queueService"
         name     = "Amazon Queue Service"
         category = "queue"
         connection = {
-          regionEndpointUrl = "https://sqs.${data.aws_region.current.id}.amazonaws.com"
+          regionEndpointUrl = "https://sqs.${data.aws_region.current.region}.amazonaws.com"
         }
       }]
       cloudServiceTags = [{
@@ -315,7 +320,7 @@ module "bootstrap_deployment" {
   source           = "../../modules/bootstrap"
   enterprise_id    = var.enterprise_id
   deployment_id    = var.deployment_id
-  machine_roles    = ["primary", "standby"]
+  machine_roles    = ["primary", "standby", "fileserver"]
   os               = local.os
   output_s3_bucket = module.enterprise_core_info.s3_logs
 }
@@ -484,13 +489,13 @@ resource "aws_ec2_tag" "arcgis_version" {
 }
 
 # Configure fileserver for ArcGIS Server directories and WebGIS DR staging location.
-# Create the required network shares and directories in the primary EC2 instance.
+# Create the required network shares and directories on the dedicated file-server EC2 instance.
 module "arcgis_enterprise_fileserver" {
   source         = "../../modules/run_chef"
   parameter_name = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/${var.arcgis_version}/fileserver"
   enterprise_id  = var.enterprise_id
   deployment_id  = var.deployment_id
-  machine_roles  = ["primary"]
+  machine_roles  = ["fileserver"]
   json_attributes = jsonencode({
     arcgis = {
       version                  = var.arcgis_version
@@ -499,12 +504,12 @@ module "arcgis_enterprise_fileserver" {
       configure_cloud_settings = false
       fileserver = {
         directories = [
-          "C:\\data\\arcgisserver",
-          "C:\\data\\arcgisbackup\\webgisdr"
+          "D:\\data\\arcgisserver",
+          "D:\\data\\arcgisbackup\\webgisdr"
         ]
         shares = [
-          "C:\\data\\arcgisserver",
-          "C:\\data\\arcgisbackup"
+          "D:\\data\\arcgisserver",
+          "D:\\data\\arcgisbackup"
         ]
       }
     }
@@ -699,12 +704,12 @@ module "arcgis_enterprise_primary" {
         keystore_password           = var.server_certificate_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        directories_root            = "\\\\${local.primary_hostname}\\arcgisserver"
+        directories_root            = "\\\\${local.fileserver_hostname}\\arcgisserver"
         log_dir                     = "C:\\arcgisserver\\logs"
         log_level                   = var.log_level
         config_store_type           = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
-        config_store_connection_string = "\\\\${local.primary_hostname}\\arcgisserver\\config-store"
+        config_store_connection_string = "\\\\${local.fileserver_hostname}\\arcgisserver\\config-store"
         cloud_config                   = local.cloud_config
         wa_name                        = local.server_web_context
         services_dir_enabled           = true
@@ -722,7 +727,7 @@ module "arcgis_enterprise_primary" {
         data_dir                    = "C:\\arcgisdatastore"
         preferredidentifier         = "ip"
         hostidentifier              = local.primary_hostname
-        types = "relational"
+        types                       = "relational"
         relational = {
           enablessl               = true
           disk_threshold_readonly = 5120
@@ -852,7 +857,7 @@ module "arcgis_enterprise_standby" {
         data_dir                    = "C:\\arcgisdatastore"
         preferredidentifier         = "ip"
         hostidentifier              = local.standby_hostname
-        types = "relational"
+        types                       = "relational"
       }
       portal = {
         url                         = "https://${local.standby_hostname}:7443/arcgis"

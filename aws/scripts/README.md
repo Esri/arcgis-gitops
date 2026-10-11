@@ -264,6 +264,13 @@ options:
 
 Runs AWS-ConfigureAWSPackage SSM command on EC2 instances in a deployment with specified roles.
 
+Windows Installer contention (MSI exit code 1618) is retried up to three times after
+30, 60, and 120 seconds. Each attempt waits for all invocations to finish and prints
+its S3 output. Only instances that failed with 1618 are retried; other failures,
+timeouts, and exhausted retries exit unsuccessfully. The Windows AWS CLI installation
+document uses the same bounded backoff, checks the MSI exit code, and accepts 0 and
+3010 (success with reboot required) without automatically rebooting the instance.
+
 usage:
 
 ```shell

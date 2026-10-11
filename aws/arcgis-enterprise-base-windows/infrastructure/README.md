@@ -5,7 +5,7 @@ The Terraform module creates AWS resources for base ArcGIS Enterprise deployment
 
 ![Base ArcGIS Enterprise on Windows / Infrastructure](arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
 
-The module launches two (or one, if "is_ha" input variable is set to false) SSM-managed EC2 instances in the private VPC subnets or subnets specified by "subnet_ids" input variable.
+The module launches two (or one, if "is_ha" input variable is set to false) SSM-managed ArcGIS EC2 instances and one dedicated Windows file-server EC2 instance. The file server is always owned by this base deployment, runs in the primary ArcGIS subnet, and uses its own security group. Base deployments cannot reference a file server from another deployment.
 The EC2 instances are launched from images retrieved from "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}" SSM parameters.
 The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows.
 
@@ -52,6 +52,7 @@ The module reads the following SSM parameters:
 | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
 | /arcgis/${var.enterprise_id}/iam/instance-profile-name | IAM instance profile name |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/fileserver | Base Windows AMI ID for the dedicated file server |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary EC2 instance AMI ID |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby | Standby EC2 instance AMI ID |
@@ -72,6 +73,10 @@ The module writes the following SSM parameters:
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/instance-arn | Dedicated file-server EC2 instance ARN |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/instance-id | Dedicated file-server EC2 instance ID |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns | Dedicated file-server private DNS name |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/security-group-id | Dedicated file-server security group ID |
 
 ## Providers
 
@@ -85,6 +90,7 @@ The module writes the following SSM parameters:
 |------|--------|---------|
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
+| ec2_fileserver | ../../modules/ec2_fileserver | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | portal_https_alb_target | ../../modules/alb_target_group | n/a |
 | security_group | ../../modules/security_group | n/a |
@@ -134,6 +140,11 @@ The module writes the following SSM parameters:
 | backup_schedule | Backup schedule in cron format | `string` | `"cron(0 0 * * ? *)"` | no |
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
+| fileserver_data_volume_iops | Data EBS volume IOPS for the dedicated file-server VM | `number` | `5000` | no |
+| fileserver_data_volume_size | Data EBS volume size in GB for the dedicated file-server VM | `number` | `2048` | no |
+| fileserver_data_volume_throughput | Data EBS throughput in MB/s for the dedicated file-server VM | `number` | `250` | no |
+| fileserver_data_volume_type | Data EBS volume type for the dedicated file-server VM | `string` | `"gp3"` | no |
+| fileserver_instance_type | EC2 instance type for the dedicated Windows file-server VM | `string` | `"m7i.xlarge"` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
@@ -148,5 +159,7 @@ The module writes the following SSM parameters:
 | Name | Description |
 |------|-------------|
 | deployment_url | Portal for ArcGIS URL of the deployment |
+| fileserver_private_dns | Private DNS name of the dedicated Windows file-server VM |
+| fileserver_security_group_id | Dedicated Windows file-server security group ID |
 | security_group_id | EC2 security group ID |
 <!-- END_TF_DOCS -->

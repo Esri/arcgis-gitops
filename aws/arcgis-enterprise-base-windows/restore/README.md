@@ -24,6 +24,7 @@ The module reads the following SSM parameters:
 | SSM parameter name | Description |
 |--------------------|-------------|
 | /arcgis/${var.backup_enterprise_id}/s3/backup | Backup S3 bucket |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns | Private DNS name of this base deployment's recovered dedicated file server |
 | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
 
 ## Modules

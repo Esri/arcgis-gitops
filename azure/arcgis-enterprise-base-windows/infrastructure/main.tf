@@ -1,3 +1,17 @@
+# Copyright 2025-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Infrastructure Terraform Module for Base ArcGIS Enterprise on Windows
  *
@@ -19,6 +33,7 @@
  * - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
  * - Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container. 
  * - Creates an Azure Monitor dashboard for monitoring key VM metrics.
+ * - Creates a dedicated Windows file-server VM in the primary subnet, inheriting the same subnet NSG as the primary and standby VMs without a dedicated NSG.
  * - Tags all resources with ArcGISEnterpriseID and ArcGISDeploymentID for easy identification.
  *
  * ## Requirements
@@ -58,20 +73,6 @@
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
  */
 
-# Copyright 2025-2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
 terraform {
   backend "azurerm" {
     key = "terraform/arcgis/enterprise-base-windows/infrastructure.tfstate"
@@ -87,6 +88,8 @@ terraform {
       version = "~> 4.2"
     }
   }
+
+  required_version = ">= 1.10.0"
 }
 
 provider "azurerm" {
@@ -155,6 +158,7 @@ locals {
   zones                   = var.is_ha ? ["1", "2"] : ["1"]
   subnet_id               = var.subnet_id != null ? var.subnet_id : element(module.enterprise_core_info.private_subnets, 0)
   backend_address_pool_id = jsondecode(data.azurerm_key_vault_secret.backend_address_pools.value)["enterprise-base"]
+  monitored_vm_ids        = concat(azurerm_windows_virtual_machine.vms[*].id, [module.azvm_fileserver.vm_id])
 }
 
 module "enterprise_core_info" {
@@ -196,6 +200,24 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
 
   platform_fault_domain_count = 1
   zones                       = local.zones
+}
+
+module "azvm_fileserver" {
+  source                         = "../../modules/azvm_fileserver"
+  enterprise_id                  = var.enterprise_id
+  deployment_id                  = var.deployment_id
+  azure_region                   = var.azure_region
+  resource_group_name            = azurerm_resource_group.deployment_rg.name
+  subnet_id                      = local.subnet_id
+  vault_id                       = module.enterprise_core_info.vault_id
+  vm_identity_id                 = data.azurerm_key_vault_secret.vm_identity_id.value
+  vm_size                        = var.fileserver_vm_size
+  admin_username                 = var.vm_admin_username
+  admin_password                 = var.vm_admin_password
+  data_disk_size_gb              = var.fileserver_data_disk_size_gb
+  data_disk_storage_account_type = var.fileserver_data_disk_storage_account_type
+  data_disk_iops                 = var.fileserver_data_disk_iops
+  data_disk_throughput_mbps      = var.fileserver_data_disk_throughput_mbps
 }
 
 resource "azurerm_windows_virtual_machine" "vms" {

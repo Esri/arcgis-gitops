@@ -12,9 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+output "fileserver_security_group_id" {
+  description = "Subnet network security group ID shared by the Windows file server, primary and standby VMs"
+  value       = module.azvm_fileserver.security_group_id
+}
+
+output "fileserver_private_dns" {
+  description = "Private DNS name of the dedicated Windows file-server VM"
+  value       = module.azvm_fileserver.private_dns
+}
+
+output "fileserver_recovery_vault_name" {
+  description = "Recovery Services vault protecting the dedicated Windows file-server VM"
+  value       = azurerm_recovery_services_vault.deployment.name
+}
+
 output "deployment_url" {
   description = "Portal for ArcGIS URL"
   value       = "https://${local.ingress_fqdn}/${local.portal_web_context}"
 }
-
 

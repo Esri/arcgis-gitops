@@ -21,7 +21,7 @@ Then the module:
 * If specified, copies keystore and root certificate files to the private repository S3 bucket
 * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository S3 bucket to primary and standby EC2 instances
 * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and standby EC2 instances
-* Creates the required network shares and directories in the primary EC2 instance
+* Creates the required `D:` directories and network shares on the base deployment's dedicated file-server EC2 instance
 * Configures base ArcGIS Enterprise on primary EC2 instance
 * Configures base ArcGIS Enterprise on standby EC2 instance
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby EC2 instances
@@ -52,6 +52,7 @@ The module reads the following SSM parameters:
 |--------------------|-------------|
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns | Private DNS name of this base deployment's dedicated file server |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
 | /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |

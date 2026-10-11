@@ -11,10 +11,25 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 output "security_group_id" {
   description = "EC2 security group ID"
   value       = module.security_group.id
+}
+
+output "fileserver_security_group_id" {
+  description = "Dedicated Windows file-server security group ID"
+  value       = module.ec2_fileserver.security_group_id
+}
+
+output "fileserver_private_dns" {
+  description = "Private DNS name of the dedicated Windows file-server VM"
+  value       = module.ec2_fileserver.private_dns
+}
+
+output "fileserver_data_disk_association_id" {
+  description = "SSM association to verify after infrastructure apply"
+  value       = module.ec2_fileserver.data_disk_association_id
 }
 
 output "deployment_url" {

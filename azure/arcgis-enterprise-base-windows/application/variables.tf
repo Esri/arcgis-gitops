@@ -151,7 +151,7 @@ variable "portal_authorization_file_path" {
   type        = string
 
   validation {
-    condition = fileexists(var.portal_authorization_file_path)
+    condition     = fileexists(var.portal_authorization_file_path)
     error_message = "The portal_authorization_file_path value must be a valid file path."
   }
 }
@@ -197,7 +197,7 @@ variable "security_question_index" {
   default     = 1
 
   validation {
-    condition = var.security_question_index > 0 &&  var.security_question_index < 15
+    condition     = var.security_question_index > 0 && var.security_question_index < 15
     error_message = "The security_question_index value must be a number between 1 and 14."
   }
 }
@@ -205,9 +205,9 @@ variable "security_question_index" {
 variable "server_authorization_file_path" {
   description = "Local path of ArcGIS Server authorization file"
   type        = string
-  
+
   validation {
-    condition = fileexists(var.server_authorization_file_path)
+    condition     = fileexists(var.server_authorization_file_path)
     error_message = "The server_authorization_file_path value must be a valid file path."
   }
 }

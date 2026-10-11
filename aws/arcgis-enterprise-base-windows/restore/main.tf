@@ -1,3 +1,17 @@
+# Copyright 2024-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Restore Terraform Module for Base ArcGIS Enterprise on Windows
  *
@@ -27,20 +41,6 @@
  * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
  */
 
-# Copyright 2024-2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
- 
 terraform {
   backend "s3" {
     key = "terraform/arcgis/enterprise-base-windows/restore.tfstate"
@@ -58,22 +58,26 @@ terraform {
 
 provider "aws" {
   region = var.aws_region
-  
+
   default_tags {
     tags = {
-      ArcGISAutomation   = "arcgis-gitops"      
+      ArcGISAutomation   = "arcgis-gitops"
       ArcGISEnterpriseID = var.enterprise_id
       ArcGISDeploymentID = var.deployment_id
     }
   }
 }
 
+data "aws_ssm_parameter" "fileserver_private_dns" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns"
+}
+
 locals {
-  shared_location = "\\\\\\\\primary.${var.deployment_id}.${var.enterprise_id}.internal\\\\arcgisbackup\\\\webgisdr"
+  shared_location = "\\\\\\\\${nonsensitive(data.aws_ssm_parameter.fileserver_private_dns.value)}\\\\arcgisbackup\\\\webgisdr"
 }
 
 module "backup_enterprise_core_info" {
-  source  = "../../modules/enterprise_core_info"
+  source        = "../../modules/enterprise_core_info"
   enterprise_id = var.backup_enterprise_id
 }
 
@@ -81,7 +85,7 @@ module "backup_enterprise_core_info" {
 module "arcgis_enterprise_webgisdr_import" {
   source            = "../../modules/run_chef"
   parameter_name    = "/arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/arcgis-enterprise-base/webgisdr/import"
-  enterprise_id           = var.enterprise_id
+  enterprise_id     = var.enterprise_id
   deployment_id     = var.deployment_id
   machine_roles     = ["primary"]
   execution_timeout = var.execution_timeout
@@ -108,10 +112,10 @@ module "arcgis_enterprise_webgisdr_import" {
           #S3_BACKUP_NAME                 = "<backup file name>"
           # In 11.4 PORTAL_BACKUP_S3_BUCKET property was renamed to BACKUP_S3_BUCKET
           # Keeping both properties for backward compatibility
-          BACKUP_S3_BUCKET                = module.backup_enterprise_core_info.s3_backup
-          BACKUP_S3_REGION                = module.backup_enterprise_core_info.s3_region
-          PORTAL_BACKUP_S3_BUCKET         = module.backup_enterprise_core_info.s3_backup
-          PORTAL_BACKUP_S3_REGION         = module.backup_enterprise_core_info.s3_region
+          BACKUP_S3_BUCKET        = module.backup_enterprise_core_info.s3_backup
+          BACKUP_S3_REGION        = module.backup_enterprise_core_info.s3_region
+          PORTAL_BACKUP_S3_BUCKET = module.backup_enterprise_core_info.s3_backup
+          PORTAL_BACKUP_S3_REGION = module.backup_enterprise_core_info.s3_region
         }
       }
     }

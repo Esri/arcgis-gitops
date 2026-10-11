@@ -16,7 +16,7 @@ Then the template uses python scripts to run SSM commands on the source EC2 inst
 6. Install patches for the base ArcGIS Enterprise applications
 7. Delete unused files, uninstall Cinc Client, run sysprep
 
-IDs of the AMIs are saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby" SSM parameters.
+IDs of the ArcGIS AMIs are saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby" SSM parameters. A separate Packer build creates the file-server AMI from the same base Windows OS AMI without installing the ArcGIS application stack. Before publishing the AMI, it installs AWS CLI using `ssm_install_awscli`, then AmazonCloudWatchAgent using `ssm_package`, through SSM on the file-server build instance. Both installers target the `packer-fileserver` role, and installation failure stops the build. Its built AMI ID is published at "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/fileserver" only after the file-server build succeeds. The file-server build uses the base image's Windows configuration; the infrastructure module applies its fixed 256 GB OS-disk profile at deployment.
 
 ## Requirements
 
@@ -47,6 +47,7 @@ The template writes the following SSM parameters:
 
 | SSM parameter name | Description |
 |--------------------|-------------|
+| /arcgis/${var.enterprise_id}/images/${var.deployment_id}/fileserver | Built file-server AMI ID |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary AMI ID for the deployment |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby | Standby AMI ID for the deployment |
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the AMI |

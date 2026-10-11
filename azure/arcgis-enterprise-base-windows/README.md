@@ -85,7 +85,7 @@ Workflow Inputs:
 
 Instructions:
 
-1. If required, change "vm_size" and "os_disk_size" properties to the required VM size and OS disk size (in GB).
+1. If required, change "vm_size" and "os_disk_size" for the ArcGIS machines. Configure the dedicated file-server VM with "fileserver_vm_size" and the "fileserver_data_disk_*" properties.
 2. Commit the changes to the Git branch and push the branch to GitHub.
 3. Run the enterprise-base-windows-azure-infrastructure workflow using the branch.
 
@@ -127,7 +127,9 @@ Instructions:
 
 The template supports application-level base ArcGIS Enterprise backup and restore operations using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool.
 
-The application-level backup of base ArcGIS Enterprise deployment backs up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the "webgisdr-backups" blob container in the enterprise's storage account.
+The application-level backup of base ArcGIS Enterprise deployment backs up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The dedicated file-server VM provides the shared WebGISDR staging location on its separate data disk, and the backups are stored in the "webgisdr-backups" blob container in the enterprise's storage account.
+
+The infrastructure workflow also registers the complete base-owned file-server VM, including its OS and data disks, with Azure Backup. The daily UTC backup time and retention are configured by `fileserver_backup_time` and `fileserver_backup_retention_days`. This system-level protection is separate from the application-level WebGISDR backup.
 
 ### Creating Application-level Backups
 
@@ -146,6 +148,14 @@ Instructions:
 To meet the required recovery point objective (RPO), schedule runs of enterprise-base-windows-azure-backup workflow by configuring 'schedule' event in enterprise-base-windows-azure-backup.yaml file. When the backup workflow is triggered manually, the backup-restore mode is specified by the workflow inputs. However, when the workflow is triggered on schedule, the backup-restore mode is retrieved from the backup.tfvars.json config file. Note that scheduled workflows run on the latest commit on the `main` (or default) branch.
 
 ### Restoring from Application-level Backups
+
+If the dedicated file-server VM is unavailable, recover it before running WebGISDR restore:
+
+1. Open the `${enterprise_id}-${deployment_id}-recovery` Recovery Services vault and select the `fileserver` protected VM.
+2. Select a recovery point and restore the VM or its disks into the deployment resource group. Preserve the data disk and its `D:` drive assignment.
+3. Confirm `fileserver.<deployment_id>.<enterprise_id>.internal` resolves to the recovered VM and that the `arcgisbackup` and `arcgisserver` shares are available.
+4. Reconcile any replacement resource with Terraform state before applying the infrastructure workflow again.
+5. Run the application-level restore workflow.
 
 GitHub Actions workflow **enterprise-base-windows-azure-restore** restores base ArcGIS Enterprise from backup using WebGISDR utility.
 

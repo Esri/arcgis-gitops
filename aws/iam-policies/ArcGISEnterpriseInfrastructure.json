@@ -31,7 +31,114 @@
                 "ec2:DescribeTags",
                 "ec2:DescribeVolumes",
                 "ec2:DescribeVpcs",
-                "ec2:RunInstances"
+                "ec2:RunInstances",
+                "ssm:AddTagsToResource",
+                "ssm:CancelCommand",
+                "ssm:DeleteParameter",
+                "ssm:DescribeInstanceInformation",
+                "ssm:DescribeParameters",
+                "ssm:GetParameter",
+                "ssm:GetParameters",
+                "ssm:GetParametersByPath",
+                "ssm:ListCommandInvocations",
+                "ssm:ListTagsForResource",
+                "ssm:PutParameter",
+                "ssm:StartSession",
+                "elasticfilesystem:ClientMount",
+                "elasticfilesystem:CreateFileSystem",
+                "elasticfilesystem:CreateMountTarget",
+                "elasticfilesystem:DeleteFileSystem",
+                "elasticfilesystem:DeleteMountTarget",
+                "elasticfilesystem:DescribeAccessPoints",
+                "elasticfilesystem:DescribeBackupPolicy",
+                "elasticfilesystem:DescribeFileSystemPolicy",
+                "elasticfilesystem:DescribeFileSystems",
+                "elasticfilesystem:DescribeLifecycleConfiguration",
+                "elasticfilesystem:DescribeMountTargets",
+                "elasticfilesystem:DescribeMountTargetSecurityGroups",
+                "elasticfilesystem:DescribeTags",
+                "elasticfilesystem:ListTagsForResource",
+                "elasticfilesystem:TagResource",
+                "elasticloadbalancing:AddListenerCertificates",
+                "elasticloadbalancing:AddTags",
+                "elasticloadbalancing:AddTrustStoreRevocations",
+                "elasticloadbalancing:CreateRule",
+                "elasticloadbalancing:CreateTargetGroup",
+                "elasticloadbalancing:CreateTrustStore",
+                "elasticloadbalancing:DescribeListeners",
+                "elasticloadbalancing:DescribeListenerAttributes",
+                "elasticloadbalancing:DescribeLoadBalancerAttributes",
+                "elasticloadbalancing:DescribeLoadBalancers",
+                "elasticloadbalancing:DescribeRules",
+                "elasticloadbalancing:DescribeTags",
+                "elasticloadbalancing:DescribeTargetHealth",
+                "elasticloadbalancing:DescribeTargetGroups",
+                "elasticloadbalancing:DescribeTargetGroupAttributes",
+                "logs:CreateLogGroup",
+                "logs:DescribeLogGroups",
+                "logs:DescribeLogStreams",
+                "logs:ListTagsForResource",
+                "logs:ListTagsLogGroup",
+                "logs:TagLogGroup",
+                "cloudwatch:DeleteAlarms",
+                "cloudwatch:DescribeAlarms",
+                "cloudwatch:GetDashboard",
+                "cloudwatch:ListTagsForResource",
+                "cloudwatch:PutCompositeAlarm",
+                "cloudwatch:PutDashboard",
+                "cloudwatch:PutMetricAlarm",
+                "cloudwatch:TagResource",
+                "s3:CreateBucket",
+                "s3:GetAccelerateConfiguration",
+                "s3:GetBucket*",
+                "s3:GetEncryptionConfiguration",
+                "s3:GetLifecycleConfiguration",
+                "s3:GetObject",
+                "s3:GetObjectAcl",
+                "s3:GetObjectAttributes",
+                "s3:GetObjectVersion",
+                "s3:GetObjectVersionAttributes",
+                "s3:GetReplicationConfiguration",
+                "s3:List*",
+                "s3:PutBucketAcl",
+                "s3:PutBucketCORS",
+                "s3:PutBucketLogging",
+                "s3:PutBucketOwnershipControls",
+                "s3:PutBucketPolicy",
+                "s3:PutBucketPublicAccessBlock",
+                "s3:PutBucketTagging",
+                "s3:PutBucketVersioning",
+                "s3:PutObject",
+                "s3:TagResource",
+                "route53:GetChange",
+                "route53:GetHostedZone",
+                "route53:ChangeResourceRecordSets",
+                "route53:CreateHostedZone",
+                "route53:ChangeTagsForResource",
+                "route53:DeleteHostedZone",
+                "route53:ListResourceRecordSets",
+                "route53:ListTagsForResource",
+                "sns:CreateTopic",
+                "sns:DeleteTopic",
+                "sns:GetTopicAttributes",
+                "sns:ListTagsForResource",
+                "sns:SetTopicAttributes",
+                "sns:TagResource",
+                "backup:CreateBackupPlan",
+                "backup:CreateBackupSelection",
+                "backup:DeleteBackupPlan",
+                "backup:DeleteBackupSelection",
+                "backup:DescribeRestoreJob",
+                "backup:GetBackupPlan",
+                "backup:GetBackupSelection",
+                "backup:List*",
+                "backup:StartRestoreJob",
+                "backup:TagResource",
+                "dynamodb:CreateTable",
+                "dynamodb:Describe*",
+                "dynamodb:List*",
+                "dynamodb:TagResource",
+                "dynamodb:UpdateItem"
             ],
             "Resource": "*"
         },
@@ -53,7 +160,14 @@
                 "ec2:StopInstances",
                 "ec2:TerminateInstances",
                 "ec2:UpdateSecurityGroupRuleDescriptionsEgress",
-                "ec2:UpdateSecurityGroupRuleDescriptionsIngress"
+                "ec2:UpdateSecurityGroupRuleDescriptionsIngress",
+                "elasticfilesystem:UpdateFileSystem",
+                "elasticloadbalancing:DeregisterTargets",
+                "elasticloadbalancing:Modify*",
+                "elasticloadbalancing:RegisterTargets",
+                "elasticloadbalancing:Remove*",
+                "elasticloadbalancing:Set*",
+                "logs:PutRetentionPolicy"
             ],
             "Resource": "*",
             "Condition": {
@@ -72,24 +186,6 @@
                 "arn:aws:ec2:*:*:security-group/*",
                 "arn:aws:ec2:*:*:security-group-rule/*"
             ]
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "ssm:AddTagsToResource",
-                "ssm:CancelCommand",
-                "ssm:DeleteParameter",
-                "ssm:DescribeInstanceInformation",
-                "ssm:DescribeParameters",
-                "ssm:GetParameter",
-                "ssm:GetParameters",
-                "ssm:GetParametersByPath",
-                "ssm:ListCommandInvocations",
-                "ssm:ListTagsForResource",
-                "ssm:PutParameter",
-                "ssm:StartSession"
-            ],
-            "Resource": "*"
         },
         {
             "Effect": "Allow",
@@ -116,31 +212,27 @@
         },
         {
             "Effect": "Allow",
-            "Action": [
-                "elasticfilesystem:ClientMount",
-                "elasticfilesystem:CreateFileSystem",
-                "elasticfilesystem:CreateMountTarget",
-                "elasticfilesystem:DeleteFileSystem",
-                "elasticfilesystem:DeleteMountTarget",
-                "elasticfilesystem:DescribeAccessPoints",
-                "elasticfilesystem:DescribeBackupPolicy",
-                "elasticfilesystem:DescribeFileSystemPolicy",
-                "elasticfilesystem:DescribeFileSystems",
-                "elasticfilesystem:DescribeLifecycleConfiguration",
-                "elasticfilesystem:DescribeMountTargets",
-                "elasticfilesystem:DescribeMountTargetSecurityGroups",
-                "elasticfilesystem:DescribeTags",
-                "elasticfilesystem:ListTagsForResource",
-                "elasticfilesystem:TagResource"
-            ],
-            "Resource": "*"
+            "Action": "ssm:CreateAssociation",
+            "Resource": "arn:aws:ssm:*:*:association/*",
+            "Condition": {
+                "StringEquals": {
+                    "aws:RequestTag/ArcGISAutomation": "arcgis-gitops"
+                }
+            }
+        },
+        {
+            "Effect": "Allow",
+            "Action": "ssm:CreateAssociation",
+            "Resource": "arn:aws:ssm:*::document/AWS-RunPowerShellScript"
         },
         {
             "Effect": "Allow",
             "Action": [
-                "elasticfilesystem:UpdateFileSystem"
+                "ssm:DescribeAssociation",
+                "ssm:UpdateAssociation",
+                "ssm:DeleteAssociation"
             ],
-            "Resource": "*",
+            "Resource": "arn:aws:ssm:*:*:association/*",
             "Condition": {
                 "StringEquals": {
                     "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
@@ -150,34 +242,13 @@
         {
             "Effect": "Allow",
             "Action": [
-                "elasticloadbalancing:AddListenerCertificates",
-                "elasticloadbalancing:AddTags",
-                "elasticloadbalancing:AddTrustStoreRevocations",
-                "elasticloadbalancing:CreateRule",
-                "elasticloadbalancing:CreateTargetGroup",
-                "elasticloadbalancing:CreateTrustStore",
-                "elasticloadbalancing:DescribeListeners",
-                "elasticloadbalancing:DescribeListenerAttributes",
-                "elasticloadbalancing:DescribeLoadBalancerAttributes",
-                "elasticloadbalancing:DescribeLoadBalancers",
-                "elasticloadbalancing:DescribeRules",
-                "elasticloadbalancing:DescribeTags",
-                "elasticloadbalancing:DescribeTargetHealth",
-                "elasticloadbalancing:DescribeTargetGroups",
-                "elasticloadbalancing:DescribeTargetGroupAttributes"
+                "ssm:CreateAssociation",
+                "ssm:DescribeAssociation",
+                "ssm:UpdateAssociation",
+                "ssm:DeleteAssociation",
+                "ec2:DetachVolume"
             ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "elasticloadbalancing:DeregisterTargets",
-                "elasticloadbalancing:Modify*",
-                "elasticloadbalancing:RegisterTargets",
-                "elasticloadbalancing:Remove*",
-                "elasticloadbalancing:Set*"
-            ],
-            "Resource": "*",
+            "Resource": "arn:aws:ec2:*:*:instance/*",
             "Condition": {
                 "StringEquals": {
                     "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
@@ -186,122 +257,13 @@
         },
         {
             "Effect": "Allow",
-            "Action": [
-                "logs:CreateLogGroup",
-                "logs:DescribeLogGroups",
-                "logs:DescribeLogStreams",
-                "logs:ListTagsForResource",
-                "logs:ListTagsLogGroup",
-                "logs:TagLogGroup"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "logs:PutRetentionPolicy"
-            ],
-            "Resource": "*",
+            "Action": "ec2:DetachVolume",
+            "Resource": "arn:aws:ec2:*:*:volume/*",
             "Condition": {
                 "StringEquals": {
                     "aws:ResourceTag/ArcGISAutomation": "arcgis-gitops"
                 }
             }
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "cloudwatch:DeleteAlarms",
-                "cloudwatch:DescribeAlarms",
-                "cloudwatch:GetDashboard",
-                "cloudwatch:ListTagsForResource",
-                "cloudwatch:PutCompositeAlarm",
-                "cloudwatch:PutDashboard",
-                "cloudwatch:PutMetricAlarm",
-                "cloudwatch:TagResource"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "s3:CreateBucket",
-                "s3:GetAccelerateConfiguration",
-                "s3:GetBucket*",
-                "s3:GetEncryptionConfiguration",
-                "s3:GetLifecycleConfiguration",
-                "s3:GetObject",
-                "s3:GetObjectAcl",
-                "s3:GetObjectAttributes",
-                "s3:GetObjectVersion",
-                "s3:GetObjectVersionAttributes",
-                "s3:GetReplicationConfiguration",
-                "s3:List*",
-                "s3:PutBucketAcl",
-                "s3:PutBucketCORS",
-                "s3:PutBucketLogging",
-                "s3:PutBucketOwnershipControls",
-                "s3:PutBucketPolicy",
-                "s3:PutBucketPublicAccessBlock",
-                "s3:PutBucketTagging",
-                "s3:PutBucketVersioning",
-                "s3:PutObject",
-                "s3:TagResource"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "route53:GetChange",
-                "route53:GetHostedZone",
-                "route53:ChangeResourceRecordSets",
-                "route53:CreateHostedZone",
-                "route53:ChangeTagsForResource",
-                "route53:DeleteHostedZone",
-                "route53:ListResourceRecordSets",
-                "route53:ListTagsForResource"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "sns:CreateTopic",
-                "sns:DeleteTopic",
-                "sns:GetTopicAttributes",
-                "sns:ListTagsForResource",
-                "sns:SetTopicAttributes",
-                "sns:TagResource"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "backup:CreateBackupPlan",
-                "backup:CreateBackupSelection",
-                "backup:DeleteBackupPlan",
-                "backup:DeleteBackupSelection",
-                "backup:DescribeRestoreJob",
-                "backup:GetBackupPlan",
-                "backup:GetBackupSelection",
-                "backup:List*",
-                "backup:StartRestoreJob",
-                "backup:TagResource"
-            ],
-            "Resource": "*"
-        },
-        {
-            "Effect": "Allow",
-            "Action": [
-                "dynamodb:CreateTable",
-                "dynamodb:Describe*",
-                "dynamodb:List*",
-                "dynamodb:TagResource",
-                "dynamodb:UpdateItem"
-            ],
-            "Resource": "*"
         }
     ]
 }

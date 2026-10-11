@@ -1,3 +1,17 @@
+# Copyright 2025-2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Packer Template for Base ArcGIS Enterprise on Windows Images
  *
@@ -54,21 +68,8 @@
  * | ${var.deployment_id}-server-web-context | ArcGIS Server web context |
  * | ${var.deployment_id}-vm-image-primary   | Built image ID for primary node |
  * | ${var.deployment_id}-vm-image-standby   | Built image ID for standby node |
+ * | ${var.deployment_id}-vm-image-fileserver | Built file-server gallery image version ID |
  */
-
-# Copyright 2025-2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 packer {
   required_plugins {
@@ -121,21 +122,21 @@ data "azure-keyvaultsecret" "storage_account_name" {
   use_azure_cli_auth = true
 }
 
-locals{
+locals {
   manifest_file_path = "${path.root}/../manifests/arcgis-enterprise-azure-files-${var.arcgis_version}.json"
   manifest           = jsondecode(file(local.manifest_file_path))
   archives_dir       = local.manifest.arcgis.repository.local_archives
   patches_dir        = local.manifest.arcgis.repository.local_patches
-  
-  software_dir       = "C:/Software/*"
+
+  software_dir = "C:/Software/*"
 
   storage_account_blob_endpoint = "https://${data.azure-keyvaultsecret.storage_account_name.value}.blob.core.windows.net"
-  
-  src_image_tokens = split("/", data.azure-keyvaultsecret.vm_image.value)
+
+  src_image_tokens    = split("/", data.azure-keyvaultsecret.vm_image.value)
   src_image_publisher = local.src_image_tokens[8]
-  src_image_offer = local.src_image_tokens[12]
-  src_image_sku = local.src_image_tokens[14]
-  src_image_version = local.src_image_tokens[16]
+  src_image_offer     = local.src_image_tokens[12]
+  src_image_sku       = local.src_image_tokens[14]
+  src_image_version   = local.src_image_tokens[16]
 
   machine_role = "packer-main"
 }
@@ -153,12 +154,12 @@ source "azure-arm" "main" {
   vm_size         = var.vm_size
 
   managed_image_storage_account_type = "Premium_LRS"
-  
+
   security_type       = "TrustedLaunch"
   encryption_at_host  = true
   secure_boot_enabled = true
   vtpm_enabled        = true
-  
+
   # Source Image
   image_offer     = local.src_image_offer
   image_publisher = local.src_image_publisher
@@ -179,14 +180,14 @@ source "azure-arm" "main" {
   use_azure_cli_auth = true
 
   skip_create_image = var.skip_create_image
-  
+
   # Retrieve PowerShell script from the Instance Metadata Service (IMDS) user data and run it.
   custom_script = join("", [
     "powershell -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -Command \"",
     "$userData = (Invoke-RestMethod -Headers @{Metadata=$true} -Method GET -Uri http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01$([char]38)format=text); ",
     "$contents = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($userData)); ",
     "set-content -path c:\\Windows\\Temp\\userdata.ps1 -value $contents -Encoding UTF8; ",
-    ". c:\\Windows\\Temp\\userdata.ps1 -AzureCliUrl ${var.azure_cli_url};\""])
+  ". c:\\Windows\\Temp\\userdata.ps1 -AzureCliUrl ${var.azure_cli_url};\""])
 
   user_data_file = "./scripts/userdata.ps1"
 
@@ -197,16 +198,69 @@ source "azure-arm" "main" {
   }
 }
 
+source "azure-arm" "fileserver" {
+  communicator   = "winrm"
+  winrm_use_ssl  = true
+  winrm_insecure = true
+  winrm_timeout  = "5m"
+  winrm_username = "packer"
+
+  location        = var.azure_region
+  os_disk_size_gb = var.os_disk_size
+  os_type         = "Windows"
+  vm_size         = var.vm_size
+
+  managed_image_storage_account_type = "Premium_LRS"
+
+  security_type       = "TrustedLaunch"
+  encryption_at_host  = true
+  secure_boot_enabled = true
+  vtpm_enabled        = true
+
+  image_offer     = local.src_image_offer
+  image_publisher = local.src_image_publisher
+  image_sku       = local.src_image_sku
+  image_version   = local.src_image_version
+
+  shared_image_gallery_destination {
+    resource_group = "${var.enterprise_id}-infrastructure-core"
+    gallery_name   = data.azure-keyvaultsecret.enterprise_ig.value
+    image_name     = "${var.deployment_id}-fileserver-${var.os}"
+    image_version  = formatdate("YYYY.MMDD.HHMM", timestamp())
+  }
+
+  user_assigned_managed_identities = [
+    data.azure-keyvaultsecret.vm_identity_id.value
+  ]
+  use_azure_cli_auth = true
+  skip_create_image  = var.skip_create_image
+
+  custom_script = join("", [
+    "powershell -ExecutionPolicy Unrestricted -NoProfile -NonInteractive -Command \"",
+    "$userData = (Invoke-RestMethod -Headers @{Metadata=$true} -Method GET -Uri http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01$([char]38)format=text); ",
+    "$contents = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($userData)); ",
+    "set-content -path c:\\Windows\\Temp\\userdata.ps1 -value $contents -Encoding UTF8; ",
+  ". c:\\Windows\\Temp\\userdata.ps1 -AzureCliUrl ${var.azure_cli_url};\""])
+
+  user_data_file = "./scripts/userdata.ps1"
+
+  azure_tags = {
+    "ArcGISEnterpriseID" = var.enterprise_id
+    "ArcGISDeploymentID" = var.deployment_id
+    "ArcGISRole"         = "packer-fileserver"
+  }
+}
+
 build {
   name = var.deployment_id
- 
+
   sources = [
     "source.azure-arm.main"
   ]
 
   # provisioner "windows-restart" {}
 
- # Bootstrap the VM
+  # Bootstrap the VM
   provisioner "shell-local" {
     command = "python -m az_bootstrap -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -c ${data.azure-keyvaultsecret.chef_client_url.value} -k ${data.azure-keyvaultsecret.cookbooks_url.value} -v ${var.vault_name}"
   }
@@ -220,11 +274,11 @@ build {
   provisioner "shell-local" {
     env = {
       JSON_ATTRIBUTES = base64encode(templatefile(
-        local.manifest_file_path, 
-        { 
-          account_name = data.azure-keyvaultsecret.storage_account_name.value, 
+        local.manifest_file_path,
+        {
+          account_name   = data.azure-keyvaultsecret.storage_account_name.value,
           container_name = "repository"
-          client_id = data.azure-keyvaultsecret.vm_identity_client_id.value
+          client_id      = data.azure-keyvaultsecret.vm_identity_client_id.value
         }
       ))
     }
@@ -237,31 +291,31 @@ build {
     env = {
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
-          version = var.arcgis_version
-          run_as_user = var.run_as_user
-          run_as_password = var.run_as_password
+          version                    = var.arcgis_version
+          run_as_user                = var.run_as_user
+          run_as_password            = var.run_as_password
           configure_windows_firewall = true
           configure_cloud_settings   = false
           repository = {
             archives = local.archives_dir
-            setups = "C:\\Software\\Setups"
+            setups   = "C:\\Software\\Setups"
           }
           server = {
-            install_dir = "C:\\Program Files\\ArcGIS\\Server"
+            install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
             install_system_requirements = true
           }
           data_store = {
-            install_dir = "C:\\Program Files\\ArcGIS\\DataStore"
-            setup_options = "ADDLOCAL=relational"
-            data_dir = "C:\\arcgisdatastore"
+            install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
+            setup_options               = "ADDLOCAL=relational"
+            data_dir                    = "C:\\arcgisdatastore"
             install_system_requirements = true
-            preferredidentifier = "ip"
+            preferredidentifier         = "ip"
           }
           portal = {
-            install_dir = "C:\\Program Files\\ArcGIS\\Portal"
+            install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
             install_system_requirements = true
-            data_dir = "C:\\arcgisportal"
-            preferredidentifier = "ip"
+            data_dir                    = "C:\\arcgisportal"
+            preferredidentifier         = "ip"
           }
         }
         run_list = [
@@ -282,7 +336,7 @@ build {
     env = {
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
-          version = var.arcgis_version
+          version                  = var.arcgis_version
           configure_cloud_settings = false
           repository = {
             patches = local.patches_dir
@@ -321,13 +375,13 @@ build {
       # Use /quit instead of /shutdown so the script can finish
       "& $env:SystemRoot\\System32\\Sysprep\\Sysprep.exe /oobe /generalize /quiet /quit /mode:vm",
       # Wait for the process to actually finish in the background before exiting the script
-      "while($true) { $p = Get-Process Sysprep -ErrorAction SilentlyContinue; if(!$p) { break }; Start-Sleep -s 5 }"    ]
+    "while($true) { $p = Get-Process Sysprep -ErrorAction SilentlyContinue; if(!$p) { break }; Start-Sleep -s 5 }"]
   }
 
   # Save the build artifacts metadata in packer-manifest.json file.
   # Note: New builds add new artifacts to packer-manifest.json file.
   post-processor "manifest" {
-    output = "main-packer-manifest.json"
+    output     = "main-packer-manifest.json"
     strip_path = true
   }
 
@@ -351,5 +405,36 @@ build {
 
   post-processor "shell-local" {
     command = "az keyvault secret set --vault-name '${var.vault_name}' --name '${var.deployment_id}-server-web-context' --value '${var.server_web_context}'"
+  }
+}
+
+build {
+  name = "${var.deployment_id}-fileserver"
+
+  sources = ["source.azure-arm.fileserver"]
+
+  provisioner "powershell" {
+    inline = [
+      "$Env:Path = [System.Environment]::GetEnvironmentVariable('Path', 'Machine') + ';' + [System.Environment]::GetEnvironmentVariable('Path', 'User')",
+      "Get-Command az -ErrorAction Stop | Out-Null",
+      "az version --output json",
+      "if ($LASTEXITCODE -ne 0) { throw 'Azure CLI validation failed.' }"
+    ]
+  }
+
+  provisioner "powershell" {
+    inline = [
+      "& $env:SystemRoot\\System32\\Sysprep\\Sysprep.exe /oobe /generalize /quiet /quit /mode:vm",
+      "while (Get-Process Sysprep -ErrorAction SilentlyContinue) { Start-Sleep -Seconds 5 }"
+    ]
+  }
+
+  post-processor "manifest" {
+    output     = "fileserver-packer-manifest.json"
+    strip_path = true
+  }
+
+  post-processor "shell-local" {
+    command = "python -m publish_artifact -v ${var.vault_name} -s ${var.deployment_id}-vm-image-fileserver -f fileserver-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }

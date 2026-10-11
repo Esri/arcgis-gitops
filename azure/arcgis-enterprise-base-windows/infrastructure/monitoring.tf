@@ -88,7 +88,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         name      = "Available Memory Bytes"
                         namespace = "microsoft.compute/virtualmachines"
                         resourceMetadata = {
-                          region = azurerm_resource_group.deployment_rg.location
+                          region       = azurerm_resource_group.deployment_rg.location
                           resourceType = "microsoft.compute/virtualmachines"
                           subscription = {
                             subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -120,9 +120,9 @@ resource "azurerm_portal_dashboard" "deployment" {
                       filterCollection = {
                         filters = [
                           {
-                            key = "Microsoft.ResourceId"
+                            key      = "Microsoft.ResourceId"
                             operator = 0
-                            values = azurerm_windows_virtual_machine.vms.*.id
+                            values   = local.monitored_vm_ids
                           }
                         ]
                       }
@@ -208,7 +208,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         name      = "Percentage CPU"
                         namespace = "microsoft.compute/virtualmachines"
                         resourceMetadata = {
-                          region = azurerm_resource_group.deployment_rg.location
+                          region       = azurerm_resource_group.deployment_rg.location
                           resourceType = "microsoft.compute/virtualmachines"
                           subscription = {
                             subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -240,9 +240,9 @@ resource "azurerm_portal_dashboard" "deployment" {
                       filterCollection = {
                         filters = [
                           {
-                            key = "Microsoft.ResourceId"
+                            key      = "Microsoft.ResourceId"
                             operator = 0
-                            values = azurerm_windows_virtual_machine.vms.*.id
+                            values   = local.monitored_vm_ids
                           }
                         ]
                       }
@@ -328,7 +328,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         name      = "OS Disk Read Bytes/sec"
                         namespace = "microsoft.compute/virtualmachines"
                         resourceMetadata = {
-                          region = azurerm_resource_group.deployment_rg.location
+                          region       = azurerm_resource_group.deployment_rg.location
                           resourceType = "microsoft.compute/virtualmachines"
                           subscription = {
                             subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -360,9 +360,9 @@ resource "azurerm_portal_dashboard" "deployment" {
                       filterCollection = {
                         filters = [
                           {
-                            key = "Microsoft.ResourceId"
+                            key      = "Microsoft.ResourceId"
                             operator = 0
-                            values = azurerm_windows_virtual_machine.vms.*.id
+                            values   = local.monitored_vm_ids
                           }
                         ]
                       }
@@ -448,7 +448,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         name      = "OS Disk Write Bytes/sec"
                         namespace = "microsoft.compute/virtualmachines"
                         resourceMetadata = {
-                          region = azurerm_resource_group.deployment_rg.location
+                          region       = azurerm_resource_group.deployment_rg.location
                           resourceType = "microsoft.compute/virtualmachines"
                           subscription = {
                             subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -480,9 +480,9 @@ resource "azurerm_portal_dashboard" "deployment" {
                       filterCollection = {
                         filters = [
                           {
-                            key = "Microsoft.ResourceId"
+                            key      = "Microsoft.ResourceId"
                             operator = 0
-                            values = azurerm_windows_virtual_machine.vms.*.id
+                            values   = local.monitored_vm_ids
                           }
                         ]
                       }
@@ -530,9 +530,9 @@ resource "azurerm_portal_dashboard" "deployment" {
                           resourceMetadata = {
                             id = azurerm_storage_account.deployment_storage.id
                           }
-                          name = "Ingress"
+                          name            = "Ingress"
                           aggregationType = 1
-                          namespace = "microsoft.storage/storageaccounts"
+                          namespace       = "microsoft.storage/storageaccounts"
                           metricVisualization = {
                             displayName = "Ingress"
                           }
@@ -541,32 +541,32 @@ resource "azurerm_portal_dashboard" "deployment" {
                           resourceMetadata = {
                             id = azurerm_storage_account.deployment_storage.id
                           }
-                          name = "Egress"
+                          name            = "Egress"
                           aggregationType = 1
-                          namespace = "microsoft.storage/storageaccounts"
+                          namespace       = "microsoft.storage/storageaccounts"
                           metricVisualization = {
                             displayName = "Egress"
                           }
                         }
                       ]
-                      title = "Deployment Storage Account Ingress and Egress"
+                      title     = "Deployment Storage Account Ingress and Egress"
                       titleKind = 1
                       visualization = {
                         chartType = 2
                         legendVisualization = {
-                          isVisible = true
-                          position = 2
-                          hideHoverCard = false
+                          isVisible      = true
+                          position       = 2
+                          hideHoverCard  = false
                           hideLabelNames = true
                         }
                         axisVisualization = {
                           x = {
                             isVisible = true
-                            axisType = 2
+                            axisType  = 2
                           }
                           y = {
                             isVisible = true
-                            axisType = 1
+                            axisType  = 1
                           }
                         }
                         disablePinning = true
@@ -579,8 +579,8 @@ resource "azurerm_portal_dashboard" "deployment" {
           },
           "5" = { // Storage account Used Capacity metric
             position = {
-              x = 6
-              y = 8
+              x       = 6
+              y       = 8
               colSpan = 6
               rowSpan = 4
             },
@@ -605,34 +605,158 @@ resource "azurerm_portal_dashboard" "deployment" {
                           resourceMetadata = {
                             id = azurerm_storage_account.deployment_storage.id
                           }
-                          name = "UsedCapacity",
+                          name            = "UsedCapacity",
                           aggregationType = 4,
-                          namespace = "microsoft.storage/storageaccounts",
+                          namespace       = "microsoft.storage/storageaccounts",
                           metricVisualization = {
                             displayName = "Used capacity"
                           }
                         }
                       ],
-                      title = "Deployment Storage Account Used Capacity",
+                      title     = "Deployment Storage Account Used Capacity",
                       titleKind = 1,
                       visualization = {
                         chartType = 2,
                         legendVisualization = {
-                          isVisible = true,
-                          position = 2,
-                          hideHoverCard = false,
+                          isVisible      = true,
+                          position       = 2,
+                          hideHoverCard  = false,
                           hideLabelNames = true
                         },
                         axisVisualization = {
                           x = {
                             isVisible = true,
-                            axisType = 2
+                            axisType  = 2
                           },
                           y = {
                             isVisible = true,
-                            axisType = 1
+                            axisType  = 1
                           }
                         },
+                        disablePinning = true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          "6" = { // File-server data disk read throughput
+            position = {
+              x       = 0
+              y       = 12
+              colSpan = 6
+              rowSpan = 4
+            }
+            metadata = {
+              inputs = [
+                {
+                  name       = "options"
+                  isOptional = true
+                },
+                {
+                  name       = "sharedTimeRange"
+                  isOptional = true
+                }
+              ]
+              type = "Extension/HubsExtension/PartType/MonitorChartPart"
+              settings = {
+                content = {
+                  options = {
+                    chart = {
+                      metrics = [{
+                        resourceMetadata = {
+                          id = module.azvm_fileserver.vm_id
+                        }
+                        name            = "Data Disk Read Bytes/sec"
+                        aggregationType = 4
+                        namespace       = "microsoft.compute/virtualmachines"
+                        metricVisualization = {
+                          displayName = "Data Disk Read Bytes/sec"
+                        }
+                      }]
+                      title     = "File Server Data Disk Read Bytes/sec"
+                      titleKind = 1
+                      visualization = {
+                        chartType = 2
+                        legendVisualization = {
+                          isVisible      = true
+                          position       = 2
+                          hideHoverCard  = false
+                          hideLabelNames = true
+                        }
+                        axisVisualization = {
+                          x = {
+                            isVisible = true
+                            axisType  = 2
+                          }
+                          y = {
+                            isVisible = true
+                            axisType  = 1
+                          }
+                        }
+                        disablePinning = true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          "7" = { // File-server data disk write throughput
+            position = {
+              x       = 6
+              y       = 12
+              colSpan = 6
+              rowSpan = 4
+            }
+            metadata = {
+              inputs = [
+                {
+                  name       = "options"
+                  isOptional = true
+                },
+                {
+                  name       = "sharedTimeRange"
+                  isOptional = true
+                }
+              ]
+              type = "Extension/HubsExtension/PartType/MonitorChartPart"
+              settings = {
+                content = {
+                  options = {
+                    chart = {
+                      metrics = [{
+                        resourceMetadata = {
+                          id = module.azvm_fileserver.vm_id
+                        }
+                        name            = "Data Disk Write Bytes/sec"
+                        aggregationType = 4
+                        namespace       = "microsoft.compute/virtualmachines"
+                        metricVisualization = {
+                          displayName = "Data Disk Write Bytes/sec"
+                        }
+                      }]
+                      title     = "File Server Data Disk Write Bytes/sec"
+                      titleKind = 1
+                      visualization = {
+                        chartType = 2
+                        legendVisualization = {
+                          isVisible      = true
+                          position       = 2
+                          hideHoverCard  = false
+                          hideLabelNames = true
+                        }
+                        axisVisualization = {
+                          x = {
+                            isVisible = true
+                            axisType  = 2
+                          }
+                          y = {
+                            isVisible = true
+                            axisType  = 1
+                          }
+                        }
                         disablePinning = true
                       }
                     }

@@ -112,6 +112,71 @@ variable "root_volume_throughput" {
   }
 }
 
+variable "fileserver_instance_type" {
+  description = "EC2 instance type for the dedicated Windows file-server VM"
+  type        = string
+  default     = "m7i.xlarge"
+}
+
+variable "fileserver_data_volume_size" {
+  description = "Data EBS volume size in GB for the dedicated file-server VM"
+  type        = number
+  default     = 2048
+
+  validation {
+    condition = (
+      var.fileserver_data_volume_type == "gp3" ? var.fileserver_data_volume_size >= 1 && var.fileserver_data_volume_size <= 16384 :
+      var.fileserver_data_volume_type == "io1" ? var.fileserver_data_volume_size >= 4 && var.fileserver_data_volume_size <= 16384 :
+      var.fileserver_data_volume_type == "io2" ? var.fileserver_data_volume_size >= 4 && var.fileserver_data_volume_size <= 65536 :
+      contains(["sc1", "st1"], var.fileserver_data_volume_type) ? var.fileserver_data_volume_size >= 125 && var.fileserver_data_volume_size <= 16384 :
+      true
+    )
+    error_message = "The fileserver_data_volume_size value must be 1-16384 GiB for gp3, 4-16384 GiB for io1, 4-65536 GiB for io2, or 125-16384 GiB for sc1 and st1."
+  }
+}
+
+variable "fileserver_data_volume_type" {
+  description = "Data EBS volume type for the dedicated file-server VM"
+  type        = string
+  default     = "gp3"
+
+  validation {
+    condition     = contains(["gp3", "io1", "io2", "sc1", "st1"], var.fileserver_data_volume_type)
+    error_message = "Valid values for fileserver_data_volume_type are gp3, io1, io2, sc1, and st1."
+  }
+}
+
+variable "fileserver_data_volume_iops" {
+  description = "Data EBS IOPS for the dedicated file-server VM when using provisioned IOPS volume types"
+  type        = number
+  default     = 5000
+
+  validation {
+    condition = (
+      var.fileserver_data_volume_type == "gp3" ? var.fileserver_data_volume_iops >= 3000 && var.fileserver_data_volume_iops <= 80000 && var.fileserver_data_volume_iops <= var.fileserver_data_volume_size * 500 :
+      var.fileserver_data_volume_type == "io1" ? var.fileserver_data_volume_iops >= 100 && var.fileserver_data_volume_iops <= 64000 && var.fileserver_data_volume_iops <= var.fileserver_data_volume_size * 50 :
+      var.fileserver_data_volume_type == "io2" ? var.fileserver_data_volume_iops >= 100 && var.fileserver_data_volume_iops <= 256000 && var.fileserver_data_volume_iops <= var.fileserver_data_volume_size * 1000 :
+      true
+    )
+    error_message = "The fileserver_data_volume_iops value must be 3000-80000 and at most 500 IOPS/GiB for gp3, 100-64000 and at most 50 IOPS/GiB for io1, or 100-256000 and at most 1000 IOPS/GiB for io2. IOPS is not sent for sc1 or st1."
+  }
+}
+
+variable "fileserver_data_volume_throughput" {
+  description = "Data EBS throughput in MB/s for the dedicated file-server VM"
+  type        = number
+  default     = 250
+
+  validation {
+    condition = var.fileserver_data_volume_type != "gp3" || (
+      var.fileserver_data_volume_throughput >= 125 &&
+      var.fileserver_data_volume_throughput <= 2000 &&
+      var.fileserver_data_volume_throughput <= var.fileserver_data_volume_iops * 0.25
+    )
+    error_message = "For gp3, fileserver_data_volume_throughput must be 125-2000 MiB/s and no more than 0.25 times fileserver_data_volume_iops. Throughput is not sent for io1, io2, sc1, or st1."
+  }
+}
+
 variable "subnet_ids" {
   description = "EC2 instances subnet IDs (by default, the first two private VPC subnets are used)"
   type        = list(string)

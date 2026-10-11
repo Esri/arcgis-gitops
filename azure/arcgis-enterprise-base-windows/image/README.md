@@ -15,11 +15,15 @@ Then the template uses python scripts to run Azure Managed Run Command on the so
 5. Install patches for the base ArcGIS Enterprise applications
 6. Delete unused files, uninstall Cinc Client, run sysprep
 
-IDs of the images are saved in "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-standby" Key Vault secrets.
+IDs of the ArcGIS images are saved in "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-standby" Key Vault secrets. A separate Packer build creates a generalized file-server gallery image version from the same base Windows OS image without installing the ArcGIS application stack. Its built image version ID is saved in "${var.deployment_id}-vm-image-fileserver" after the build succeeds.
+
+The file-server image installs Azure CLI using the same user-data script and `azure_cli_url` as the ArcGIS image. Before Sysprep, the build refreshes PATH, verifies that `az` resolves, and runs `az version`; a missing or nonfunctional CLI fails the build before image publication. Azure CLI is required for application bootstrap to authenticate using the VM's managed identity.
+
+For deployments using a file-server image built without Azure CLI, rerun the image workflow and recreate the failed file-server VM through the approved deployment workflow using the new image version. Existing images and VMs are not updated by this template change. For rollback, use a previously verified file-server gallery image version.
 
 ## Requirements
 
-VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" must be created in the enterprise Image Gallery before running the template.
+VM image definitions "${var.deployment_id}-${var.arcgis_version}-${var.os}" and "${var.deployment_id}-fileserver-${var.os}" must exist in the enterprise Image Gallery before running the template. The image workflow creates both definitions; create both before running Packer directly. The destroy workflow removes both definitions and their versions.
 
 On the machine where Packer is executed:
 
@@ -52,6 +56,7 @@ The template saves the built image ID in the following Key Vault secrets:
 | ${var.deployment_id}-server-web-context | ArcGIS Server web context |
 | ${var.deployment_id}-vm-image-primary   | Built image ID for primary node |
 | ${var.deployment_id}-vm-image-standby   | Built image ID for standby node |
+| ${var.deployment_id}-vm-image-fileserver | Built file-server gallery image version ID |
 
 ## Inputs
 

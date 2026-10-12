@@ -73,8 +73,8 @@ variable "os_disk_size" {
   default     = 256
 
   validation {
-    condition     = var.os_disk_size >= 100 && var.os_disk_size <= 4095
-    error_message = "The os_disk_size value must be between 100 and 4095."
+    condition     = var.os_disk_size >= 256 && var.os_disk_size <= 4095
+    error_message = "The os_disk_size value must be between 256 and 4095."
   }
 }
 

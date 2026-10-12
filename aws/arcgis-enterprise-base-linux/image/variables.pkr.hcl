@@ -101,11 +101,11 @@ variable "portal_web_context" {
 variable "root_volume_size" {
   description = "Root EBS volume size in GB"
   type        = number
-  default     = 100
+  default     = 256
 
   validation {
-    condition     = var.root_volume_size >= 100   && var.root_volume_size <= 16384
-    error_message = "The root_volume_size value must be between 100 and 16384."
+    condition     = var.root_volume_size >= 256 && var.root_volume_size <= 16384
+    error_message = "The root_volume_size value must be between 256 and 16384."
   }
 }
 

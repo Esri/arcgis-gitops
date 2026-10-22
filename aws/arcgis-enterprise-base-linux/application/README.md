@@ -31,6 +31,10 @@ Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is
 the module configures ArcGIS Server to store server directories in an S3 bucket and
 the configuration store in a DynamoDB table, rather than on the EFS file system.
 
+Portal content uses Amazon S3 by default. Set content_store_type
+to FILESYSTEM to use ${mount_point}/${namespace}/arcgisportal/content on the EFS file system.
+This setting is independent of config_store_type and does not migrate existing Portal content.
+
 ## Requirements
 
 The AWS resources for the deployment must be provisioned by Infrastructure terraform module for base ArcGIS Enterprise on Linux.
@@ -132,6 +136,7 @@ The module reads the following SSM parameters:
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region ID | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
+| content_store_type | Portal for ArcGIS content store type | `string` | `"AMAZON"` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_raster_store | If true, the deployment's EFS filesystem will be used for raster store. | `bool` | `true` | no |
@@ -155,3 +160,15 @@ The module reads the following SSM parameters:
 | arcgis_portal_url | Portal for ArcGIS URL |
 | arcgis_server_url | ArcGIS Server URL |
 <!-- END_TF_DOCS -->
+
+## Portal content storage operations
+
+- `content_store_type` accepts `AMAZON` (default) or `FILESYSTEM`. FILESYSTEM uses `/mnt/efs/${namespace}/arcgisportal/content`; the namespace comes from the deployment's SSM parameter. Primary and standby machines use this same shared store. Portal installation and log directories remain local.
+- The existing fileserver Chef run creates the content directory before Portal configuration, using the ArcGIS service account and Linux directory mode `0700`. Verify the EFS mount is available on both machines, service-account UID/GID mappings are consistent, and storage capacity, throughput, monitoring, and backup coverage meet the workload requirements.
+- Server and Data Store configuration, cloud resources, and backup destinations remain unchanged. This option does not eliminate other cloud dependencies or require broader IAM/network permissions.
+- Before promotion, review a non-applying Terraform plan, verify the Portal-reported content-store location, publish and read content, test standby access/failover when applicable, and rehearse backup/restore with the existing backup and restore workflows.
+- Do not change this input to migrate an existing Portal. Follow a separately reviewed [ArcGIS content-directory migration procedure](https://enterprise.arcgis.com/en/portal/latest/administer/linux/changing-the-portal-content-directory.htm), verify recoverable backups, and obtain supervised cutover approval. Retain the original store until migration and recovery are verified. Reverting the input alone does not move content back; rollback must restore the original Portal configuration/content or a verified backup using the approved recovery procedure.
+
+### Local validation
+
+From this module directory, run `terraform init -backend=false -input=false`, `terraform validate`, and `terraform test`. The Portal content tests use mocked providers and plan-only runs; they do not execute Chef or apply cloud changes. Live deployment and recovery checks remain required.

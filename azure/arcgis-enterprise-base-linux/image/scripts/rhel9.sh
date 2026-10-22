@@ -53,9 +53,24 @@ EOT
 # Waiting for Azure IMDS and RHUI to settle...
 sleep 60
 
+# Refresh the expired RHUI client certificate while ignoring BaseOS/AppStream repos
+sudo dnf update -y --disablerepo='*' --enablerepo='rhui-microsoft-azure-rhel9' rhui-azure-rhel9 || \
+sudo dnf update -y --disablerepo='*' --enablerepo='azure-cli' rhui-azure-rhel9
+
 # Refresh and Install
 sudo dnf clean all
-sudo dnf makecache
+for attempt in 1 2 3; do
+	if sudo dnf makecache; then
+		break
+	fi
+	if [ "$attempt" -eq 3 ]; then
+		echo "dnf makecache failed after $attempt attempts." >&2
+		exit 1
+	fi
+	echo "dnf makecache failed (attempt $attempt/3); retrying in 30 seconds..." >&2
+	sudo dnf clean expire-cache
+	sleep 30
+done
 
 sudo dnf install -y azure-cli-$AZURE_CLI_VERSION* 
 sudo dnf install -y nfs-utils aznfs

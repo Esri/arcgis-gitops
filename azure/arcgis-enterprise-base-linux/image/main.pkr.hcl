@@ -157,6 +157,9 @@ source "azure-arm" "main" {
   os_type         = "Linux"
   
   managed_image_storage_account_type = "Premium_LRS"
+
+  accelerated_networking     = true
+  async_resourcegroup_delete = true  
   
   security_type       = "TrustedLaunch"
   encryption_at_host  = true
@@ -175,7 +178,8 @@ source "azure-arm" "main" {
     gallery_name   = data.azure-keyvaultsecret.enterprise_ig.value
     image_name     = "${var.deployment_id}-${var.arcgis_version}-${var.os}"
     image_version  = formatdate("YYYY.MMDD.HHMM", timestamp())
-    # replication_regions = ["East US"]
+
+    storage_account_type = "Standard_LRS"    
   }
 
   user_assigned_managed_identities = [

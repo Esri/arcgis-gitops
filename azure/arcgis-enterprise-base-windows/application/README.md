@@ -20,7 +20,7 @@ Then the module:
 * If specified, copies the root certificate file to the private repository blob container
 * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository blob container to primary and standby VMs
 * Downloads the keystore and root certificate files from the private repository blob container to the primary and standby VMs
-* Creates the required network shares and `D:` directories on the base deployment's dedicated file-server VM
+* Creates one namespace-named share and the required component directories on the base deployment's dedicated file-server VM
 * Configures base ArcGIS Enterprise on the primary VM
 * Configures base ArcGIS Enterprise on the standby VM
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from the primary and standby VMs
@@ -28,6 +28,10 @@ Then the module:
 Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AZURE,
 the module configures ArcGIS Server to store server directories in an Azure Blob container and
 the configuration store in a Cosmos DB database, rather than on a file share.
+
+Portal content uses Azure Blob Storage by default. For new deployments, set content_store_type
+to FILESYSTEM to use `\\${fileserver_hostname}\${namespace}\arcgisportal\content` on the existing dedicated fileserver.
+This setting is independent of config_store_type and does not migrate existing Portal content.
 
 ## Requirements
 
@@ -53,7 +57,7 @@ The module reads the following Key Vault secrets:
 | ${var.deployment_id}-fileserver-private-dns | Base-owned file-server private DNS name |
 | ${var.deployment_id}-portal-web-context   | Portal for ArcGIS Web Adaptor web context |
 | ${var.deployment_id}-server-web-context   | ArcGIS Server Web Adaptor web context |
-| ${var.deployment_id}-storage-account-name | Deployment's storage account name |
+| ${var.deployment_id}-storage-account-name | Deployment's storage account name and persistent namespace |
 | storage-account-key                       | Enterprise's storage account key |
 | storage-account-name                      | Enterprise's storage account name |
 | subnets                                   | VNet subnet IDs |
@@ -121,6 +125,7 @@ The module reads the following Key Vault secrets:
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.1"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
+| content_store_type | Portal for ArcGIS content store type | `string` | `"AZURE"` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
@@ -143,3 +148,24 @@ The module reads the following Key Vault secrets:
 | arcgis_portal_url | Portal for ArcGIS URL |
 | arcgis_server_url | ArcGIS Server URL |
 <!-- END_TF_DOCS -->
+
+## Deployment namespace
+
+The application uses the deployment storage-account name, read from `${deployment_id}-storage-account-name`, as its namespace. New deployments use one SMB share named `${namespace}`, rooted at `D:\data\${namespace}`.
+
+| Purpose | Fileserver directory | UNC path |
+|---------|----------------------|----------|
+| Server directories | `D:\data\${namespace}\arcgisserver` | `\\${fileserver_hostname}\${namespace}\arcgisserver` |
+| Server filesystem configuration | `D:\data\${namespace}\arcgisserver\config-store` | `\\${fileserver_hostname}\${namespace}\arcgisserver\config-store` |
+| Optional filesystem Portal content | `D:\data\${namespace}\arcgisportal\content` | `\\${fileserver_hostname}\${namespace}\arcgisportal\content` |
+| WebGISDR staging | `D:\data\${namespace}\arcgisbackup\webgisdr` | `\\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr` |
+
+Server cloud configuration also uses this namespace. Data Store backups use `datastore-backups/${deployment_id}/${namespace}/relational` in the existing enterprise storage account. Local installation, data, and log paths on ArcGIS machines remain unchanged. Namespace names prevent path collisions; existing service-account SMB/NTFS permissions remain the authorization boundary. Dedicated-fileserver provisioning is unchanged, and no existing-infrastructure migration or compatibility mode is provided.
+
+## Portal content storage operations
+
+- `content_store_type` accepts `AZURE` (default) or `FILESYSTEM`. FILESYSTEM uses `\\${fileserver_hostname}\${namespace}\arcgisportal\content` on the dedicated fileserver VM. Portal installation, data, and log directories remain local.
+- The existing fileserver Chef run creates `D:\data\${namespace}\arcgisportal\content` beneath the single `D:\data\${namespace}` share before Portal configuration, using the existing ArcGIS service-account ownership/share permissions. Verify UNC access from both Portal machines as that account, and ensure disk capacity, throughput, monitoring, and backup coverage meet the workload requirements.
+- Server and Data Store configuration, cloud resources, and backup destinations remain unchanged. This option does not eliminate other cloud dependencies or require broader Azure/network permissions.
+- Before promotion, review a non-applying Terraform plan, verify the Portal-reported content-store location, publish and read content, test standby access/failover when applicable, and rehearse backup/restore with the existing backup and restore workflows.
+- Do not change this input to migrate an existing Portal. Follow a separately reviewed [ArcGIS content-directory migration procedure](https://enterprise.arcgis.com/en/portal/latest/administer/windows/changing-the-portal-content-directory.htm), verify recoverable backups, and obtain supervised cutover approval. Retain the original store until migration and recovery are verified. Reverting the input alone does not move content back; rollback must restore the original Portal configuration/content or a verified backup using the approved recovery procedure.

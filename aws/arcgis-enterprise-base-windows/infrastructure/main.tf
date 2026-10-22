@@ -34,7 +34,8 @@
  * 
  * > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module is applied again after the SSM parameter value was modified by a new image build.
  *
- * For the portal content and object store the module creates S3 bucket and stores their names in SSM parameters.
+ * For portal content and object store the module creates namespace-named S3 buckets and stores their names in SSM parameters.
+ * The persistent deployment namespace is "${var.enterprise_id}${random_id.unique_name_suffix.hex}" and is also used for fileserver subfolders.
  *
  * The deployment's Monitoring Subsystem consists of:
  *
@@ -87,6 +88,7 @@
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress | 
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | Portal for ArcGIS URL of the deployment |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | Object store S3 bucket |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Persistent deployment namespace for resource names and fileserver subfolders |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
@@ -101,6 +103,10 @@ terraform {
     aws = {
       source  = "hashicorp/aws"
       version = "~> 6.10"
+    }
+    random = {
+      source  = "hashicorp/random"
+      version = "~> 3.7"
     }
   }
 
@@ -141,11 +147,28 @@ data "aws_ami" "ami" {
 }
 
 locals {
+  namespace      = "${var.enterprise_id}${random_id.unique_name_suffix.hex}"
   primary_subnet = length(var.subnet_ids) < 2 ? module.enterprise_core_info.private_subnets[0] : var.subnet_ids[0]
   standby_subnet = length(var.subnet_ids) < 2 ? module.enterprise_core_info.private_subnets[1] : var.subnet_ids[1]
   # Get values of ArcGISTemplateId and ArcGISVersion tags from the AMI to copy them to the EC2 instances.
   arcgis_template_id = "arcgis-enterprise-base"
   arcgis_version     = try(data.aws_ami.ami.tags.ArcGISVersion, null)
+}
+
+resource "random_id" "unique_name_suffix" {
+  keepers = {
+    enterprise_id = var.enterprise_id
+    deployment_id = var.deployment_id
+  }
+
+  byte_length = 8
+}
+
+resource "aws_ssm_parameter" "namespace" {
+  name        = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+  type        = "String"
+  value       = local.namespace
+  description = "Persistent deployment namespace for resource names and fileserver subfolders"
 }
 
 module "enterprise_core_info" {
@@ -332,7 +355,7 @@ resource "aws_route53_record" "standby" {
 
 # Create S3 bucket for the portal content
 resource "aws_s3_bucket" "portal_content" {
-  bucket_prefix = "${var.enterprise_id}-portal-content"
+  bucket        = "${local.namespace}-portal-content"
   force_destroy = true
 
   tags = {
@@ -365,7 +388,7 @@ resource "aws_ssm_parameter" "portal_content_s3_bucket" {
 
 # Create S3 bucket for the object store
 resource "aws_s3_bucket" "object_store" {
-  bucket_prefix = "${var.enterprise_id}-object-store"
+  bucket        = "${local.namespace}-object-store"
   force_destroy = true
 
   tags = {

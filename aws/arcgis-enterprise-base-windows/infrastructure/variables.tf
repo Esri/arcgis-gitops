@@ -121,7 +121,7 @@ variable "fileserver_instance_type" {
 variable "fileserver_data_volume_size" {
   description = "Data EBS volume size in GB for the dedicated file-server VM"
   type        = number
-  default     = 2048
+  default     = 1024
 
   validation {
     condition = (
@@ -149,7 +149,7 @@ variable "fileserver_data_volume_type" {
 variable "fileserver_data_volume_iops" {
   description = "Data EBS IOPS for the dedicated file-server VM when using provisioned IOPS volume types"
   type        = number
-  default     = 5000
+  default     = 10000
 
   validation {
     condition = (

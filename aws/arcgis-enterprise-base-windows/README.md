@@ -133,6 +133,8 @@ The template supports:
 
 The application-level base ArcGIS Enterprise deployment backups back up the portal items, services, and data using [WebGISDR](https://enterprise.arcgis.com/en/portal/latest/administer/windows/create-web-gis-backup.htm) tool. The backups are stored in the enterprise's backup S3 bucket.
 
+WebGISDR stages at `\\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr`. Recover the target fileserver and its data disk first if needed, preserving its namespace share and service-account permissions.
+
 #### Creating Application-level Backups
 
 GitHub Actions workflow **enterprise-base-windows-aws-backup** creates base ArcGIS Enterprise backups using WebGISDR utility.

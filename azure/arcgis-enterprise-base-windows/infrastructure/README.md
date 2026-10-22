@@ -15,6 +15,7 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
   > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
 - Provisions an Azure Storage Account with blob containers for portal content and object store.
   The storage account name is stored in the Key Vault secret "${var.deployment_id}-storage-account-name".
+  This persistent unique name is also the namespace used for cloud resource names and fileserver subfolders.
 - If "is_ha" variable is true, provisions a Cosmos DB account and a Service Bus namespace for ArcGIS Server configuration store.
 - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
 - Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container.
@@ -57,7 +58,7 @@ On the machine where Terraform is executed:
 | ${var.deployment_id}-backend-pfx-password | Password for the generated PFX file |
 | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
 | ${var.deployment_id}-deployment-url       | Portal for ArcGIS URL of the deployment |
-| ${var.deployment_id}-storage-account-name | Deployment's storage account name |
+| ${var.deployment_id}-storage-account-name | Deployment's storage account name and persistent namespace |
 | ${var.deployment_id}-fileserver-private-dns | Dedicated file-server private DNS name |
 | ${var.deployment_id}-fileserver-security-group-id | Subnet network security group ID shared by file-server, primary and standby VMs |
 | ${var.deployment_id}-fileserver-vm-id | Dedicated file-server VM ID |
@@ -139,14 +140,14 @@ On the machine where Terraform is executed:
 | fileserver_backup_retention_days | Number of daily file-server VM recovery points to retain | `number` | `30` | no |
 | fileserver_backup_time | UTC start time for the daily file-server VM backup | `string` | `"23:00"` | no |
 | fileserver_data_disk_iops | Provisioned data disk IOPS for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
-| fileserver_data_disk_size_gb | Data disk size in GB for the dedicated Windows file-server VM | `number` | `2048` | no |
+| fileserver_data_disk_size_gb | Data disk size in GB for the dedicated Windows file-server VM | `number` | `1024` | no |
 | fileserver_data_disk_storage_account_type | Data disk storage account type for the dedicated Windows file-server VM | `string` | `"Premium_LRS"` | no |
 | fileserver_data_disk_throughput_mbps | Provisioned data disk throughput in MB/s for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
 | fileserver_vm_size | Azure VM size for the dedicated Windows file-server VM | `string` | `"Standard_D8s_v5"` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | os_disk_size | OS disk size in GB | `number` | `1024` | no |
-| storage_account_replication_type | Deployment storage account replication type | `string` | `"ZRS"` | no |
+| storage_replication_type | Deployment storage account replication type | `string` | `"ZRS"` | no |
 | storage_account_tier | Deployment storage account tier | `string` | `"Premium"` | no |
 | subnet_id | VMs subnet ID (by default, the first private subnet is used) | `string` | `null` | no |
 | vm_admin_password | VM administrator password | `string` | n/a | yes |

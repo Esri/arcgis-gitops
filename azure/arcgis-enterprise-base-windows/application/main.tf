@@ -34,7 +34,7 @@
  * * If specified, copies the root certificate file to the private repository blob container
  * * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository blob container to primary and standby VMs
  * * Downloads the keystore and root certificate files from the private repository blob container to the primary and standby VMs
- * * Creates the required network shares and directories in the primary VM
+ * Creates one namespace-named share and component directories on the dedicated fileserver VM
  * * Configures base ArcGIS Enterprise on the primary VM
  * * Configures base ArcGIS Enterprise on the standby VM
  * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from the primary and standby VMs
@@ -42,6 +42,11 @@
  * Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AZURE,
  * the module configures ArcGIS Server to store server directories in an Azure Blob container and 
  * the configuration store in a Cosmos DB database, rather than on a file share.
+ *
+ * Portal content uses Azure Blob Storage by default. For new deployments, set content_store_type
+ * to FILESYSTEM to use \\${fileserver_hostname}\${namespace}\arcgisportal\content on the existing dedicated fileserver.
+ * This setting is independent of config_store_type and does not migrate existing Portal content.
+ * New deployments use the deployment storage-account name as the namespace for fileserver subfolders, cloud Server configuration, and Data Store backup prefixes.
  *
  * ## Requirements
  *
@@ -158,8 +163,13 @@ data "azurerm_virtual_machine" "standby" {
 }
 
 locals {
-  portal_web_context = nonsensitive(data.azurerm_key_vault_secret.portal_web_context.value)
-  server_web_context = nonsensitive(data.azurerm_key_vault_secret.server_web_context.value)
+  namespace               = nonsensitive(data.azurerm_key_vault_secret.storage_account_name.value)
+  fileserver_local_root   = "D:\\data\\${local.namespace}"
+  fileserver_unc_root     = "\\\\${local.fileserver_hostname}\\${local.namespace}"
+  server_directories_root = "${local.fileserver_unc_root}\\arcgisserver"
+  datastore_backup_prefix = "datastore-backups/${var.deployment_id}/${local.namespace}/relational"
+  portal_web_context      = nonsensitive(data.azurerm_key_vault_secret.portal_web_context.value)
+  server_web_context      = nonsensitive(data.azurerm_key_vault_secret.server_web_context.value)
 
   manifest_file_path = "../manifests/arcgis-enterprise-azure-files-${var.arcgis_version}.json"
   manifest           = jsondecode(file(local.manifest_file_path))
@@ -184,10 +194,35 @@ locals {
   standby_keystore_file = length(data.azurerm_resources.standby.resources) > 0 ? "${local.certificates_dir}\\${local.standby_backend_cert}" : ""
   root_cert             = var.root_cert_file_path != null ? "${local.certificates_dir}\\${basename(var.root_cert_file_path)}" : ""
 
-  storage_account_name          = data.azurerm_key_vault_secret.storage_account_name.value
+  storage_account_name          = local.namespace
   storage_account_blob_endpoint = "https://${data.azurerm_key_vault_secret.storage_account_name.value}.blob.core.windows.net"
   cosmos_db_account_name        = local.storage_account_name
   service_bus_namespace         = local.storage_account_name
+
+  portal_content_directory = "${local.fileserver_unc_root}\\arcgisportal\\content"
+  portal_content = jsondecode(var.content_store_type == "FILESYSTEM" ? jsonencode({
+    content_store_type              = "fileStore"
+    content_store_provider          = "FileSystem"
+    content_store_connection_string = local.portal_content_directory
+    }) : jsonencode({
+    content_store_type     = "cloudStore"
+    content_store_provider = "Azure"
+    content_store_connection_string = {
+      accountName             = local.storage_account_name
+      accountEndpoint         = "blob.core.windows.net"
+      credentialType          = "userAssignedIdentity"
+      managedIdentityClientId = data.azurerm_key_vault_secret.vm_identity_client_id.value
+    }
+    object_store = "${local.storage_account_blob_endpoint}/portal-content"
+  }))
+
+  fileserver = {
+    directories = concat([
+      "${local.fileserver_local_root}\\arcgisserver",
+      "${local.fileserver_local_root}\\arcgisbackup\\webgisdr"
+    ], var.content_store_type == "FILESYSTEM" ? ["${local.fileserver_local_root}\\arcgisportal\\content"] : [])
+    shares = [local.fileserver_local_root]
+  }
 
   is_ha = length(data.azurerm_resources.standby.resources) > 0
 
@@ -195,7 +230,7 @@ locals {
   # https://developers.arcgis.com/rest/enterprise-administration/server/createsite/
   cloud_config = var.config_store_type == "AZURE" ? jsonencode([{
     name      = "AZURE"
-    namespace = "${var.enterprise_id}-${var.deployment_id}"
+    namespace = local.namespace
     credential = {
       type = "USER-ASSIGNED-IDENTITY"
       secret = {
@@ -402,16 +437,7 @@ module "arcgis_enterprise_fileserver" {
       run_as_user              = var.run_as_user
       run_as_password          = var.run_as_password
       configure_cloud_settings = false
-      fileserver = {
-        directories = [
-          "D:\\data\\arcgisserver",
-          "D:\\data\\arcgisbackup\\webgisdr"
-        ]
-        shares = [
-          "D:\\data\\arcgisserver",
-          "D:\\data\\arcgisbackup"
-        ]
-      }
+      fileserver               = local.fileserver
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
@@ -635,12 +661,12 @@ module "arcgis_enterprise_primary" {
         cert_alias                  = "servercert"
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        directories_root            = "\\\\${local.fileserver_hostname}\\arcgisserver"
+        directories_root            = local.server_directories_root
         log_dir                     = "C:\\arcgisserver\\logs"
         log_level                   = var.log_level
         config_store_type           = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
-        config_store_connection_string = "\\\\${local.fileserver_hostname}\\arcgisserver\\config-store"
+        config_store_connection_string = "${local.server_directories_root}\\config-store"
         cloud_config                   = local.cloud_config
         services_dir_enabled           = true
         callback_functions_enabled     = true
@@ -666,10 +692,10 @@ module "arcgis_enterprise_primary" {
           pitr        = "enable"
           backup_type = "s3" # Use "s3" to configure backup in Azure blob container
           # Configure the data store backup location in blob container
-          backup_location = "type=azure;location=datastore-backups/${var.deployment_id}/relational;name=re_default;username=${module.enterprise_core_info.storage_account_name};password=${module.enterprise_core_info.storage_account_key}"
+          backup_location = "type=azure;location=${local.datastore_backup_prefix};name=re_default;username=${module.enterprise_core_info.storage_account_name};password=${module.enterprise_core_info.storage_account_key}"
         }
       }
-      portal = {
+      portal = merge({
         url                         = "https://${local.primary_hostname}:7443/arcgis"
         preferredidentifier         = "ip"
         hostname                    = local.primary_hostname
@@ -687,29 +713,18 @@ module "arcgis_enterprise_primary" {
         data_dir                    = "C:\\arcgisportal"
         log_dir                     = "C:\\arcgisportal\\logs"
         log_level                   = var.log_level
-        # Configure the portal content in blob container
-        # See: https://enterprise.arcgis.com/en/portal/latest/administer/linux/changing-the-portal-content-directory.htm
-        content_store_type     = "cloudStore"
-        content_store_provider = "Azure"
-        content_store_connection_string = {
-          accountName             = local.storage_account_name
-          accountEndpoint         = "blob.core.windows.net"
-          credentialType          = "userAssignedIdentity"
-          managedIdentityClientId = data.azurerm_key_vault_secret.vm_identity_client_id.value
-        }
-        object_store         = "${local.storage_account_blob_endpoint}/portal-content"
-        authorization_file   = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
-        user_license_type_id = var.portal_user_license_type_id
-        keystore_file        = local.primary_keystore_file
-        keystore_password    = data.azurerm_key_vault_secret.backend_pfx_password.value
-        cert_alias           = "portalcert"
-        root_cert            = local.root_cert
-        root_cert_alias      = "rootcert"
+        authorization_file          = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
+        user_license_type_id        = var.portal_user_license_type_id
+        keystore_file               = local.primary_keystore_file
+        keystore_password           = data.azurerm_key_vault_secret.backend_pfx_password.value
+        cert_alias                  = "portalcert"
+        root_cert                   = local.root_cert
+        root_cert_alias             = "rootcert"
         system_properties = {
           privatePortalURL = "https://${local.ingress_fqdn}/${local.portal_web_context}"
           WebContextURL    = "https://${local.ingress_fqdn}/${local.portal_web_context}"
         }
-      }
+      }, local.portal_content)
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
@@ -724,6 +739,7 @@ module "arcgis_enterprise_primary" {
   })
   execution_timeout = 14400
   depends_on = [
+    module.arcgis_enterprise_fileserver,
     module.authorization_files,
     module.primary_keystore,
     module.root_cert

@@ -110,6 +110,12 @@ Instructions:
 
 > Starting with ArcGIS Enterprise 12.0, for highly-available deployments, "config_store_type" property can be set to "AZURE" to configure the ArcGIS Server site to use Azure Cosmos DB as the configuration store, Azure Blob Storage as the object store and server directories, and Azure Service Bus for GeoProcessing service queues, instead of relying on the network file shares.
 
+#### Portal content storage
+
+For a new deployment, set `content_store_type` in the application configuration to `AZURE` (the default) for Azure Blob Storage, or `FILESYSTEM` for `/mnt/fileserver/${namespace}/arcgisportal/content` on the existing Azure Files NFS share. The namespace is the deployment storage-account name. The application module creates the directory with ArcGIS service-account ownership before configuring Portal. Primary and standby Portal machines share the same content store.
+
+This setting is independent of `config_store_type` and does not change Server, Data Store, backup destinations, or provisioned cloud resources. It does not migrate existing Portal content. Review the [storage validation, migration, and recovery requirements](application/README.md#portal-content-storage-operations) before deployment or cutover.
+
 > '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
 ### 5. Test the Deployment

@@ -16,7 +16,7 @@ The module creates target groups that target the EC2 instances and associates th
 
 > Note that the EC2 instance will be terminated and recreated if the infrastructure terraform module is applied again after the SSM parameter value was modified by a new image build.
 
-For the portal content and object store the module creates S3 bucket and stores their names in SSM parameters.
+For portal content and object store the module creates S3 buckets named `${namespace}-portal-content` and `${namespace}-object-store` and stores their names in SSM parameters.
 
 The deployment's Monitoring Subsystem consists of:
 
@@ -70,6 +70,7 @@ The module writes the following SSM parameters:
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/deployment-url | Portal for ArcGIS URL of the deployment |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | Object store S3 bucket |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Persistent deployment namespace for resource names and fileserver subfolders |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/security-group-id | Deployment security group ID |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/server-web-context | ArcGIS Server web context |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
@@ -83,6 +84,7 @@ The module writes the following SSM parameters:
 | Name | Version |
 |------|---------|
 | aws | ~> 6.10 |
+| random | ~> 3.7 |
 
 ## Modules
 
@@ -117,9 +119,11 @@ The module writes the following SSM parameters:
 | [aws_ssm_parameter.backup_plan_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.deployment_url](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [aws_ssm_parameter.namespace](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.object_store_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.portal_content_s3_bucket](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
+| [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_ssm_parameter.alb_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.alb_ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -140,8 +144,8 @@ The module writes the following SSM parameters:
 | backup_schedule | Backup schedule in cron format | `string` | `"cron(0 0 * * ? *)"` | no |
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
-| fileserver_data_volume_iops | Data EBS volume IOPS for the dedicated file-server VM | `number` | `5000` | no |
-| fileserver_data_volume_size | Data EBS volume size in GB for the dedicated file-server VM | `number` | `2048` | no |
+| fileserver_data_volume_iops | Data EBS volume IOPS for the dedicated file-server VM | `number` | `10000` | no |
+| fileserver_data_volume_size | Data EBS volume size in GB for the dedicated file-server VM | `number` | `1024` | no |
 | fileserver_data_volume_throughput | Data EBS throughput in MB/s for the dedicated file-server VM | `number` | `250` | no |
 | fileserver_data_volume_type | Data EBS volume type for the dedicated file-server VM | `string` | `"gp3"` | no |
 | fileserver_instance_type | EC2 instance type for the dedicated Windows file-server VM | `string` | `"m7i.xlarge"` | no |

@@ -44,13 +44,51 @@ variable "fileserver_deployment_id" {
 }
 
 variable "fileserver_size" {
-  description = "Maximum size of the NFS file share in GB"
+  description = "Provisioned NFS file share capacity in GiB"
   type        = number
   default     = 1024
 
   validation {
-    condition     = var.fileserver_size >= 1 && var.fileserver_size <= 5120
-    error_message = "The fileserver_size value must be between 1 and 5120."
+    condition     = var.fileserver_size == floor(var.fileserver_size) && var.fileserver_size >= (var.fileserver_billing_model_version == "V2" ? 32 : 1) && var.fileserver_size <= 5120
+    error_message = "The fileserver_size value must be an integer between 1 and 5120 GiB (at least 32 GiB for V2)."
+  }
+}
+
+variable "fileserver_billing_model_version" {
+  description = "Azure Files provisioning model: V1 for existing shares, V2 for independent IOPS and throughput on new shares. Changing this replaces the storage account."
+  type        = string
+  default     = "V1"
+  nullable    = false
+
+  validation {
+    condition     = contains(["V1", "V2"], var.fileserver_billing_model_version)
+    error_message = "The fileserver_billing_model_version value must be V1 or V2."
+  }
+}
+
+variable "fileserver_iops" {
+  description = "Provisioned IOPS for a dedicated V2 share. Required for V2; must be null for V1 or an existing shared file server."
+  type        = number
+  default     = null
+
+  validation {
+    condition = var.fileserver_deployment_id != null || var.fileserver_billing_model_version != "V2" ? var.fileserver_iops == null : (
+      var.fileserver_iops == null ? false : var.fileserver_iops == floor(var.fileserver_iops) && var.fileserver_iops >= 3000 && var.fileserver_iops <= min(102400, 5 * (3000 + var.fileserver_size))
+    )
+    error_message = "Dedicated V2 shares require integer fileserver_iops from 3000 to min(102400, 5 * (3000 + fileserver_size)); other shares require null."
+  }
+}
+
+variable "fileserver_throughput" {
+  description = "Provisioned throughput in MiB/s for a dedicated V2 share. Required for V2; must be null for V1 or an existing shared file server."
+  type        = number
+  default     = null
+
+  validation {
+    condition = var.fileserver_deployment_id != null || var.fileserver_billing_model_version != "V2" ? var.fileserver_throughput == null : (
+      var.fileserver_throughput == null ? false : var.fileserver_throughput == floor(var.fileserver_throughput) && var.fileserver_throughput >= 100 && var.fileserver_throughput <= min(10340, 5 * (100 + ceil(0.1 * var.fileserver_size)))
+    )
+    error_message = "Dedicated V2 shares require integer fileserver_throughput from 100 to min(10340, 5 * (100 + ceil(0.1 * fileserver_size))); other shares require null."
   }
 }
 

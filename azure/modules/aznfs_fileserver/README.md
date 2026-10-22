@@ -31,12 +31,14 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
-| azurerm | n/a |
+| azapi | ~> 2.6 |
+| azurerm | ~> 4.46 |
 
 ## Resources
 
 | Name | Type |
 |------|------|
+| [azapi_resource.fileserver_v2](https://registry.terraform.io/providers/Azure/azapi/latest/docs/resources/resource) | resource |
 | [azurerm_key_vault_secret.aznfs_network_path](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_private_endpoint.file_store_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_storage_account.file_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
@@ -50,8 +52,11 @@ On the machine where Terraform is executed:
 |------|-------------|------|---------|:--------:|
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
+| fileserver_billing_model_version | Provisioning model: V1 retains existing resources; V2 independently provisions performance on new shares. Changing this replaces the account. | `string` | `"V1"` | no |
 | fileserver_deployment_id | Use the NFS file share from the deployment with the given ID. If not specified, a dedicated NFS file share will be created for this deployment. | `string` | `null` | no |
-| fileserver_size | Maximum size of the NFS file share in GB | `number` | `1024` | no |
+| fileserver_iops | Provisioned IOPS for a dedicated V2 share; Set to null for V1 or reused shares. | `number` | `null` | no |
+| fileserver_size | Provisioned NFS file share capacity in GiB | `number` | `1024` | no |
+| fileserver_throughput | Provisioned throughput in MiB/s for a dedicated V2 share; null for V1 or reused shares. | `number` | `null` | no |
 | key_vault_id | ID of the Key Vault | `string` | n/a | yes |
 | location | Azure region where the file server resources will be created or are located (if fileserver_deployment_id is specified). | `string` | n/a | yes |
 | resource_group_name | Name of the resource group where the file server resources will be created or are located (if fileserver_deployment_id is specified). | `string` | n/a | yes |

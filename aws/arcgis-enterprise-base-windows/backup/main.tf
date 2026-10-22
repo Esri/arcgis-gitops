@@ -18,6 +18,7 @@
  * The Terraform module creates a backup of base ArcGIS Enterprise deployment on Windows platform.
  *
  * The module runs WebGISDR utility with 'export' option on primary EC2 instance of the deployment.
+ * Staging uses \\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr on the dedicated fileserver.
  *
  * ## Requirements
  *
@@ -37,6 +38,7 @@
  * |--------------------|-------------|
  * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
  * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Deployment namespace for WebGISDR staging |
  */
 
 terraform {
@@ -71,8 +73,13 @@ data "aws_ssm_parameter" "fileserver_private_dns" {
   name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns"
 }
 
+data "aws_ssm_parameter" "namespace" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+}
+
 locals {
-  shared_location = "\\\\\\\\${nonsensitive(data.aws_ssm_parameter.fileserver_private_dns.value)}\\\\arcgisbackup\\\\webgisdr"
+  namespace       = nonsensitive(data.aws_ssm_parameter.namespace.value)
+  shared_location = "\\\\\\\\${nonsensitive(data.aws_ssm_parameter.fileserver_private_dns.value)}\\\\${local.namespace}\\\\arcgisbackup\\\\webgisdr"
 }
 
 module "enterprise_core_info" {
@@ -122,4 +129,3 @@ module "arcgis_enterprise_webgisdr_export" {
     ]
   })
 }
-

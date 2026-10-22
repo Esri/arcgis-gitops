@@ -4,7 +4,7 @@
 The Terraform module creates a backup of base ArcGIS Enterprise deployment on Windows platform.
 
 The module runs WebGISDR utility with 'export' option on primary EC2 instance of the deployment.
-The WebGISDR staging path resolves this base deployment's dedicated file server from SSM. Before starting a backup, verify its private DNS resolves and the `D:\data\arcgisbackup\webgisdr` directory is available through the `arcgisbackup` share.
+The WebGISDR staging path resolves this base deployment's dedicated file server and namespace from SSM. Before starting a backup, verify its private DNS resolves and `D:\data\${namespace}\arcgisbackup\webgisdr` is available as `\\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr` through the namespace share.
 
 ## Requirements
 
@@ -23,6 +23,7 @@ The module reads the following SSM parameters:
 | SSM parameter name | Description |
 |--------------------|-------------|
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns | Private DNS name of this base deployment's dedicated file server |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Deployment namespace for WebGISDR staging |
 | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
 | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
 

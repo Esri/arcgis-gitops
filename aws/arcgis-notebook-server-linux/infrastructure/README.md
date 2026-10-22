@@ -146,7 +146,7 @@ The module writes the following SSM parameters:
 | ingress_id | Ingress ID | `string` | `"enterprise-ingress"` | no |
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
-| node_count | Number of node EC2 instances | `number` | `1` | no |
+| node_count | Number of node EC2 instances (excluding the primary EC2 instance) | `number` | `1` | no |
 | portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `"enterprise-base-linux"` | no |
 | root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `16000` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |

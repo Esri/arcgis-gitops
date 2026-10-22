@@ -35,7 +35,7 @@
  * * If specified, copies keystore and root certificate files to the private repository S3 bucket
  * * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository S3 bucket to primary and standby EC2 instances
  * * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and standby EC2 instances
- * * Creates the required network shares and directories in the primary EC2 instance
+ * Creates one namespace-named share and component directories on the dedicated fileserver EC2 instance
  * * Configures base ArcGIS Enterprise on primary EC2 instance
  * * Configures base ArcGIS Enterprise on standby EC2 instance
  * * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby EC2 instances
@@ -44,6 +44,10 @@
  * Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AMAZON,
  * the module configures ArcGIS Server to store server directories in an S3 bucket and 
  * the configuration store in a DynamoDB table, rather than on a file share.
+ *
+ * Portal content uses Amazon S3 by default. Set content_store_type
+ * to FILESYSTEM to use \\${fileserver_hostname}\${namespace}\arcgisportal\content on the fileserver.
+ * This setting is independent of config_store_type and does not migrate existing Portal content.
  *
  * ## Requirements
  *
@@ -68,6 +72,7 @@
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/content-s3-bucket | S3 bucket for the portal content |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
  * | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Persistent deployment namespace |
  * | /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |
  * | /arcgis/${var.enterprise_id}/cookbooks-url | Chef cookbooks URL |
  * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
@@ -209,13 +214,22 @@ data "aws_ssm_parameter" "fileserver_private_dns" {
   name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns"
 }
 
+data "aws_ssm_parameter" "namespace" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+}
+
 locals {
-  manifest_file_path = "../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
-  manifest           = jsondecode(file(local.manifest_file_path))
-  archives_dir       = local.manifest.arcgis.repository.local_archives
-  patches_dir        = local.manifest.arcgis.repository.local_patches
-  dotnet_setup       = local.manifest.arcgis.repository.metadata.dotnet_setup
-  web_deploy_setup   = local.manifest.arcgis.repository.metadata.web_deploy_setup
+  namespace               = nonsensitive(data.aws_ssm_parameter.namespace.value)
+  fileserver_local_root   = "D:\\data\\${local.namespace}"
+  fileserver_unc_root     = "\\\\${local.fileserver_hostname}\\${local.namespace}"
+  server_directories_root = "${local.fileserver_unc_root}\\arcgisserver"
+  datastore_backup_prefix = "relational-${local.namespace}"
+  manifest_file_path      = "../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json"
+  manifest                = jsondecode(file(local.manifest_file_path))
+  archives_dir            = local.manifest.arcgis.repository.local_archives
+  patches_dir             = local.manifest.arcgis.repository.local_patches
+  dotnet_setup            = local.manifest.arcgis.repository.metadata.dotnet_setup
+  web_deploy_setup        = local.manifest.arcgis.repository.metadata.web_deploy_setup
 
   authorization_files_s3_prefix = "software/authorization/${var.arcgis_version}"
   certificates_s3_prefix        = "software/certificates"
@@ -230,6 +244,29 @@ locals {
   standby_hostname    = length(data.aws_instances.standby.ids) > 0 ? data.aws_instance.standby[0].private_ip : ""
   fileserver_hostname = nonsensitive(data.aws_ssm_parameter.fileserver_private_dns.value)
 
+  portal_content_directory = "${local.fileserver_unc_root}\\arcgisportal\\content"
+  portal_content = jsondecode(var.content_store_type == "FILESYSTEM" ? jsonencode({
+    content_store_type              = "fileStore"
+    content_store_provider          = "FileSystem"
+    content_store_connection_string = local.portal_content_directory
+    }) : jsonencode({
+    content_store_type     = "CloudStore"
+    content_store_provider = "Amazon"
+    content_store_connection_string = {
+      region         = data.aws_region.current.region
+      credentialType = "IAMRole"
+    }
+    object_store = nonsensitive(data.aws_ssm_parameter.s3_content.value)
+  }))
+
+  fileserver = {
+    directories = concat([
+      "${local.fileserver_local_root}\\arcgisserver",
+      "${local.fileserver_local_root}\\arcgisbackup\\webgisdr"
+    ], var.content_store_type == "FILESYSTEM" ? ["${local.fileserver_local_root}\\arcgisportal\\content"] : [])
+    shares = [local.fileserver_local_root]
+  }
+
   software_dir            = "C:\\Software\\*"
   authorization_files_dir = "C:\\Software\\AuthorizationFiles"
   certificates_dir        = "C:\\Software\\Certificates"
@@ -242,7 +279,7 @@ locals {
   cloud_config = var.config_store_type == "AMAZON" ? jsonencode([
     {
       name      = "AWS"
-      namespace = "${var.enterprise_id}-${var.deployment_id}"
+      namespace = local.namespace
       region    = data.aws_region.current.region
       credential = {
         type = "IAM-ROLE"
@@ -502,16 +539,7 @@ module "arcgis_enterprise_fileserver" {
       run_as_user              = var.run_as_user
       run_as_password          = var.run_as_password
       configure_cloud_settings = false
-      fileserver = {
-        directories = [
-          "D:\\data\\arcgisserver",
-          "D:\\data\\arcgisbackup\\webgisdr"
-        ]
-        shares = [
-          "D:\\data\\arcgisserver",
-          "D:\\data\\arcgisbackup"
-        ]
-      }
+      fileserver               = local.fileserver
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
@@ -704,12 +732,12 @@ module "arcgis_enterprise_primary" {
         keystore_password           = var.server_certificate_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        directories_root            = "\\\\${local.fileserver_hostname}\\arcgisserver"
+        directories_root            = local.server_directories_root
         log_dir                     = "C:\\arcgisserver\\logs"
         log_level                   = var.log_level
         config_store_type           = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
-        config_store_connection_string = "\\\\${local.fileserver_hostname}\\arcgisserver\\config-store"
+        config_store_connection_string = "${local.server_directories_root}\\config-store"
         cloud_config                   = local.cloud_config
         wa_name                        = local.server_web_context
         services_dir_enabled           = true
@@ -735,10 +763,10 @@ module "arcgis_enterprise_primary" {
           # Point-in-time recovery (PITR) must be enabled in relational ArcGIS Data Store for WebGISDR tool to work in "incremental" backup-restore mode.
           pitr            = "enable"
           backup_type     = "s3"
-          backup_location = "type=s3;location=${module.enterprise_core_info.s3_backup}/relational-${local.timestamp};name=re_default;region=${module.enterprise_core_info.s3_region}"
+          backup_location = "type=s3;location=${module.enterprise_core_info.s3_backup}/${local.datastore_backup_prefix}-${local.timestamp};name=re_default;region=${module.enterprise_core_info.s3_region}"
         }
       }
-      portal = {
+      portal = merge({
         url                         = "https://${local.primary_hostname}:7443/arcgis"
         wa_url                      = "https://${local.primary_hostname}/${local.portal_web_context}"
         preferredidentifier         = "ip"
@@ -757,25 +785,18 @@ module "arcgis_enterprise_primary" {
         data_dir                    = "C:\\arcgisportal"
         log_dir                     = "C:\\arcgisportal\\logs"
         log_level                   = var.log_level
-        content_store_type          = "CloudStore"
-        content_store_provider      = "Amazon"
-        content_store_connection_string = {
-          region         = data.aws_region.current.region
-          credentialType = "IAMRole"
-        }
-        object_store         = nonsensitive(data.aws_ssm_parameter.s3_content.value)
-        authorization_file   = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
-        user_license_type_id = var.portal_user_license_type_id
-        keystore_file        = var.server_certificate_path != null ? local.keystore_file : ""
-        keystore_password    = var.server_certificate_password
-        root_cert            = local.root_cert
-        root_cert_alias      = "rootcert"
-        wa_name              = local.portal_web_context
+        authorization_file          = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
+        user_license_type_id        = var.portal_user_license_type_id
+        keystore_file               = var.server_certificate_path != null ? local.keystore_file : ""
+        keystore_password           = var.server_certificate_password
+        root_cert                   = local.root_cert
+        root_cert_alias             = "rootcert"
+        wa_name                     = local.portal_web_context
         system_properties = {
           privatePortalURL = "https://${local.ingress_fqdn}/${local.portal_web_context}"
           WebContextURL    = "https://${local.ingress_fqdn}/${local.portal_web_context}"
         }
-      }
+      }, local.portal_content)
       web_adaptor = {
         install_system_requirements = true
         dotnet_setup_path           = null
@@ -800,6 +821,7 @@ module "arcgis_enterprise_primary" {
   })
   execution_timeout = 14400
   depends_on = [
+    module.arcgis_enterprise_fileserver,
     module.authorization_files,
     module.keystore_file,
     module.root_cert

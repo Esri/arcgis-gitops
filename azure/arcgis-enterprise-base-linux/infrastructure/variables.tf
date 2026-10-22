@@ -40,14 +40,38 @@ variable "enterprise_id" {
 }
 
 variable "fileserver_size" {
-  description = "Maximum size of the NFS file share in GB"
+  description = "Provisioned NFS file share capacity in GiB"
   type        = number
   default     = 1024
 
   validation {
-    condition     = var.fileserver_size >= 1 && var.fileserver_size <= 5120
-    error_message = "The fileserver_size value must be between 1 and 5120."
+    condition     = var.fileserver_size == floor(var.fileserver_size) && var.fileserver_size >= (var.fileserver_billing_model_version == "V2" ? 32 : 1) && var.fileserver_size <= 5120
+    error_message = "The fileserver_size value must be an integer between 1 and 5120 GiB (at least 32 GiB for V2)."
   }
+}
+
+variable "fileserver_billing_model_version" {
+  description = "Azure Files provisioning model"
+  type        = string
+  default     = "V2"
+  nullable    = false
+
+  validation {
+    condition     = contains(["V1", "V2"], var.fileserver_billing_model_version)
+    error_message = "The fileserver_billing_model_version value must be V1 or V2."
+  }
+}
+
+variable "fileserver_iops" {
+  description = "Provisioned V2 IOPS. Set to null for V1."
+  type        = number
+  default     = 10000
+}
+
+variable "fileserver_throughput" {
+  description = "Provisioned V2 throughput in MiB/s. The 500 default is a trial profile requiring workload and cost review. Set null for V1."
+  type        = number
+  default     = 500
 }
 
 variable "ingress_id" {

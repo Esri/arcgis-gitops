@@ -98,7 +98,7 @@ variable "fileserver_backup_retention_days" {
 variable "fileserver_data_disk_size_gb" {
   description = "Data disk size in GB for the dedicated Windows file-server VM"
   type        = number
-  default     = 2048
+  default     = 1024
 
   validation {
     condition     = var.fileserver_data_disk_size_gb >= 128 && var.fileserver_data_disk_size_gb <= 65536
@@ -147,14 +147,14 @@ variable "fileserver_data_disk_throughput_mbps" {
   }
 }
 
-variable "storage_account_replication_type" {
+variable "storage_replication_type" {
   description = "Deployment storage account replication type"
   type        = string
   default     = "ZRS"
 
   validation {
-    condition     = contains(["LRS", "GRS", "RAGRS", "ZRS"], var.storage_account_replication_type)
-    error_message = "Valid values for storage_account_replication_type variable are LRS, GRS, RAGRS, and ZRS."
+    condition     = contains(["LRS", "GRS", "RAGRS", "ZRS"], var.storage_replication_type)
+    error_message = "Valid values for storage_replication_type variable are LRS, GRS, RAGRS, and ZRS."
   }
 }
 

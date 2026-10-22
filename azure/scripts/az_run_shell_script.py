@@ -42,6 +42,8 @@ if __name__ == "__main__":
     with open(args.script_file, 'r') as file:
         script = file.read()
 
+    script = script.replace('\r\n', '\n')
+
     json_parameters = base64.b64decode(os.environ['JSON_PARAMETERS']).decode('utf-8')
 
     # parse jsonParameters 

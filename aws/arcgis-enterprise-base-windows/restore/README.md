@@ -7,6 +7,8 @@ The module runs WebGISDR utility with 'import' option on primary EC2 instance of
 
 The backup is retrieved from the backup S3 bucket of the enterprise specified by "backup_enterprise_id" input variable.
 
+Staging uses the target deployment's namespace and fileserver at `\\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr`, independently of the source backup enterprise.
+
 ## Requirements
 
 The base ArcGIS Enterprise must be configured on the deployment by application terraform module for base ArcGIS Enterprise on Windows.
@@ -25,6 +27,7 @@ The module reads the following SSM parameters:
 |--------------------|-------------|
 | /arcgis/${var.backup_enterprise_id}/s3/backup | Backup S3 bucket |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns | Private DNS name of this base deployment's recovered dedicated file server |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Target deployment namespace for WebGISDR staging |
 | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
 
 ## Modules

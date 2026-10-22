@@ -143,15 +143,3 @@ The module reads the following Key Vault secrets:
 | arcgis_portal_url | Portal for ArcGIS URL |
 | arcgis_server_url | ArcGIS Server URL |
 <!-- END_TF_DOCS -->
-
-## Portal content storage operations
-
-- `content_store_type` accepts `AZURE` (default) or `FILESYSTEM`. FILESYSTEM uses `/mnt/fileserver/${namespace}/arcgisportal/content` on the existing Azure Files NFS share; the namespace is the deployment storage-account name. Primary and standby machines use this same shared store. Portal installation and log directories remain local.
-- The existing fileserver Chef run creates the content directory before Portal configuration, using the ArcGIS service account and Linux directory mode `0700`. Verify the NFS mount is available on both machines, service-account UID/GID mappings are consistent, and storage capacity, throughput, monitoring, and backup coverage meet the workload requirements.
-- Server and Data Store configuration, cloud resources, and backup destinations remain unchanged. This option does not eliminate other cloud dependencies or require broader Azure/network permissions.
-- Before promotion, review a non-applying Terraform plan, verify the Portal-reported content-store location, publish and read content, test standby access/failover when applicable, and rehearse backup/restore with the existing backup and restore workflows.
-- Do not change this input to migrate an existing Portal. Follow a separately reviewed [ArcGIS content-directory migration procedure](https://enterprise.arcgis.com/en/portal/latest/administer/linux/changing-the-portal-content-directory.htm), verify recoverable backups, and obtain supervised cutover approval. Retain the original store until migration and recovery are verified. Reverting the input alone does not move content back; rollback must restore the original Portal configuration/content or a verified backup using the approved recovery procedure.
-
-### Local validation
-
-From this module directory, run `terraform init -backend=false -input=false`, `terraform validate`, and `terraform test`. The Portal content tests use mocked providers and plan-only runs; they do not execute Chef or apply cloud changes. Live deployment and recovery checks remain required.

@@ -106,7 +106,10 @@ def restore_server_config_store(backup_vault, enterprise_id, deployment_id, back
         logger.info(f"No cloud config store recovery points found for deployment {enterprise_id}/{deployment_id}.")
         return
 
-    deployment_namespace = f"{enterprise_id}-{deployment_id}"
+    deployment_namespace = ssm_client.get_parameter(
+        Name=f"/arcgis/{enterprise_id}/{deployment_id}/namespace",
+        WithDecryption=True
+    )['Parameter']['Value']
 
     # Find recovery point of the config store DynamoDB table
     item = dynamodb_client.get_item(

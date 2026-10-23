@@ -96,6 +96,17 @@ variable "config_store_type" {
   }
 }
 
+variable "content_store_type" {
+  description = "Portal for ArcGIS content store type"
+  type        = string
+  default     = "AZURE"
+
+  validation {
+    condition     = contains(["FILESYSTEM", "AZURE"], var.content_store_type)
+    error_message = "Valid values for the content_store_type variable are FILESYSTEM and AZURE."
+  }
+}
+
 variable "deployment_id" {
   description = "Deployment ID"
   type        = string

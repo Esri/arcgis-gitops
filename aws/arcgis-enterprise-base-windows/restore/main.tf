@@ -18,6 +18,7 @@
  * The Terraform module restores from backup base ArcGIS Enterprise deployment on Windows platform.
  *
  * The module runs WebGISDR utility with 'import' option on primary EC2 instance of the deployment.
+ * Staging uses the target deployment's \\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr path, independently of backup_enterprise_id.
  *
  * The backup is retrieved from the backup S3 bucket of the enterprise specified by "backup_enterprise_id" input variable.
  *
@@ -39,6 +40,7 @@
  * |--------------------|-------------|
  * | /arcgis/${var.backup_enterprise_id}/s3/backup | Backup S3 bucket |
  * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+ * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Target deployment namespace for WebGISDR staging |
  */
 
 terraform {
@@ -72,8 +74,13 @@ data "aws_ssm_parameter" "fileserver_private_dns" {
   name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns"
 }
 
+data "aws_ssm_parameter" "namespace" {
+  name = "/arcgis/${var.enterprise_id}/${var.deployment_id}/namespace"
+}
+
 locals {
-  shared_location = "\\\\\\\\${nonsensitive(data.aws_ssm_parameter.fileserver_private_dns.value)}\\\\arcgisbackup\\\\webgisdr"
+  namespace       = nonsensitive(data.aws_ssm_parameter.namespace.value)
+  shared_location = "\\\\\\\\${nonsensitive(data.aws_ssm_parameter.fileserver_private_dns.value)}\\\\${local.namespace}\\\\arcgisbackup\\\\webgisdr"
 }
 
 module "backup_enterprise_core_info" {

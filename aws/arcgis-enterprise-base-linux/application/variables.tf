@@ -102,8 +102,19 @@ variable "config_store_type" {
   }
 
   validation {
-    condition = var.config_store_type == "AMAZON" ? contains(["12.0", "12.1"], var.arcgis_version) : true
+    condition     = var.config_store_type == "AMAZON" ? contains(["12.0", "12.1"], var.arcgis_version) : true
     error_message = "config_store_type \"AMAZON\" is supported with ArcGIS Enterprise versions 12.0 and later."
+  }
+}
+
+variable "content_store_type" {
+  description = "Portal for ArcGIS content store type"
+  type        = string
+  default     = "AMAZON"
+
+  validation {
+    condition     = contains(["FILESYSTEM", "AMAZON"], var.content_store_type)
+    error_message = "Valid values for the content_store_type variable are FILESYSTEM and AMAZON."
   }
 }
 
@@ -176,7 +187,7 @@ variable "root_certificate_path" {
   validation {
     condition     = var.root_certificate_path == null || try(fileexists(var.root_certificate_path), false)
     error_message = "The root_certificate_path value must be a valid file path."
-  }  
+  }
 }
 
 variable "run_as_user" {
@@ -197,7 +208,7 @@ variable "security_question_index" {
   default     = 1
 
   validation {
-    condition = var.security_question_index > 0 &&  var.security_question_index < 15
+    condition     = var.security_question_index > 0 && var.security_question_index < 15
     error_message = "The security_question_index value must be an number between 1 and 14."
   }
 }

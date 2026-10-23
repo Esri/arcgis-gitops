@@ -29,6 +29,7 @@
  *   > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
  * - Provisions an Azure Storage Account with blob containers for portal content and object store.
  *   The storage account name is stored in the Key Vault secret "${var.deployment_id}-storage-account-name".
+ *   This persistent unique name is also the deployment namespace used for cloud resource names and fileserver subfolders.
  * - If "is_ha" variable is true, provisions a Cosmos DB account and a Service Bus namespace for ArcGIS Server configuration store.
  * - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
  * - Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container. 
@@ -152,6 +153,7 @@ data "azurerm_private_dns_zone" "servicebus_private_dns_zone" {
 }
 
 locals {
+  namespace               = "gis${random_id.unique_name_suffix.hex}"
   ingress_fqdn            = nonsensitive(data.azurerm_key_vault_secret.ingress_fqdn.value)
   portal_web_context      = nonsensitive(data.azurerm_key_vault_secret.portal_web_context.value)
   vm_roles                = var.is_ha ? ["primary", "standby"] : ["primary"]
@@ -328,12 +330,12 @@ resource "random_id" "unique_name_suffix" {
 }
 
 resource "azurerm_storage_account" "deployment_storage" {
-  name                     = "gis${random_id.unique_name_suffix.hex}"
+  name                     = local.namespace
   resource_group_name      = azurerm_resource_group.deployment_rg.name
   location                 = azurerm_resource_group.deployment_rg.location
   account_tier             = var.storage_account_tier
   account_kind             = var.storage_account_tier == "Premium" ? "BlockBlobStorage" : "StorageV2"
-  account_replication_type = var.storage_account_replication_type
+  account_replication_type = var.storage_replication_type
   # Public network access is enabled for the storage account because it is required
   # just to create the blob containers.
   # public_network_access_enabled     = true
@@ -429,7 +431,7 @@ resource "azurerm_key_vault_secret" "storage_account_name" {
 # Cosmos DB account for ArcGIS Enterprise
 resource "azurerm_cosmosdb_account" "deployment_cosmosdb" {
   count               = var.is_ha ? 1 : 0
-  name                = "gis${random_id.unique_name_suffix.hex}"
+  name                = local.namespace
   location            = azurerm_resource_group.deployment_rg.location
   resource_group_name = azurerm_resource_group.deployment_rg.name
   offer_type          = "Standard"
@@ -531,7 +533,7 @@ resource "azurerm_cosmosdb_sql_role_assignment" "cosmosdb_vm_identity" {
 # Service Bus namespace for ArcGIS Server configuration store
 resource "azurerm_servicebus_namespace" "deployment_servicebus" {
   count                        = var.is_ha ? 1 : 0
-  name                         = "gis${random_id.unique_name_suffix.hex}"
+  name                         = local.namespace
   location                     = azurerm_resource_group.deployment_rg.location
   resource_group_name          = azurerm_resource_group.deployment_rg.name
   sku                          = "Premium"

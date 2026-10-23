@@ -147,10 +147,13 @@ On the machine where Terraform is executed:
 | azure_region | Azure region display name | `string` | n/a | yes |
 | deployment_id | ArcGIS Notebook Server deployment ID | `string` | `"notebook-server-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
+| fileserver_billing_model_version | Azure Files provisioning model. V2 is for new deployments; existing deployments must explicitly retain V1 to avoid storage replacement. | `string` | `"V2"` | no |
 | fileserver_deployment_id | Use the NFS file share from the deployment with the given ID. If not specified, a dedicated NFS file share will be created for this deployment. | `string` | `null` | no |
-| fileserver_size | Maximum size of the NFS file share in GB. The setting is applied when fileserver_deployment_id variable is not set. | `number` | `1024` | no |
+| fileserver_iops | Provisioned V2 IOPS. Set null for V1 or an existing shared file server. | `number` | `10000` | no |
+| fileserver_size | Provisioned NFS file share capacity in GiB; V2 performance is configured separately. Applied only when fileserver_deployment_id is null. | `number` | `1024` | no |
+| fileserver_throughput | Provisioned V2 throughput in MiB/s; trial profile requiring workload and cost review. Set null for V1 or an existing shared file server. | `number` | `500` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
-| node_count | Number of node VMs | `number` | `1` | no |
+| node_count | Number of node VMs (excluding the primary VM) | `number` | `1` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
 | portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `"enterprise-base-windows"` | no |
 | storage_replication_type | The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage) . | `string` | `"ZRS"` | no |

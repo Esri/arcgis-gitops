@@ -111,6 +111,7 @@ Instructions:
 
 > Starting with ArcGIS Enterprise 12.0, for highly-available deployments, "config_store_type" property can be set to "AZURE" to configure the ArcGIS Server site to use Azure Cosmos DB as the configuration store, Azure Blob Storage as the object store and server directories, and Azure Service Bus for GeoProcessing service queues, instead of relying on the network file shares.
 
+
 > '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
 ### 5. Test Base ArcGIS Enterprise Deployment
@@ -153,7 +154,7 @@ If the dedicated file-server VM is unavailable, recover it before running WebGIS
 
 1. Open the `${enterprise_id}-${deployment_id}-recovery` Recovery Services vault and select the `fileserver` protected VM.
 2. Select a recovery point and restore the VM or its disks into the deployment resource group. Preserve the data disk and its `D:` drive assignment.
-3. Confirm `fileserver.<deployment_id>.<enterprise_id>.internal` resolves to the recovered VM and that the `arcgisbackup` and `arcgisserver` shares are available.
+3. Confirm `fileserver.<deployment_id>.<enterprise_id>.internal` resolves to the recovered VM and that its `<namespace>` share contains accessible `arcgisbackup\webgisdr`, `arcgisserver`, and optional `arcgisportal\content` folders.
 4. Reconcile any replacement resource with Terraform state before applying the infrastructure workflow again.
 5. Run the application-level restore workflow.
 

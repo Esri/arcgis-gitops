@@ -153,7 +153,7 @@ The module writes the following SSM parameters:
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | listener_rule_priority | Priority of the ALB listener rule that forwards traffic to this deployment. The priority must be unique among all listener rules associated with the same ALB listener. | `number` | `110` | no |
-| node_count | Number of node EC2 instances | `number` | `1` | no |
+| node_count | Number of node EC2 instances (excluding the primary EC2 instance) | `number` | `1` | no |
 | portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `null` | no |
 | root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |
 | root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |

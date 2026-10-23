@@ -8,10 +8,11 @@ The module runs WebGISDR utility with 'export' option on the primary VM of the d
 The WebGISDR backups are stored in "webgisdr-backups" blob container of the enterprise's Azure Storage account.
 The Portal for ArcGIS content store backups are stored in "content-backups" blob container.
 The WebGISDR staging path always resolves `${var.deployment_id}-fileserver-private-dns`, which identifies this base deployment's own file server.
+Its namespace is the deployment storage-account name read from `${var.deployment_id}-storage-account-name`; staging uses `\\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr`.
 
 The infrastructure module separately protects the dedicated file-server VM and its attached data disk with Azure Backup. A successful WebGISDR export does not replace that VM-level recovery point; verify both backup layers for operational recovery.
 
-During recovery, restore the base deployment's protected file-server VM first. Verify that `D:` is attached, private DNS resolves, and the `arcgisbackup` and `arcgisserver` shares are available before starting WebGISDR restore.
+During recovery, restore the base deployment's protected file-server VM first. Verify that `D:` is attached, private DNS resolves, and the `${namespace}` share contains accessible `arcgisbackup\webgisdr` and `arcgisserver` folders before starting WebGISDR restore.
 
 ## Requirements
 
@@ -35,6 +36,7 @@ The module reads the following Key Vault secrets:
 | Key Vault secret name | Description |
 |-----------------------|-------------|
 | ${var.deployment_id}-fileserver-private-dns | Base-owned file-server private DNS name |
+| ${var.deployment_id}-storage-account-name | Deployment namespace for WebGISDR staging |
 | storage-account-key   | Enterprise's storage account key |
 | storage-account-name  | Enterprise's storage account name |
 | subnets               | VNet subnets IDs |
@@ -62,6 +64,7 @@ The module reads the following Key Vault secrets:
 | Name | Type |
 |------|------|
 | [azurerm_key_vault_secret.vm_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 
 ## Inputs
 

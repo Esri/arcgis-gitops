@@ -64,6 +64,7 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
+| azapi | ~> 2.6 |
 | azurerm | ~> 4.46 |
 | random | n/a |
 
@@ -71,6 +72,7 @@ On the machine where Terraform is executed:
 
 | Name | Source | Version |
 |------|--------|---------|
+| aznfs_fileserver | ../../modules/aznfs_fileserver | n/a |
 | aznfs_mount | ../../modules/aznfs_mount | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | lv_extend | ../../modules/lv_extend | n/a |
@@ -143,7 +145,10 @@ On the machine where Terraform is executed:
 | azure_region | Azure region display name | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-base-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
-| fileserver_size | Maximum size of the NFS file share in GB | `number` | `1024` | no |
+| fileserver_billing_model_version | Azure Files provisioning model. | `string` | `"V2"` | no |
+| fileserver_iops | Provisioned V2 IOPS. Set to null for V1. | `number` | `10000` | no |
+| fileserver_size | Provisioned NFS file share capacity in GiB; V2 performance is configured separately. | `number` | `1024` | no |
+| fileserver_throughput | Provisioned V2 throughput in MiB/s. Set to null for V1. | `number` | `500` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |

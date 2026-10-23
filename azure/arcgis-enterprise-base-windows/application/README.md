@@ -20,7 +20,7 @@ Then the module:
 * If specified, copies the root certificate file to the private repository blob container
 * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository blob container to primary and standby VMs
 * Downloads the keystore and root certificate files from the private repository blob container to the primary and standby VMs
-* Creates the required network shares and `D:` directories on the base deployment's dedicated file-server VM
+* Creates one namespace-named share and the required component directories on the base deployment's dedicated file-server VM
 * Configures base ArcGIS Enterprise on the primary VM
 * Configures base ArcGIS Enterprise on the standby VM
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from the primary and standby VMs
@@ -28,6 +28,10 @@ Then the module:
 Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AZURE,
 the module configures ArcGIS Server to store server directories in an Azure Blob container and
 the configuration store in a Cosmos DB database, rather than on a file share.
+
+Portal content uses Azure Blob Storage by default. For new deployments, set content_store_type
+to FILESYSTEM to use `\\${fileserver_hostname}\${namespace}\arcgisportal\content` on the existing dedicated fileserver.
+This setting is independent of config_store_type and does not migrate existing Portal content.
 
 ## Requirements
 
@@ -53,7 +57,7 @@ The module reads the following Key Vault secrets:
 | ${var.deployment_id}-fileserver-private-dns | Base-owned file-server private DNS name |
 | ${var.deployment_id}-portal-web-context   | Portal for ArcGIS Web Adaptor web context |
 | ${var.deployment_id}-server-web-context   | ArcGIS Server Web Adaptor web context |
-| ${var.deployment_id}-storage-account-name | Deployment's storage account name |
+| ${var.deployment_id}-storage-account-name | Deployment's storage account name and persistent namespace |
 | storage-account-key                       | Enterprise's storage account key |
 | storage-account-name                      | Enterprise's storage account name |
 | subnets                                   | VNet subnet IDs |
@@ -121,6 +125,7 @@ The module reads the following Key Vault secrets:
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.1"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
+| content_store_type | Portal for ArcGIS content store type | `string` | `"AZURE"` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |

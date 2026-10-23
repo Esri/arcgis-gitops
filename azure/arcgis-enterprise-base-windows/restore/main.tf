@@ -21,6 +21,7 @@
  *
  * The backup is retrieved from the "webgisdr-backups" and "content-backups" blob containers in the storage
  * account of the enterprise specified by "backup_enterprise_id" input variable.
+ * Staging uses the target deployment's \\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr path, with namespace read from the target vault.
  *
  * ## Requirements
  *
@@ -52,6 +53,7 @@
  * | storage-account-name  | Enterprise's storage account name |
  * | subnets               | VNet subnets IDs |
  * | vm-identity-client-id | Client ID of the user-assigned VM identity |
+ * | ${var.deployment_id}-storage-account-name | Target deployment namespace for WebGISDR staging |
  * | vnet-id               | VNet ID |
  *
  * > The storage-account-name, storage-account-key, subnets, and vnet-id
@@ -100,8 +102,14 @@ data "azurerm_key_vault_secret" "fileserver_private_dns" {
   key_vault_id = module.target_enterprise_core_info.vault_id
 }
 
+data "azurerm_key_vault_secret" "storage_account_name" {
+  name         = "${var.deployment_id}-storage-account-name"
+  key_vault_id = module.target_enterprise_core_info.vault_id
+}
+
 locals {
-  shared_location = "\\\\\\\\${nonsensitive(data.azurerm_key_vault_secret.fileserver_private_dns.value)}\\\\arcgisbackup\\\\webgisdr"
+  namespace       = nonsensitive(data.azurerm_key_vault_secret.storage_account_name.value)
+  shared_location = "\\\\\\\\${nonsensitive(data.azurerm_key_vault_secret.fileserver_private_dns.value)}\\\\${local.namespace}\\\\arcgisbackup\\\\webgisdr"
 }
 
 # Run webgisdr utility with import option on the primary VM.

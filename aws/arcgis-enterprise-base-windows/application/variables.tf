@@ -107,6 +107,17 @@ variable "config_store_type" {
   }
 }
 
+variable "content_store_type" {
+  description = "Portal for ArcGIS content store type"
+  type        = string
+  default     = "AMAZON"
+
+  validation {
+    condition     = contains(["FILESYSTEM", "AMAZON"], var.content_store_type)
+    error_message = "Valid values for the content_store_type variable are FILESYSTEM and AMAZON."
+  }
+}
+
 variable "deployment_id" {
   description = "Deployment ID"
   type        = string

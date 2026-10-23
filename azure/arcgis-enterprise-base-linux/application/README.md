@@ -29,6 +29,10 @@ Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is
 the module configures ArcGIS Server to store server directories in an Azure Blob container and
 the configuration store in a Cosmos DB database, rather than on the NFS file share.
 
+Portal content uses Azure Blob Storage by default. For new deployments, set content_store_type
+to FILESYSTEM to use ${mount_point}/${namespace}/arcgisportal/content on the existing Azure Files NFS share.
+This setting is independent of config_store_type and does not migrate existing Portal content.
+
 ## Requirements
 
 The Azure resources for the deployment must be provisioned by Infrastructure Terraform module for base ArcGIS Enterprise on Linux.
@@ -117,6 +121,7 @@ The module reads the following Key Vault secrets:
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.1"` | no |
 | azure_region | Azure region display name | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
+| content_store_type | Portal for ArcGIS content store type | `string` | `"AZURE"` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_raster_store | If true, the NFS file share will be used for raster store. | `bool` | `true` | no |

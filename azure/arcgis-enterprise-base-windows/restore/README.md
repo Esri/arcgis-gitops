@@ -9,8 +9,9 @@ The backup is retrieved from the "webgisdr-backups" and "content-backups" blob c
 account of the enterprise specified by "backup_enterprise_id" input variable.
 
 The WebGISDR staging path always resolves `${var.deployment_id}-fileserver-private-dns`, which identifies the target base deployment's own file server.
+Its namespace is read from the target vault's `${var.deployment_id}-storage-account-name`; staging uses `\\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr`, independently of the source backup storage account.
 
-If the dedicated file-server VM or data disk was lost, first restore the `fileserver` protected VM from the deployment's Recovery Services vault. Verify that its data disk is mounted as `D:`, its private DNS record resolves, and the `arcgisbackup` and `arcgisserver` shares are available before running this module. Reconcile a replacement VM with Terraform state before the next infrastructure apply.
+If the dedicated file-server VM or data disk was lost, first restore the `fileserver` protected VM from the deployment's Recovery Services vault. Verify that its data disk is mounted as `D:`, its private DNS record resolves, and the `${namespace}` share contains accessible `arcgisbackup\webgisdr` and `arcgisserver` folders before running this module. Reconcile a replacement VM with Terraform state before the next infrastructure apply.
 
 ## Requirements
 
@@ -39,6 +40,7 @@ The module reads the following Key Vault secrets:
 | Key Vault secret name | Description |
 |-----------------------|-------------|
 | ${var.deployment_id}-fileserver-private-dns | Target base deployment's file-server private DNS name |
+| ${var.deployment_id}-storage-account-name | Target deployment namespace for WebGISDR staging |
 | storage-account-key   | Enterprise's storage account key |
 | storage-account-name  | Enterprise's storage account name |
 | subnets               | VNet subnets IDs |
@@ -67,6 +69,7 @@ The module reads the following Key Vault secrets:
 | Name | Type |
 |------|------|
 | [azurerm_key_vault_secret.vm_identity_client_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
+| [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 
 ## Inputs
 

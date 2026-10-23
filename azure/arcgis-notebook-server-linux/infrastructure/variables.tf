@@ -51,14 +51,38 @@ variable "fileserver_deployment_id" {
 }
 
 variable "fileserver_size" {
-  description = "Maximum size of the NFS file share in GB. The setting is applied when fileserver_deployment_id variable is not set."
+  description = "Provisioned NFS file share capacity in GiB; V2 performance is configured separately. Applied only when fileserver_deployment_id is null."
   type        = number
   default     = 1024
 
   validation {
-    condition     = var.fileserver_size >= 1 && var.fileserver_size <= 5120
-    error_message = "The fileserver_size value must be between 1 and 5120."
+    condition     = var.fileserver_size == floor(var.fileserver_size) && var.fileserver_size >= (var.fileserver_billing_model_version == "V2" ? 32 : 1) && var.fileserver_size <= 5120
+    error_message = "The fileserver_size value must be an integer between 1 and 5120 GiB (at least 32 GiB for V2)."
   }
+}
+
+variable "fileserver_billing_model_version" {
+  description = "Azure Files provisioning model. V2 is for new deployments; existing deployments must explicitly retain V1 to avoid storage replacement."
+  type        = string
+  default     = "V2"
+  nullable    = false
+
+  validation {
+    condition     = contains(["V1", "V2"], var.fileserver_billing_model_version)
+    error_message = "The fileserver_billing_model_version value must be V1 or V2."
+  }
+}
+
+variable "fileserver_iops" {
+  description = "Provisioned V2 IOPS. Set to null for V1 or an existing shared file server."
+  type        = number
+  default     = 10000
+}
+
+variable "fileserver_throughput" {
+  description = "Provisioned V2 throughput in MiB/s. The 500 default is a trial profile requiring workload and cost review. Set null for V1 or an existing shared file server."
+  type        = number
+  default     = 500
 }
 
 variable "ingress_id" {
@@ -73,7 +97,7 @@ variable "ingress_id" {
 }
 
 variable "node_count" {
-  description = "Number of node VMs"
+  description = "Number of node VMs (excluding the primary VM)"
   type        = number
   default     = 1
 
@@ -89,7 +113,7 @@ variable "os_disk_size" {
   default     = 256
 
   validation {
-    condition     = var.os_disk_size >= 100   && var.os_disk_size <= 4095
+    condition     = var.os_disk_size >= 100 && var.os_disk_size <= 4095
     error_message = "The os_disk_size value must be between 100 and 4095."
   }
 }
@@ -106,7 +130,7 @@ variable "portal_deployment_id" {
 }
 
 variable "storage_replication_type" {
-  description = "The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage) ."
+  description = "The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage)"
   type        = string
   default     = "ZRS"
 
@@ -129,7 +153,7 @@ variable "vm_admin_password" {
   default     = null
 
   validation {
-    condition = var.vm_admin_password != null || var.vm_admin_public_ssh_key_path != null
+    condition     = var.vm_admin_password != null || var.vm_admin_public_ssh_key_path != null
     error_message = "Either vm_admin_password or vm_admin_public_ssh_key_path variable must be provided."
   }
 }

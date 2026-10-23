@@ -1,3 +1,17 @@
+# Copyright 2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Application Terraform Module for Base ArcGIS Enterprise on Linux
  *
@@ -29,6 +43,10 @@
  * the module configures ArcGIS Server to store server directories in an Azure Blob container and 
  * the configuration store in a Cosmos DB database, rather than on the NFS file share.
  *
+ * Portal content uses Azure Blob Storage by default. For new deployments, set content_store_type
+ * to FILESYSTEM to use ${mount_point}/${namespace}/arcgisportal/content on the existing Azure Files NFS share.
+ * This setting is independent of config_store_type and does not migrate existing Portal content.
+ *
  * ## Requirements
  *
  * The Azure resources for the deployment must be provisioned by Infrastructure Terraform module for base ArcGIS Enterprise on Linux.
@@ -58,20 +76,6 @@
  * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
  * | ${var.deployment_id}-os                   | Operating system ID |
  */
-
-# Copyright 2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 terraform {
   backend "azurerm" {
@@ -186,11 +190,37 @@ locals {
   cosmos_db_account_name        = local.storage_account_name
   service_bus_namespace         = local.storage_account_name
 
+  portal_content_directory = "${local.mount_point}/${local.namespace}/arcgisportal/content"
+  portal_content = jsondecode(var.content_store_type == "FILESYSTEM" ? jsonencode({
+    content_store_type              = "fileStore"
+    content_store_provider          = "FileSystem"
+    content_store_connection_string = local.portal_content_directory
+    }) : jsonencode({
+    content_store_type     = "cloudStore"
+    content_store_provider = "Azure"
+    content_store_connection_string = {
+      accountName             = local.storage_account_name
+      accountEndpoint         = "blob.core.windows.net"
+      credentialType          = "userAssignedIdentity"
+      managedIdentityClientId = data.azurerm_key_vault_secret.vm_identity_client_id.value
+    }
+    object_store = "${local.storage_account_blob_endpoint}/portal-content"
+  }))
+
+  fileserver = {
+    directories = concat([
+      "${local.mount_point}/${local.namespace}/arcgisserver",
+      "${local.mount_point}/${local.namespace}/arcgisserver/rasterstore",
+      "${local.mount_point}/${local.namespace}/arcgisbackup/webgisdr"
+    ], var.content_store_type == "FILESYSTEM" ? [local.portal_content_directory] : [])
+    shares = []
+  }
+
   is_ha = length(data.azurerm_resources.standby.resources) > 0
 
   cloud_config = var.config_store_type == "AZURE" ? jsonencode([{
-    name       = "AZURE"
-    namespace  = local.namespace
+    name      = "AZURE"
+    namespace = local.namespace
     credential = {
       type = "USER-ASSIGNED-IDENTITY"
       secret = {
@@ -420,14 +450,7 @@ module "arcgis_enterprise_fileserver" {
       version                  = var.arcgis_version
       run_as_user              = var.run_as_user
       configure_cloud_settings = false
-      fileserver = {
-        directories = [
-          "${local.mount_point}/${local.namespace}/arcgisserver",
-          "${local.mount_point}/${local.namespace}/arcgisserver/rasterstore",
-          "${local.mount_point}/${local.namespace}/arcgisbackup/webgisdr"
-        ]
-        shares = []
-      }
+      fileserver               = local.fileserver
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
@@ -692,7 +715,7 @@ module "arcgis_enterprise_primary" {
           backup_location         = "type=azure;location=datastore-backups/${var.deployment_id}/${local.namespace}/relational;name=re_default;username=${module.enterprise_core_info.storage_account_name};password=${module.enterprise_core_info.storage_account_key}"
         }
       }
-      portal = {
+      portal = merge({
         url                         = "https://${local.primary_hostname}:7443/arcgis"
         preferredidentifier         = "ip"
         hostname                    = local.primary_hostname
@@ -709,27 +732,18 @@ module "arcgis_enterprise_primary" {
         security_question_answer    = var.security_question_answer
         log_dir                     = "/opt/arcgis/portal/usr/arcgisportal/logs"
         log_level                   = var.log_level
-        content_store_type          = "cloudStore"
-        content_store_provider      = "Azure"
-        content_store_connection_string = {
-          accountName             = local.storage_account_name
-          accountEndpoint         = "blob.core.windows.net"
-          credentialType          = "userAssignedIdentity"
-          managedIdentityClientId = data.azurerm_key_vault_secret.vm_identity_client_id.value
-        }
-        object_store         = "${local.storage_account_blob_endpoint}/portal-content"
-        authorization_file   = "${local.authorization_files_dir}/${basename(var.portal_authorization_file_path)}"
-        user_license_type_id = var.portal_user_license_type_id
-        keystore_file        = local.primary_keystore_file
-        keystore_password    = data.azurerm_key_vault_secret.backend_pfx_password.value
-        cert_alias           = "portalcert"
-        root_cert            = local.root_cert
-        root_cert_alias      = "rootcert"
+        authorization_file          = "${local.authorization_files_dir}/${basename(var.portal_authorization_file_path)}"
+        user_license_type_id        = var.portal_user_license_type_id
+        keystore_file               = local.primary_keystore_file
+        keystore_password           = data.azurerm_key_vault_secret.backend_pfx_password.value
+        cert_alias                  = "portalcert"
+        root_cert                   = local.root_cert
+        root_cert_alias             = "rootcert"
         system_properties = {
           privatePortalURL = "https://${local.ingress_fqdn}/${local.portal_web_context}"
           WebContextURL    = "https://${local.ingress_fqdn}/${local.portal_web_context}"
         }
-      }
+      }, local.portal_content)
     }
     run_list = [
       "recipe[arcgis-enterprise::system]",
@@ -744,6 +758,7 @@ module "arcgis_enterprise_primary" {
   })
   execution_timeout = 14400
   depends_on = [
+    module.arcgis_enterprise_fileserver,
     module.authorization_files,
     module.primary_keystore,
     module.root_cert

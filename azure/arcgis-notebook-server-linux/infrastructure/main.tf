@@ -1,3 +1,17 @@
+# Copyright 2026 Esri
+#
+# Licensed under the Apache License Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+# http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
 /**
  * # Infrastructure Terraform Module for ArcGIS Notebook Server on Linux
  *
@@ -78,20 +92,6 @@
  * | ${var.deployment_id}-portal-url           | Portal URL |
  * | ${var.deployment_id}-storage-account-name | Config Store's storage account name |
  */
-
-# Copyright 2026 Esri
-#
-# Licensed under the Apache License Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-#
-# http://www.apache.org/licenses/LICENSE-2.0
-#
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
 
 terraform {
   backend "azurerm" {
@@ -481,17 +481,20 @@ module "lv_extend" {
 
 # Create the file server or mount the existing one, and get the network path for mounting the share to the VMs.
 module "aznfs_fileserver" {
-  source                   = "../../modules/aznfs_fileserver"
-  deployment_id            = var.fileserver_deployment_id != null ? var.fileserver_deployment_id : var.deployment_id
-  enterprise_id            = var.enterprise_id
-  fileserver_deployment_id = var.fileserver_deployment_id
-  fileserver_size          = var.fileserver_size
-  key_vault_id             = module.enterprise_core_info.vault_id
-  location                 = azurerm_resource_group.deployment_rg.location
-  resource_group_name      = azurerm_resource_group.deployment_rg.name
-  storage_replication_type = var.storage_replication_type
-  subnet_id                = local.subnet_id
-  unique_name_suffix       = random_id.unique_name_suffix.hex
+  source                           = "../../modules/aznfs_fileserver"
+  deployment_id                    = var.fileserver_deployment_id != null ? var.fileserver_deployment_id : var.deployment_id
+  enterprise_id                    = var.enterprise_id
+  fileserver_deployment_id         = var.fileserver_deployment_id
+  fileserver_size                  = var.fileserver_size
+  fileserver_billing_model_version = var.fileserver_billing_model_version
+  fileserver_iops                  = var.fileserver_iops
+  fileserver_throughput            = var.fileserver_throughput
+  key_vault_id                     = module.enterprise_core_info.vault_id
+  location                         = azurerm_resource_group.deployment_rg.location
+  resource_group_name              = azurerm_resource_group.deployment_rg.name
+  storage_replication_type         = var.storage_replication_type
+  subnet_id                        = local.subnet_id
+  unique_name_suffix               = random_id.unique_name_suffix.hex
 }
 
 # Mount the file share to the VMs.

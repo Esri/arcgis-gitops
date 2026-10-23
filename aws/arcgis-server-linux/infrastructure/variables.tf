@@ -96,7 +96,7 @@ variable "listener_rule_priority" {
 }
 
 variable "node_count" {
-  description = "Number of node EC2 instances"
+  description = "Number of node EC2 instances (excluding the primary EC2 instance)"
   type        = number
   default     = 1
 }

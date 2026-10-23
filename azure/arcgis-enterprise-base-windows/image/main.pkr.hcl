@@ -153,7 +153,11 @@ source "azure-arm" "main" {
   os_type         = "Windows"
   vm_size         = var.vm_size
 
+  # FORCE THE TEMPORARY BUILD VM DISK TO PREMIUM SSD
   managed_image_storage_account_type = "Premium_LRS"
+  
+  accelerated_networking     = true
+  async_resourcegroup_delete = true
 
   security_type       = "TrustedLaunch"
   encryption_at_host  = true
@@ -172,6 +176,9 @@ source "azure-arm" "main" {
     gallery_name   = data.azure-keyvaultsecret.enterprise_ig.value
     image_name     = "${var.deployment_id}-${var.arcgis_version}-${var.os}"
     image_version  = formatdate("YYYY.MMDD.HHMM", timestamp())
+
+    # KEEP THE FINAL STORED IMAGE CHEAP
+    storage_account_type = "Standard_LRS"
   }
 
   user_assigned_managed_identities = [
@@ -187,7 +194,7 @@ source "azure-arm" "main" {
     "$userData = (Invoke-RestMethod -Headers @{Metadata=$true} -Method GET -Uri http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01$([char]38)format=text); ",
     "$contents = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($userData)); ",
     "set-content -path c:\\Windows\\Temp\\userdata.ps1 -value $contents -Encoding UTF8; ",
-  ". c:\\Windows\\Temp\\userdata.ps1 -AzureCliUrl ${var.azure_cli_url};\""])
+    ". c:\\Windows\\Temp\\userdata.ps1 -AzureCliUrl ${var.azure_cli_url};\""])
 
   user_data_file = "./scripts/userdata.ps1"
 
@@ -206,11 +213,14 @@ source "azure-arm" "fileserver" {
   winrm_username = "packer"
 
   location        = var.azure_region
-  os_disk_size_gb = var.os_disk_size
+  os_disk_size_gb = 256
   os_type         = "Windows"
   vm_size         = var.vm_size
 
   managed_image_storage_account_type = "Premium_LRS"
+
+  accelerated_networking     = true
+  async_resourcegroup_delete = true
 
   security_type       = "TrustedLaunch"
   encryption_at_host  = true
@@ -227,6 +237,8 @@ source "azure-arm" "fileserver" {
     gallery_name   = data.azure-keyvaultsecret.enterprise_ig.value
     image_name     = "${var.deployment_id}-fileserver-${var.os}"
     image_version  = formatdate("YYYY.MMDD.HHMM", timestamp())
+
+    storage_account_type = "Standard_LRS"    
   }
 
   user_assigned_managed_identities = [
@@ -283,7 +295,7 @@ build {
       ))
     }
 
-    command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-files -v ${var.vault_name} -e 1200"
+    command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-files -v ${var.vault_name} -e 3600"
   }
 
   # Install

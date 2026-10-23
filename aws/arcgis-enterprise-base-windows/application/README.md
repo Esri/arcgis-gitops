@@ -21,7 +21,7 @@ Then the module:
 * If specified, copies keystore and root certificate files to the private repository S3 bucket
 * Downloads the ArcGIS Server and Portal for ArcGIS authorization files from the private repository S3 bucket to primary and standby EC2 instances
 * If specified, downloads the keystore and root certificate files from the private repository S3 bucket to primary and standby EC2 instances
-* Creates the required `D:` directories and network shares on the base deployment's dedicated file-server EC2 instance
+* Creates one namespace-named share and the required component directories on the base deployment's dedicated file-server EC2 instance
 * Configures base ArcGIS Enterprise on primary EC2 instance
 * Configures base ArcGIS Enterprise on standby EC2 instance
 * Deletes the downloaded setup archives, the extracted setups, and other temporary files from primary and standby EC2 instances
@@ -30,6 +30,10 @@ Then the module:
 Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is set to AMAZON,
 the module configures ArcGIS Server to store server directories in an S3 bucket and
 the configuration store in a DynamoDB table, rather than on a file share.
+
+Portal content uses Amazon S3 by default. For new deployments, set content_store_type
+to FILESYSTEM to use `\\${fileserver_hostname}\${namespace}\arcgisportal\content` on the existing dedicated fileserver.
+This setting is independent of config_store_type and does not migrate existing Portal content.
 
 ## Requirements
 
@@ -55,6 +59,7 @@ The module reads the following SSM parameters:
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/private-dns | Private DNS name of this base deployment's dedicated file server |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/object-store-s3-bucket | S3 bucket for the object store |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Persistent deployment namespace |
 | /arcgis/${var.enterprise_id}/chef-client-url/${os} | Chef Client URL for the operating system |
 | /arcgis/${var.enterprise_id}/cookbooks-url | Chef cookbooks URL |
 | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
@@ -106,6 +111,7 @@ The module reads the following SSM parameters:
 | [aws_instances.standby](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
+| [aws_ssm_parameter.namespace](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.object_store](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.os](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.portal_web_context](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -128,6 +134,7 @@ The module reads the following SSM parameters:
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region ID | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
+| content_store_type | Portal for ArcGIS content store type | `string` | `"AMAZON"` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | is_upgrade | Flag to indicate if this is an upgrade deployment | `bool` | `false` | no |
@@ -151,3 +158,5 @@ The module reads the following SSM parameters:
 | arcgis_portal_url | Portal for ArcGIS URL |
 | arcgis_server_url | ArcGIS Server URL |
 <!-- END_TF_DOCS -->
+
+

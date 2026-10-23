@@ -31,6 +31,10 @@ Starting with ArcGIS Enterprise 12.0, if the config_store_type input variable is
 the module configures ArcGIS Server to store server directories in an S3 bucket and
 the configuration store in a DynamoDB table, rather than on the EFS file system.
 
+Portal content uses Amazon S3 by default. Set content_store_type
+to FILESYSTEM to use ${mount_point}/${namespace}/arcgisportal/content on the EFS file system.
+This setting is independent of config_store_type and does not migrate existing Portal content.
+
 ## Requirements
 
 The AWS resources for the deployment must be provisioned by Infrastructure terraform module for base ArcGIS Enterprise on Linux.
@@ -132,6 +136,7 @@ The module reads the following SSM parameters:
 | arcgis_web_adaptor_patches | File names of ArcGIS Web Adaptor patches to install. | `list(string)` | `[]` | no |
 | aws_region | AWS region ID | `string` | n/a | yes |
 | config_store_type | ArcGIS Server configuration store type | `string` | `"FILESYSTEM"` | no |
+| content_store_type | Portal for ArcGIS content store type | `string` | `"AMAZON"` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_raster_store | If true, the deployment's EFS filesystem will be used for raster store. | `bool` | `true` | no |

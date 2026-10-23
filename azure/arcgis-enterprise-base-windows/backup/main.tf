@@ -21,6 +21,7 @@
  *
  * The WebGISDR backups are stored in "webgisdr-backups" blob container of the enterprise's Azure Storage account.
  * The Portal for ArcGIS content store backups are stored in "content-backups" blob container.
+ * Staging uses \\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr, with the deployment storage-account name as namespace.
  *
  * ## Requirements
  *
@@ -47,6 +48,7 @@
  * | storage-account-name  | Enterprise's storage account name |
  * | subnets               | VNet subnets IDs |
  * | vm-identity-client-id | Client ID of the user-assigned VM identity |
+ * | ${var.deployment_id}-storage-account-name | Deployment namespace for WebGISDR staging |
  * | vnet-id               | VNet ID |
  *
  * > The storage-account-name, storage-account-key, subnets, and vnet-id
@@ -85,8 +87,14 @@ data "azurerm_key_vault_secret" "fileserver_private_dns" {
   key_vault_id = module.enterprise_core_info.vault_id
 }
 
+data "azurerm_key_vault_secret" "storage_account_name" {
+  name         = "${var.deployment_id}-storage-account-name"
+  key_vault_id = module.enterprise_core_info.vault_id
+}
+
 locals {
-  shared_location = "\\\\\\\\${nonsensitive(data.azurerm_key_vault_secret.fileserver_private_dns.value)}\\\\arcgisbackup\\\\webgisdr"
+  namespace       = nonsensitive(data.azurerm_key_vault_secret.storage_account_name.value)
+  shared_location = "\\\\\\\\${nonsensitive(data.azurerm_key_vault_secret.fileserver_private_dns.value)}\\\\${local.namespace}\\\\arcgisbackup\\\\webgisdr"
 }
 
 module "enterprise_core_info" {

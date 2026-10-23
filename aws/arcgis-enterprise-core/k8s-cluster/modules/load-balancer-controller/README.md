@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module load-balancer-controller
 
 The module installs AWS Load Balancer Controller add-on to EKS cluster.
@@ -42,4 +41,3 @@ On the machine where terraform is executed must be installed AWS CLI, kubectl, h
 | enable_waf | Enable WAF and Shield addons for ALB | `bool` | `true` | no |
 | oidc_arn | OIDC provider ARN for the EKS cluster | `string` | n/a | yes |
 | vpc_id | The ID of the VPC where the EKS cluster is deployed | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

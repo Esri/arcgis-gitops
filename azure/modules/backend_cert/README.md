@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module backend_cert
 
 Creates an ArcGIS backend TLS certificate package by reading a CA private key and
@@ -59,4 +58,3 @@ On the machine where Terraform is executed:
 | storage_account_name | Name of the storage account where the backend certificate will be stored. | `string` | n/a | yes |
 | storage_container_name | Name of the storage container where the backend certificate will be stored. | `string` | n/a | yes |
 | validity_period_hours | Number of hours the generated backend certificate will be valid for. | `number` | `87600` | no |
-<!-- END_TF_DOCS -->

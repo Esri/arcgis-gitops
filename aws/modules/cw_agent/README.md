@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # cw_agent terraform module
 
 Terraform module cw_agent configures CloudWatch agents on the deployment's EC2 instances.
@@ -47,4 +46,3 @@ On the machine where Terraform is executed:
 | Name | Description |
 |------|-------------|
 | log_group_name | CloudWatch log group name |
-<!-- END_TF_DOCS -->

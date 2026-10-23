@@ -1,23 +1,3 @@
-/*
- * # Terraform module clean_up
- * 
- * Terraform module deletes files in specific directories on EC2 instances in specific roles. 
- * Optionally, if the uninstall_chef_client variable is set to true, the module also uninstalls Chef client on the instances. 
- *
- * The module uses ssm_clean_up.py script to run {var.enterprise_id}-clean-up SSM command on the deployment's EC2 instances in specific roles.
- *
- * ## Requirements
- *
- * The S3 bucket for the SSM command output is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
- *
- * On the machine where Terraform is executed:
- *
- * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
- * * Path to aws/scripts directory must be added to PYTHONPATH
- * * AWS credentials must be configured
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

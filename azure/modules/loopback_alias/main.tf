@@ -1,23 +1,3 @@
-/*
- * # Terraform module loopback_alias
- * 
- * Terraform module loopback_alias adds the specified hostname to BackConnectionHostNames
- * registry key. 
- * 
- * See: https://learn.microsoft.com/en-us/troubleshoot/windows-server/networking/accessing-server-locally-with-fqdn-cname-alias-denied
- *
- * The module uses az_run_shell_script python module to run SetLoopbackAlias.ps1 
- * script on the deployment's VMs in specific roles.
- *
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- *
- * * Python 3.9 or later with [Azure SDK for Python](https://docs.microsoft.com/en-us/python/api/overview/azure/?view=azure-python) packages must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * Azure credentials must be configured
- */
-
 # Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

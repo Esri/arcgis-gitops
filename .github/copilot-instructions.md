@@ -24,6 +24,22 @@ All work in this repository follows a documented change path: define the desired
 
 All operational procedures, infrastructure definitions, and automation workflows must be thoroughly documented. Documentation should include architecture diagrams, configuration details, recovery procedures, and any exceptions to standard practices. Knowledge must be maintained in a version-controlled manner alongside the code to ensure that all team members have access to the latest operational guidance and historical context. The documentation must be reviewed and updated regularly to reflect changes in the infrastructure, automation, and operational practices.
 
+### Terraform Module READMEs
+
+Each Terraform module must have a README.md with a single descriptive title and an overview of its purpose and behavior. Include the following reference sections: Requirements, Providers, Modules, Resources, Inputs, and Outputs. State explicitly when a section has no applicable entries.
+
+Inputs must document each variable's name, description, type, default, and required status. Outputs must document each output's name and description. Keep provider requirements, module references, resources, and input/output tables consistent with the Terraform definitions.
+
+Document external configuration in applicable sections such as SSM Parameters or Key Vault Secrets, distinguishing values read from values written.
+
+### Packer Template READMEs
+
+Each Packer template must have a README.md with a single descriptive title, an overview of the image being built and the build process, Requirements, and Inputs. The Inputs table must document each variable's name, description, type, default, and required status using the Packer definitions as the source of truth.
+
+Document external configuration in applicable sections such as SSM Parameters or Key Vault Secrets, distinguishing values read from values written. 
+
+Describe the resulting image artifacts and where their IDs are stored. Terraform-only reference sections are not required for Packer templates.
+
 ## Consistency
 
 All templates, modules, and automation workflows must follow consistent patterns, conventions, and styles. This includes naming conventions, directory structures, coding standards, and documentation practices. Consistency ensures that team members can easily understand, review, and maintain the infrastructure and operational code, reducing the risk of errors and improving overall efficiency.

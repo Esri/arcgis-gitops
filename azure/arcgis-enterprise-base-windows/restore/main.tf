@@ -12,54 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/**
- * # Restore Terraform Module for Base ArcGIS Enterprise on Windows
- *
- * The Terraform module restores a base ArcGIS Enterprise deployment on Windows from backup.
- *
- * The module runs the WebGISDR utility with 'import' option on the primary VM of the deployment.
- *
- * The backup is retrieved from the "webgisdr-backups" and "content-backups" blob containers in the storage
- * account of the enterprise specified by "backup_enterprise_id" input variable.
- * Staging uses the target deployment's \\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr path, with namespace read from the target vault.
- *
- * ## Requirements
- *
- * The base ArcGIS Enterprise must be configured on the deployment by application terraform module for base ArcGIS Enterprise on Windows.
- *
- * The user assigned managed identity assigned to the VMs must have Storage Blob Data Owner role on
- * the backup enterprise's storage account.
- * On the machine where Terraform is executed:
- * 
- * * Python 3.9 or later must be installed
- * * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * Azure credentials must be configured using "az login" CLI command
- *
- * The deployment VMs must have access to the storage account of the backup enterprise specified by the `backup_enterprise_id` input variable, 
- * so that WebGISDR import can retrieve backups from the `webgisdr-backups` and `content-backups` containers:
- *
- * * The deployment VMs must have network-level access to the storage account endpoint of the backup enterprise.
- * * The user-assigned managed identity attached to the deployment virtual machines must have read access 
- *   to the storage account of the backup enterprise.
- *
- * ## Key Vault Secrets
- *
- * The module reads the following Key Vault secrets:
- *
- * | Key Vault secret name | Description |
- * |-----------------------|-------------|
- * | storage-account-key   | Enterprise's storage account key |
- * | storage-account-name  | Enterprise's storage account name |
- * | subnets               | VNet subnets IDs |
- * | vm-identity-client-id | Client ID of the user-assigned VM identity |
- * | ${var.deployment_id}-storage-account-name | Target deployment namespace for WebGISDR staging |
- * | vnet-id               | VNet ID |
- *
- * > The storage-account-name, storage-account-key, subnets, and vnet-id
- *   secrets are retrieved by backup_enterprise_core_info module.
- */
-
 terraform {
   backend "azurerm" {
     key = "terraform/arcgis/enterprise-base-windows/restore.tfstate"

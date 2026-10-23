@@ -1,15 +1,3 @@
-/**
- * # Terraform module ebs-csi-driver
- * 
- * The module installs Amazon EBS CSI Driver add-on to EKS cluster.
- *
- * See: https://docs.aws.amazon.com/eks/latest/userguide/managing-ebs-csi.html
- *
- * ## Requirements
- * 
- * On the machine where terraform is executed must be installed AWS CLI and kubectl.
- */
-
 # Copyright 2024 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

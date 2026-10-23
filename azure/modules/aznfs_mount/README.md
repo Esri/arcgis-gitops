@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module aznfs_mount
 
 Terraform module aznfs_mount mounts Azure NFS file system on Azure VMs in a deployment.
@@ -37,4 +36,3 @@ On the machine where Terraform is executed:
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | mount_point | NFS mount point | `string` | `"/mnt/fileserver"` | no |
 | network_path | NFS network path in format <storage_account_name>.file.core.windows.net:/<storage_account_name>/<file_share_name> | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

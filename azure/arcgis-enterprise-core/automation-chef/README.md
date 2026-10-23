@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module automation-chef
 
 The module copies the distribution archive Chef/Cinc client setups and Chef cookbooks for ArcGIS  from the URLs specified
@@ -52,4 +51,3 @@ Before using the module, the repository blob container must be created by infras
 | azure_region | Azure region display name | `string` | n/a | yes |
 | chef_client_paths | Chef/CINC Client setup blob names by operating system | `map(any)` | ```{ "rhel9": { "description": "Chef Client setup blob name for Red Hat Enterprise Linux version 9", "path": "cinc/cinc-18.10.17-1.el9.x86_64.rpm" }, "ubuntu24": { "description": "Chef Client setup blob name for Ubuntu 24.04 LTS", "path": "cinc/cinc_18.10.17-1.ubuntu24.amd64.deb" }, "windows2022": { "description": "Chef Client setup blob name for Microsoft Windows Server 2022", "path": "cinc/cinc-18.10.17-1-x64.msi" }, "windows2025": { "description": "Chef Client setup blob name for Microsoft Windows Server 2025", "path": "cinc/cinc-18.10.17-1-x64.msi" } }``` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
-<!-- END_TF_DOCS -->

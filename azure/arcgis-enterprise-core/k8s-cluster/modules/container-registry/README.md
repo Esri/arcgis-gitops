@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module container-registry
 
 The module creates and configures Azure Container Registry for AKS cluster:
@@ -64,4 +63,3 @@ Azure CLI must be installed on the machine where terraform is executed.
 | Name | Description |
 |------|-------------|
 | acr_login_server | Private container registry login server |
-<!-- END_TF_DOCS -->

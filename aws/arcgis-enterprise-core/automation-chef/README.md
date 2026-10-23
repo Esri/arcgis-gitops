@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module automation-chef
 
 The module provisions AWS resources required for ArcGIS Enterprise configuration management
@@ -71,4 +70,3 @@ Before using the module, the repository S3 bucket must be created by infrastruct
 | aws_region | AWS region ID | `string` | n/a | yes |
 | chef_client_paths | Chef/CINC Client setup S3 keys by operating system | `map(any)` | ```{ "rhel9": { "description": "Chef Client setup S3 key for Red Hat Enterprise Linux version 9", "path": "cinc/cinc-18.10.17-1.el9.x86_64.rpm" }, "ubuntu22": { "description": "Chef Client setup S3 key for Ubuntu 22.04 LTS", "path": "cinc/cinc_18.10.17-1.ubuntu22.amd64.deb" }, "ubuntu24": { "description": "Chef Client setup S3 key for Ubuntu 24.04 LTS", "path": "cinc/cinc_18.10.17-1.ubuntu24.amd64.deb" }, "windows2022": { "description": "Chef Client setup S3 key for Microsoft Windows Server 2022", "path": "cinc/cinc-18.10.17-1-x64.msi" }, "windows2025": { "description": "Chef Client setup S3 key for Microsoft Windows Server 2025", "path": "cinc/cinc-18.10.17-1-x64.msi" } }``` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
-<!-- END_TF_DOCS -->

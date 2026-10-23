@@ -1,14 +1,3 @@
-/**
- * # Terraform module dashboard
- * 
- * Terraform module dashboard creates AWS resources for the deployment monitoring subsystem.
- *
- * The CloudWatch dashboard includes widgets for:
- *
- * * CPU, memory, disk, and network utilization of the deployment's EC2 instances,
- * * System and Chef logs of the deployment EC2 instances.
- */
-
 # Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

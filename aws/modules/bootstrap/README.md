@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module bootstrap
 
 Terraform module installs or upgrades Chef client and Chef Cookbooks for ArcGIS on EC2 instances.
@@ -43,4 +42,3 @@ On the machine where Terraform is executed:
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | os | Operating system ID | `string` | n/a | yes |
 | output_s3_bucket | S3 bucket for the SSM command output | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

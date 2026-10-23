@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module dashboard
 
 Terraform module dashboard creates AWS resources for the deployment monitoring subsystem.
@@ -29,4 +28,3 @@ The CloudWatch dashboard includes widgets for:
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | log_group_name | CloudWatch log group name | `string` | n/a | yes |
 | platform | Deployment platform (windows\|linux) | `string` | `"windows"` | no |
-<!-- END_TF_DOCS -->

@@ -1,38 +1,3 @@
-/*
-* # Terraform module efs_fileserver
- * 
- * Terraform module creates or references an EFS file system for the deployment's file server.
- *
- * If `fileserver_deployment_id` variable is null, the module creates a new EFS file system, security group, and EFS mount targets, and writes their IDs to SSM parameters. 
- * 
- * If `fileserver_deployment_id` variable is not null, the module reads the EFS file system and security group IDs from SSM parameters for the specified deployment.
- *
- * The security group of the EFS file system allows inbound NFS traffic from the security group specified by `referenced_security_group_id` variable.
- * 
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- *
- * * AWS credentials must be configured
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable
- *
- * ## SSM Parameters
- *
- * The module reads the following SSM parameters: 
- *
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is not null) |
- * | /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is not null) |
- *
- * The module writes the following SSM parameters:
- *
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is null) |
- * | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is null) |
- */
-
 # Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

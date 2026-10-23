@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Backup Terraform Module for Base ArcGIS Enterprise on Windows
 
 The Terraform module creates a backup of base ArcGIS Enterprise deployment on Windows platform.
@@ -48,4 +47,3 @@ The module reads the following SSM parameters:
 | portal_admin_url | Portal for ArcGIS administrative URL | `string` | `"https://localhost:7443/arcgis"` | no |
 | run_as_password | Password for the account used to run Portal for ArcGIS | `string` | n/a | yes |
 | run_as_user | User name for the account used to run Portal for ArcGIS | `string` | `"arcgis"` | no |
-<!-- END_TF_DOCS -->

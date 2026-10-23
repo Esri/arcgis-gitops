@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Ingress Terraform Module for Base ArcGIS Enterprise on Kubernetes
 
 This Terraform module creates and manages an Application Gateway for Containers (AGC) that
@@ -125,4 +124,3 @@ On the machine where Terraform is executed:
 |------|-------------|
 | deployment_url | URL of the ArcGIS Enterprise on Kubernetes deployment |
 | public_frontend_fqdn | FQDN of the Application Gateway frontend |
-<!-- END_TF_DOCS -->

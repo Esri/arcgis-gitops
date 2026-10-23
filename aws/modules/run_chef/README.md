@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module run_chef
 
 Terraform module run_chef runs Cinc client in zero mode on EC2 instances in specified roles.
@@ -44,4 +43,3 @@ On the machine where Terraform is executed:
 | json_attributes | Chef run attributes in JSON format | `string` | n/a | yes |
 | machine_roles | List of machine roles. | `list(string)` | n/a | yes |
 | parameter_name | Name of the SSM parameter to store the value of json_attributes variable | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

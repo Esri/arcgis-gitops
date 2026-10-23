@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module enterprise_core_info
 
 Terraform module enterprise_core_info retrieves names and Ids of core Azure resources
@@ -45,4 +44,3 @@ returns them as output values.
 | vault_name | Azure Key Vault Name |
 | vault_uri | Azure Key Vault URI |
 | vnet_id | VNet ID of ArcGIS Enterprise |
-<!-- END_TF_DOCS -->

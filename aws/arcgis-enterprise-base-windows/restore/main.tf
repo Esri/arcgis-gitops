@@ -12,37 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/**
- * # Restore Terraform Module for Base ArcGIS Enterprise on Windows
- *
- * The Terraform module restores from backup base ArcGIS Enterprise deployment on Windows platform.
- *
- * The module runs WebGISDR utility with 'import' option on primary EC2 instance of the deployment.
- * Staging uses the target deployment's \\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr path, independently of backup_enterprise_id.
- *
- * The backup is retrieved from the backup S3 bucket of the enterprise specified by "backup_enterprise_id" input variable.
- *
- * ## Requirements
- *
- * The base ArcGIS Enterprise must be configured on the deployment by application terraform module for base ArcGIS Enterprise on Windows.
- *
- * On the machine where Terraform is executed:
- * 
- * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
- * * Path to aws/scripts directory must be added to PYTHONPATH
- * * AWS credentials must be configured
- *
- * ## SSM Parameters
- *
- * The module reads the following SSM parameters: 
- *
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.backup_enterprise_id}/s3/backup | Backup S3 bucket |
- * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
- * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Target deployment namespace for WebGISDR staging |
- */
-
 terraform {
   backend "s3" {
     key = "terraform/arcgis/enterprise-base-windows/restore.tfstate"

@@ -1,35 +1,3 @@
-/**
- * # Terraform Module K8s-cluster
- *
- * The Terraform module provisions Azure Kubernetes Service (AKS) cluster
- * that meets [ArcGIS Enterprise on Kubernetes system requirements](https://enterprise-k8s.arcgis.com/en/latest/deploy/deploy-a-cluster-in-azure-kubernetes-service.htm).
- *
- * ![Azure Kubernetes Service (AKS) cluster](k8s-cluster.png "Azure Kubernetes Service (AKS) cluster")
- *
- * The module creates a resource group with the following Azure resouces: 
- *
- * * AKS cluster with default node pool in the private subnet 1 
- * * ALB Controller and Application Gateway for Containers associated with app gateway subnet 1.
- * * Container registry with private endpoint in internal subnet 1, private DNS zone, and cache rules to pull images from Docker Hub container registry.
- * * Monitoring subsystem that include Azure Monitor workspace and Azure Managed Grafana instances.
- *
- * Once the AKS cluster is available, the module creates storage classes for Azure Disk CSI driver.
- *
- * ## Requirements
- *
- * The subnets and virtual network Ids are retrieved from Azure Key Vault secrets. The key vault, subnets, and other
- * network infrastructure resources must be created by the [infrastructure-core](../infrastructure-core) module.
- *
- * Azure providers Microsoft.Monitor, Microsoft.Dashboard, Microsoft.NetworkFunction, and Microsoft.ServiceNetworking 
- * must be registered in the subscription.
- * 
- * On the machine where Terraform is executed:
- *
- * * Azure subscription ID must be specified by ARM_SUBSCRIPTION_ID environment variable.
- * * Azure service principal credentials must be configured by ARM_CLIENT_ID, ARM_TENANT_ID, and ARM_CLIENT_SECRET environment variables.
- * * Azure CLI, Helm and kubectl must be installed.
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

@@ -17,7 +17,3 @@ On the machine where the script is executed:
 
 * Azure CLI must be installed and available in the PATH.
 * jq command-line JSON processor must be installed.
-
-<!-- BEGIN_TF_DOCS -->
-
-<!-- END_TF_DOCS -->

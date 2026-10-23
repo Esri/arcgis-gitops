@@ -1,24 +1,3 @@
-/**
- * # Terraform module helm-charts
- * 
- * The module downloads the Helm Charts for ArcGIS Enterprise on Kubernetes tarball
- * from the repository specified in the index file, extracts the charts from the tarball 
- * into the specified installation directory, and renames the extracted directory
- * to the Helm charts version.
- *
- * The module skips the steps above if the Helm charts already exist in the installation directory.
- *
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- * 
- * * Current working directory must be the root of the "organization" module. 
- * * Python 3.9 or later must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * ArcGIS Online credentials must be set by ARCGIS_ONLINE_PASSWORD and 
- *   ARCGIS_ONLINE_USERNAME environment variables.
- */
-
 # Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

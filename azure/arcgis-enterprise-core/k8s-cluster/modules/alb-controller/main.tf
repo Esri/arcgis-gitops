@@ -1,19 +1,3 @@
-/**
- * # Terraform module alb-controller
- * 
- * The module deploys Application Gateway for Containers ALB Controller to AKS cluster:
- *
- * 1. Creates a user managed identity for ALB controller and federates the identity as Workload Identity to use in the AKS cluster.
- * 2. Assigns required roles to the identity.
- * 2. Installs ALB Controller using Helm.
- *
- * See: https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/quickstart-deploy-application-gateway-for-containers-alb-controller
- *
- * ## Requirements
- * 
- * Helm must be installed on the machine where terraform is executed.
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

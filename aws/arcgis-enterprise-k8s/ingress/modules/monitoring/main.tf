@@ -1,12 +1,3 @@
-/**
- * # Ingress Monitoring Terraform Module
- * 
- * The module creates Monitoring Subsystem for the ArcGIS Enterprise on Kubernetes cluster-level ingress that includes:
- *
- * * A CloudWatch alarm that monitors the ingress ALB target groups and posts to the enterprise alarms SNS topic if the number of unhealthy instances is nonzero.
- * * A CloudWatch dashboard that displays the CloudWatch alarm status, ALB metrics, and log of requests flagged by WAF rules.
- */
-
 # Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

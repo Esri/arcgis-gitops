@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module infrastructure-core
 
 The Terraform module creates networking and storage Azure resources shared across
@@ -145,4 +144,3 @@ Attributes of the resources are stored as secrets in the Azure Key Vault created
 | private_subnets | Private subnets IDs |
 | storage_account_id | Storage account ID |
 | vnet_id | ArcGIS Enterprise virtual network ID |
-<!-- END_TF_DOCS -->

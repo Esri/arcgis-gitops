@@ -1,39 +1,3 @@
-/**
- * # Organization Terraform Module for ArcGIS Enterprise on Kubernetes
- *
- * The module deploys ArcGIS Enterprise on Kubernetes in Amazon EKS cluster and creates an ArcGIS Enterprise organization.
- *
- * ![ArcGIS Enterprise on Kubernetes](arcgis-enterprise-k8s-organization.png "ArcGIS Enterprise on Kubernetes")  
- *
- * The module uses the Helm Charts for ArcGIS Enterprise on Kubernetes.
- * The Helm charts package for the ArcGIS Enterprise version used by the deployment 
- * is downloaded from My Esri and extracted in the module's `helm-charts/arcgis-enterprise/<Helm charts version>` directory.
- *
- * The module creates a Kubernetes pod to execute Enterprise Admin CLI commands and updates the DR settings to use the specified storage class and size for staging volume.
- * The module also creates an S3 bucket for the organization object store, registers it with the deployment, 
- * and registers backup store using S3 bucket specified by "/arcgis/${var.enterprise_id}/s3/backup" SSM parameter.
- *
- * The deployment's CloudWatch dashboard displays the CloudWatch metrics and container logs of the deployment.
- *
- * ## Requirements
- * 
- * On the machine where Terraform is executed:
- * 
- * * AWS credentials must be configured.
- * * ArcGIS Online credentials must be set by ARCGIS_ONLINE_PASSWORD and ARCGIS_ONLINE_USERNAME environment variables.
- * * EKS cluster configuration information must be provided in ~/.kube/config file.
- * * Path to aws/scripts directory must be added to PYTHONPATH.
- *
- * ## SSM Parameters
- *
- * The module reads the following SSM parameters: 
- *
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.enterprise_id}/s3/backup | Backup S3 bucket name |
- * | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for ArcGIS Notebook Server on Linux
 
 The Terraform module configures or upgrades applications for an ArcGIS Notebook Server deployment on the Linux platform.
@@ -132,4 +131,3 @@ The module reads the following Key Vault secrets:
 | Name | Description |
 |------|-------------|
 | arcgis_notebook_server_url | ArcGIS Notebook Server URL |
-<!-- END_TF_DOCS -->

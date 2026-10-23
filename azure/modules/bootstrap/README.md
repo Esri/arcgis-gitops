@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module bootstrap
 
 Terraform module installs or upgrades Chef client and Chef Cookbooks for ArcGIS on Azure VMs.
@@ -40,4 +39,3 @@ On the machine where Terraform is executed:
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | os | Operating system ID | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

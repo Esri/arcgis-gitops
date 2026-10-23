@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for Base ArcGIS Enterprise on Windows
 
 This Terraform module configures or upgrades applications for a base ArcGIS Enterprise deployment on the Windows platform.
@@ -32,6 +31,8 @@ the configuration store in a Cosmos DB database, rather than on a file share.
 Portal content uses Azure Blob Storage by default. For new deployments, set content_store_type
 to FILESYSTEM to use `\\${fileserver_hostname}\${namespace}\arcgisportal\content` on the existing dedicated fileserver.
 This setting is independent of config_store_type and does not migrate existing Portal content.
+
+New deployments use the deployment storage-account name as the namespace for fileserver subfolders, cloud Server configuration, and Data Store backup prefixes.
 
 ## Requirements
 
@@ -147,4 +148,3 @@ The module reads the following Key Vault secrets:
 |------|-------------|
 | arcgis_portal_url | Portal for ArcGIS URL |
 | arcgis_server_url | ArcGIS Server URL |
-<!-- END_TF_DOCS -->

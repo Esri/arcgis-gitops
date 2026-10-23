@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module helm-charts
 
 The module downloads the Helm Charts for ArcGIS Enterprise on Kubernetes tarball
@@ -48,4 +47,3 @@ On the machine where Terraform is executed:
 | configure_yaml_content | Content of the configure.yaml file of the Helm charts |
 | helm_charts_path | Path to the Helm Charts for ArcGIS Enterprise on Kubernetes |
 | helm_charts_version | Version of Helm Charts for ArcGIS Enterprise on Kubernetes |
-<!-- END_TF_DOCS -->

@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module efs_fileserver
 
 Terraform module creates or references an EFS file system for the deployment's file server.
@@ -69,4 +68,3 @@ The module writes the following SSM parameters:
 | file_system_arn | EFS file system ARN |
 | file_system_id | EFS file system ID for the deployment's file server |
 | security_group_id | Security group ID for the deployment's file server EFS file system |
-<!-- END_TF_DOCS -->

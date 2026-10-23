@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module az_copy_files
 
 Terraform module az_copy_files copies files from local file system, public URLs, and, My Esri, and ArcGIS patch repositories to Azure Blob Storage.
@@ -32,4 +31,3 @@ On the machine where Terraform is executed:
 | container_name | Azure Storage blob container name | `string` | `"repository"` | no |
 | index_file | Index file local path | `string` | n/a | yes |
 | storage_account_blob_endpoint | Azure Storage account blob endpoint | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

@@ -1,35 +1,3 @@
-/**
- * # Terraform Module K8s-cluster
- *
- * The Terraform module provisions Amazon Elastic Kubernetes Service (EKS) cluster
- * that meets [ArcGIS Enterprise on Kubernetes system requirements](https://enterprise-k8s.arcgis.com/en/latest/deploy/configure-aws-for-use-with-arcgis-enterprise-on-kubernetes.htm).
- *
- * The module installs the following add-ons to the EKS cluster:
- *
- * * Load Balancer Controller add-on
- * * Amazon EBS CSI Driver add-on
- * * Amazon CloudWatch Observability EKS add-on
- *
- * Optionally, the module also configures pull through cache rules for Amazon Elastic Container Registry (ECR) 
- * to sync the contents of source Docker Hub and Public Amazon ECR registries with private Amazon ECR registry.
- *
- * ## Requirements
- * 
- * On the machine where Terraform is executed:
- *
- * * AWS credentials and default region must be configured.
- * * AWS CLI, kubectl, and helm must be installed.
- *
- * ## SSM Parameters
- *
- * If subnet IDs of the EKS cluster and node groups are not specified by input variables,
- * the subnet IDs are retrieved from the following SSM parameters: 
- *
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.enterprise_id}/vpc/subnets | Ids of VPC subnets |
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

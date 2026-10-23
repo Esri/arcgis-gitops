@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module security_group
 
 Terraform module creates and configures EC2 security group for deployment.
@@ -38,4 +37,3 @@ The module allows egress for all ports on all IP addresses.
 | Name | Description |
 |------|-------------|
 | id | Security group ID |
-<!-- END_TF_DOCS -->

@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module ansible_playbook
 
 Terraform module runs Ansible playbooks on the deployment's EC2 instances in specific roles.
@@ -43,4 +42,3 @@ On the machine where Terraform is executed:
 | external_vars | Ansible external vars | `any` | n/a | yes |
 | machine_roles | List of machine roles. | `list(string)` | n/a | yes |
 | playbook | Ansible playbook | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

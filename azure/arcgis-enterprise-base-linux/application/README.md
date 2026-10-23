@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for Base ArcGIS Enterprise on Linux
 
 This Terraform module configures or upgrades applications for a base ArcGIS Enterprise deployment on the Linux platform.
@@ -142,4 +141,3 @@ The module reads the following Key Vault secrets:
 |------|-------------|
 | arcgis_portal_url | Portal for ArcGIS URL |
 | arcgis_server_url | ArcGIS Server URL |
-<!-- END_TF_DOCS -->

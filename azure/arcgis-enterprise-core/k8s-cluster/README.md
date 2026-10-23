@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform Module K8s-cluster
 
 The Terraform module provisions Azure Kubernetes Service (AKS) cluster
@@ -81,4 +80,3 @@ On the machine where Terraform is executed:
 | grafana_endpoint | Grafana endpoint |
 | prometheus_query_endpoint | Prometheus query endpoint |
 | subscription_id | Azure subscription ID |
-<!-- END_TF_DOCS -->

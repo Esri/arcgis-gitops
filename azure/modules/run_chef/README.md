@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module run_chef
 
 Terraform module run_chef runs Cinc client in zero mode on Azure VMs in specified roles.
@@ -41,4 +40,3 @@ On the machine where Terraform is executed:
 | json_attributes | Chef run attributes in JSON format | `string` | n/a | yes |
 | json_attributes_secret | Key Vault secret name of role attributes | `string` | n/a | yes |
 | machine_roles | List of machine roles. | `list(string)` | n/a | yes |
-<!-- END_TF_DOCS -->

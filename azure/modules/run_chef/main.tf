@@ -1,22 +1,3 @@
-/**
- * # Terraform module run_chef
- * 
- * Terraform module run_chef runs Cinc client in zero mode on Azure VMs in specified roles.
- * 
- * The module runs az_run_chef.py python script that creates a Key Vault secret with Chef JSON attributes and
- * runs Azure Managed command on the deployment's Azure VMs in specific roles.
- *
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- *
- * * Python 3.9 or later with [Azure SDK for Python](https://docs.microsoft.com/en-us/python/azure/?view=azure-python) package must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * Azure credentials must be configured
- *
- *  Cinc client and Chef Cookbooks for ArcGIS must be installed on the target Azure VMs.
- */
-
 # Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

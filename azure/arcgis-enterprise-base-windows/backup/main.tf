@@ -12,49 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/**
- * # Backup Terraform Module for Base ArcGIS Enterprise on Windows
- *
- * The Terraform module creates a backup of base ArcGIS Enterprise deployment on Windows platform.
- *
- * The module runs WebGISDR utility with 'export' option on the primary VM of the deployment.
- *
- * The WebGISDR backups are stored in "webgisdr-backups" blob container of the enterprise's Azure Storage account.
- * The Portal for ArcGIS content store backups are stored in "content-backups" blob container.
- * Staging uses \\${fileserver_hostname}\${namespace}\arcgisbackup\webgisdr, with the deployment storage-account name as namespace.
- *
- * ## Requirements
- *
- * The base ArcGIS Enterprise must be configured on the deployment by application terraform module
- * for base ArcGIS Enterprise on Windows.
- *
- * The user assigned managed identity assigned to the VMs must have Storage Blob Data Owner role on
- * the enterprise's storage account used for storing backups.
- *
- * On the machine where Terraform is executed:
- * 
- * * Python 3.9 or later must be installed
- * * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * Azure credentials must be configured using "az login" CLI command
- *
- * ## Key Vault Secrets
- *
- * The module reads the following Key Vault secrets:
- *
- * | Key Vault secret name | Description |
- * |-----------------------|-------------|
- * | storage-account-key   | Enterprise's storage account key |
- * | storage-account-name  | Enterprise's storage account name |
- * | subnets               | VNet subnets IDs |
- * | vm-identity-client-id | Client ID of the user-assigned VM identity |
- * | ${var.deployment_id}-storage-account-name | Deployment namespace for WebGISDR staging |
- * | vnet-id               | VNet ID |
- *
- * > The storage-account-name, storage-account-key, subnets, and vnet-id
- *   secrets are retrieved by backup_enterprise_core_info module.
- */
-
 terraform {
   backend "azurerm" {
     key = "terraform/arcgis/enterprise-base-windows/backup.tfstate"

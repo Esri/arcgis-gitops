@@ -1,19 +1,3 @@
-/*
- * # Terraform module bootstrap
- * 
- * Terraform module installs or upgrades Chef client and Chef Cookbooks for ArcGIS on Azure VMs.
- *
- * The module uses az_bootstrap.py script to run managed Run Command on the deployment's Azure VMs in the specific roles.
- *
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- *
- * * Python 3.9 or later with [Azure SDK for Python](https://docs.microsoft.com/en-us/python/api/overview/azure/?view=azure-python) packages must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * Azure credentials must be configured
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

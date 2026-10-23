@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for ArcGIS Notebook Server on Linux
 
 The Terraform module configures or upgrades applications of highly available ArcGIS Notebook Server deployment on Linux platform.
@@ -137,4 +136,3 @@ The module reads the following SSM parameters:
 | Name | Description |
 |------|-------------|
 | arcgis_notebook_server_url | ArcGIS Notebook Server URL |
-<!-- END_TF_DOCS -->

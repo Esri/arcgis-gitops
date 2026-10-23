@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module clean_up
 
 Terraform module deletes files in specific directories on deployment VMs in specific roles.
@@ -38,4 +37,3 @@ On the machine where Terraform is executed:
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | uninstall_chef_client | Set to true to uninstall Chef/Cinc Client | `bool` | `true` | no |
-<!-- END_TF_DOCS -->

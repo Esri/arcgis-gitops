@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for ArcGIS Server on Linux
 
 The Terraform module configures or upgrades applications for an ArcGIS Server deployment on the Linux platforms.
@@ -141,4 +140,3 @@ The module reads the following SSM parameters:
 | Name | Description |
 |------|-------------|
 | arcgis_server_url | ArcGIS Server URL |
-<!-- END_TF_DOCS -->

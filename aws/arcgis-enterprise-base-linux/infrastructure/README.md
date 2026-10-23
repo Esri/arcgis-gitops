@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Infrastructure Terraform Module for Base ArcGIS Enterprise on Linux
 
 The Terraform module provisions AWS resources for base ArcGIS Enterprise deployment on Linux platform.
@@ -162,4 +161,3 @@ The module writes the following SSM parameters:
 |------|-------------|
 | deployment_url | Portal for ArcGIS URL of the deployment |
 | security_group_id | EC2 security group ID |
-<!-- END_TF_DOCS -->

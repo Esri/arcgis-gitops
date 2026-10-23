@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Infrastructure Terraform Module for base ArcGIS Enterprise on Windows
 
 The Terraform module creates AWS resources for base ArcGIS Enterprise deployment on Windows platform.
@@ -6,6 +5,9 @@ The Terraform module creates AWS resources for base ArcGIS Enterprise deployment
 ![Base ArcGIS Enterprise on Windows / Infrastructure](arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
 
 The module launches two (or one, if "is_ha" input variable is set to false) SSM-managed ArcGIS EC2 instances and one dedicated Windows file-server EC2 instance. The file server is always owned by this base deployment, runs in the primary ArcGIS subnet, and uses its own security group. Base deployments cannot reference a file server from another deployment.
+
+Primary and standby EC2 instances are created after the fileserver module completes, including its DNS record, access rules, and data disk initialization, so recovered ArcGIS services can access the fileserver when they start.
+
 The EC2 instances are launched from images retrieved from "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}" SSM parameters.
 The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows.
 
@@ -166,4 +168,3 @@ The module writes the following SSM parameters:
 | fileserver_private_dns | Private DNS name of the dedicated Windows file-server VM |
 | fileserver_security_group_id | Dedicated Windows file-server security group ID |
 | security_group_id | EC2 security group ID |
-<!-- END_TF_DOCS -->

@@ -1,22 +1,3 @@
-/**
- * # Terraform module ansible_playbook
- * 
- * Terraform module runs Ansible playbooks on the deployment's EC2 instances in specific roles.
- * 
- * The module uses community.aws.aws_ssm connection plugin to connect to EC2 instances via AWS Systems Manager.
- *
- * ## Requirements
- *
- * The name of the S3 bucket used by the SSM connection for file transfers is retrieved from "/arcgis/{var.enterprise_id}/s3/logs" SSM parameter.
- *
- * On the machine where Terraform is executed:
- *
- * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
- * * Ansible must be installed
- * * AWS credentials must be configured
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

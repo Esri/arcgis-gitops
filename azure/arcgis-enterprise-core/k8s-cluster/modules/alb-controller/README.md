@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module alb-controller
 
 The module deploys Application Gateway for Containers ALB Controller to AKS cluster:
@@ -44,4 +43,3 @@ Helm must be installed on the machine where terraform is executed.
 | cluster_name | Name of the AKS cluster | `string` | n/a | yes |
 | controller_version | Version of the ALB Controller | `string` | `"1.9.11"` | no |
 | resource_group_name | AKS cluster resource group name | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module aznfs_fileserver
 
 Terraform module creates or references an NFS file share for the deployment's file server.
@@ -70,4 +69,3 @@ On the machine where Terraform is executed:
 |------|-------------|
 | aznfs_network_path | The network path to access the NFS file share, stored as a secret in Key Vault. |
 | storage_account_id | The ID of the storage account associated with the NFS file share. |
-<!-- END_TF_DOCS -->

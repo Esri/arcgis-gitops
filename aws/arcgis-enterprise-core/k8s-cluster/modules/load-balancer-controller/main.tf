@@ -1,18 +1,9 @@
-/**
- * # Terraform module load-balancer-controller
- * 
- * The module installs AWS Load Balancer Controller add-on to EKS cluster.
- *
- * See: https://docs.aws.amazon.com/eks/latest/userguide/aws-load-balancer-controller.html
- * 
- * ## Requirements
- * 
- * On the machine where terraform is executed must be installed AWS CLI, kubectl, helm, and Docker.
- */
-
 # Copyright 2024-2025 Esri
+
 #
+
 # Licensed under the Apache License Version 2.0 (the "License");
+
 # you may not use this file except in compliance with the License.
 # You may obtain a copy of the License at
 #

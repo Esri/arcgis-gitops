@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module lv_extend
 
 Terraform module lv_extend extends the logical volume on Azure VMs in a deployment.
@@ -36,4 +35,3 @@ On the machine where Terraform is executed:
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | os | Operating system ID (rhel9\|ubuntu24) | `string` | `"rhel9"` | no |
-<!-- END_TF_DOCS -->

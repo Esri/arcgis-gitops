@@ -1,20 +1,3 @@
-/**
- * # Terraform module container-registry
- * 
- * The module creates and configures Azure Container Registry for AKS cluster:
- *
- * 1. Creates Azure Container Registry.
- * 2. Configures pull-through cache to pull images from Docker Hub.
- *    See https://learn.microsoft.com/en-us/azure/container-registry/container-registry-artifact-cache
- * 3. Assigns AcrPull role to the AKS cluster identity.
- * 4. Creates Azure Private Endpoint for the container registry.
- *    See https://learn.microsoft.com/en-us/azure/container-registry/container-registry-private-link
- *
- * ## Requirements
- * 
- * Azure CLI must be installed on the machine where terraform is executed.
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

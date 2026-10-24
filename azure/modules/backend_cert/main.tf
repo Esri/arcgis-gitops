@@ -1,28 +1,3 @@
-/*
- * # Terraform module backend_cert
- *
- * Creates an ArcGIS backend TLS certificate package by reading a CA private key and
- * root certificate from Azure Key Vault, issuing a leaf certificate for configured
- * Common Name, DNS and IP SANs, exporting a password-protected PFX with certificate chain, and
- * uploading the PFX to Azure Blob Storage.
- *
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- *
- * * OpenSSL must be installed and available in the system PATH
- * * Azure credentials must be configured
- * 
- * ## Key Vault Secrets
- *
- * ### Secrets Read by the Module
- *
- * | Secret Name                      | Description |
- * |----------------------------------|-------------|
- * | ${var.ingress_id}-ca-private-key | PEM-encoded private key used to sign CSR and the backend certificate |
- * | ${var.ingress_id}-ca-root-cert   | PEM-encoded root certificate |
- */
-
 # Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

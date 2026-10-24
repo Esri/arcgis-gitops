@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Infrastructure Terraform Module for ArcGIS Notebook Server on Linux
 
 The Terraform module provisions AWS resources for ArcGIS Notebook Server deployment on Linux platform.
@@ -159,4 +158,3 @@ The module writes the following SSM parameters:
 |------|-------------|
 | deployment_url | ArcGIS Notebook Server URL |
 | security_group_id | EC2 security group ID |
-<!-- END_TF_DOCS -->

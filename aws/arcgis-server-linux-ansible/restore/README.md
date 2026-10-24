@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Restore Terraform Module for ArcGIS Server on Linux
 
 The Terraform module retrieves the last a backup from S3 bucket and restores ArcGIS Server deployment from the backup.
@@ -52,4 +51,3 @@ The module retrieves the backup S3 bucket name and region from '/arcgis/${var.ba
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | run_as_user | User name for the account used to run ArcGIS Server | `string` | `"arcgis"` | no |
 | s3_prefix | Backup S3 object keys prefix | `string` | `"arcgis-server-backups"` | no |
-<!-- END_TF_DOCS -->

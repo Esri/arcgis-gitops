@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Ingress Monitoring Terraform Module
 
 The module creates Monitoring Subsystem for the ArcGIS Enterprise on Kubernetes cluster-level ingress that includes:
@@ -29,4 +28,3 @@ The module creates Monitoring Subsystem for the ArcGIS Enterprise on Kubernetes 
 | namespace | Deployment namespace | `string` | n/a | yes |
 | sns_topic_arn | SNS topic ARN for alarms | `string` | n/a | yes |
 | waf_log_group | WAF log group name | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

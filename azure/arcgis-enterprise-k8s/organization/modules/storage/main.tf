@@ -1,15 +1,3 @@
-/**
- * # Terraform module storage
- * 
- * The module:
- * 
- * * Creates an Azure resource group for the organization's stores,
- * * Creates an Azure storage account and a blob container for the organization's object store, 
- * * Creates an Azure private endpoint for the blob store,
- * * Grants the specified principal Storage Blob Data Contributor role in the storage accounts, and
- * * Creates cloud config JSON file for the object store.
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

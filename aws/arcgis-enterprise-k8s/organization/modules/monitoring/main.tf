@@ -1,14 +1,3 @@
-/**
- * # Terraform module monitoring
- * 
- * The module creates Monitoring Subsystem for the ArcGIS Enterprise on Kubernetes deployment.
- *
- * The Monitoring Subsystem consists of:
- *
- * * A CloudWatch alarm that monitors the ingress ALB target groups and post to the SNS topic if the number of unhealthy instances in nonzero.
- * * A CloudWatch dashboard that displays the CloudWatch alerts, metrics, and container logs of the deployment.
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

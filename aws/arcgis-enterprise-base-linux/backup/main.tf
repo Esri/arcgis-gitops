@@ -1,31 +1,3 @@
-/**
- * # Backup Terraform Module for Base ArcGIS Enterprise on Linux
- *
- * The Terraform module creates a backup of base ArcGIS Enterprise deployment on Linux platform.
- *
- * The module runs WebGISDR utility with 'export' option on primary EC2 instance of the deployment.
- *
- * ## Requirements
- *
- * The base ArcGIS Enterprise must be configured on the deployment by application terraform module for base ArcGIS Enterprise on Linux.
- *
- * On the machine where Terraform is executed:
- * 
- * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
- * * Path to aws/scripts directory must be added to PYTHONPATH
- * * AWS credentials must be configured
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable
- *
- * ## SSM Parameters
- *
- * The module reads the following SSM parameters: 
- *
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
- * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Backup Terraform Module for Base ArcGIS Enterprise on Linux
 
 The Terraform module creates a backup of base ArcGIS Enterprise deployment on Linux platform.
@@ -45,4 +44,3 @@ The module reads the following SSM parameters:
 | execution_timeout | Execution timeout in seconds | `number` | `36000` | no |
 | portal_admin_url | Portal for ArcGIS administrative URL | `string` | `"https://localhost:7443/arcgis"` | no |
 | run_as_user | User name for the account used to run Portal for ArcGIS | `string` | `"arcgis"` | no |
-<!-- END_TF_DOCS -->

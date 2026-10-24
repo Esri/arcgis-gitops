@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module ebs-csi-driver
 
 The module installs Amazon EBS CSI Driver add-on to EKS cluster.
@@ -33,4 +32,3 @@ On the machine where terraform is executed must be installed AWS CLI and kubectl
 |------|-------------|------|---------|:--------:|
 | cluster_name | The name of the EKS cluster | `string` | n/a | yes |
 | oidc_arn | The OIDC provider ARN for the EKS cluster | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

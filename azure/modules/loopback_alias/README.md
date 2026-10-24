@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module loopback_alias
 
 Terraform module loopback_alias adds the specified hostname to BackConnectionHostNames
@@ -40,4 +39,3 @@ On the machine where Terraform is executed:
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
-<!-- END_TF_DOCS -->

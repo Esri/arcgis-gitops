@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module s3_copy_files
 
 Terraform module s3_copy_files copies files from local file system, public URLs, and, My Esri, and ArcGIS patch repositories to S3 bucket.
@@ -35,4 +34,3 @@ On the machine where Terraform is executed:
 |------|-------------|------|---------|:--------:|
 | bucket_name | S3 bucket name | `string` | n/a | yes |
 | index_file | Index file local path | `string` | n/a | yes |
-<!-- END_TF_DOCS -->

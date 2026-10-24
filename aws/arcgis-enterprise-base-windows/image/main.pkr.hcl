@@ -12,68 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/**
- * # Packer Template for Base ArcGIS Enterprise AMIs
- * 
- * The Packer templates builds EC2 AMI for a specific base ArcGIS Enterprise deployment.
- * 
- * The AMIs are built from a Windows OS base image specified by SSM parameter "/arcgis/${var.enterprise_id}/images/${var.os}".
- * 
- * The template first copies installation media for the ArcGIS Enterprise version 
- * and required third party dependencies from My Esri and public repositories 
- * to the private repository S3 bucket. The files to copy are specified 
- * in ../manifests/arcgis-enterprise-s3files-${var.arcgis_version}.json index file.
- * 
- * Then the template uses python scripts to run SSM commands on the source EC2 instances.
- * 
- * 1. Install AWS CLI
- * 2. Install CloudWatch Agent
- * 3. Install Cinc Client and Chef Cookbooks for ArcGIS
- * 4. Download setups from the private repository S3 bucket.
- * 5. Install base ArcGIS Enterprise applications
- * 6. Install patches for the base ArcGIS Enterprise applications
- * 7. Delete unused files, uninstall Cinc Client, run sysprep
- * 
- * IDs of the AMIs are saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and 
- * "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby" SSM parameters.
- * 
- * ## Requirements
- * 
- * On the machine where Packer is executed:
- * 
- * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
- * * Path to aws/scripts directory must be added to PYTHONPATH
- * * AWS CLI must be installed and configured 
- * * AWS credentials must be configured
- * * My Esri user name and password must be specified using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD
- * 
- * ## SSM Parameters
- * 
- * The template uses the following SSM parameters:
- * 
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.enterprise_id}/chef-client-url/${var.os} | Chef Client URL |
- * | /arcgis/${var.enterprise_id}/cookbooks-url | Chef Cookbooks for ArcGIS archive URL |
- * | /arcgis/${var.enterprise_id}/iam/instance-profile-name | IAM instance profile name|
- * | /arcgis/${var.enterprise_id}/images/${var.os} | Source AMI ID|
- * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM commands output |
- * | /arcgis/${var.enterprise_id}/s3/region | S3 buckets region code |
- * | /arcgis/${var.enterprise_id}/s3/repository | Private repository S3 bucket |
- * | /arcgis/${var.enterprise_id}/vpc/subnets | Ids of VPC subnets |
- *
- * The template writes the following SSM parameters:
- *
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary | Primary AMI ID for the deployment |
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby | Standby AMI ID for the deployment |
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/fileserver | Built file-server AMI ID |
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os | Operating system of the AMI |
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/portal-web-context | Portal for ArcGIS web context |
- * | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/server-web-context | ArcGIS Server web context |
- */
-
 packer {
   required_plugins {
     amazon = {

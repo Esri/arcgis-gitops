@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module storage
 
 The module:
@@ -49,4 +48,3 @@ The module:
 | blob_container_name | Azure blob container name |
 | resource_group_name | Azure resource group name |
 | storage_account_name | Azure storage account name |
-<!-- END_TF_DOCS -->

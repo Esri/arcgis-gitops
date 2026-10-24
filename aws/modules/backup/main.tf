@@ -12,28 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
- * # Terraform module backup
- *
- * Terraform module configures system-level backups in AWS Backup service of
- * the cloud configuration stores of different server roles.
- *
- * The persisted deployment namespace is used verbatim to look up the site's
- * ArcGISConfigStores entry. There is no reconstructed-key fallback or legacy
- * migration. The parameter and matching registry entry must exist; lookup or
- * access failures stop the operation.
- *
- * ## SSM Parameters
- *
- * The module reads the following SSM parameters:
- *
- * | SSM parameter name | Description |
- * |--------------------|-------------|
- * | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Persisted namespace matching the site's ArcGISConfigStores entry |
- * | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
- * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
- */
-
 # The script enables system-level backups of ArcGIS Server config store AWS resources
 # using AWS Backup service.
 

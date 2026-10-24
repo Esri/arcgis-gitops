@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Restore Terraform Module for Base ArcGIS Enterprise on Linux
 
 The Terraform module restores a base ArcGIS Enterprise deployment on Linux from backup.
@@ -60,4 +59,3 @@ so that WebGISDR import can retrieve backups from the `webgisdr-backups` and `co
 | execution_timeout | Execution timeout in seconds | `number` | `36000` | no |
 | portal_admin_url | Portal for ArcGIS administrative URL | `string` | `"https://localhost:7443/arcgis"` | no |
 | run_as_user | User name for the account used to run Portal for ArcGIS | `string` | `"arcgis"` | no |
-<!-- END_TF_DOCS -->

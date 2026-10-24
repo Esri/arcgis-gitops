@@ -1,19 +1,3 @@
-/*
- * # Terraform module az_copy_files
- *
- * Terraform module az_copy_files copies files from local file system, public URLs, and, My Esri, and ArcGIS patch repositories to Azure Blob Storage.
- *
- * The module uses az_copy_files.py script to copy files defined in a JSON index file to an Azure Blob Storage container.
- *
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- *
- * * Python 3.9 or later with [Azure SDK for Python](https://docs.microsoft.com/en-us/python/api/overview/azure/?view=azure-python) packages must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * Azure credentials must be configured
- */
-
 # Copyright 2025 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

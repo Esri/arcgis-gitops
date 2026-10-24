@@ -1,22 +1,3 @@
-/*
- * # Terraform module nfs_mount
- * 
- * Terraform module efs_mount mounts EFS file system targets on EC2 instances in a deployment.
- * 
- * The module uses ssm_efs_mount.py script to run ${var.enterprise_id}-efs-mount SSM command on the deployment's EC2 instances in specific roles.
- *
- * ## Requirements
- *
- * The S3 bucket for the SSM command output is retrieved from "/arcgis/${var.enterprise_id}/s3/logs" SSM parameter.
- *
- * On the machine where Terraform is executed:
- *
- * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
- * * Path to aws/scripts directory must be added to PYTHONPATH
- * * AWS credentials must be configured
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable 
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

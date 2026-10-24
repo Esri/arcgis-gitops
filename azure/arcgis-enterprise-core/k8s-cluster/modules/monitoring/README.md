@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module monitoring
 
 The module deploys Monitoring subsystem that include Azure Monitor workspace and Azure Managed Grafana instances.
@@ -46,4 +45,3 @@ See: https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/
 |------|-------------|
 | grafana_endpoint | Grafana endpoint |
 | prometheus_query_endpoint | Prometheus query endpoint |
-<!-- END_TF_DOCS -->

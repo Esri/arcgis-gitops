@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module monitoring
 
 The module creates Monitoring Subsystem for the ArcGIS Enterprise on Kubernetes deployment.
@@ -38,4 +37,3 @@ The Monitoring Subsystem consists of:
 | Name | Description |
 |------|-------------|
 | sns_topic_arn | The ARN of the SNS topic that will be used for monitoring alerts |
-<!-- END_TF_DOCS -->

@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Infrastructure Terraform Module for Base ArcGIS Enterprise on Windows
 
 This Terraform module provisions Azure resources required for a base ArcGIS Enterprise deployment on Windows.
@@ -162,4 +161,3 @@ On the machine where Terraform is executed:
 | fileserver_private_dns | Private DNS name of the dedicated Windows file-server VM |
 | fileserver_recovery_vault_name | Recovery Services vault protecting the dedicated Windows file-server VM |
 | fileserver_security_group_id | Subnet network security group ID shared by the Windows file server, primary and standby VMs |
-<!-- END_TF_DOCS -->

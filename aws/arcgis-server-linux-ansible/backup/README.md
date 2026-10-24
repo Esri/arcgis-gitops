@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Backup Terraform Module for ArcGIS Server on Linux
 
 The Terraform module creates a backup of ArcGIS Server deployment and copies the backup to S3 bucket.
@@ -48,4 +47,3 @@ The module retrieves the backup S3 bucket name from '/arcgis/${var.enterprise_id
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | run_as_user | User name for the account used to run ArcGIS Server | `string` | `"arcgis"` | no |
 | s3_prefix | Backup S3 object keys prefix | `string` | `"arcgis-server-backups"` | no |
-<!-- END_TF_DOCS -->

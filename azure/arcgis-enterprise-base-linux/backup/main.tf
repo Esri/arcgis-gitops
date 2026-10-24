@@ -1,26 +1,3 @@
-/**
- * # Backup Terraform Module for Base ArcGIS Enterprise on Linux
- *
- * The Terraform module creates a backup of base ArcGIS Enterprise deployment on Linux platform.
- *
- * The module runs WebGISDR utility with 'export' option on the primary VM of the deployment.
- *
- * The WebGISDR backups are stored in "webgisdr-backups" blob container of the enterprise's Azure Storage account.
- * The Portal for ArcGIS content store backups are stored in "content-backups" blob container.
- *
- * ## Requirements
- *
- * The base ArcGIS Enterprise must be configured on the deployment by application terraform module
- * for base ArcGIS Enterprise on Linux.
- *
- * On the machine where Terraform is executed:
- * 
- * * Python 3.9 or later must be installed
- * * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * Azure credentials must be configured using "az login" CLI command
- */
-
 # Copyright 2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

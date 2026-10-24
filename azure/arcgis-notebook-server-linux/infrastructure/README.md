@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Infrastructure Terraform Module for ArcGIS Notebook Server on Linux
 
 The Terraform module provisions Azure resources for ArcGIS Notebook Server deployment on the Linux platform.
@@ -168,4 +167,3 @@ On the machine where Terraform is executed:
 | Name | Description |
 |------|-------------|
 | deployment_url | ArcGIS Notebook Server URL |
-<!-- END_TF_DOCS -->

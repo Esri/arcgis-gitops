@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Application Terraform Module for Base ArcGIS Enterprise on Windows
 
 The Terraform module configures or upgrades applications of highly available base ArcGIS Enterprise deployment on Windows platform.
@@ -157,6 +156,5 @@ The module reads the following SSM parameters:
 |------|-------------|
 | arcgis_portal_url | Portal for ArcGIS URL |
 | arcgis_server_url | ArcGIS Server URL |
-<!-- END_TF_DOCS -->
 
 

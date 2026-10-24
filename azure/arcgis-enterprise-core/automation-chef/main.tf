@@ -1,29 +1,3 @@
-/**
- * # Terraform module automation-chef
- *
- * The module copies the distribution archive Chef/Cinc client setups and Chef cookbooks for ArcGIS  from the URLs specified
- * in [automation-chef-files.json](manifests/automation-chef-files.json) file to the private repository blob container.
- * 
- * The blob URLs are stored in the enterprise's Key Vault secrets:
- *
- * | Key Vault secret name | Description |
- * | --- | --- |
- * | chef-client-url-${os} | Blob URLs of Cinc Client setup for the operating systems |
- * | cookbooks-url | Blob URL of Chef cookbooks for ArcGIS distribution archive |
- *
- * ## Requirements
- * 
- * On the machine where Terraform is executed:
- *
- * * Python 3.9 or later must be installed
- * * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
- * * Path to azure/scripts directory must be added to PYTHONPATH
- * * The working directory must be set to the automation-chef module path (because [automation-chef-files.json](manifests/automation-chef-files.json) uses relative path to the Chef cookbooks archive)
- * * Azure credentials must be configured by "az login" Azure CLI command or environment variables.
- *
- * Before using the module, the repository blob container must be created by infrastructure-core terraform module.
- */
-
 # Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

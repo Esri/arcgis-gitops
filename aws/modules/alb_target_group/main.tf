@@ -1,12 +1,3 @@
-/*
- * # Terraform module alb_target_group
- * 
- * The module creates Application Load Balancer target group for specific port and protocol, 
- * attaches specific EC2 instances to it, and adds the target group to the load balancer. 
- * The target group is configured to forward requests for specific path patterns.
- *
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

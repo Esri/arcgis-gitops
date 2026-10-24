@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module infrastructure-core
 
 Terraform module creates the networking, storage, monitoring, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise.
@@ -117,4 +116,3 @@ Ids of the created AWS resources are stored in SSM parameters:
 | private_subnets | Private subnets |
 | public_subnets | Public subnets |
 | vpc_id | VPC ID of ArcGIS Enterprise |
-<!-- END_TF_DOCS -->

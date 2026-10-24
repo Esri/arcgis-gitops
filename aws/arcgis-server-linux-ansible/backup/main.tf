@@ -1,24 +1,3 @@
-/**
- * # Backup Terraform Module for ArcGIS Server on Linux
- *
- * The Terraform module creates a backup of ArcGIS Server deployment and copies the backup to S3 bucket.
- *
- * The module runs 'backup' admin utility on the primary EC2 instance of the deployment.
- *
- * ## Requirements
- *
- * The ArcGIS Server must be configured on the deployment by application terraform module for ArcGIS Server on Linux.
- *
- * On the machine where Terraform is executed:
- * 
- * * Python 3.8 or later with [AWS SDK for Python (Boto3)](https://aws.amazon.com/sdk-for-python/) package must be installed
- * * Ansible 2.16 or later must be installed
- * * arcgis.common and arcgis.server Ansible collections must be installed
- * * AWS credentials must be configured
- *
- * The module retrieves the backup S3 bucket name from '/arcgis/${var.enterprise_id}/s3/backup' SSM parameters.
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

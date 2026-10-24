@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Ingress Terraform Module
 
 Provisions Azure Application Gateway ingress for an ArcGIS Enterprise, including
@@ -133,4 +132,3 @@ The Application Gateway's monitoring subsystem consists of:
 | backend_address_pools | JSON-encoded map of backend address pool names to their IDs |
 | private_ip_address | Private IP address of the Application Gateway |
 | public_ip_address | Frontend public IP address of the Application Gateway |
-<!-- END_TF_DOCS -->

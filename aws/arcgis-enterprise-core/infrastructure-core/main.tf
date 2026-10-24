@@ -1,39 +1,3 @@
-/**
- * # Terraform module infrastructure-core
- *
- * Terraform module creates the networking, storage, monitoring, and identity AWS resources shared across multiple deployments of an ArcGIS Enterprise.
- * 
- * The module also looks up the latest public AMIs for the specified operating systems and stores the AMI IDs in SSM parameters.
- *
- * ![Core Infrastructure Resources](infrastructure-core.png "Core Infrastructure Resources")
- *
- * Public subnets are routed to the Internet gateway, private subnets to the NAT gateway, and internal subnets to the VPC endpoints.
- * 
- * Ids of the created AWS resources are stored in SSM parameters:
- *
- * | SSM parameter name | Description |
- * | --- | --- |
- * | /arcgis/${var.enterprise_id}/backup/vault-name | Name of the AWS backup vault |
- * | /arcgis/${var.enterprise_id}/iam/backup-role-arn | ARN of IAM role used by AWS Backup service |
- * | /arcgis/${var.enterprise_id}/iam/instance-profile-name | Name of IAM instance profile |
- * | /arcgis/${var.enterprise_id}/images/${os} | Ids of the latest AMI for the operating systems |
- * | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket used by deployments to store backup data |
- * | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket used by deployments to store logs |
- * | /arcgis/${var.enterprise_id}/s3/region | S3 buckets region code |
- * | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket of private repository |
- * | /arcgis/${var.enterprise_id}/sns-topics/enterprise-alarms | ARN of SNS topic for enterprise alarms |
- * | /arcgis/${var.enterprise_id}/vpc/hosted-zone-id | Private hosted zone ID of ArcGIS Enterprise |
- * | /arcgis/${var.enterprise_id}/vpc/id | VPC ID of ArcGIS Enterprise   |
- * | /arcgis/${var.enterprise_id}/vpc/subnets | Ids of VPC subnets |
- *
- * ## Requirements
- * 
- *  On the machine where Terraform is executed:
- *
- * * AWS credentials must be configured.
- * * AWS region must be specified by AWS_DEFAULT_REGION environment variable.
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

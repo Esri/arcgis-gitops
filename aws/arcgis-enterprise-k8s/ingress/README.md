@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Ingress Terraform Module for Base ArcGIS Enterprise on Kubernetes
 
 This module provisions a Kubernetes namespace for ArcGIS Enterprise on
@@ -111,4 +110,3 @@ The module writes the following SSM parameters:
 | alb_arn | Application Load Balancer ARN |
 | alb_dns_name | Application Load Balancer DNS name |
 | alb_zone_id | Application Load Balancer zone ID |
-<!-- END_TF_DOCS -->

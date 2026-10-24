@@ -23,7 +23,3 @@ The deployment VMs must have access to the storage account of the backup enterpr
 * The deployment VMs must have network-level access to the storage account endpoint of the backup enterprise.
 * The user-assigned managed identity attached to the deployment virtual machines must have read access
   to the storage account of the backup enterprise.
-
-<!-- BEGIN_TF_DOCS -->
-
-<!-- END_TF_DOCS -->

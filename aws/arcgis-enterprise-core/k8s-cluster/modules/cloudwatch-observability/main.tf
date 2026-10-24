@@ -1,11 +1,3 @@
-/**
- * # Terraform module cloudwatch-observability
- * 
- * The module installs the Amazon CloudWatch Observability EKS add-on.
- *
- * See: https://docs.aws.amazon.com/AmazonCloudWatch/latest/monitoring/Container-Insights-setup-EKS-addon.html
- */
-
 # Copyright 2024 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

@@ -1,11 +1,3 @@
-/*
- * # Terraform module enterprise_core_info
- * 
- * Terraform module enterprise_core_info retrieves names and Ids of core Azure resources
- * created by infrastructure-core module from Azure Key Vault and
- * returns them as output values. 
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

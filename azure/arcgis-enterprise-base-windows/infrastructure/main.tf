@@ -12,68 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/**
- * # Infrastructure Terraform Module for Base ArcGIS Enterprise on Windows
- *
- * This Terraform module provisions Azure resources required for a base ArcGIS Enterprise deployment on Windows.
- *
- * ![Base ArcGIS Enterprise on Windows / Infrastructure](arcgis-enterprise-base-windows-infrastructure.png "Base ArcGIS Enterprise on Windows / Infrastructure")
- *
- * ## Features
- *
- * - Launches one or two VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
- * - VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-${vm_role}".
- *   These images must be built using the Packer template for ArcGIS Enterprise on Windows.
- * - Creates "A" records in the VNet's private hosted DNS zone, enabling permanent DNS names for the VMs.
- *   VMs can be addressed as primary.<deployment_id>.<enterprise_id>.internal and standby.<deployment_id>.<enterprise_id>.internal.
- *   > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
- * - Provisions an Azure Storage Account with blob containers for portal content and object store.
- *   The storage account name is stored in the Key Vault secret "${var.deployment_id}-storage-account-name".
- *   This persistent unique name is also the deployment namespace used for cloud resource names and fileserver subfolders.
- * - If "is_ha" variable is true, provisions a Cosmos DB account and a Service Bus namespace for ArcGIS Server configuration store.
- * - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
- * - Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container. 
- * - Creates an Azure Monitor dashboard for monitoring key VM metrics.
- * - Creates a dedicated Windows file-server VM in the primary subnet, inheriting the same subnet NSG as the primary and standby VMs without a dedicated NSG.
- * - Tags all resources with ArcGISEnterpriseID and ArcGISDeploymentID for easy identification.
- *
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- *
- * * OpenSSL must be installed and available in the system PATH
- * * Azure credentials must be configured using "az login" CLI command
- *
- * ## Key Vault Secrets
- *
- * ### Secrets Read by the Module
- *
- * | Secret Name                             | Description |
- * |-----------------------------------------|-------------|
- * | ${var.deployment_id}-portal-web-context | Portal for ArcGIS web context |
- * | ${var.deployment_id}-vm-image-primary   | Primary VM image ID |
- * | ${var.deployment_id}-vm-image-standby   | Standby VM image ID |
- * | ${var.ingress_id}-backend-address-pools | Application Gateway backend address pools |
- * | ${var.ingress_id}-ca-private-key        | Private key of the ingress CA root certificate |
- * | ${var.ingress_id}-ca-root-cert          | Root certificate used by Application Gateway to validate the backend's identity | 
- * | ${var.ingress_id}-ingress-fqdn          | Ingress FQDN |
- * | storage-account-key                     | Storage account key |
- * | storage-account-name                    | Storage account name |
- * | subnets                                 | VNet subnet IDs |
- * | vm-identity-id                          | User-assigned VM identity resource ID |
- * | vm-identity-principal-id                | User-assigned VM identity principal ID |
- * | vnet-id                                 | VNet ID |
- *
- * ### Secrets Written by the Module
- *
- * | Secret Name                               | Description |
- * |-------------------------------------------|-------------|
- * | ${var.deployment_id}-backend-pfx-password | Password for the generated PFX file |
- * | ${var.deployment_id}-ingress-fqdn         | Ingress FQDN |
- * | ${var.deployment_id}-deployment-url       | Portal for ArcGIS URL of the deployment |
- * | ${var.deployment_id}-storage-account-name | Deployment's storage account name |
- */
-
 terraform {
   backend "azurerm" {
     key = "terraform/arcgis/enterprise-base-windows/infrastructure.tfstate"

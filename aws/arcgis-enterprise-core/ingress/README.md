@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module ingress
 
 The module creates and configures an Application Load Balancer for ArcGIS Enterprise ingress.
@@ -137,4 +136,3 @@ The module writes the following SSM parameters:
 | alb_dns_name | Application Load Balancer DNS name |
 | alb_zone_id | Application Load Balancer zone ID |
 | security_group_id | Application Load Balancer security group ID |
-<!-- END_TF_DOCS -->

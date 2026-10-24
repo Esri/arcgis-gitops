@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Infrastructure Terraform Module for Base ArcGIS Enterprise on Linux
 
 This Terraform module provisions Azure resources required for a base ArcGIS Enterprise deployment on Linux.
@@ -164,4 +163,3 @@ On the machine where Terraform is executed:
 | Name | Description |
 |------|-------------|
 | deployment_url | Portal for ArcGIS URL |
-<!-- END_TF_DOCS -->

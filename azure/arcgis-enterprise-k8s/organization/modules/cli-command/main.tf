@@ -1,9 +1,3 @@
-/**
- * # Terraform module cli-command
- * 
- * The module executes an Enterprise Admin CLI command in a Kubernetes pod.
- */
-
 # Copyright 2024 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

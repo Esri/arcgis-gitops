@@ -1,17 +1,3 @@
-/**
- * # Terraform module monitoring
- * 
- * The module deploys Monitoring subsystem that include Azure Monitor workspace and Azure Managed Grafana instances.
- *
- * 1. Creates Azure Monitor Workspace.
- * 2. Create data collection rule associations (DCRAs) for the AKS cluster and the default data collection rule of the monitor workspace.
- * 3. Create Azure Managed Grafana instance.
- * 4. Assign Grafana dashboard identity "Monitoring Data Reader" role to read data from the Azure Monitor Workspace.
- * 5. Creates Prometheus rule groups with default recording rules. 
- *
- * See: https://learn.microsoft.com/en-us/azure/application-gateway/for-containers/quickstart-deploy-application-gateway-for-containers-alb-controller
- */
-
 # Copyright 2024-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");

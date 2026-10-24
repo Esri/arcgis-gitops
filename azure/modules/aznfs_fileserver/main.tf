@@ -12,36 +12,6 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-/*
-* # Terraform module aznfs_fileserver
- * 
- * Terraform module creates or references an NFS file share for the deployment's file server.
- *
- * If `fileserver_deployment_id` variable is null, the module creates a new storage account and an NFS file share. 
- * 
- * If `fileserver_deployment_id` variable is not null, the module reads the NFS file share network path from Key Vault secrets for the specified deployment.
- *
- * ## Requirements
- *
- * On the machine where Terraform is executed:
- *
- * * Azure credentials must be configured using "az login" CLI command
- *
- * ## Key Vault Secrets
- *
- * ### Secrets Read by the Module
- *
- * | Secret Name                             | Description |
- * |-----------------------------------------|-------------|
- * | ${var.fileserver_deployment_id}-aznfs-network-path | Network path for the NFS file share (if ${var.fileserver_deployment_id} is not null) |
- *
- * ### Secrets Written by the Module
- *
- * | Secret Name                               | Description |
- * |-------------------------------------------|-------------|
- * | ${var.deployment_id}-aznfs-network-path   | Network path for the NFS file share (if ${var.fileserver_deployment_id} is null) |
- */
-
 terraform {
   required_version = ">= 1.9"
 

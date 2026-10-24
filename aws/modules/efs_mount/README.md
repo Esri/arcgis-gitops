@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module nfs_mount
 
 Terraform module efs_mount mounts EFS file system targets on EC2 instances in a deployment.
@@ -40,4 +39,3 @@ On the machine where Terraform is executed:
 | file_system_id | EFS file system ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
 | mount_point | NFS mount point | `string` | `"/mnt/efs"` | no |
-<!-- END_TF_DOCS -->

@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Organization Terraform Module for ArcGIS Enterprise on Kubernetes
 
 The module deploys ArcGIS Enterprise on Kubernetes in Amazon EKS cluster and creates an ArcGIS Enterprise organization.
@@ -107,4 +106,3 @@ The module reads the following SSM parameters:
 |------|-------------|
 | arcgis_enterprise_manager_url | ArcGIS Enterprise Manager URL |
 | arcgis_enterprise_portal_url | ArcGIS Enterprise Portal URL |
-<!-- END_TF_DOCS -->

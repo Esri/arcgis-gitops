@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform Module K8s-cluster
 
 The Terraform module provisions Amazon Elastic Kubernetes Service (EKS) cluster
@@ -93,4 +92,3 @@ the subnet IDs are retrieved from the following SSM parameters:
 | cluster_endpoint | EKS cluster endpoint |
 | cluster_name | EKS cluster name |
 | oidc_arn | EKS cluster OIDC provider ARN |
-<!-- END_TF_DOCS -->

@@ -1,4 +1,3 @@
-<!-- BEGIN_TF_DOCS -->
 # Terraform module enterprise_core_info
 
 Terraform module enterprise_core_info retrieves names and IDs of core AWS resources
@@ -44,4 +43,3 @@ returns them as output values.
 | s3_region | S3 region |
 | s3_repository | Private repository S3 bucket name |
 | vpc_id | VPC ID of ArcGIS Enterprise |
-<!-- END_TF_DOCS -->

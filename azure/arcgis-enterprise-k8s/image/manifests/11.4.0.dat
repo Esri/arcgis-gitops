@@ -1,0 +1,244 @@
+{
+    "versions": [{
+        "newLicensesRequired": true,
+        "description": "ArcGIS Enterprise on Kubernetes 11.4.0",
+        "type": "release",
+        "version": "11.4.0",
+        "url": "https://enterprise-k8s.arcgis.com/en/latest/introduction/release-notes.htm",
+        "releaseNotes": "ArcGIS Enterprise on Kubernetes 11.4.0",
+        "build": "6285",
+        "previousVersion": "11.3.0",
+        "name": "ArcGIS Enterprise on Kubernetes 11.4.0",
+        "containers": [
+            {
+                "image": "apps:11.4.0.6285",
+                "name": "PORTAL_APPS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-busybox:11.4.0.6285",
+                "name": "BUSYBOX",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-disaster-recovery:11.4.0.6285",
+                "name": "DISASTER_RECOVERY",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-fluent-bit:11.4.0.6285",
+                "name": "FLUENT_BIT",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-ignite:11.4.0.6285",
+                "name": "STORE_IGNITE",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-ingress-controller:11.4.0.6285",
+                "name": "INGRESS_CONTROLLER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-nginx-web:11.4.0.6285",
+                "name": "WEB_PROXY",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-notebook-handler:11.4.0.6285",
+                "name": "NOTEBOOK_HANDLER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-notebook-server:11.4.0.6285",
+                "name": "NOTEBOOK_SERVER_11_4",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-opensearch:11.4.0.6285",
+                "name": "STORE_SBDS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-ozone:11.4.0.6285",
+                "name": "STORE_OZONE",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-postgresql:11.4.0.6285",
+                "name": "STORE_POSTGRES",
+                "checksum": "N/A"
+            },
+            {
+                "image": "arcgis-prometheus:11.4.0.6285",
+                "name": "PROMETHEUS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "catalog-server:11.4.0.6285",
+                "name": "CATALOG_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "config-factory-server:11.4.0.6285",
+                "name": "CONFIG_FACTORY_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "distributed-server-deeplearning:11.4.0.6285",
+                "name": "DISTRIBUTED_SERVER_DEEPLEARNING",
+                "checksum": "N/A"
+            },
+            {
+                "image": "distributed-server:11.4.0.6285",
+                "name": "DISTRIBUTED_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "enterprise-admin-tools:11.4.0.6285",
+                "name": "ADMIN_TOOLS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "enterprise-admin-tools:11.4.0.6285",
+                "name": "UPGRADER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "enterprise-admin:11.4.0.6285",
+                "name": "ENTERPRISE_ADMIN_API",
+                "checksum": "N/A"
+            },
+            {
+                "image": "enterprise-rabbitmq:11.4.0.6285",
+                "name": "RABBITMQ",
+                "checksum": "N/A"
+            },
+            {
+                "image": "geocode-runtime-server:11.4.0.6285",
+                "name": "GEOCODE_RUNTIME_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "geocode-server:11.4.0.6285",
+                "name": "GEOCODE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "geometry-server:11.4.0.6285",
+                "name": "GEOMETRY_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "gp-proxy-server:11.4.0.6285",
+                "name": "GPPROXY_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "gp-server:11.4.0.6285",
+                "name": "GP_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "help:11.4.0.6285",
+                "name": "HELP",
+                "checksum": "N/A"
+            },
+            {
+                "image": "home:11.4.0.6285",
+                "name": "PORTAL_HOME_APP",
+                "checksum": "N/A"
+            },
+            {
+                "image": "image-server:11.4.0.6285",
+                "name": "IMAGE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "job-manager:11.4.0.6285",
+                "name": "JOB_MANAGER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "jsapi:11.4.0.6285",
+                "name": "PORTAL_JSAPI",
+                "checksum": "N/A"
+            },
+            {
+                "image": "manager:11.4.0.6285",
+                "name": "MANAGER_APP",
+                "checksum": "N/A"
+            },
+            {
+                "image": "map-server:11.4.0.6285",
+                "name": "MAP_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "native-server:11.4.0.6285",
+                "name": "NATIVE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "object-store-migration-tools:11.4.0.6285",
+                "name": "OBJECT_STORE_MIGRATION_TOOLS",
+                "checksum": "N/A"
+            },
+            {
+                "image": "portal-content-template:11.4.0.6285",
+                "name": "PORTAL_CONTENT_TEMPLATE",
+                "checksum": "N/A"
+            },
+            {
+                "image": "postgres-upgrade-tools:11.4.0.6285",
+                "name": "POSTGRES_UPGRADER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "raster-analytics-server-deeplearning:11.4.0.6285",
+                "name": "RASTER_ANALYTICS_SERVER_DEEPLEARNING",
+                "checksum": "N/A"
+            },
+            {
+                "image": "relational-datastore:11.4.0.6285",
+                "name": "STORE_RELATIONAL",
+                "checksum": "N/A"
+            },
+            {
+                "image": "sds-feature-server:11.4.0.6285",
+                "name": "SDS_FEATURE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "sharing:11.4.0.6285",
+                "name": "PORTAL_SHARING_API",
+                "checksum": "N/A"
+            },
+            {
+                "image": "symbol-server:11.4.0.6285",
+                "name": "SYMBOL_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "tile-server:11.4.0.6285",
+                "name": "TILE_SERVER",
+                "checksum": "N/A"
+            },
+            {
+                "image": "web-style:11.4.0.6285",
+                "name": "PORTAL_WEB_STYLE_APP",
+                "checksum": "N/A"
+            },
+            {
+                "image": "webhook-processor:11.4.0.6285",
+                "name": "WEBHOOK_PROCESSOR",
+                "checksum": "N/A"
+            }
+        ],
+        "previousReleaseBuild": "5814",
+        "id": "rel_10122024_6285",
+        "released": 1733817600000
+    }],
+    "signature": "OHh+XR2Zq2wT7/cjG1EkG5oog5SIHuFWV8IB6YrxCa30LD1kcWz29MT4GSbUMMhH2UTypAmwRtfrGL95/bY8EK9nWMTyBSlTZWrg3sm3CcAekMZSijAkQ91gxqLRY8oHxtFDNlNtcE3JkbSz1K8ELtbT+mslapI6ErxpHD1SNUBiHBtclC1u4JSCoDmnGt3k9cXAdOOHpOFFhJcUz0+cjL7uWVoL9b+cY7HKhePu5cLx64u7LwLjpOHh83dLaae2tNT+6BrRUDrRD9hZCZl362SYF0OZr7QIIhwyB+QdB1POC9yExvPdVniMWGJOi+T7xuFq3zJfYAZkODLe2E57zA=="
+}

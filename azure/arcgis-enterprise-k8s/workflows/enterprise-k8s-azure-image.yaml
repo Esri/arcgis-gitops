@@ -21,6 +21,8 @@ env:
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
   ARM_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+  CONTAINER_REGISTRY_USER: ${{ secrets.CONTAINER_REGISTRY_USER }}
+  CONTAINER_REGISTRY_PASSWORD: ${{ secrets.CONTAINER_REGISTRY_PASSWORD }}
   CONFIG_FILE: ${{ github.workspace }}/config/azure/arcgis-enterprise-k8s/image.vars.json
   ADMIN_CLI_METADATA_FILE: ${{ github.workspace }}/enterprise-admin-cli/metadata.json
 
@@ -37,6 +39,26 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v5
+      - name: Copy Docker Hub images
+        run: |
+          COPY_DOCKER_HUB_IMAGES=$(jq -r '.copy_docker_hub_images // false' "$CONFIG_FILE")
+          if [ "$COPY_DOCKER_HUB_IMAGES" == "true" ]; then
+            ENTERPRISE_ID=$(jq -er '.enterprise_id' "$CONFIG_FILE")
+            ARCGIS_VERSION=$(jq -er '.arcgis_version' "$CONFIG_FILE")
+            MANIFEST_PATH=./manifests/$ARCGIS_VERSION.dat
+            if [ ! -f "$MANIFEST_PATH" ]; then
+              echo "Manifest not found for ArcGIS version $ARCGIS_VERSION: $MANIFEST_PATH" >&2
+              exit 1
+            fi
+            export CONTAINER_REGISTRY_ORG=$(jq -er '.container_registry_org' "$CONFIG_FILE")
+            export ACR_REPOSITORY_PREFIX=$(jq -er '.acr_repository_prefix' "$CONFIG_FILE")
+            sudo apt-get update
+            sudo apt-get install -y --no-install-recommends skopeo
+            skopeo --version
+            bash ./copy-docker-hub-images.sh "$MANIFEST_PATH" "$ARCGIS_VERSION" "$ENTERPRISE_ID"
+          else
+            echo "Skip copying Docker Hub images; existing ACR cache behavior is unchanged."
+          fi
       - name: Build Admin CLI Image
         run: |
           ENTERPRISE_ID=$(jq -r '.enterprise_id' $CONFIG_FILE)

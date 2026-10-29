@@ -38,7 +38,7 @@ Set the primary ArcGIS Enterprise administrator credentials in the GitHub Action
 
 ### 2. Provisioning Container Images
 
-GitHub Actions workflow **enterprise-k8s-aws-image** builds a container image for [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) and pushes it to a private AWS Elastic Container Registry (ECR) repository. If "pull_through_cache" property is set to `false`, the workflow also copies container images of the ArcGIS Enterprise on Kubernetes version from DockerHub to the private ECR repositories.
+GitHub Actions workflow **enterprise-k8s-aws-image** builds a container image for [Enterprise Admin CLI](../../enterprise-admin-cli/README.md) and pushes it to a private AWS Elastic Container Registry (ECR) repository. If "copy_docker_hub_images" property is set to `true`, the workflow also copies container images of the ArcGIS Enterprise on Kubernetes version from DockerHub to the private ECR repositories. Copying is skipped when the property is `false`, missing, or null; the Enterprise Admin CLI image is still built. Set the property to `false` when using pull through cache.
 
 The workflow uses [shell scripts](image/README.md) with [image.vars.json](../../config/aws/arcgis-enterprise-k8s/image.vars.json) config file.
 

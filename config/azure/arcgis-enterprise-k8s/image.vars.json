@@ -1,3 +1,7 @@
 {
-  "enterprise_id": "arcgis"
+  "enterprise_id": "arcgis",
+  "copy_docker_hub_images": false,
+  "arcgis_version": "12.1.0",
+  "container_registry_org": "esridocker",
+  "acr_repository_prefix": "arcgis-enterprise"
 }

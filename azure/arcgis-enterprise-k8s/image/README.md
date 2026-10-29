@@ -39,6 +39,6 @@ In `config/azure/arcgis-enterprise-k8s/image.vars.json`, set:
 * `container_registry_org`: the source Docker Hub organization authorized by your credentials.
 * `acr_repository_prefix`: the ACR destination namespace.
 
-Pushing images to repository 'docker-hub/esridocker' matching cache rule 'pullthroughcache' are not supported by ACR. To use the copied images instead of the pull-through cache, change "image_repository_prefix" in organization.tfvars.json file from "docker-hub/esridocker" to "arcgis-enterprise/esridocker".
+Pushing images to namespace 'docker-hub/esridocker' matching cache rule 'pullthroughcache' is not supported by ACR. To use the copied images instead of the pull-through cache, change "image_repository_prefix" in organization.tfvars.json file from "docker-hub/esridocker" to "arcgis-enterprise/esridocker".
 
 The Azure image workflow template installs Skopeo only when copying is enabled. Configure GitHub secrets `CONTAINER_REGISTRY_USER` and `CONTAINER_REGISTRY_PASSWORD` alongside the existing Azure credentials. Publish the template to `.github/workflows` using the repository's normal workflow setup procedure. The separate Admin CLI Docker build remains enabled.

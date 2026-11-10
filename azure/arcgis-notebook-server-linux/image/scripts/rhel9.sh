@@ -129,6 +129,11 @@ sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker
 sudo dnf install -y docker-ce-$DOCKER_CE_PACKAGE_VERSION docker-ce-cli-$DOCKER_CE_CLI_PACKAGE_VERSION containerd.io docker-buildx-plugin docker-compose-plugin
 sudo mkdir -p /opt/docker
 echo '{"features": {"containerd-snapshotter": false}, "iptables": true, "data-root": "/opt/docker"}' | sudo tee /etc/docker/daemon.json
+if command -v selinuxenabled >/dev/null && selinuxenabled; then
+  sudo dnf install -y policycoreutils-python-utils
+  sudo semanage fcontext -a -e /var/lib/docker /opt/docker
+  sudo restorecon -RF /opt/docker /etc/docker/daemon.json
+fi
 sudo systemctl enable --now docker
 
 # Reject Docker containers access to EC2 instance metadata IP address.

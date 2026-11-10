@@ -113,7 +113,7 @@ resource "azurerm_windows_virtual_machine" "fileserver" {
   os_disk {
     caching              = "ReadWrite"
     storage_account_type = "StandardSSD_LRS"
-    disk_size_gb         = 256
+    disk_size_gb         = var.os_disk_size
   }
 
   identity {
@@ -170,12 +170,17 @@ resource "azurerm_virtual_machine_extension" "initialize_data_disk" {
   type                 = "CustomScriptExtension"
   type_handler_version = "1.10"
 
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
+
   settings = jsonencode({
     # Compress the embedded script to stay below cmd.exe's 8191-character limit.
     commandToExecute = join(" ", [
       "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"& {",
       "$ErrorActionPreference = 'Stop'; try {",
-      "$bytes = [Convert]::FromBase64String('${base64gzip(file("${path.module}/initialize_data_disk.ps1"))}');",
+      "$bytes = [Convert]::FromBase64String('${base64gzip(file("${path.module}/scripts/initialize_data_disk.ps1"))}');",
       "$stream = [IO.MemoryStream]::new($bytes);",
       "$gzip = [IO.Compression.GzipStream]::new($stream, [IO.Compression.CompressionMode]::Decompress);",
       "$reader = [IO.StreamReader]::new($gzip);",

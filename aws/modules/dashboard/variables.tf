@@ -12,6 +12,12 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+variable "separate_disk_metrics" {
+  description = "Show each filesystem/device separately instead of aggregating all disks per machine"
+  type        = bool
+  default     = false
+}
+
 variable "platform" {
   description = "Deployment platform (windows|linux)"
   type        = string

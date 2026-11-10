@@ -79,24 +79,26 @@ locals {
   src_image_sku       = local.src_image_tokens[14]
   src_image_version   = local.src_image_tokens[16]
 
-  machine_role   = "packer-main"
+  machine_role = "packer-main"
 }
 
 source "azure-arm" "main" {
-  communicator   = "ssh"
-  ssh_username   = "packer"
-  ssh_timeout    = "5m"
+  communicator = "ssh"
+  ssh_username = "packer"
+  ssh_timeout  = "5m"
 
-  location        = var.azure_region
-  vm_size         = var.vm_size
-  os_disk_size_gb = var.os_disk_size
-  os_type         = "Linux"
-  
+  location             = var.azure_region
+  vm_size              = var.vm_size
+  os_disk_size_gb      = var.os_disk_size
+  disk_additional_size = [var.data_disk_size]
+  disk_additional_luns = [0]
+  os_type              = "Linux"
+
   managed_image_storage_account_type = "Premium_LRS"
 
   accelerated_networking     = true
-  async_resourcegroup_delete = true  
-  
+  async_resourcegroup_delete = true
+
   security_type       = "TrustedLaunch"
   encryption_at_host  = true
   secure_boot_enabled = true
@@ -115,15 +117,15 @@ source "azure-arm" "main" {
     image_name     = "${var.deployment_id}-${var.arcgis_version}-${var.os}"
     image_version  = formatdate("YYYY.MMDD.HHMM", timestamp())
 
-    storage_account_type = "Standard_LRS"    
+    storage_account_type = "Standard_LRS"
   }
 
   user_assigned_managed_identities = [
     data.azure-keyvaultsecret.vm_identity_id.value
   ]
   use_azure_cli_auth = true
-  
-  skip_create_image  = var.skip_create_image
+
+  skip_create_image = var.skip_create_image
 
   azure_tags = {
     "ArcGISEnterpriseID" = var.enterprise_id
@@ -139,6 +141,13 @@ build {
     "source.azure-arm.main"
   ]
 
+  # Mount /opt before CLI tools and Chef write their installation files.
+  provisioner "shell" {
+    script           = "scripts/initialize_data_disk.sh"
+    environment_vars = ["ARCGIS_DATA_DEVICE=/dev/disk/azure/scsi1/lun0"]
+    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+  }
+
   # Run an OS-specific script on the VM to install Azure CLI and NFS tools.
   provisioner "shell-local" {
     env = {
@@ -151,7 +160,7 @@ build {
 
   # Bootstrap the VM
   provisioner "shell-local" {
-    command      = "python -m az_bootstrap -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -c ${data.azure-keyvaultsecret.chef_client_url.value} -k ${data.azure-keyvaultsecret.cookbooks_url.value} -v ${var.vault_name}"
+    command          = "python -m az_bootstrap -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -c ${data.azure-keyvaultsecret.chef_client_url.value} -k ${data.azure-keyvaultsecret.cookbooks_url.value} -v ${var.vault_name}"
     valid_exit_codes = [0, 1]
   }
 
@@ -194,7 +203,6 @@ build {
           data_store = {
             install_dir                 = "/opt"
             setup_options               = "-f Relational"
-            data_dir                    = "/gisdata/arcgisdatastore"
             configure_autostart         = true
             preferredidentifier         = "ip"
             install_system_requirements = true
@@ -247,6 +255,12 @@ build {
       }))
     }
     command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-patches -v ${var.vault_name} -e 3600"
+  }
+
+  provisioner "shell" {
+    script           = "scripts/initialize_data_disk.sh"
+    environment_vars = ["ARCGIS_VERIFY_PORTAL=1"]
+    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
   }
 
   # Clean up

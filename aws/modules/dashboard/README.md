@@ -28,3 +28,4 @@ The CloudWatch dashboard includes widgets for:
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | log_group_name | CloudWatch log group name | `string` | n/a | yes |
 | platform | Deployment platform (windows\|linux) | `string` | `"windows"` | no |
+| separate_disk_metrics | Group Windows disk metrics by `instance`, Linux free space by `path`, and Linux I/O by `name`, as well as `InstanceId` | `bool` | `false` | no |

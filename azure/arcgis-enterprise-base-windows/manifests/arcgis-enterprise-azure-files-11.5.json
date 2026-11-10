@@ -1,8 +1,8 @@
 {
   "arcgis": {
     "repository": {
-      "local_archives": "C:\\Software\\Archives",
-      "local_patches": "C:\\Software\\Archives\\Patches",
+      "local_archives": "D:\\Software\\Archives",
+      "local_patches": "D:\\Software\\Archives\\Patches",
       "server": {
         "account_name": "${account_name}",
         "container_name": "${container_name}",

@@ -321,14 +321,21 @@ The script runs a shell script on EC2 instances of a deployment.
 The script retrieves the script input parameters from the JSON_ATTRIBUTES environment variable
 and puts them into SecureString SSM parameter specified by json_attributes_parameter command line argument.
 Placeholder `<json_attributes_parameter>` in the scrip is replaced with the actual parameter name.
-To execute the shell script it runs AWS-RunShellScript SSM command on EC2 instances of the deployment
+To execute the script it runs AWS-RunShellScript by default, or AWS-RunPowerShellScript
+with `--document-name AWS-RunPowerShellScript`, on EC2 instances of the deployment
 in the specified machine roles, waits for all the command invocations to complete, retrieves from S3
 and prints outputs of the command invocations.
+
+Scripts retain their indentation and use UTF-8. `<aws_region>` is replaced with
+the runner's SSM client region. A script containing `<json_attributes_parameter>`
+requires `-j`. Parameters created from `JSON_ATTRIBUTES` are removed after the
+command completes or raises an error; externally supplied parameters are not
+deleted. Existing Linux callers retain the default document.
 
 usage:
 
 ```shell
-python -m ssm_run_shell_script [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-j JSON_ATTRIBUTES_PARAMETER] [-f SCRIPT_FILE] [-b S3_BUCKET] [-e EXECUTION_TIMEOUT]
+python -m ssm_run_shell_script [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-m MACHINE_ROLES] [-j JSON_ATTRIBUTES_PARAMETER] [-f SCRIPT_FILE] [-b S3_BUCKET] [-e EXECUTION_TIMEOUT] [--document-name {AWS-RunShellScript,AWS-RunPowerShellScript}]
 ```
 
 options:
@@ -340,7 +347,9 @@ options:
   -m MACHINE_ROLES      Machine roles
   -j JSON_ATTRIBUTES_PARAMETER
                         SSM parameter name of the script input parameters
-  -j SCRIPT_FILE        Script file path                        
+  -f SCRIPT_FILE        Script file path
+  --document-name {AWS-RunShellScript,AWS-RunPowerShellScript}
+                        Target-platform SSM document (default: AWS-RunShellScript)
   -b S3_BUCKET          Output S3 bucket
   -e EXECUTION_TIMEOUT  Execution timeout (seconds)
 ```

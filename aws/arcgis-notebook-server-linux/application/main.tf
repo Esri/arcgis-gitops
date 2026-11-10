@@ -109,6 +109,28 @@ data "aws_instances" "nodes" {
   }
 }
 
+resource "terraform_data" "verify_data_disk" {
+  for_each = toset(concat([data.aws_instance.primary.id], data.aws_instances.nodes.ids))
+
+  triggers_replace = [timestamp()]
+
+  provisioner "local-exec" {
+    command = "bash '${path.module}/../image/scripts/initialize_image_data_disk.sh' '${each.value}' '${var.aws_region}' verify-notebook"
+  }
+}
+
+resource "terraform_data" "verify_application_storage" {
+  for_each = terraform_data.verify_data_disk
+
+  triggers_replace = [timestamp()]
+
+  provisioner "local-exec" {
+    command = "bash '${path.module}/../image/scripts/initialize_image_data_disk.sh' '${each.key}' '${var.aws_region}' verify-notebook"
+  }
+
+  depends_on = [module.clean_up]
+}
+
 data "aws_region" "current" {}
 
 locals {
@@ -161,6 +183,7 @@ module "bootstrap_deployment" {
   deployment_id    = var.deployment_id
   machine_roles    = ["primary", "node"]
   output_s3_bucket = module.enterprise_core_info.s3_logs
+  depends_on       = [terraform_data.verify_data_disk]
 }
 
 # Download ArcGIS Notebook Server setup archives to primary and node EC2 instances
@@ -473,7 +496,7 @@ module "arcgis_notebook_server_primary" {
         config_store_type     = var.config_store_type
         config_store_connection_string = (var.config_store_type == "AMAZON" ?
           "NAMESPACE=${local.namespace};REGION=${data.aws_region.current.region}" :
-          "${local.mount_point}/${local.namespace}/notebookserver/config-store")
+        "${local.mount_point}/${local.namespace}/notebookserver/config-store")
         config_store_connection_secret = ""
         install_system_requirements    = true
         wa_name                        = local.notebook_server_web_context

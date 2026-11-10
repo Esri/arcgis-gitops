@@ -27,11 +27,12 @@ VM image definitions "${var.deployment_id}-${var.arcgis_version}-${var.os}" and 
 
 On the machine where Packer is executed:
 
- * Python 3.9 or later must be installed
- * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
- * Path to azure/scripts directory must be added to PYTHONPATH
- * Azure credentials must be configured using "az login" command
- * My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables
+* Packer and Azure CLI must be installed
+* Python 3.9 or later must be installed
+* azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
+* Path to azure/scripts directory must be added to PYTHONPATH
+* Azure credentials must be configured using `az login`, with the target subscription selected using `az account set --subscription <subscription-id>`
+* My Esri user name and password must be supplied through the environment variables `ARCGIS_ONLINE_USERNAME` and `ARCGIS_ONLINE_PASSWORD`; the template does not define credential input variables
 
 ## Key Vault Secrets
 
@@ -66,14 +67,17 @@ The template saves the built image ID in the following Key Vault secrets:
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.1"` | no |
+| azure_cli_url | URL for the Azure CLI installer | `string` | `"https://azcliprod.blob.core.windows.net/msi/azure-cli-2.76.0-x64.msi"` | no |
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | os | Operating system ID | `string` | `"windows2025"` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
+| data_disk_size | Persistent application data disk capacity baked into the gallery image in GiB | `number` | `256` | no |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | run_as_password | Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `env("RUN_AS_PASSWORD")` | yes |
 | run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
 | skip_create_image | If true, Packer will not create the image | `bool` | `false` | no |
+| vault_name | Name of the Azure Key Vault | `string` | None | yes |
 | vm_size | Azure VM size | `string` | `"Standard_D8s_v5"` | no |

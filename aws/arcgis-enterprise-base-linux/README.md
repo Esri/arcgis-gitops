@@ -79,8 +79,7 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property in the config file to the key pair name. Save the private key in a secure location.
-2. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
-3. Commit the changes to the Git branch and push the branch to GitHub.
+2. If required, change "instance_type", "os_disk_*", and "data_disk_*" properties.3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run enterprise-base-linux-aws-infrastructure workflow using the branch.
 
 > When updating the infrastructure, first run the workflow with terraform_command=plan before running it with terraform_command=apply and check the logs to make sure that Terraform does not destroy and recreate critical AWS resources such as EC2 instances.

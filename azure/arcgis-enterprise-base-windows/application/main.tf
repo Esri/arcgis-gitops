@@ -114,9 +114,9 @@ locals {
   primary_hostname    = data.azurerm_virtual_machine.primary.private_ip_address
   standby_hostname    = length(data.azurerm_resources.standby.resources) > 0 ? data.azurerm_virtual_machine.standby[0].private_ip_address : ""
 
-  software_dir            = "C:\\Software\\*"
-  authorization_files_dir = "C:\\Software\\AuthorizationFiles"
-  certificates_dir        = "C:\\Software\\Certificates"
+  software_dir            = "D:\\Software\\*"
+  authorization_files_dir = "D:\\Software\\AuthorizationFiles"
+  certificates_dir        = "D:\\Software\\Certificates"
 
   primary_backend_cert  = "${local.primary_hostname}.pfx"
   primary_keystore_file = "${local.certificates_dir}\\${local.primary_backend_cert}"
@@ -282,7 +282,7 @@ module "arcgis_enterprise_upgrade" {
       configure_cloud_settings   = false
       repository = {
         archives = local.archives_dir
-        setups   = "C:\\Software\\Setups"
+        setups   = "D:\\Software\\Setups"
       }
       server = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
@@ -291,14 +291,14 @@ module "arcgis_enterprise_upgrade" {
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
         setup_options               = "ADDLOCAL=relational"
-        data_dir                    = "C:\\arcgisdatastore"
+        data_dir                    = "D:\\arcgisdatastore"
         install_system_requirements = true
         preferredidentifier         = "hostname"
       }
       portal = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
         install_system_requirements = true
-        data_dir                    = "C:\\arcgisportal"
+        data_dir                    = "D:\\arcgisportal"
       }
     }
     run_list = [
@@ -334,13 +334,15 @@ module "arcgis_enterprise_patch" {
         patches = local.patches_dir
       }
       portal = {
-        patches = var.arcgis_portal_patches
+        data_dir = "D:\\arcgisportal"
+        patches  = var.arcgis_portal_patches
       }
       server = {
         patches = var.arcgis_server_patches
       }
       data_store = {
-        patches = var.arcgis_data_store_patches
+        data_dir = "D:\\arcgisdatastore"
+        patches  = var.arcgis_data_store_patches
       }
     }
     run_list = [
@@ -573,7 +575,7 @@ module "arcgis_enterprise_primary" {
       configure_cloud_settings   = false
       repository = {
         archives = local.archives_dir
-        setups   = "C:\\Software\\Setups"
+        setups   = "D:\\Software\\Setups"
       }
       server = {
         url                         = "https://${local.primary_hostname}:6443/arcgis"
@@ -592,7 +594,7 @@ module "arcgis_enterprise_primary" {
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
         directories_root            = local.server_directories_root
-        log_dir                     = "C:\\arcgisserver\\logs"
+        log_dir                     = "D:\\arcgisserver\\logs"
         log_level                   = var.log_level
         config_store_type           = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
@@ -610,7 +612,7 @@ module "arcgis_enterprise_primary" {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
         setup_options               = "ADDLOCAL=relational"
         install_system_requirements = true
-        data_dir                    = "C:\\arcgisdatastore"
+        data_dir                    = "D:\\arcgisdatastore"
         preferredidentifier         = "ip"
         # hostidentifier              = local.primary_hostname
         types = "relational"
@@ -640,8 +642,8 @@ module "arcgis_enterprise_primary" {
         admin_description           = var.admin_description
         security_question_index     = var.security_question_index
         security_question_answer    = var.security_question_answer
-        data_dir                    = "C:\\arcgisportal"
-        log_dir                     = "C:\\arcgisportal\\logs"
+        data_dir                    = "D:\\arcgisportal"
+        log_dir                     = "D:\\arcgisportal\\logs"
         log_level                   = var.log_level
         authorization_file          = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
         user_license_type_id        = var.portal_user_license_type_id
@@ -693,7 +695,7 @@ module "arcgis_enterprise_standby" {
       configure_cloud_settings   = false
       repository = {
         archives = local.archives_dir
-        setups   = "C:\\Software\\Setups"
+        setups   = "D:\\Software\\Setups"
       }
       server = {
         url                         = "https://${local.standby_hostname}:6443/arcgis"
@@ -710,13 +712,13 @@ module "arcgis_enterprise_standby" {
         cert_alias                  = "servercert"
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        log_dir                     = "C:\\arcgisserver\\logs"
+        log_dir                     = "D:\\arcgisserver\\logs"
       }
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
         setup_options               = "ADDLOCAL=relational"
         install_system_requirements = true
-        data_dir                    = "C:\\arcgisdatastore"
+        data_dir                    = "D:\\arcgisdatastore"
         preferredidentifier         = "ip"
         # hostidentifier              = local.standby_hostname
         types = "relational"
@@ -736,8 +738,8 @@ module "arcgis_enterprise_standby" {
         cert_alias                  = "portalcert"
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        data_dir                    = "C:\\arcgisportal"
-        log_dir                     = "C:\\arcgisportal\\logs"
+        data_dir                    = "D:\\arcgisportal"
+        log_dir                     = "D:\\arcgisportal\\logs"
       }
     }
     run_list = [

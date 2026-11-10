@@ -4,7 +4,14 @@ The Terraform module configures or upgrades applications for an ArcGIS Server de
 
 ![ArcGIS Server on Linux](arcgis-server-linux-application.png "ArcGIS Server on Linux")
 
-First, the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment.
+First, on every apply, the module verifies each primary and node instance's
+image-backed `/opt` filesystem through SSM, including the saved UUID and
+`/opt/arcgis/server` installation directory. The server template's initializer also grows
+the ext4 filesystem if the restored EBS volume is larger. Chef bootstrap cannot
+run until all disk checks succeed. The check rejects OS-only deployments and
+does not migrate or format an existing ArcGIS installation.
+
+Then the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment.
 
 If is_upgrade input variable is set to true, the module:
 
@@ -35,6 +42,7 @@ On the machine where Terraform is executed:
 * Path to aws/scripts directory must be added to PYTHONPATH
 * The working directory must be set to the arcgis-server-linux/application module path
 * AWS credentials must be configured
+* AWS CLI, Bash, GNU coreutils (including `base64`), and `jq` must be installed.
 
 My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
 
@@ -92,6 +100,7 @@ The module reads the following SSM parameters:
 
 | Name | Type |
 |------|------|
+| [terraform_data.verify_data_disk](https://developer.hashicorp.com/terraform/language/resources/terraform-data) | resource |
 | [aws_s3_object.keystore_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.root_cert_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.server_authorization_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |

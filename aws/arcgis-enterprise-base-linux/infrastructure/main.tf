@@ -62,7 +62,22 @@ data "aws_ami" "ami" {
   }
 }
 
+data "aws_ami" "application" {
+  for_each = var.is_ha ? {
+    primary = nonsensitive(data.aws_ssm_parameter.primary_ami.value)
+    standby = nonsensitive(data.aws_ssm_parameter.standby_ami.value)
+  } : { primary = nonsensitive(data.aws_ssm_parameter.primary_ami.value) }
+  filter {
+    name   = "image-id"
+    values = [each.value]
+  }
+}
+
 locals {
+  data_disk_mappings = {
+    for role, image in data.aws_ami.application :
+    role => one([for mapping in image.block_device_mappings : mapping if mapping.device_name == "/dev/sdf"])
+  }
   arcgis_template_id = "arcgis-enterprise-base"
   # Get values of ArcGISTemplateId and ArcGISVersion tags from the AMI to copy them to the EC2 instances.
   arcgis_version = try(data.aws_ami.ami.tags.ArcGISVersion, null)
@@ -164,11 +179,29 @@ resource "aws_instance" "primary" {
   }
 
   root_block_device {
-    volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_type = var.os_disk_type
+    volume_size = var.os_disk_size
     encrypted   = true
-    iops        = var.root_volume_iops
-    throughput  = var.root_volume_throughput
+    iops        = var.os_disk_iops
+    throughput  = var.os_disk_throughput
+  }
+
+  ebs_block_device {
+    device_name           = "/dev/sdf"
+    snapshot_id           = try(local.data_disk_mappings.primary.ebs.snapshot_id, null)
+    volume_type           = var.data_disk_type
+    volume_size           = var.data_disk_size
+    iops                  = var.data_disk_iops
+    throughput            = var.data_disk_type == "gp3" ? var.data_disk_throughput : null
+    encrypted             = true
+    delete_on_termination = true
+  }
+
+  lifecycle {
+    precondition {
+      condition     = try(length(local.data_disk_mappings.primary.ebs.snapshot_id) > 0 && tonumber(local.data_disk_mappings.primary.ebs.volume_size) <= var.data_disk_size, false)
+      error_message = "Primary AMI must contain a /dev/sdf data snapshot that fits data_disk_size. Rebuild the image; blank replacement and shrink are prohibited."
+    }
   }
 
   tags = {
@@ -216,11 +249,29 @@ resource "aws_instance" "standby" {
   }
 
   root_block_device {
-    volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_type = var.os_disk_type
+    volume_size = var.os_disk_size
     encrypted   = true
-    iops        = var.root_volume_iops
-    throughput  = var.root_volume_throughput
+    iops        = var.os_disk_iops
+    throughput  = var.os_disk_throughput
+  }
+
+  ebs_block_device {
+    device_name           = "/dev/sdf"
+    snapshot_id           = try(local.data_disk_mappings.standby.ebs.snapshot_id, null)
+    volume_type           = var.data_disk_type
+    volume_size           = var.data_disk_size
+    iops                  = var.data_disk_iops
+    throughput            = var.data_disk_type == "gp3" ? var.data_disk_throughput : null
+    encrypted             = true
+    delete_on_termination = true
+  }
+
+  lifecycle {
+    precondition {
+      condition     = try(length(local.data_disk_mappings.standby.ebs.snapshot_id) > 0 && tonumber(local.data_disk_mappings.standby.ebs.volume_size) <= var.data_disk_size, false)
+      error_message = "Standby AMI must contain a /dev/sdf data snapshot that fits data_disk_size. Rebuild the image; blank replacement and shrink are prohibited."
+    }
   }
 
   tags = {
@@ -326,10 +377,11 @@ resource "aws_ssm_parameter" "object_store_s3_bucket" {
 }
 
 module "cw_agent" {
-  source        = "../../modules/cw_agent"
-  platform      = "linux"
-  enterprise_id = var.enterprise_id
-  deployment_id = var.deployment_id
+  linux_disk_resources = ["/", "/opt"]
+  source               = "../../modules/cw_agent"
+  platform             = "linux"
+  enterprise_id        = var.enterprise_id
+  deployment_id        = var.deployment_id
   depends_on = [
     aws_instance.primary,
     aws_instance.standby
@@ -337,11 +389,12 @@ module "cw_agent" {
 }
 
 module "dashboard" {
-  source         = "../../modules/dashboard"
-  platform       = "linux"
-  enterprise_id  = var.enterprise_id
-  deployment_id  = var.deployment_id
-  log_group_name = module.cw_agent.log_group_name
+  separate_disk_metrics = true
+  source                = "../../modules/dashboard"
+  platform              = "linux"
+  enterprise_id         = var.enterprise_id
+  deployment_id         = var.deployment_id
+  log_group_name        = module.cw_agent.log_group_name
   depends_on = [
     module.cw_agent
   ]

@@ -79,36 +79,89 @@ variable "key_name" {
   type        = string
 }
 
-variable "root_volume_iops" {
-  description = "Root EBS volume IOPS of primary and standby EC2 instances"
+variable "os_disk_iops" {
+  description = "OS gp3 disk IOPS for all deployment EC2 instances"
   type        = number
   default     = 3000
 
   validation {
-    condition     = var.root_volume_iops >= 3000 && var.root_volume_iops <= 16000
-    error_message = "The root_volume_iops value must be between 3000 and 16000."
-  }    
-}
-
-variable "root_volume_size" {
-  description = "Root EBS volume size in GB"
-  type        = number
-  default     = 1024
-
-  validation {
-    condition     = var.root_volume_size >= 256 && var.root_volume_size <= 16384
-    error_message = "The root_volume_size value must be between 256 and 16384."
+    condition     = var.os_disk_iops >= 3000 && var.os_disk_iops <= 16000
+    error_message = "The os_disk_iops value must be between 3000 and 16000."
   }
 }
 
-variable "root_volume_throughput" {
-  description = "Root EBS volume throughput in MB/s of primary and standby EC2 instances"
+variable "os_disk_size" {
+  description = "OS disk size in GiB for all deployment EC2 instances"
+  type        = number
+  default     = 256
+
+  validation {
+    condition     = var.os_disk_size >= 256 && var.os_disk_size <= 16384 && floor(var.os_disk_size) == var.os_disk_size
+    error_message = "The os_disk_size value must be an integer between 256 and 16384."
+  }
+}
+
+variable "os_disk_throughput" {
+  description = "OS gp3 disk throughput in MiB/s for all deployment EC2 instances"
   type        = number
   default     = 125
 
   validation {
-    condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
-    error_message = "The root_volume_throughput value must be between 125 and 1000."
+    condition     = var.os_disk_throughput >= 125 && var.os_disk_throughput <= 1000 && var.os_disk_throughput <= var.os_disk_iops * 0.25
+    error_message = "OS throughput must be 125-1000 MiB/s and at most one quarter of OS IOPS."
+  }
+}
+
+variable "os_disk_type" {
+  description = "OS disk type (gp3)"
+  type        = string
+  default     = "gp3"
+  validation {
+    condition     = var.os_disk_type == "gp3"
+    error_message = "OS disks must use gp3."
+  }
+}
+
+variable "data_disk_size" {
+  description = "Primary and standby persistent data disk capacity in GiB; cannot be smaller than the image"
+  type        = number
+  default     = 1024
+  validation {
+    condition     = var.data_disk_size >= 1 && var.data_disk_size <= 16384 && floor(var.data_disk_size) == var.data_disk_size
+    error_message = "Data disk size must be an integer between 1 and 16384 GiB."
+  }
+}
+
+variable "data_disk_type" {
+  description = "Primary and standby data EBS disk type"
+  type        = string
+  default     = "gp3"
+  validation {
+    condition     = contains(["gp3", "io1", "io2"], var.data_disk_type)
+    error_message = "Data disks must use gp3, io1, or io2."
+  }
+}
+
+variable "data_disk_iops" {
+  description = "Provisioned data disk IOPS"
+  type        = number
+  default     = 3000
+  validation {
+    condition = floor(var.data_disk_iops) == var.data_disk_iops && (
+      var.data_disk_type == "gp3" ? var.data_disk_iops >= 3000 && var.data_disk_iops <= 16000 && var.data_disk_iops <= var.data_disk_size * 500 :
+      var.data_disk_iops >= 100 && var.data_disk_iops <= 64000 && var.data_disk_iops <= var.data_disk_size * (var.data_disk_type == "io1" ? 50 : 1000)
+    )
+    error_message = "Data IOPS must satisfy the selected EBS disk type and capacity limits."
+  }
+}
+
+variable "data_disk_throughput" {
+  description = "Data disk throughput in MiB/s (gp3 only; ignored for io1/io2)"
+  type        = number
+  default     = 125
+  validation {
+    condition     = var.data_disk_type != "gp3" || (var.data_disk_throughput >= 125 && var.data_disk_throughput <= 1000 && var.data_disk_throughput <= var.data_disk_iops * 0.25)
+    error_message = "gp3 throughput must be 125-1000 MiB/s and at most one quarter of data IOPS."
   }
 }
 

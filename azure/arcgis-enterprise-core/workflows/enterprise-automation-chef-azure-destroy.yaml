@@ -52,7 +52,7 @@ jobs:
       uses: actions/checkout@v5
     - uses: hashicorp/setup-terraform@v4
       with:
-        terraform_version: "1.10.0"
+        terraform_version: "1.11.4"
     - name: Azure SDK for Python
       id: install-azure-sdk
       run: pip install azure-identity azure-storage-blob

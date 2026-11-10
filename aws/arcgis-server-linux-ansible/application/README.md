@@ -37,8 +37,9 @@ On the machine where Terraform is executed:
 * Path to aws/scripts directory must be added to PYTHONPATH
 * Ansible 2.16 or later must be installed
 * arcgis.common, arcgis.server, arcgis.portal, and arcgis.webadaptor Ansible collections must be installed
-* The working directory must be set to the arcgis-server-linux/application module path
+* The working directory must be set to this template's `application` module path
 * AWS credentials must be configured
+* Bash, AWS CLI, GNU `base64` with `-w0`, and `jq` must be installed for disk preflight
 
 My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
 
@@ -47,7 +48,7 @@ My Esri user name and password must be specified either using environment variab
 The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
-|--------------------|-------------|
+| --- | --- |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | Backup plan ID for the deployment |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/namespace | Namespace of the deployment used to generate unique resource names |
@@ -65,13 +66,13 @@ The module reads the following SSM parameters:
 ## Providers
 
 | Name | Version |
-|------|---------|
+| --- | --- |
 | aws | ~> 6.10 |
 
 ## Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| --- | --- | --- |
 | arcgis_server_federation | ../../modules/ansible_playbook | n/a |
 | arcgis_server_files | ../../modules/ansible_playbook | n/a |
 | arcgis_server_fileserver | ../../modules/ansible_playbook | n/a |
@@ -98,8 +99,10 @@ The module reads the following SSM parameters:
 ## Resources
 
 | Name | Type |
-|------|------|
+| --- | --- |
+| [terraform_data.verify_data_disk](https://developer.hashicorp.com/terraform/language/resources/terraform-data) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
+| [aws_instances.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |
 | [aws_ssm_parameter.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.namespace](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -110,7 +113,7 @@ The module reads the following SSM parameters:
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| --- | --- | --- | --- | :---: |
 | admin_email | ArcGIS Server administrator e-mail address | `string` | n/a | yes |
 | admin_password | Primary ArcGIS Server administrator user password | `string` | n/a | yes |
 | admin_username | Primary ArcGIS Server administrator user name | `string` | `"siteadmin"` | no |
@@ -140,5 +143,5 @@ The module reads the following SSM parameters:
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| --- | --- |
 | arcgis_server_url | ArcGIS Server URL |

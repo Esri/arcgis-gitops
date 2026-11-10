@@ -47,6 +47,17 @@ variable "azure_region" {
   default     = env("AZURE_DEFAULT_REGION")
 }
 
+variable "data_disk_size" {
+  description = "Persistent /opt data disk capacity baked into the image in GiB"
+  type        = number
+  default     = 256
+
+  validation {
+    condition     = var.data_disk_size >= 1 && var.data_disk_size <= 32767 && floor(var.data_disk_size) == var.data_disk_size
+    error_message = "Data disk size must be an integer between 1 and 32767 GiB."
+  }
+}
+
 variable "deployment_id" {
   description = "Deployment ID"
   type        = string

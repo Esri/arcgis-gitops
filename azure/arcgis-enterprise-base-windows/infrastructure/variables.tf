@@ -59,11 +59,22 @@ variable "is_ha" {
 variable "os_disk_size" {
   description = "OS disk size in GB"
   type        = number
-  default     = 1024
+  default     = 256
 
   validation {
     condition     = var.os_disk_size >= 256 && var.os_disk_size <= 4095
     error_message = "The os_disk_size value must be between 256 and 4095."
+  }
+
+}
+
+variable "data_disk_size" {
+  description = "Primary and standby Premium SSD data disk capacity in GiB; cannot be smaller than the image"
+  type        = number
+  default     = 1024
+  validation {
+    condition     = var.data_disk_size >= 1 && var.data_disk_size <= 32767 && floor(var.data_disk_size) == var.data_disk_size
+    error_message = "Data disk size must be an integer between 1 and 32767 GiB."
   }
 }
 

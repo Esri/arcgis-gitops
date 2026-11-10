@@ -9,6 +9,14 @@ launches one primary and N node VMs (configurable via node_count) in a Virtual M
 The VMs are launched from images retrieved from "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-node" secrets of the enterprise's Key Vault.
 The images must be created by the Packer Template for ArcGIS Notebook Server on Linux.
 
+Each VM is created through the shared `base_vm` module with its own Premium SSD
+managed data disk restored from gallery image LUN 0 (`FromImage`), not a blank
+replacement disk. The disk contains `/opt`, including Notebook Server and
+`/opt/docker`. `data_disk_size` defaults to 256 GiB and must be at least the
+image's data disk size; images without LUN 0 and requests to shrink the baked
+disk are rejected. The image's UUID-based mount and startup service verify the
+filesystem and grow it to the deployed disk capacity at boot.
+
 The network interfaces are associated with the backend address pool "notebook-server" of the Application Gateway created by the ingress
 Terraform module to make the VMs accessible from the Application Gateway.
 
@@ -17,8 +25,9 @@ For the VMs the module creates "A" records in the internal private DNS zone to m
 > Note that the VMs will be terminated and recreated if the infrastructure Terraform module
   is applied again after the image IDs in the Key Vault secrets were modified by a new image build.
 
-The module creates two storage accounts: one for ArcGIS Notebook Server config store and another for file store with "fileserver" NFS file share.
-The storage accounts use private endpoints and are only accessible from the subnet of the VMs.
+The module creates a storage account for the ArcGIS Notebook Server config store and, optionally, another for the file store with a "fileserver" NFS file share.
+The storage accounts created by the module use private endpoints and storage firewall rules with a default deny action and an allow rule for the VM subnet.
+These controls do not by themselves guarantee that access is restricted exclusively to the VM subnet; private endpoint reachability depends on network routing and security controls.
 The managed identity of the VMs is granted "Storage Blob Data Contributor" and "Storage Table Data Contributor" roles to access the config store storage account.
 The creation of the file store is conditional: if fileserver_deployment_id is `null`, the module provisions a new storage account and NFS share.
 If an ID is provided, the module instead mounts the existing NFS share from that specified deployment to all virtual machines.
@@ -38,6 +47,7 @@ All the created Azure resources are tagged with ArcGISEnterpriseID and ArcGISDep
 
 On the machine where Terraform is executed:
 
+* Terraform 1.11.0 or later must be installed, as required by the shared `base_vm` module
 * Python 3.9 or later must be installed
 * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
 * Path to azure/scripts directory must be added to PYTHONPATH
@@ -81,30 +91,35 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
+| azapi | ~> 2.6 |
 | azurerm | ~> 4.46 |
+| null | n/a |
 | random | n/a |
+| tls | ~> 4.2 |
 
 ## Modules
 
 | Name | Source | Version |
 |------|--------|---------|
+| aznfs_fileserver | ../../modules/aznfs_fileserver | n/a |
 | aznfs_mount | ../../modules/aznfs_mount | n/a |
 | backend_cert | ../../modules/backend_cert | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | lv_extend | ../../modules/lv_extend | n/a |
+| primary | ../../modules/base_vm | n/a |
+| nodes | ../../modules/base_vm | n/a |
 
 ## Resources
 
+The following table lists resources and data sources declared in this root module.
+
 | Name | Type |
 |------|------|
-| [azurerm_key_vault_secret.aznfs_network_path](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.portal_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [azurerm_linux_virtual_machine.nodes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_linux_virtual_machine.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
 | [azurerm_network_interface.nodes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
 | [azurerm_network_interface.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
 | [azurerm_network_interface_application_gateway_backend_address_pool_association.nodes](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface_application_gateway_backend_address_pool_association) | resource |
@@ -115,17 +130,13 @@ On the machine where Terraform is executed:
 | [azurerm_private_dns_a_record.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_a_record) | resource |
 | [azurerm_private_endpoint.config_store_blob_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_private_endpoint.config_store_table_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
-| [azurerm_private_endpoint.file_store_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_resource_group.deployment_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_role_assignment.blob_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_role_assignment.table_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_storage_account.config_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
-| [azurerm_storage_account.file_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
-| [azurerm_storage_share.fileserver](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_share) | resource |
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_password.pfx_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
-| [azurerm_key_vault_secret.aznfs_network_path](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.backend_address_pools](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.node_vm_image_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
@@ -136,7 +147,6 @@ On the machine where Terraform is executed:
 | [azurerm_key_vault_secret.vm_identity_principal_id](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_key_vault_secret.vm_image_os](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_private_dns_zone.privatelink_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
-| [azurerm_private_dns_zone.privatelink_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
 | [azurerm_private_dns_zone.privatelink_table](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
 
 ## Inputs
@@ -144,6 +154,7 @@ On the machine where Terraform is executed:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | azure_region | Azure region display name | `string` | n/a | yes |
+| data_disk_size | Per-VM /opt data disk capacity in GiB; must be at least the image data disk size | `number` | `256` | no |
 | deployment_id | ArcGIS Notebook Server deployment ID | `string` | `"notebook-server-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_billing_model_version | Azure Files provisioning model. V2 is for new deployments; existing deployments must explicitly retain V1 to avoid storage replacement. | `string` | `"V2"` | no |
@@ -167,3 +178,4 @@ On the machine where Terraform is executed:
 | Name | Description |
 |------|-------------|
 | deployment_url | ArcGIS Notebook Server URL |
+

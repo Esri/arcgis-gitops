@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 packer {
   required_plugins {
     amazon = {
@@ -22,47 +22,47 @@ packer {
 }
 
 data "amazon-parameterstore" "source_ami" {
-  name = "/arcgis/${var.enterprise_id}/images/${var.os}"
+  name   = "/arcgis/${var.enterprise_id}/images/${var.os}"
   region = var.aws_region
 }
 
 data "amazon-parameterstore" "subnets" {
-  name = "/arcgis/${var.enterprise_id}/vpc/subnets"
-  region = var.aws_region  
+  name   = "/arcgis/${var.enterprise_id}/vpc/subnets"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "instance_profile_name" {
-  name = "/arcgis/${var.enterprise_id}/iam/instance-profile-name"
-  region = var.aws_region  
+  name   = "/arcgis/${var.enterprise_id}/iam/instance-profile-name"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_repository" {
-  name  = "/arcgis/${var.enterprise_id}/s3/repository"
-  region = var.aws_region  
+  name   = "/arcgis/${var.enterprise_id}/s3/repository"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_logs" {
-  name  = "/arcgis/${var.enterprise_id}/s3/logs"
-  region = var.aws_region  
+  name   = "/arcgis/${var.enterprise_id}/s3/logs"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "s3_region" {
-  name  = "/arcgis/${var.enterprise_id}/s3/region"
-  region = var.aws_region  
+  name   = "/arcgis/${var.enterprise_id}/s3/region"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "chef_client_url" {
-  name  = "/arcgis/${var.enterprise_id}/chef-client-url/${var.os}"
-  region = var.aws_region  
+  name   = "/arcgis/${var.enterprise_id}/chef-client-url/${var.os}"
+  region = var.aws_region
 }
 
 data "amazon-parameterstore" "chef_cookbooks_url" {
-  name  = "/arcgis/${var.enterprise_id}/cookbooks-url"
-  region = var.aws_region  
+  name   = "/arcgis/${var.enterprise_id}/cookbooks-url"
+  region = var.aws_region
 }
 
 locals {
-  manifest_file_path =  "${path.root}/../manifests/arcgis-notebook-server-s3files-${var.arcgis_version}.json"
+  manifest_file_path = "${path.root}/../manifests/arcgis-notebook-server-s3files-${var.arcgis_version}.json"
   manifest           = jsondecode(file(local.manifest_file_path))
   archives_dir       = local.manifest.arcgis.repository.local_archives
   patches_dir        = local.manifest.arcgis.repository.local_patches
@@ -71,11 +71,11 @@ locals {
   tomcat_tarball     = local.manifest.arcgis.repository.metadata.tomcat_tarball
   tomcat_version     = local.manifest.arcgis.repository.metadata.tomcat_version
 
-  machine_role = "packer"
-  timestamp = formatdate("YYYYMMDDhhmm", timestamp())
-  ami_name  = "${var.enterprise_id}-${var.deployment_id}-${var.arcgis_version}-${var.os}-${local.timestamp}"
+  machine_role    = "packer"
+  timestamp       = formatdate("YYYYMMDDhhmm", timestamp())
+  ami_name        = "${var.enterprise_id}-${var.deployment_id}-${var.arcgis_version}-${var.os}-${local.timestamp}"
   ami_description = "ArcGIS Notebook Server ${var.arcgis_version} AMI for ${var.os}"
-  software_dir = "/opt/software/setups/*"
+  software_dir    = "/opt/software/setups/*"
 
   # Platform-specific attributes
 
@@ -88,7 +88,7 @@ locals {
   sudo systemctl enable amazon-ssm-agent
   sudo systemctl start amazon-ssm-agent
   EOF
- 
+
   # Install SSM Agent
   # Wait 120 seconds for background packages installation to complete
   nvidia_user_data = <<-EOF
@@ -104,32 +104,42 @@ locals {
 }
 
 source "amazon-ebs" "main" {
-  region        = var.aws_region  
-  ami_name      = local.ami_name
-  ami_description = local.ami_description
-  instance_type = var.instance_type
-  source_ami    = data.amazon-parameterstore.source_ami.value
-  subnet_id     = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
+  region               = var.aws_region
+  ami_name             = local.ami_name
+  ami_description      = local.ami_description
+  instance_type        = var.instance_type
+  source_ami           = data.amazon-parameterstore.source_ami.value
+  subnet_id            = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
   iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
-  communicator  = "none"
-  user_data     = local.user_data
-  
+  communicator         = "none"
+  user_data            = local.user_data
+
   launch_block_device_mappings {
     device_name = "/dev/sda1"
     volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_size = var.os_disk_size
     // encrypted   = true
-    iops        = 16000
-    throughput  = 1000
+    iops                  = 16000
+    throughput            = 1000
+    delete_on_termination = true
+  }
+
+  launch_block_device_mappings {
+    device_name           = "/dev/sdf"
+    volume_type           = "gp3"
+    volume_size           = var.data_disk_size
+    encrypted             = true
+    iops                  = 16000
+    throughput            = 1000
     delete_on_termination = true
   }
 
   run_tags = {
     Name               = local.ami_name
     ArcGISAutomation   = "arcgis-gitops"
-    ArcGISEnterpriseID = var.enterprise_id    
+    ArcGISEnterpriseID = var.enterprise_id
     ArcGISVersion      = var.arcgis_version
-    ArcGISDeploymentID = var.deployment_id    
+    ArcGISDeploymentID = var.deployment_id
     ArcGISMachineRole  = local.machine_role
     OperatingSystem    = var.os
   }
@@ -139,10 +149,14 @@ source "amazon-ebs" "main" {
 
 build {
   name = var.deployment_id
- 
+
   sources = [
     "source.amazon-ebs.main"
   ]
+
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' initialize-notebook"
+  }
 
   # Copy files to private S3 repository
   provisioner "shell-local" {
@@ -182,7 +196,7 @@ build {
 
     command = "python -m ssm_package -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
   }
-  
+
   # Install Amazon EFS Utils
   provisioner "shell-local" {
     env = {
@@ -206,11 +220,11 @@ build {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(templatefile(
-        local.manifest_file_path, 
-        { 
-          s3bucket = data.amazon-parameterstore.s3_repository.value, 
-          region = data.amazon-parameterstore.s3_region.value
-        }))
+        local.manifest_file_path,
+        {
+          s3bucket = data.amazon-parameterstore.s3_repository.value,
+          region   = data.amazon-parameterstore.s3_region.value
+      }))
     }
 
     command = "python -m ssm_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j /arcgis/${var.enterprise_id}/attributes/${var.deployment_id}/image/s3files -b ${data.amazon-parameterstore.s3_logs.value} -e 1200"
@@ -222,31 +236,31 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         java = {
-          version = local.java_version
+          version      = local.java_version
           tarball_path = "${local.archives_dir}/${local.java_tarball}"
         }
         tomcat = {
-          version = local.tomcat_version
+          version      = local.tomcat_version
           tarball_path = "${local.archives_dir}/${local.tomcat_tarball}"
           install_path = "/opt/tomcat_arcgis_${local.tomcat_version}"
         }
         arcgis = {
-          version = var.arcgis_version
-          run_as_user = var.run_as_user
+          version          = var.arcgis_version
+          run_as_user      = var.run_as_user
           configure_autofs = false
           repository = {
             archives = local.archives_dir
-            setups = "/opt/software/setups"
+            setups   = "/opt/software/setups"
           }
           web_server = {
             webapp_dir = "/opt/tomcat_arcgis_${local.tomcat_version}/webapps"
           }
           notebook_server = {
-            install_dir = "/opt"
+            install_dir                 = "/opt"
             install_system_requirements = true
-            license_level = var.license_level
-            configure_autostart = true
-            wa_name = var.notebook_server_web_context
+            license_level               = var.license_level
+            configure_autostart         = true
+            wa_name                     = var.notebook_server_web_context
           }
           web_adaptor = {
             install_dir = "/opt"
@@ -259,7 +273,7 @@ build {
           "recipe[arcgis-notebooks::iptables]",
           "recipe[arcgis-notebooks::restart_docker]",
           "recipe[arcgis-notebooks::install_server]",
-          "recipe[arcgis-notebooks::install_server_wa]"                    
+          "recipe[arcgis-notebooks::install_server_wa]"
         ]
       }))
     }
@@ -273,18 +287,18 @@ build {
       AWS_DEFAULT_REGION = var.aws_region
       JSON_ATTRIBUTES = base64encode(jsonencode({
         arcgis = {
-          version = var.arcgis_version
+          version     = var.arcgis_version
           run_as_user = var.run_as_user
           repository = {
             patches = local.patches_dir
           }
           notebook_server = {
             install_dir = "/opt"
-            patches = var.arcgis_notebook_server_patches
+            patches     = var.arcgis_notebook_server_patches
           }
           web_adaptor = {
             install_dir = "/opt"
-            patches = var.arcgis_web_adaptor_patches
+            patches     = var.arcgis_web_adaptor_patches
           }
         }
         run_list = [
@@ -306,10 +320,14 @@ build {
     command = "python -m ssm_clean_up -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -f ${local.software_dir} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' verify-notebook"
+  }
+
   # Save the build artifacts metadata in packer-manifest.json file.
   # Note: New builds add new artifacts to packer-manifest.json file.
   post-processor "manifest" {
-    output = "packer-manifest.json"
+    output     = "packer-manifest.json"
     strip_path = true
     custom_data = {
       ami_description = local.ami_description
@@ -333,7 +351,7 @@ build {
     command = "python -m publish_artifact -p /arcgis/${var.enterprise_id}/images/${var.deployment_id}/node -f packer-manifest.json -r ${build.PackerRunUUID}"
   }
 
-    # Save os and notebook_server_web_context in SSM parameters for later use in deployment.
+  # Save os and notebook_server_web_context in SSM parameters for later use in deployment.
   post-processor "shell-local" {
     command = "aws ssm put-parameter --name /arcgis/${var.enterprise_id}/images/${var.deployment_id}/os --value ${var.os} --overwrite --type String --region ${var.aws_region}"
   }

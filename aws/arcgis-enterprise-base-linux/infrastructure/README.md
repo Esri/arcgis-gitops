@@ -150,9 +150,14 @@ The module writes the following SSM parameters:
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
-| root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |
-| root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
-| root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
+| os_disk_iops | OS gp3 disk IOPS for all EC2 instances | `number` | `3000` | no |
+| os_disk_size | OS disk capacity in GiB | `number` | `256` | no |
+| os_disk_throughput | OS gp3 disk throughput in MiB/s | `number` | `125` | no |
+| os_disk_type | OS disk type (gp3) | `string` | `"gp3"` | no |
+| data_disk_iops | Primary/standby data disk IOPS | `number` | `3000` | no |
+| data_disk_size | Primary/standby data capacity in GiB; at least the image size | `number` | `1024` | no |
+| data_disk_throughput | Data disk throughput in MiB/s, gp3 only | `number` | `125` | no |
+| data_disk_type | Data disk type (gp3, io1, io2) | `string` | `"gp3"` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |
 
 ## Outputs

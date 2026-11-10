@@ -50,6 +50,7 @@ module "download_webadaptor_files" {
     region           = module.enterprise_core_info.s3_region
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.copy_webadaptor_files
   ]
 }
@@ -66,6 +67,7 @@ module "tomcat_keystore_file" {
     src_file  = var.server_certificate_path
     dest_file = local.tomcat_keystore_file
   }
+  depends_on = [terraform_data.verify_data_disk]
 }
 
 # Upgrade OpenJDK on primary and node EC2 instances
@@ -83,6 +85,7 @@ module "openjdk_upgrade" {
     local_repository  = local.archives_dir
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.download_webadaptor_files
   ]
 }
@@ -102,6 +105,7 @@ module "tomcat_upgrade" {
     local_repository     = local.archives_dir
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.openjdk_upgrade
   ]
 }
@@ -121,6 +125,7 @@ module "arcgis_webadaptor_upgrade" {
     run_as_user      = var.run_as_user
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.arcgis_server_upgrade,
     module.tomcat_upgrade
   ]
@@ -139,6 +144,7 @@ module "tomcat_ssl_config" {
     keystore_password = var.server_certificate_password != "" ? var.server_certificate_password : "changeit"
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.arcgis_server_primary,
     module.arcgis_server_node,
     module.arcgis_webadaptor_upgrade,
@@ -164,6 +170,7 @@ module "arcgis_webadaptor" {
     admin_access   = true
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.tomcat_ssl_config
   ]
 }

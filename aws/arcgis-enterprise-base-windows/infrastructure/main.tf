@@ -65,12 +65,27 @@ data "aws_ami" "ami" {
 }
 
 locals {
+  data_disk_mappings = {
+    for role, image in data.aws_ami.application :
+    role => one([for mapping in image.block_device_mappings : mapping if mapping.device_name == "/dev/sdf"])
+  }
   namespace      = "${var.enterprise_id}${random_id.unique_name_suffix.hex}"
   primary_subnet = length(var.subnet_ids) < 2 ? module.enterprise_core_info.private_subnets[0] : var.subnet_ids[0]
   standby_subnet = length(var.subnet_ids) < 2 ? module.enterprise_core_info.private_subnets[1] : var.subnet_ids[1]
   # Get values of ArcGISTemplateId and ArcGISVersion tags from the AMI to copy them to the EC2 instances.
   arcgis_template_id = "arcgis-enterprise-base"
   arcgis_version     = try(data.aws_ami.ami.tags.ArcGISVersion, null)
+}
+
+data "aws_ami" "application" {
+  for_each = var.is_ha ? {
+    primary = nonsensitive(data.aws_ssm_parameter.primary_ami.value)
+    standby = nonsensitive(data.aws_ssm_parameter.standby_ami.value)
+  } : { primary = nonsensitive(data.aws_ssm_parameter.primary_ami.value) }
+  filter {
+    name   = "image-id"
+    values = [each.value]
+  }
 }
 
 resource "random_id" "unique_name_suffix" {
@@ -137,29 +152,34 @@ resource "aws_instance" "primary" {
   }
 
   root_block_device {
-    volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_type = var.os_disk_type
+    volume_size = var.os_disk_size
     encrypted   = true
-    iops        = var.root_volume_iops
-    throughput  = var.root_volume_throughput
+    iops        = var.os_disk_iops
+    throughput  = var.os_disk_throughput
   }
 
-  # Allow loopback fileserver connection using the private DNS name that 
-  # resolves to the instance's primary IP address. 
+  ebs_block_device {
+    device_name           = "/dev/sdf"
+    snapshot_id           = try(local.data_disk_mappings.primary.ebs.snapshot_id, null)
+    volume_type           = var.data_disk_type
+    volume_size           = var.data_disk_size
+    iops                  = var.data_disk_iops
+    throughput            = var.data_disk_type == "gp3" ? var.data_disk_throughput : null
+    encrypted             = true
+    delete_on_termination = true
+  }
+
+  lifecycle {
+    precondition {
+      condition     = try(length(local.data_disk_mappings.primary.ebs.snapshot_id) > 0 && tonumber(local.data_disk_mappings.primary.ebs.volume_size) <= var.data_disk_size, false)
+      error_message = "Primary AMI must contain a /dev/sdf data snapshot that fits data_disk_size. Rebuild the image; blank replacement and shrink are prohibited."
+    }
+  }
+
   user_data = <<-EOF
   <powershell>
-  $computerName = $env:COMPUTERNAME
-  $customFQDN  = "primary.${var.deployment_id}.${var.enterprise_id}.internal" 
-  $hosts = @($computerName, $customFQDN, "localhost", "127.0.0.1")
-
-  $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"
-  
-  if (-not (Test-Path $registryPath)) { 
-    New-Item $registryPath -Force 
-  }
-  
-  New-ItemProperty -Path $registryPath -Name "BackConnectionHostNames" `
-                   -Value $hosts -PropertyType MultiString -Force
+  ${file("${path.module}/scripts/repair_data_disk_permissions.ps1")}
   </powershell>
   EOF
 
@@ -195,10 +215,14 @@ module "ec2_fileserver" {
   hosted_zone_id               = module.enterprise_core_info.hosted_zone_id
   arcgis_template_id           = local.arcgis_template_id
   arcgis_version               = local.arcgis_version
-  data_volume_size             = var.fileserver_data_volume_size
-  data_volume_type             = var.fileserver_data_volume_type
-  data_volume_iops             = var.fileserver_data_volume_iops
-  data_volume_throughput       = var.fileserver_data_volume_throughput
+  data_volume_size             = var.fileserver_data_disk_size
+  data_volume_type             = var.fileserver_data_disk_type
+  data_volume_iops             = var.fileserver_data_disk_iops
+  data_volume_throughput       = var.fileserver_data_disk_throughput
+  os_disk_size                 = var.os_disk_size
+  os_disk_type                 = var.os_disk_type
+  os_disk_iops                 = var.os_disk_iops
+  os_disk_throughput           = var.os_disk_throughput
 }
 
 resource "aws_network_interface" "standby" {
@@ -230,12 +254,38 @@ resource "aws_instance" "standby" {
   }
 
   root_block_device {
-    volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_type = var.os_disk_type
+    volume_size = var.os_disk_size
     encrypted   = true
-    iops        = var.root_volume_iops
-    throughput  = var.root_volume_throughput
+    iops        = var.os_disk_iops
+    throughput  = var.os_disk_throughput
   }
+
+  ebs_block_device {
+    device_name           = "/dev/sdf"
+    snapshot_id           = try(local.data_disk_mappings.standby.ebs.snapshot_id, null)
+    volume_type           = var.data_disk_type
+    volume_size           = var.data_disk_size
+    iops                  = var.data_disk_iops
+    throughput            = var.data_disk_type == "gp3" ? var.data_disk_throughput : null
+    encrypted             = true
+    delete_on_termination = true
+  }
+
+  lifecycle {
+    precondition {
+      condition     = try(length(local.data_disk_mappings.standby.ebs.snapshot_id) > 0 && tonumber(local.data_disk_mappings.standby.ebs.volume_size) <= var.data_disk_size, false)
+      error_message = "Standby AMI must contain a /dev/sdf data snapshot that fits data_disk_size. Rebuild the image; blank replacement and shrink are prohibited."
+    }
+  }
+
+  user_data = <<-EOF
+  <powershell>
+  ${file("${path.module}/scripts/repair_data_disk_permissions.ps1")}
+  </powershell>
+  EOF
+
+  user_data_replace_on_change = false
 
   tags = {
     Name              = "${var.enterprise_id}/${var.deployment_id}/standby"
@@ -350,11 +400,12 @@ module "cw_agent" {
 }
 
 module "dashboard" {
-  source         = "../../modules/dashboard"
-  platform       = "windows"
-  enterprise_id  = var.enterprise_id
-  deployment_id  = var.deployment_id
-  log_group_name = module.cw_agent.log_group_name
+  separate_disk_metrics = true
+  source                = "../../modules/dashboard"
+  platform              = "windows"
+  enterprise_id         = var.enterprise_id
+  deployment_id         = var.deployment_id
+  log_group_name        = module.cw_agent.log_group_name
   depends_on = [
     module.cw_agent
   ]

@@ -12,6 +12,7 @@
   "deployment_id": "enterprise-base-windows",
   "enterprise_id": "arcgis",
   "os_disk_size": 256,
+  "data_disk_size": 256,
   "os": "windows2025",
   "portal_web_context": "portal",
   "run_as_user": "arcgis",

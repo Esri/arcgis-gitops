@@ -17,7 +17,7 @@
 # The script retrieves the script input parameters from the JSON_ATTRIBUTES environment variable
 # and puts them into SecureString SSM parameter specified by json_attributes_parameter command line argument.
 # Placeholder <json_attributes_parameter> in the scrip is replaced with the actual parameter name.
-# To execute the shell script it runs AWS-RunShellScript SSM command on EC2 instances of the deployment
+# To execute the script it runs the selected shell or PowerShell SSM document on EC2 instances of the deployment
 # in the specified machine roles, waits for all the command invocations to complete, 
 # retrieves from S3 and prints outputs of the command invocations.
 
@@ -42,21 +42,24 @@ if __name__ == '__main__':
     parser.add_argument('-b', dest='s3_bucket', required=True, help='Output S3 bucket')
     parser.add_argument('-e', dest='execution_timeout', default="3600", help='Execution timeout (seconds)')
     parser.add_argument('-f', dest='script_file', required=True, help='Script file path')
+    parser.add_argument('--document-name', choices=['AWS-RunShellScript', 'AWS-RunPowerShellScript'],
+                        default='AWS-RunShellScript', help='SSM document matching the target platform')
 
     args = parser.parse_args()
-
-    commands = []
-    with open(args.script_file, 'r') as file:
-        for line in file:
-            # Replace <json_attributes_parameter> with the actual parameter name
-            if line:
-                line = line.replace('<json_attributes_parameter>', args.json_attributes_parameter)
-            
-            commands.append(line.strip())
 
     ec2_client = boto3.client('ec2')
     ssm_client = boto3.client('ssm')
     s3_client = boto3.client('s3')
+
+    commands = []
+    with open(args.script_file, 'r', encoding='utf-8') as file:
+        for line in file:
+            if '<json_attributes_parameter>' in line:
+                if not args.json_attributes_parameter:
+                    parser.error('The script requires -j for <json_attributes_parameter>.')
+                line = line.replace('<json_attributes_parameter>', args.json_attributes_parameter)
+            line = line.replace('<aws_region>', ssm_client.meta.region_name)
+            commands.append(line.rstrip('\r\n'))
 
     ec2_filters = [{
         'Name': 'tag:ArcGISEnterpriseID',
@@ -106,28 +109,25 @@ if __name__ == '__main__':
             Tier='Intelligent-Tiering'
         )
 
-    command_id = ssm_client.send_command(
-        Targets=ssm_filters,
-        DocumentName='AWS-RunShellScript',
-        TimeoutSeconds=SEND_TIMEOUT,
-        Comment='Runs shell script.',
-        Parameters={
-            'commands': commands,
-            # 'workingDirectory': '',
-            'executionTimeout': [args.execution_timeout]
-        },    
-        OutputS3BucketName=args.s3_bucket,
-        OutputS3KeyPrefix=args.deployment_id
-    )['Command']['CommandId']
+    try:
+        command_id = ssm_client.send_command(
+            Targets=ssm_filters,
+            DocumentName=args.document_name,
+            TimeoutSeconds=SEND_TIMEOUT,
+            Comment='Runs shell script.',
+            Parameters={
+                'commands': commands,
+                'executionTimeout': [args.execution_timeout]
+            },
+            OutputS3BucketName=args.s3_bucket,
+            OutputS3KeyPrefix=args.deployment_id
+        )['Command']['CommandId']
 
-    status = ssm_utils.wait_for_command_invocations(ssm_client, command_id, int(args.execution_timeout))
-
-    print("Deleting SecureString SSM parameter {0}...".format(args.json_attributes_parameter))
-    
-    ssm_client.delete_parameter(
-        Name=args.json_attributes_parameter
-    )
-
-    ssm_utils.print_command_output(s3_client, args.deployment_id, command_id, args.s3_bucket)
+        status = ssm_utils.wait_for_command_invocations(ssm_client, command_id, int(args.execution_timeout))
+        ssm_utils.print_command_output(s3_client, args.deployment_id, command_id, args.s3_bucket)
+    finally:
+        if 'JSON_ATTRIBUTES' in os.environ and args.json_attributes_parameter:
+            print("Deleting SecureString SSM parameter {0}...".format(args.json_attributes_parameter))
+            ssm_client.delete_parameter(Name=args.json_attributes_parameter)
 
     exit(0 if status == 'Success' else 1)

@@ -54,7 +54,7 @@ jobs:
         run: pip install boto3
       - uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: "1.10.0"
+          terraform_version: "1.11.4"
       - name: Destroy Application
         id: application-destroy
         working-directory: aws/arcgis-notebook-server-linux/application

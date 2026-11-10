@@ -36,6 +36,7 @@ On the machine where Terraform is executed:
 * Path to aws/scripts directory must be added to PYTHONPATH
 * The working directory must be set to the arcgis-notebook-server-linux/application module path
 * AWS credentials must be configured
+* Bash, GNU `base64` (`-w0`), `jq`, and AWS CLI must be available on the runner
 
 My Esri user name and password must be specified either using environment variables ARCGIS_ONLINE_USERNAME and ARCGIS_ONLINE_PASSWORD or the input variables.
 
@@ -96,6 +97,8 @@ The module reads the following SSM parameters:
 | [aws_s3_object.keystore_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.notebook_server_authorization_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
 | [aws_s3_object.root_cert_file](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/s3_object) | resource |
+| [terraform_data.verify_data_disk](https://developer.hashicorp.com/terraform/language/resources/terraform-data) | resource |
+| [terraform_data.verify_application_storage](https://developer.hashicorp.com/terraform/language/resources/terraform-data) | resource |
 | [aws_instance.primary](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instance) | data source |
 | [aws_instances.nodes](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/instances) | data source |
 | [aws_region.current](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/region) | data source |

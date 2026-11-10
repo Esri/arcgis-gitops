@@ -27,11 +27,6 @@ output "fileserver_private_dns" {
   value       = module.ec2_fileserver.private_dns
 }
 
-output "fileserver_data_disk_association_id" {
-  description = "SSM association to verify after infrastructure apply"
-  value       = module.ec2_fileserver.data_disk_association_id
-}
-
 output "deployment_url" {
   description = "Portal for ArcGIS URL of the deployment"
   value       = "https://${nonsensitive(data.aws_ssm_parameter.alb_ingress_fqdn.value)}/${local.portal_web_context}"

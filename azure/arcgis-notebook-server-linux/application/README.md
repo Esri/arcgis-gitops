@@ -4,7 +4,13 @@ The Terraform module configures or upgrades applications for an ArcGIS Notebook 
 
 ![ArcGIS Notebook Server on Linux](arcgis-notebook-server-linux-application.png "ArcGIS Notebook Server on Linux")
 
-First, the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all VMs of the deployment.
+First, the module verifies the baked data disk on every primary and node VM.
+It requires the saved filesystem UUID, verifies and grows the `/opt` filesystem,
+and checks that Docker uses `/opt/docker` on that filesystem. A missing disk or
+incorrect Docker data-root fails before Chef bootstrap. It does not format an
+empty disk or migrate existing Docker data.
+
+Then the module bootstraps the deployment by installing Chef Client and Chef Cookbooks for ArcGIS on all VMs of the deployment.
 
 If "is_upgrade" input variable is set to `true`, the module:
 
@@ -89,6 +95,7 @@ The module reads the following Key Vault secrets:
 
 | Name | Type |
 |------|------|
+| terraform_data.verify_data_disk | resource |
 | [azurerm_storage_blob.root_cert_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_storage_blob.server_authorization_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_blob) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |

@@ -77,7 +77,7 @@ locals {
   main_ami_description       = "Base ArcGIS Enterprise ${var.arcgis_version} AMI for ${var.os}"
   fileserver_ami_description = "ArcGIS Enterprise file-server AMI for ${var.os}"
 
-  software_dir = "C:/Software/*"
+  software_dir = "D:/Software/*"
 
   # Platform-specific attributes
 
@@ -95,10 +95,20 @@ source "amazon-ebs" "main" {
   communicator         = "none"
 
   launch_block_device_mappings {
-    device_name = "/dev/sda1"
-    volume_type = "gp3"
-    volume_size = var.root_volume_size
-    // encrypted   = true    
+    device_name           = "/dev/sda1"
+    volume_type           = "gp3"
+    volume_size           = var.os_disk_size
+    encrypted             = true
+    iops                  = 16000
+    throughput            = 1000
+    delete_on_termination = true
+  }
+
+  launch_block_device_mappings {
+    device_name           = "/dev/sdf"
+    volume_type           = "gp3"
+    volume_size           = var.data_disk_size
+    encrypted             = true
     iops                  = 16000
     throughput            = 1000
     delete_on_termination = true
@@ -125,6 +135,26 @@ source "amazon-ebs" "fileserver" {
   subnet_id            = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
   iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
   communicator         = "none"
+
+  launch_block_device_mappings {
+    device_name           = "/dev/sda1"
+    volume_type           = "gp3"
+    volume_size           = var.os_disk_size
+    encrypted             = true
+    iops                  = 16000
+    throughput            = 1000
+    delete_on_termination = true
+  }
+
+  launch_block_device_mappings {
+    device_name           = "/dev/sdf"
+    volume_type           = "gp3"
+    volume_size           = var.fileserver_data_disk_size
+    encrypted             = true
+    iops                  = 16000
+    throughput            = 1000
+    delete_on_termination = true
+  }
 
   run_tags = {
     Name               = "arcgis-enterprise-fileserver-${var.arcgis_version}-${var.os}-${local.timestamp}"
@@ -181,6 +211,11 @@ build {
     command = "python -m ssm_bootstrap -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.main_machine_role} -c ${data.amazon-parameterstore.chef_client_url.value} -k ${data.amazon-parameterstore.chef_cookbooks_url.value} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
 
+  # Initialize the data disk before Chef installs applications.
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}'"
+  }
+
   # Download setups
   provisioner "shell-local" {
     env = {
@@ -209,7 +244,7 @@ build {
           configure_cloud_settings   = false
           repository = {
             archives = local.archives_dir
-            setups   = "C:\\Software\\Setups"
+            setups   = "D:\\Software\\Setups"
           }
           server = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
@@ -226,14 +261,14 @@ build {
           data_store = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
             setup_options               = "ADDLOCAL=relational"
-            data_dir                    = "C:\\arcgisdatastore"
+            data_dir                    = "D:\\arcgisdatastore"
             install_system_requirements = true
             preferredidentifier         = "ip"
           }
           portal = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
             install_system_requirements = true
-            data_dir                    = "C:\\arcgisportal"
+            data_dir                    = "D:\\arcgisportal"
             preferredidentifier         = "hostname"
             wa_name                     = var.portal_web_context
           }
@@ -266,13 +301,15 @@ build {
             patches = local.patches_dir
           }
           portal = {
-            patches = var.arcgis_portal_patches
+            data_dir = "D:\\arcgisportal"
+            patches  = var.arcgis_portal_patches
           }
           server = {
             patches = var.arcgis_server_patches
           }
           data_store = {
-            patches = var.arcgis_data_store_patches
+            data_dir = "D:\\arcgisdatastore"
+            patches  = var.arcgis_data_store_patches
           }
           web_adaptor = {
             patches = var.arcgis_web_adaptor_patches
@@ -285,6 +322,10 @@ build {
     }
 
     command = "python -m ssm_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.main_machine_role} -j /arcgis/${var.enterprise_id}/attributes/arcgis-enterprise-base/image/${var.arcgis_version}/${var.os}/patches -b ${data.amazon-parameterstore.s3_logs.value} -e 3600"
+  }
+
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' startup"
   }
 
   # Clean up
@@ -351,6 +392,10 @@ build {
   }
 
   provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}'"
+  }
+
+  provisioner "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region
     }
@@ -382,4 +427,3 @@ build {
     command = "python -m publish_artifact -p /arcgis/${var.enterprise_id}/images/${var.deployment_id}/fileserver -f fileserver-packer-manifest.json -r ${build.PackerRunUUID}"
   }
 }
-

@@ -18,6 +18,10 @@ terraform {
   }
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.6"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.46"
@@ -113,6 +117,11 @@ module "enterprise_core_info" {
 resource "azurerm_resource_group" "deployment_rg" {
   name     = "${var.enterprise_id}-${var.deployment_id}-rg"
   location = var.azure_region
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 resource "azurerm_network_interface" "primary" {
@@ -165,135 +174,63 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
 
   platform_fault_domain_count = 1
   zones                       = local.zones
-}
-
-# Create the primary VM as part of the scale set to ensure it is distributed in a different zone than the node VMs.
-resource "azurerm_linux_virtual_machine" "primary" {
-  name                         = "primary"
-  resource_group_name          = azurerm_resource_group.deployment_rg.name
-  location                     = azurerm_resource_group.deployment_rg.location
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
-
-  size = var.vm_size
-
-  admin_username                  = var.vm_admin_username
-  admin_password                  = var.vm_admin_password
-  disable_password_authentication = var.vm_admin_public_ssh_key_path != null
-
-  encryption_at_host_enabled = true
-  secure_boot_enabled        = true
-  vtpm_enabled               = true
-
-  patch_assessment_mode = "AutomaticByPlatform"
-  patch_mode            = "ImageDefault"
-
-  source_image_id = data.azurerm_key_vault_secret.primary_vm_image_id.value
-
-  network_interface_ids = [
-    azurerm_network_interface.primary.id
-  ]
-
-  # Make admin_ssh_key optional by checking if the vm_admin_public_ssh_key_path variable is set. 
-  # If it is not set, the VMs will be created without SSH key authentication.
-  dynamic "admin_ssh_key" {
-    for_each = var.vm_admin_public_ssh_key_path != null ? [1] : []
-    content {
-      username   = var.vm_admin_username
-      public_key = file(var.vm_admin_public_ssh_key_path)
-    }
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "StandardSSD_LRS"
-    disk_size_gb         = var.os_disk_size
-  }
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      data.azurerm_key_vault_secret.vm_identity_id.value
-    ]
-  }
 
   tags = {
     ArcGISEnterpriseID = var.enterprise_id
     ArcGISDeploymentID = var.deployment_id
-    ArcGISRole         = "primary"
   }
+}
 
-  # Ignore changes to admin username and password to prevent VM replacement when these values are updated
-  lifecycle {
-    ignore_changes = [
-      admin_username,
-      admin_password,
-      zone
-    ]
+# Create the primary VM as part of the scale set to ensure it is distributed in a different zone than the node VMs.
+module "primary" {
+  source         = "../../modules/base_vm"
+  admin_password = var.vm_admin_password
+  settings = {
+    name              = "primary"
+    resource_group_id = azurerm_resource_group.deployment_rg.id
+    location          = azurerm_resource_group.deployment_rg.location
+    scale_set_id      = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+    size              = var.vm_size
+    admin_username    = var.vm_admin_username
+    public_key        = var.vm_admin_public_ssh_key_path == null ? null : file(var.vm_admin_public_ssh_key_path)
+    windows           = false
+    image_id          = data.azurerm_key_vault_secret.primary_vm_image_id.value
+    nic_id            = azurerm_network_interface.primary.id
+    os_disk_size      = var.os_disk_size
+    data_disk_size    = var.data_disk_size
+    identity_id       = data.azurerm_key_vault_secret.vm_identity_id.value
+    tags = {
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
+      ArcGISRole         = "primary"
+    }
   }
 }
 
 # Create node VMs in a scale set to ensure they are automatically distributed across availability zones.
-resource "azurerm_linux_virtual_machine" "nodes" {
-  count                        = var.node_count
-  name                         = "node-${count.index + 1}"
-  resource_group_name          = azurerm_resource_group.deployment_rg.name
-  location                     = azurerm_resource_group.deployment_rg.location
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
-
-  size = var.vm_size
-
-  admin_username                  = var.vm_admin_username
-  admin_password                  = var.vm_admin_password
-  disable_password_authentication = var.vm_admin_public_ssh_key_path != null
-
-  encryption_at_host_enabled = true
-  secure_boot_enabled        = true
-  vtpm_enabled               = true
-
-  patch_assessment_mode = "AutomaticByPlatform"
-  patch_mode            = "ImageDefault"
-
-  source_image_id = data.azurerm_key_vault_secret.node_vm_image_id.value
-
-  network_interface_ids = [
-    azurerm_network_interface.nodes[count.index].id
-  ]
-
-  # Make admin_ssh_key optional by checking if the vm_admin_public_ssh_key_path variable is set. If it is not set, the VMs will be created without SSH key authentication.
-  dynamic "admin_ssh_key" {
-    for_each = var.vm_admin_public_ssh_key_path != null ? [1] : []
-    content {
-      username   = var.vm_admin_username
-      public_key = file(var.vm_admin_public_ssh_key_path)
+module "nodes" {
+  count          = var.node_count
+  source         = "../../modules/base_vm"
+  admin_password = var.vm_admin_password
+  settings = {
+    name              = "node-${count.index + 1}"
+    resource_group_id = azurerm_resource_group.deployment_rg.id
+    location          = azurerm_resource_group.deployment_rg.location
+    scale_set_id      = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+    size              = var.vm_size
+    admin_username    = var.vm_admin_username
+    public_key        = var.vm_admin_public_ssh_key_path == null ? null : file(var.vm_admin_public_ssh_key_path)
+    windows           = false
+    image_id          = data.azurerm_key_vault_secret.node_vm_image_id.value
+    nic_id            = azurerm_network_interface.nodes[count.index].id
+    os_disk_size      = var.os_disk_size
+    data_disk_size    = var.data_disk_size
+    identity_id       = data.azurerm_key_vault_secret.vm_identity_id.value
+    tags = {
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
+      ArcGISRole         = "node"
     }
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "StandardSSD_LRS"
-    disk_size_gb         = var.os_disk_size
-  }
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      data.azurerm_key_vault_secret.vm_identity_id.value
-    ]
-  }
-
-  tags = {
-    ArcGISEnterpriseID = var.enterprise_id
-    ArcGISDeploymentID = var.deployment_id
-    ArcGISRole         = "node"
-  }
-
-  # Ignore changes to admin username and password to prevent VM replacement when these values are updated
-  lifecycle {
-    ignore_changes = [
-      admin_username,
-      admin_password,
-      zone
-    ]
   }
 }
 
@@ -344,6 +281,11 @@ resource "azurerm_private_endpoint" "config_store_blob_pe" {
     name                 = "storage-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.privatelink_blob.id]
   }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 resource "azurerm_private_endpoint" "config_store_table_pe" {
@@ -362,6 +304,11 @@ resource "azurerm_private_endpoint" "config_store_table_pe" {
   private_dns_zone_group {
     name                 = "storage-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.privatelink_table.id]
+  }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
   }
 }
 
@@ -393,8 +340,8 @@ module "lv_extend" {
   os = nonsensitive(data.azurerm_key_vault_secret.vm_image_os.value)
 
   depends_on = [
-    azurerm_linux_virtual_machine.primary,
-    azurerm_linux_virtual_machine.nodes
+    module.primary,
+    module.nodes
   ]
 }
 
@@ -444,7 +391,7 @@ resource "azurerm_private_dns_a_record" "primary" {
   resource_group_name = "${var.enterprise_id}-infrastructure-core"
   ttl                 = 300
   records = [
-    azurerm_linux_virtual_machine.primary.private_ip_address
+    azurerm_network_interface.primary.private_ip_address
   ]
 }
 
@@ -455,7 +402,7 @@ resource "azurerm_private_dns_a_record" "nodes" {
   resource_group_name = "${var.enterprise_id}-infrastructure-core"
   ttl                 = 300
   records = [
-    azurerm_linux_virtual_machine.nodes[count.index].private_ip_address
+    azurerm_network_interface.nodes[count.index].private_ip_address
   ]
 }
 

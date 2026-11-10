@@ -195,9 +195,9 @@ locals {
     shares = [local.fileserver_local_root]
   }
 
-  software_dir            = "C:\\Software\\*"
-  authorization_files_dir = "C:\\Software\\AuthorizationFiles"
-  certificates_dir        = "C:\\Software\\Certificates"
+  software_dir            = "D:\\Software\\*"
+  authorization_files_dir = "D:\\Software\\AuthorizationFiles"
+  certificates_dir        = "D:\\Software\\Certificates"
 
   keystore_file = var.server_certificate_path != null ? "${local.certificates_dir}\\${basename(var.server_certificate_path)}" : "C:\\chef\\keystore.pfx"
   root_cert     = var.root_certificate_path != null ? "${local.certificates_dir}\\${basename(var.root_certificate_path)}" : ""
@@ -355,7 +355,7 @@ module "arcgis_enterprise_upgrade" {
       configure_cloud_settings   = false
       repository = {
         archives = local.archives_dir
-        setups   = "C:\\Software\\Setups"
+        setups   = "D:\\Software\\Setups"
       }
       server = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
@@ -372,14 +372,14 @@ module "arcgis_enterprise_upgrade" {
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
         setup_options               = "ADDLOCAL=relational"
-        data_dir                    = "C:\\arcgisdatastore"
+        data_dir                    = "D:\\arcgisdatastore"
         install_system_requirements = true
         preferredidentifier         = "ip"
       }
       portal = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
         install_system_requirements = true
-        data_dir                    = "C:\\arcgisportal"
+        data_dir                    = "D:\\arcgisportal"
         wa_name                     = local.portal_web_context
       }
     }
@@ -420,13 +420,15 @@ module "arcgis_enterprise_patch" {
         patches = local.patches_dir
       }
       portal = {
-        patches = var.arcgis_portal_patches
+        data_dir = "D:\\arcgisportal"
+        patches  = var.arcgis_portal_patches
       }
       server = {
         patches = var.arcgis_server_patches
       }
       data_store = {
-        patches = var.arcgis_data_store_patches
+        data_dir = "D:\\arcgisdatastore"
+        patches  = var.arcgis_data_store_patches
       }
       web_adaptor = {
         patches = var.arcgis_web_adaptor_patches
@@ -635,7 +637,7 @@ module "arcgis_enterprise_primary" {
       configure_cloud_settings   = false
       repository = {
         archives = local.archives_dir
-        setups   = "C:\\Software\\Setups"
+        setups   = "D:\\Software\\Setups"
       }
       iis = {
         domain_name           = local.ingress_fqdn
@@ -661,7 +663,7 @@ module "arcgis_enterprise_primary" {
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
         directories_root            = local.server_directories_root
-        log_dir                     = "C:\\arcgisserver\\logs"
+        log_dir                     = "D:\\arcgisserver\\logs"
         log_level                   = var.log_level
         config_store_type           = var.config_store_type
         # If cloud_config is set, config_store_connection_string is ignored
@@ -680,7 +682,7 @@ module "arcgis_enterprise_primary" {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
         setup_options               = "ADDLOCAL=relational"
         install_system_requirements = true
-        data_dir                    = "C:\\arcgisdatastore"
+        data_dir                    = "D:\\arcgisdatastore"
         preferredidentifier         = "ip"
         hostidentifier              = local.primary_hostname
         types                       = "relational"
@@ -710,8 +712,8 @@ module "arcgis_enterprise_primary" {
         admin_description           = var.admin_description
         security_question_index     = var.security_question_index
         security_question_answer    = var.security_question_answer
-        data_dir                    = "C:\\arcgisportal"
-        log_dir                     = "C:\\arcgisportal\\logs"
+        data_dir                    = "D:\\arcgisportal"
+        log_dir                     = "D:\\arcgisportal\\logs"
         log_level                   = var.log_level
         authorization_file          = "${local.authorization_files_dir}\\${basename(var.portal_authorization_file_path)}"
         user_license_type_id        = var.portal_user_license_type_id
@@ -773,7 +775,7 @@ module "arcgis_enterprise_standby" {
       configure_cloud_settings   = false
       repository = {
         archives = local.archives_dir
-        setups   = "C:\\Software\\Setups"
+        setups   = "D:\\Software\\Setups"
       }
       iis = {
         domain_name           = local.ingress_fqdn
@@ -797,14 +799,14 @@ module "arcgis_enterprise_standby" {
         keystore_password           = var.server_certificate_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        log_dir                     = "C:\\arcgisserver\\logs"
+        log_dir                     = "D:\\arcgisserver\\logs"
         wa_name                     = local.server_web_context
       }
       data_store = {
         install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
         setup_options               = "ADDLOCAL=relational"
         install_system_requirements = true
-        data_dir                    = "C:\\arcgisdatastore"
+        data_dir                    = "D:\\arcgisdatastore"
         preferredidentifier         = "ip"
         hostidentifier              = local.standby_hostname
         types                       = "relational"
@@ -824,8 +826,8 @@ module "arcgis_enterprise_standby" {
         keystore_password           = var.server_certificate_password
         root_cert                   = local.root_cert
         root_cert_alias             = "rootcert"
-        data_dir                    = "C:\\arcgisportal"
-        log_dir                     = "C:\\arcgisportal\\logs"
+        data_dir                    = "D:\\arcgisportal"
+        log_dir                     = "D:\\arcgisportal\\logs"
         wa_name                     = local.portal_web_context
       }
       web_adaptor = {

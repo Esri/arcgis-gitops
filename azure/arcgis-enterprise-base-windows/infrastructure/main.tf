@@ -18,6 +18,10 @@ terraform {
   }
 
   required_providers {
+    azapi = {
+      source  = "Azure/azapi"
+      version = "~> 2.6"
+    }
     azurerm = {
       source  = "hashicorp/azurerm"
       version = "~> 4.46"
@@ -98,7 +102,7 @@ locals {
   zones                   = var.is_ha ? ["1", "2"] : ["1"]
   subnet_id               = var.subnet_id != null ? var.subnet_id : element(module.enterprise_core_info.private_subnets, 0)
   backend_address_pool_id = jsondecode(data.azurerm_key_vault_secret.backend_address_pools.value)["enterprise-base"]
-  monitored_vm_ids        = concat(azurerm_windows_virtual_machine.vms[*].id, [module.azvm_fileserver.vm_id])
+  monitored_vm_ids        = concat(module.vms[*].id, [module.azvm_fileserver.vm_id])
 }
 
 module "enterprise_core_info" {
@@ -109,6 +113,11 @@ module "enterprise_core_info" {
 resource "azurerm_resource_group" "deployment_rg" {
   name     = "${var.enterprise_id}-${var.deployment_id}-rg"
   location = var.azure_region
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 resource "azurerm_network_interface" "nics" {
@@ -140,6 +149,11 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
 
   platform_fault_domain_count = 1
   zones                       = local.zones
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 module "azvm_fileserver" {
@@ -158,56 +172,31 @@ module "azvm_fileserver" {
   data_disk_storage_account_type = var.fileserver_data_disk_storage_account_type
   data_disk_iops                 = var.fileserver_data_disk_iops
   data_disk_throughput_mbps      = var.fileserver_data_disk_throughput_mbps
+  os_disk_size                   = var.os_disk_size
 }
 
-resource "azurerm_windows_virtual_machine" "vms" {
-  count                        = length(local.vm_roles)
-  name                         = local.vm_roles[count.index]
-  resource_group_name          = azurerm_resource_group.deployment_rg.name
-  location                     = azurerm_resource_group.deployment_rg.location
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
-
-  size = var.vm_size
-
-  admin_username = var.vm_admin_username
+module "vms" {
+  count          = length(local.vm_roles)
+  source         = "../../modules/base_vm"
   admin_password = var.vm_admin_password
-
-  source_image_id = data.azurerm_key_vault_secret.vm_image_ids[count.index].value
-
-  encryption_at_host_enabled = true
-  secure_boot_enabled        = true
-  vtpm_enabled               = true
-
-  network_interface_ids = [
-    azurerm_network_interface.nics[count.index].id
-  ]
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "StandardSSD_LRS"
-    disk_size_gb         = var.os_disk_size
-  }
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      data.azurerm_key_vault_secret.vm_identity_id.value
-    ]
-  }
-
-  tags = {
-    ArcGISEnterpriseID = var.enterprise_id
-    ArcGISDeploymentID = var.deployment_id
-    ArcGISRole         = local.vm_roles[count.index]
-  }
-
-  # Ignore changes to admin username, password, and zone to prevent VM replacement when these values are updated
-  lifecycle {
-    ignore_changes = [
-      admin_username,
-      admin_password,
-      zone
-    ]
+  settings = {
+    name              = local.vm_roles[count.index]
+    resource_group_id = azurerm_resource_group.deployment_rg.id
+    location          = azurerm_resource_group.deployment_rg.location
+    scale_set_id      = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+    size              = var.vm_size
+    admin_username    = var.vm_admin_username
+    windows           = true
+    image_id          = data.azurerm_key_vault_secret.vm_image_ids[count.index].value
+    nic_id            = azurerm_network_interface.nics[count.index].id
+    os_disk_size      = var.os_disk_size
+    data_disk_size    = var.data_disk_size
+    identity_id       = data.azurerm_key_vault_secret.vm_identity_id.value
+    tags = {
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
+      ArcGISRole         = local.vm_roles[count.index]
+    }
   }
 }
 
@@ -245,7 +234,7 @@ resource "azurerm_private_dns_a_record" "fqdn" {
   resource_group_name = "${var.enterprise_id}-infrastructure-core"
   ttl                 = 300
   records = [
-    azurerm_windows_virtual_machine.vms[count.index].private_ip_address
+    azurerm_network_interface.nics[count.index].private_ip_address
   ]
 }
 
@@ -309,6 +298,11 @@ resource "azurerm_private_endpoint" "blob_storage_pe" {
   private_dns_zone_group {
     name                 = "storage-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.privatelink_blob.id]
+  }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
   }
 }
 
@@ -414,6 +408,11 @@ resource "azurerm_private_endpoint" "cosmos_pe" {
     name                 = "cosmos-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.cosmos_private_dns_zone[0].id]
   }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 resource "azurerm_cosmosdb_sql_database" "config_store" {
@@ -502,6 +501,11 @@ resource "azurerm_private_endpoint" "servicebus_pe" {
     name                 = "sb-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.servicebus_private_dns_zone[0].id]
   }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 # Assign Data Owner role to the current user identity
@@ -522,18 +526,15 @@ resource "azurerm_role_assignment" "servicebus_vm_identity" {
   skip_service_principal_aad_check = true
 }
 
-# Add the FQDNs of the VMs to the BackConnectionHostNames registry key to 
-# allow accessing the VMs using their own FQDNs.
-module "loopback_alias" {
+module "repair_data_disk_permissions" {
   count         = length(local.vm_roles)
-  source        = "../../modules/loopback_alias"
+  source        = "../../modules/repair_data_disk_permissions"
   enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = [local.vm_roles[count.index]]
-  alias_fqdn    = "${local.vm_roles[count.index]}.${var.deployment_id}.${var.enterprise_id}.internal"
 
   depends_on = [
-    azurerm_windows_virtual_machine.vms
+    module.vms
   ]
 }
 
@@ -546,9 +547,9 @@ resource "random_password" "pfx_password" {
 }
 
 module "backend_cert" {
-  count                  = length(azurerm_windows_virtual_machine.vms)
+  count                  = length(module.vms)
   source                 = "../../modules/backend_cert"
-  common_name            = azurerm_windows_virtual_machine.vms[count.index].private_ip_address
+  common_name            = azurerm_network_interface.nics[count.index].private_ip_address
   deployment_id          = var.deployment_id
   ingress_id             = var.ingress_id
   key_vault_id           = module.enterprise_core_info.vault_id

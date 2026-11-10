@@ -303,7 +303,6 @@ module "arcgis_enterprise_upgrade" {
       data_store = {
         install_dir                 = "/opt"
         setup_options               = "-f Relational"
-        data_dir                    = "/gisdata/arcgisdatastore"
         configure_autostart         = true
         preferredidentifier         = "ip"
         install_system_requirements = true
@@ -636,7 +635,6 @@ module "arcgis_enterprise_primary" {
       data_store = {
         install_dir                 = "/opt"
         setup_options               = "-f Relational"
-        data_dir                    = "/gisdata/arcgisdatastore"
         preferredidentifier         = "ip"
         hostidentifier              = local.primary_hostname
         install_system_requirements = true
@@ -737,7 +735,6 @@ module "arcgis_enterprise_standby" {
       data_store = {
         install_dir                 = "/opt"
         setup_options               = "-f Relational"
-        data_dir                    = "/gisdata/arcgisdatastore"
         preferredidentifier         = "ip"
         hostidentifier              = local.standby_hostname
         install_system_requirements = true

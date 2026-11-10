@@ -22,11 +22,6 @@ output "instance_id" {
   value       = local.instance_id
 }
 
-output "data_disk_association_id" {
-  description = "ID of the owned file-server data-disk initialization association"
-  value       = local.create_fileserver ? aws_ssm_association.initialize_data_disk[0].association_id : null
-}
-
 output "security_group_id" {
   description = "ID of the dedicated file-server security group"
   value       = local.security_group_id

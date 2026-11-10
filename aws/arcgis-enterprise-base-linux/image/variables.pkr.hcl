@@ -78,7 +78,7 @@ variable "enterprise_id" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "m6i.2xlarge"
+  default     = "m7i.2xlarge"
 }
 
 variable "os" {
@@ -98,14 +98,24 @@ variable "portal_web_context" {
   default     = "portal"
 }
 
-variable "root_volume_size" {
-  description = "Root EBS volume size in GB"
+variable "os_disk_size" {
+  description = "OS EBS disk size in GiB"
   type        = number
   default     = 256
 
   validation {
-    condition     = var.root_volume_size >= 256 && var.root_volume_size <= 16384
-    error_message = "The root_volume_size value must be between 256 and 16384."
+    condition     = var.os_disk_size >= 256 && var.os_disk_size <= 16384 && floor(var.os_disk_size) == var.os_disk_size
+    error_message = "OS disk size must be an integer between 256 and 16384 GiB."
+  }
+}
+
+variable "data_disk_size" {
+  description = "Data EBS disk size baked into the image in GiB"
+  type        = number
+  default     = 256
+  validation {
+    condition     = var.data_disk_size >= 1 && var.data_disk_size <= 16384 && floor(var.data_disk_size) == var.data_disk_size
+    error_message = "Data disk size must be an integer between 1 and 16384 GiB."
   }
 }
 

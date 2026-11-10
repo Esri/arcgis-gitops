@@ -2,6 +2,14 @@
 
 This reusable module creates or references a dedicated Windows EC2 file-server VM.
 
+Owned file servers require an AMI with exactly one `/dev/sdf` EBS snapshot
+containing the initialized GPT/NTFS D: disk. The launch mapping restores that
+snapshot; `data_volume_size` must be at least its image capacity. Missing
+snapshots and shrink requests fail instead of provisioning blank disks.
+The module does not create an SSM data-disk initialization association or expand
+the restored partition. Verify writable D: and partition capacity through an
+approved operational procedure before application configuration.
+
 AWS base ArcGIS Enterprise Windows roots always leave `fileserver_deployment_id` null and therefore create and own one dedicated file server. They do not expose reference mode.
 
 For a future non-base Windows consumer in the same `enterprise_id` and VPC, setting `fileserver_deployment_id` reads exactly one base owner's metadata and adds SMB/RPC ingress for the consumer security group without creating a VM, disk, DNS record, metadata, monitoring assignment, or backup assignment.
@@ -34,7 +42,6 @@ The module reads or writes these paths for the owning deployment:
 
 | Name | Description |
 | --- | --- |
-| `data_disk_association_id` | Owned data-disk initialization association ID, or `null` in reference mode |
 | `instance_arn` | Created or referenced instance ARN |
 | `instance_id` | Created or referenced instance ID |
 | `private_dns` | Created or referenced private DNS name |

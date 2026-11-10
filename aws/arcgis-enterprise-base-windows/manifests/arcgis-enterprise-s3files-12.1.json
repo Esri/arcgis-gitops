@@ -1,8 +1,8 @@
 {
   "arcgis": {
     "repository": {
-      "local_archives": "C:\\Software\\Archives",
-      "local_patches": "C:\\Software\\Archives\\Patches",      
+      "local_archives": "D:\\Software\\Archives",
+      "local_patches": "D:\\Software\\Archives\\Patches",      
       "server": {
         "url": "https://downloads.arcgis.com",
         "token_service_url": "https://www.arcgis.com/sharing/rest/generateToken",

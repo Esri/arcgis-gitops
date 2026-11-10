@@ -117,6 +117,11 @@ module "enterprise_core_info" {
 resource "azurerm_resource_group" "deployment_rg" {
   name     = "${var.enterprise_id}-${var.deployment_id}-rg"
   location = var.azure_region
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 resource "azurerm_network_interface" "primary" {
@@ -169,130 +174,61 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
 
   platform_fault_domain_count = 1
   zones                       = local.zones
-}
-
-resource "azurerm_linux_virtual_machine" "primary" {
-  name                         = "primary"
-  resource_group_name          = azurerm_resource_group.deployment_rg.name
-  location                     = azurerm_resource_group.deployment_rg.location
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
-
-  size = var.vm_size
-
-  admin_username                  = var.vm_admin_username
-  admin_password                  = var.vm_admin_password
-  disable_password_authentication = var.vm_admin_public_ssh_key_path != null
-
-  encryption_at_host_enabled = true
-  secure_boot_enabled        = true
-  vtpm_enabled               = true
-
-  patch_assessment_mode = "AutomaticByPlatform"
-  patch_mode            = "ImageDefault"
-
-  source_image_id = data.azurerm_key_vault_secret.primary_vm_image_id.value
-
-  network_interface_ids = [
-    azurerm_network_interface.primary.id
-  ]
-
-  dynamic "admin_ssh_key" {
-    for_each = var.vm_admin_public_ssh_key_path != null ? [1] : []
-    content {
-      username   = var.vm_admin_username
-      public_key = file(var.vm_admin_public_ssh_key_path)
-    }
-  }
-
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "StandardSSD_LRS"
-    disk_size_gb         = var.os_disk_size
-  }
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      data.azurerm_key_vault_secret.vm_identity_id.value
-    ]
-  }
 
   tags = {
     ArcGISEnterpriseID = var.enterprise_id
     ArcGISDeploymentID = var.deployment_id
-    ArcGISRole         = "primary"
-  }
-
-  # Ignore changes to admin username, password, and zone to prevent VM replacement when these values are updated
-  lifecycle {
-    ignore_changes = [
-      admin_username,
-      admin_password,
-      zone
-    ]
   }
 }
 
-resource "azurerm_linux_virtual_machine" "standby" {
-  count                        = var.is_ha ? 1 : 0
-  name                         = "standby"
-  resource_group_name          = azurerm_resource_group.deployment_rg.name
-  location                     = azurerm_resource_group.deployment_rg.location
-  virtual_machine_scale_set_id = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
-
-  size = var.vm_size
-
-  admin_username                  = var.vm_admin_username
-  admin_password                  = var.vm_admin_password
-  disable_password_authentication = var.vm_admin_public_ssh_key_path != null
-
-  encryption_at_host_enabled = true
-  secure_boot_enabled        = true
-  vtpm_enabled               = true
-
-  patch_assessment_mode = "AutomaticByPlatform"
-  patch_mode            = "ImageDefault"
-
-  source_image_id = data.azurerm_key_vault_secret.standby_vm_image_id.value
-
-  network_interface_ids = [
-    azurerm_network_interface.standby[0].id
-  ]
-
-  dynamic "admin_ssh_key" {
-    for_each = var.vm_admin_public_ssh_key_path != null ? [1] : []
-    content {
-      username   = var.vm_admin_username
-      public_key = file(var.vm_admin_public_ssh_key_path)
+module "primary" {
+  source         = "../../modules/base_vm"
+  admin_password = var.vm_admin_password
+  settings = {
+    name              = "primary"
+    resource_group_id = azurerm_resource_group.deployment_rg.id
+    location          = azurerm_resource_group.deployment_rg.location
+    scale_set_id      = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+    size              = var.vm_size
+    admin_username    = var.vm_admin_username
+    public_key        = var.vm_admin_public_ssh_key_path == null ? null : file(var.vm_admin_public_ssh_key_path)
+    windows           = false
+    image_id          = data.azurerm_key_vault_secret.primary_vm_image_id.value
+    nic_id            = azurerm_network_interface.primary.id
+    os_disk_size      = var.os_disk_size
+    data_disk_size    = var.data_disk_size
+    identity_id       = data.azurerm_key_vault_secret.vm_identity_id.value
+    tags = {
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
+      ArcGISRole         = "primary"
     }
   }
+}
 
-  os_disk {
-    caching              = "ReadWrite"
-    storage_account_type = "StandardSSD_LRS"
-    disk_size_gb         = var.os_disk_size
-  }
-
-  identity {
-    type = "UserAssigned"
-    identity_ids = [
-      data.azurerm_key_vault_secret.vm_identity_id.value
-    ]
-  }
-
-  tags = {
-    ArcGISEnterpriseID = var.enterprise_id
-    ArcGISDeploymentID = var.deployment_id
-    ArcGISRole         = "standby"
-  }
-
-  # Ignore changes to admin username, password, and zone to prevent VM replacement when these values are updated
-  lifecycle {
-    ignore_changes = [
-      admin_username,
-      admin_password,
-      zone
-    ]
+module "standby" {
+  count          = var.is_ha ? 1 : 0
+  source         = "../../modules/base_vm"
+  admin_password = var.vm_admin_password
+  settings = {
+    name              = "standby"
+    resource_group_id = azurerm_resource_group.deployment_rg.id
+    location          = azurerm_resource_group.deployment_rg.location
+    scale_set_id      = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+    size              = var.vm_size
+    admin_username    = var.vm_admin_username
+    public_key        = var.vm_admin_public_ssh_key_path == null ? null : file(var.vm_admin_public_ssh_key_path)
+    windows           = false
+    image_id          = data.azurerm_key_vault_secret.standby_vm_image_id.value
+    nic_id            = azurerm_network_interface.standby[0].id
+    os_disk_size      = var.os_disk_size
+    data_disk_size    = var.data_disk_size
+    identity_id       = data.azurerm_key_vault_secret.vm_identity_id.value
+    tags = {
+      ArcGISEnterpriseID = var.enterprise_id
+      ArcGISDeploymentID = var.deployment_id
+      ArcGISRole         = "standby"
+    }
   }
 }
 
@@ -343,6 +279,11 @@ resource "azurerm_private_endpoint" "blob_storage_pe" {
   private_dns_zone_group {
     name                 = "storage-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.privatelink_blob.id]
+  }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
   }
 }
 
@@ -406,8 +347,8 @@ module "lv_extend" {
   os            = nonsensitive(data.azurerm_key_vault_secret.vm_image_os.value)
 
   depends_on = [
-    azurerm_linux_virtual_machine.primary,
-    azurerm_linux_virtual_machine.standby
+    module.primary,
+    module.standby
   ]
 }
 
@@ -419,7 +360,7 @@ module "aznfs_fileserver" {
   fileserver_size                  = var.fileserver_size
   fileserver_billing_model_version = var.fileserver_billing_model_version
   fileserver_iops                  = var.fileserver_iops
-  fileserver_throughput      = var.fileserver_throughput
+  fileserver_throughput            = var.fileserver_throughput
   key_vault_id                     = module.enterprise_core_info.vault_id
   location                         = azurerm_resource_group.deployment_rg.location
   resource_group_name              = azurerm_resource_group.deployment_rg.name
@@ -489,6 +430,11 @@ resource "azurerm_private_endpoint" "cosmos_pe" {
   private_dns_zone_group {
     name                 = "cosmos-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.cosmos_private_dns_zone[0].id]
+  }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
   }
 }
 
@@ -574,6 +520,11 @@ resource "azurerm_private_endpoint" "servicebus_pe" {
     name                 = "sb-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.servicebus_private_dns_zone[0].id]
   }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 resource "azurerm_role_assignment" "servicebus_owner" {
@@ -599,7 +550,7 @@ resource "azurerm_private_dns_a_record" "primary" {
   resource_group_name = "${var.enterprise_id}-infrastructure-core"
   ttl                 = 300
   records = [
-    azurerm_linux_virtual_machine.primary.private_ip_address
+    azurerm_network_interface.primary.private_ip_address
   ]
 }
 
@@ -610,7 +561,7 @@ resource "azurerm_private_dns_a_record" "standby" {
   resource_group_name = "${var.enterprise_id}-infrastructure-core"
   ttl                 = 300
   records = [
-    azurerm_linux_virtual_machine.standby[0].private_ip_address
+    azurerm_network_interface.standby[0].private_ip_address
   ]
 }
 
@@ -661,7 +612,7 @@ resource "random_password" "pfx_password" {
 
 module "primary_backend_cert" {
   source                 = "../../modules/backend_cert"
-  common_name            = azurerm_linux_virtual_machine.primary.private_ip_address
+  common_name            = azurerm_network_interface.primary.private_ip_address
   deployment_id          = var.deployment_id
   ingress_id             = var.ingress_id
   key_vault_id           = module.enterprise_core_info.vault_id
@@ -673,7 +624,7 @@ module "primary_backend_cert" {
 module "standby_backend_cert" {
   count                  = var.is_ha ? 1 : 0
   source                 = "../../modules/backend_cert"
-  common_name            = azurerm_linux_virtual_machine.standby[0].private_ip_address
+  common_name            = azurerm_network_interface.standby[0].private_ip_address
   deployment_id          = var.deployment_id
   ingress_id             = var.ingress_id
   key_vault_id           = module.enterprise_core_info.vault_id

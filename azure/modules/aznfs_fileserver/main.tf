@@ -91,6 +91,11 @@ resource "azurerm_private_endpoint" "file_store_pe" {
     name                 = "storage-dns-group"
     private_dns_zone_ids = [data.azurerm_private_dns_zone.privatelink_file.id]
   }
+
+  tags = {
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
 }
 
 resource "azurerm_storage_share" "fileserver" {

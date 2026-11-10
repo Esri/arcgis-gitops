@@ -15,8 +15,11 @@
 data "aws_region" "current" {}
 
 locals {
-  ec2_widgets_y    = 0
-  logs_widgets_y   = 28
+  windows_disk_grouping = var.separate_disk_metrics ? "InstanceId, instance" : "InstanceId"
+  linux_disk_grouping   = var.separate_disk_metrics ? "InstanceId, path" : "InstanceId"
+  linux_diskio_grouping = var.separate_disk_metrics ? "InstanceId, name" : "InstanceId"
+  ec2_widgets_y         = 0
+  logs_widgets_y        = 28
 
   ec2_widgets_windows = [
     {
@@ -113,7 +116,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(disk_free_megabytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(disk_free_megabytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY ${local.windows_disk_grouping}"
             visible    = false
           }],
           [{
@@ -144,7 +147,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(diskio_read_bytes_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(diskio_read_bytes_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY ${local.windows_disk_grouping}"
           }]
         ]
         yAxis = {
@@ -170,7 +173,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(diskio_write_bytes_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(diskio_write_bytes_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY ${local.windows_disk_grouping}"
           }]
         ]
         yAxis = {
@@ -197,7 +200,7 @@ locals {
           [{
             id         = "expr1"
             expression = "SELECT SUM(net_bytes_recv_sec) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
-            region     = data.aws_region.current.region            
+            region     = data.aws_region.current.region
           }]
         ]
         yAxis = {
@@ -334,7 +337,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT AVG(disk_free) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT AVG(disk_free) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY ${local.linux_disk_grouping}"
           }]
         ]
         yAxis = {
@@ -361,8 +364,8 @@ locals {
           [{
             visible    = false
             id         = "expr1"
-            expression = "SELECT SUM(diskio_read_bytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
-          }], [{
+            expression = "SELECT SUM(diskio_read_bytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY ${local.linux_diskio_grouping}"
+            }], [{
             expression = "expr1 / PERIOD(FIRST(expr1))"
           }]
         ]
@@ -389,7 +392,7 @@ locals {
         metrics = [
           [{
             id         = "expr1"
-            expression = "SELECT SUM(diskio_write_bytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY InstanceId"
+            expression = "SELECT SUM(diskio_write_bytes) FROM CWAgent WHERE EnterpriseID='${var.enterprise_id}' AND DeploymentID = '${var.deployment_id}' GROUP BY ${local.linux_diskio_grouping}"
             visible    = false
           }],
           [{
@@ -493,8 +496,8 @@ resource "aws_cloudwatch_dashboard" "dashboard" {
   dashboard_body = (var.platform == "windows" ?
     jsonencode({
       widgets = concat(local.ec2_widgets_windows, local.logs_widgets)
-    }) : 
+    }) :
     jsonencode({
       widgets = concat(local.ec2_widgets_linux, local.logs_widgets)
-    }))
+  }))
 }

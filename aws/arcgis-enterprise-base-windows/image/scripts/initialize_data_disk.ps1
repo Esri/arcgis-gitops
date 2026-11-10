@@ -12,7 +12,15 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+param(
+    [string]$VolumeId,
+    [guid]$DiskGuid = [guid]::Empty,
+    [switch]$RequireExisting,
+    [switch]$InstallStartupTask
+)
+
 $ErrorActionPreference = 'Stop'
+if ($env:ARCGIS_INSTALL_STARTUP_TASK -eq '1') { $InstallStartupTask = $true }
 
 function Get-DriveInventory {
     $partitions = @(Get-Partition)
@@ -38,11 +46,22 @@ function Get-DriveInventory {
 }
 
 function Get-TargetDisk {
-    $disks = @(Get-Disk | Where-Object {
-        -not $_.IsBoot -and -not $_.IsSystem -and $_.Location -match '\bLUN 0\b'
+    $allDisks = @(Get-Disk)
+    $disks = @($allDisks | Where-Object {
+        -not $_.IsBoot -and -not $_.IsSystem -and
+        $(if ($DiskGuid -ne [guid]::Empty) {
+            $_.PartitionStyle -eq 'GPT' -and $_.Guid -and [guid]$_.Guid -eq $DiskGuid
+        } elseif ($VolumeId) {
+            $serial = ([string]$_.SerialNumber).Trim() -replace '_[0-9]+[.]?$', '' -replace '[^A-Za-z0-9]', ''
+            $serial -eq ($VolumeId -replace '-', '')
+        } else {
+            $_.Location -match '\bLUN 0\b'
+        })
     })
     if ($disks.Count -ne 1) {
-        throw "Expected exactly one non-OS disk at LUN 0, found $($disks.Count)."
+        $selector = if ($DiskGuid -ne [guid]::Empty) { "GPT GUID $DiskGuid" } elseif ($VolumeId) { "EBS volume $VolumeId" } else { 'Azure LUN 0' }
+        $inventory = $allDisks | Select-Object Number, SerialNumber, UniqueId, Guid, Location, IsBoot, IsSystem, PartitionStyle | ConvertTo-Json -Compress
+        throw "Expected exactly one identified non-OS data disk, found $($disks.Count). Selector: $selector. Disk inventory: $inventory. No disk was modified."
     }
     $disks[0]
 }
@@ -58,6 +77,7 @@ function Get-VolumeTarget($Volume) {
 
 $disk = Get-TargetDisk
 if ([string]::IsNullOrWhiteSpace($disk.UniqueId)) { throw 'LUN 0 disk identity is missing.' }
+if (-not ('ArcGISDrivePaths' -as [type])) {
 Add-Type -TypeDefinition @'
 using System;
 using System.Runtime.InteropServices;
@@ -74,6 +94,7 @@ public static class ArcGISDrivePaths {
     }
 }
 '@
+}
 if ($disk.IsOffline) {
     Write-Output "Bringing the identified LUN 0 disk $($disk.Number) online for partition inspection."
     Set-Disk -Number $disk.Number -IsOffline $false
@@ -86,12 +107,16 @@ if ($partitions.Count -gt 1) { throw 'LUN 0 has multiple data partitions; refusi
 if ($partitions.Count -eq 0 -and $disk.PartitionStyle -ne 'RAW') {
     throw 'Initialized LUN 0 disk has no recognized data partition; refusing to modify it.'
 }
+if ($RequireExisting -and ($disk.PartitionStyle -eq 'RAW' -or $partitions.Count -ne 1)) {
+    throw 'The baked data partition is missing; refusing to initialize a replacement.'
+}
 if ($partitions.Count -eq 1) {
     if ($partitions[0].Type -ne 'Basic' -or $partitions[0].IsBoot -or $partitions[0].IsSystem) {
         throw 'LUN 0 partition is not an unprotected data partition; refusing to modify it.'
     }
     $existingVolumes = @($partitions[0] | Get-Volume)
-    if ($existingVolumes.Count -ne 1 -or $existingVolumes[0].FileSystemType -notin @('NTFS', 'RAW', 'Unknown')) {
+    if ($existingVolumes.Count -ne 1 -or $existingVolumes[0].FileSystemType -notin @('NTFS', 'RAW', 'Unknown') -or
+        ($RequireExisting -and $existingVolumes[0].FileSystemType -ne 'NTFS')) {
         throw 'Existing LUN 0 volume is missing or uses an unsupported filesystem; refusing to format it.'
     }
 }
@@ -183,6 +208,15 @@ if ($volumes[0].FileSystemType -in @('RAW', 'Unknown')) {
 } elseif ($volumes[0].FileSystemType -ne 'NTFS') {
     throw 'Unsupported filesystem on LUN 0; refusing to format it.'
 }
+$partition = Get-Partition -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber
+$supportedSize = Get-PartitionSupportedSize -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber
+# StorageWMI requires an aligned growth extent of at least 1 MiB.
+$targetSize = $supportedSize.SizeMax - ($supportedSize.SizeMax % 1MB)
+if ($targetSize -ge ($partition.Size + 1MB)) {
+    Resize-Partition -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber -Size $targetSize
+} else {
+    Write-Output 'Skipping partition resize: less than 1 MiB of aligned growth is available.'
+}
 
 $verifiedDisk = Get-TargetDisk
 $inventory = Get-DriveInventory
@@ -209,3 +243,42 @@ try {
     if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Force }
 }
 Write-Output "Verified writable NTFS D: on LUN 0 disk $($disk.Number) ($($disk.UniqueId))."
+
+if ($InstallStartupTask) {
+    if (-not $disk.Guid -or [guid]$disk.Guid -eq [guid]::Empty) {
+        throw 'The baked data disk has no persistent GPT GUID.'
+    }
+    $portalData = Get-Item -LiteralPath 'D:\arcgisportal'
+    if (-not $portalData.PSIsContainer -or ($portalData.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw 'Portal setup did not initialize a local D:\arcgisportal directory. Check the Chef cookbook version.'
+    }
+    $startupDir = Join-Path $env:ProgramData 'ArcGIS\DataDisk'
+    New-Item -ItemType Directory -Path $startupDir -Force | Out-Null
+    $acl = [Security.AccessControl.DirectorySecurity]::new()
+    $acl.SetAccessRuleProtection($true, $false)
+    foreach ($sid in 'S-1-5-18', 'S-1-5-32-544') {
+        $identity = [Security.Principal.SecurityIdentifier]::new($sid)
+        $rule = [Security.AccessControl.FileSystemAccessRule]::new(
+            $identity, 'FullControl', 'ContainerInherit, ObjectInherit', 'None', 'Allow')
+        $acl.AddAccessRule($rule)
+    }
+    Set-Acl -LiteralPath $startupDir -AclObject $acl
+    $startupScript = Join-Path $startupDir 'initialize-data-disk.ps1'
+    if ($PSCommandPath -and $PSCommandPath -ne $startupScript) {
+        Copy-Item -LiteralPath $PSCommandPath -Destination $startupScript -Force
+    } elseif (-not $PSCommandPath) {
+        throw 'Startup installation requires a script file, not an inline script block.'
+    }
+    $arguments = "-NoProfile -NonInteractive -ExecutionPolicy Bypass -File `"$startupScript`" -RequireExisting -DiskGuid `"$($disk.Guid)`""
+    $action = New-ScheduledTaskAction -Execute "$env:SystemRoot\System32\WindowsPowerShell\v1.0\powershell.exe" -Argument $arguments
+    $trigger = New-ScheduledTaskTrigger -AtStartup
+    $settings = New-ScheduledTaskSettingsSet -RestartCount 3 -RestartInterval (New-TimeSpan -Minutes 1) -ExecutionTimeLimit (New-TimeSpan -Minutes 10)
+    Register-ScheduledTask -TaskName 'ArcGISDataDisk' -Action $action -Trigger $trigger -Settings $settings -User 'SYSTEM' -RunLevel Highest -Force | Out-Null
+    foreach ($service in 'Portal for ArcGIS', 'ArcGIS Data Store') {
+        Set-Service -Name $service -StartupType Manual
+    }
+} elseif ($RequireExisting) {
+    foreach ($service in 'Portal for ArcGIS', 'ArcGIS Data Store') {
+        Start-Service -Name $service
+    }
+}

@@ -143,18 +143,18 @@ variable "fileserver_data_disk_iops" {
   }
 }
 
-variable "fileserver_data_disk_throughput_mbps" {
+variable "fileserver_data_disk_throughput" {
   description = "Provisioned data disk throughput in MB/s for PremiumV2_LRS and UltraSSD_LRS disks"
   type        = number
   default     = null
 
   validation {
-    condition = var.fileserver_data_disk_throughput_mbps == null ? true : (
+    condition = var.fileserver_data_disk_throughput == null ? true : (
       var.fileserver_data_disk_storage_account_type == "PremiumV2_LRS"
-      ? var.fileserver_data_disk_throughput_mbps >= 125 && var.fileserver_data_disk_throughput_mbps <= 1200
-      : var.fileserver_data_disk_storage_account_type == "UltraSSD_LRS" && var.fileserver_data_disk_throughput_mbps >= 1 && var.fileserver_data_disk_throughput_mbps <= 10000
+      ? var.fileserver_data_disk_throughput >= 125 && var.fileserver_data_disk_throughput <= 1200
+      : var.fileserver_data_disk_storage_account_type == "UltraSSD_LRS" && var.fileserver_data_disk_throughput >= 1 && var.fileserver_data_disk_throughput <= 10000
     )
-    error_message = "The fileserver_data_disk_throughput_mbps value must be null, 125-1200 for PremiumV2_LRS, or 1-10000 for UltraSSD_LRS."
+    error_message = "The fileserver_data_disk_throughput value must be null, 125-1200 for PremiumV2_LRS, or 1-10000 for UltraSSD_LRS."
   }
 }
 

@@ -157,7 +157,7 @@ extension, private DNS record, and file-server Key Vault metadata.
 | fileserver_data_disk_iops | Provisioned data disk IOPS for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
 | fileserver_data_disk_size_gb | Data disk size in GB for the dedicated Windows file-server VM | `number` | `1024` | no |
 | fileserver_data_disk_storage_account_type | Data disk storage account type for the dedicated Windows file-server VM | `string` | `"Premium_LRS"` | no |
-| fileserver_data_disk_throughput_mbps | Provisioned data disk throughput in MB/s for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
+| fileserver_data_disk_throughput | Provisioned data disk throughput in MB/s for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
 | fileserver_vm_size | Azure VM size for the dedicated Windows file-server VM | `string` | `"Standard_D8s_v5"` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |

@@ -171,7 +171,7 @@ module "azvm_fileserver" {
   data_disk_size_gb              = var.fileserver_data_disk_size_gb
   data_disk_storage_account_type = var.fileserver_data_disk_storage_account_type
   data_disk_iops                 = var.fileserver_data_disk_iops
-  data_disk_throughput_mbps      = var.fileserver_data_disk_throughput_mbps
+  data_disk_throughput_mbps      = var.fileserver_data_disk_throughput
   os_disk_size                   = var.os_disk_size
 }
 

@@ -121,8 +121,8 @@ variable "data_disk_size" {
   type        = number
   default     = 256
   validation {
-    condition     = var.data_disk_size >= 1 && var.data_disk_size <= 16384 && floor(var.data_disk_size) == var.data_disk_size
-    error_message = "Data disk size must be an integer between 1 and 16384 GiB."
+    condition     = var.data_disk_size >= 32 && var.data_disk_size <= 16384 && floor(var.data_disk_size) == var.data_disk_size
+    error_message = "Data disk size must be an integer between 32 and 16384 GiB."
   }
 }
 
@@ -131,8 +131,8 @@ variable "fileserver_data_disk_size" {
   type        = number
   default     = 256
   validation {
-    condition     = var.fileserver_data_disk_size >= 1 && var.fileserver_data_disk_size <= 16384 && floor(var.fileserver_data_disk_size) == var.fileserver_data_disk_size
-    error_message = "File-server data disk size must be an integer between 1 and 16384 GiB."
+    condition     = var.fileserver_data_disk_size >= 32 && var.fileserver_data_disk_size <= 16384 && floor(var.fileserver_data_disk_size) == var.fileserver_data_disk_size
+    error_message = "File-server data disk size must be an integer between 32 and 16384 GiB."
   }
 }
 

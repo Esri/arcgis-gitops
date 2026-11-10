@@ -36,6 +36,7 @@
                 "ssm:GetParameter",
                 "ssm:GetParameters",
                 "ssm:GetParametersByPath",
+                "ssm:GetCommandInvocation",
                 "ssm:ListCommandInvocations",
                 "ssm:ListTagsForResource",
                 "ssm:PutParameter",

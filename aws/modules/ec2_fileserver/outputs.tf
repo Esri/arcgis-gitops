@@ -15,19 +15,23 @@
 output "instance_arn" {
   description = "ARN of the file-server EC2 instance"
   value       = local.instance_arn
+  depends_on  = [aws_ssm_association.grow_data_partition]
 }
 
 output "instance_id" {
   description = "ID of the file-server EC2 instance"
   value       = local.instance_id
+  depends_on  = [aws_ssm_association.grow_data_partition]
 }
 
 output "security_group_id" {
   description = "ID of the dedicated file-server security group"
   value       = local.security_group_id
+  depends_on  = [aws_ssm_association.grow_data_partition]
 }
 
 output "private_dns" {
   description = "Private DNS name of the file-server VM"
   value       = local.private_dns
+  depends_on  = [aws_ssm_association.grow_data_partition]
 }

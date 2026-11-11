@@ -11,8 +11,10 @@ Owned file servers require an AMI with exactly one `/dev/sdf` EBS snapshot
 containing the initialized GPT/NTFS D: disk. The launch mapping restores that
 snapshot; `data_volume_size` must be at least its image capacity. Missing
 snapshots and shrink requests fail instead of provisioning blank disks.
-The module does not create an SSM data-disk initialization association or expand
-the restored partition. Verify writable D: and partition capacity through an
+For owned file servers, the module runs an SSM association to verify the restored
+data disk and grow its partition, and waits for success before exposing dependent
+outputs. Partition growth cannot be undone by reducing `data_volume_size`.
+Verify application-level file-server service readiness separately through an
 approved operational procedure before application configuration.
 
 Rebuild legacy file-server images before using this contract for new deployments.

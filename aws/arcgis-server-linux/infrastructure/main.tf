@@ -81,7 +81,23 @@ data "aws_lb" "alb" {
   arn = data.aws_ssm_parameter.alb_arn.value
 }
 
+data "aws_ami" "application" {
+  for_each = var.node_count > 0 ? {
+    primary = nonsensitive(data.aws_ssm_parameter.primary_ami.value)
+    node    = nonsensitive(data.aws_ssm_parameter.node_ami.value)
+  } : { primary = nonsensitive(data.aws_ssm_parameter.primary_ami.value) }
+
+  filter {
+    name   = "image-id"
+    values = [each.value]
+  }
+}
+
 locals {
+  data_disk_mappings = {
+    for role, image in data.aws_ami.application :
+    role => one([for mapping in image.block_device_mappings : mapping if mapping.device_name == "/dev/sdf"])
+  }
   subnets = (length(var.subnet_ids) == 0 ? module.enterprise_core_info.private_subnets : var.subnet_ids)
 
   # Get value of ArcGISVersion tags from the AMI to copy them to the EC2 instances.
@@ -157,10 +173,28 @@ resource "aws_instance" "primary" {
 
   root_block_device {
     volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_size = var.os_disk_size
     encrypted   = true
-    iops        = var.root_volume_iops
-    throughput  = var.root_volume_throughput
+    iops        = var.os_disk_iops
+    throughput  = var.os_disk_throughput
+  }
+
+  ebs_block_device {
+    device_name           = "/dev/sdf"
+    snapshot_id           = try(local.data_disk_mappings.primary.ebs.snapshot_id, null)
+    volume_type           = "gp3"
+    volume_size           = var.data_disk_size
+    encrypted             = true
+    iops                  = var.data_disk_iops
+    throughput            = var.data_disk_throughput
+    delete_on_termination = true
+  }
+
+  lifecycle {
+    precondition {
+      condition     = try(length(local.data_disk_mappings.primary.ebs.snapshot_id) > 0 && tonumber(local.data_disk_mappings.primary.ebs.volume_size) <= var.data_disk_size, false)
+      error_message = "Primary AMI must contain a /dev/sdf data snapshot that fits data_disk_size. Rebuild the image; blank replacement and shrink are prohibited."
+    }
   }
 
   tags = {
@@ -208,10 +242,28 @@ resource "aws_instance" "nodes" {
 
   root_block_device {
     volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_size = var.os_disk_size
     encrypted   = true
-    iops        = var.root_volume_iops
-    throughput  = var.root_volume_throughput
+    iops        = var.os_disk_iops
+    throughput  = var.os_disk_throughput
+  }
+
+  ebs_block_device {
+    device_name           = "/dev/sdf"
+    snapshot_id           = try(local.data_disk_mappings.node.ebs.snapshot_id, null)
+    volume_type           = "gp3"
+    volume_size           = var.data_disk_size
+    encrypted             = true
+    iops                  = var.data_disk_iops
+    throughput            = var.data_disk_throughput
+    delete_on_termination = true
+  }
+
+  lifecycle {
+    precondition {
+      condition     = try(length(local.data_disk_mappings.node.ebs.snapshot_id) > 0 && tonumber(local.data_disk_mappings.node.ebs.volume_size) <= var.data_disk_size, false)
+      error_message = "Node AMI must contain a /dev/sdf data snapshot that fits data_disk_size. Rebuild the image; blank replacement and shrink are prohibited."
+    }
   }
 
   tags = {

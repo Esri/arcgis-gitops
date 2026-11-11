@@ -1,11 +1,11 @@
 # Infrastructure Terraform Module for ArcGIS Notebook Server on Linux
 
-The Terraform module provisions AWS resources for ArcGIS Notebook Server deployment on Linux platform.
+The Terraform module provisions AWS resources for an ArcGIS Notebook Server deployment on Linux.
 
 ![Infrastructure for ArcGIS Notebook Server on Linux](arcgis-notebook-server-linux-infrastructure.png "Infrastructure for ArcGIS Notebook Server on Linux")  
 
-The module launches a primary instance and N node instances (configurable via node_count)
-SSM-managed EC2 instances in the private VPC subnets or subnets specified by subnet_ids input variable.
+The module launches one primary and N node SSM-managed EC2 instances (configurable via `node_count`)
+in the private VPC subnets or subnets specified by the `subnet_ids` input variable.
 The instances are launched from images retrieved from '/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}' SSM parameters.
 The images must be created by the Packer Template for ArcGIS Notebook Server on Linux AMI.
 
@@ -29,8 +29,10 @@ The deployment's Monitoring Subsystem consists of:
   as well as metrics for resource utilization on the EC2 instances.
 * A CloudWatch dashboard that displays the CloudWatch metrics and logs of the deployment.
 
-The module also creates an AWS backup plan for the deployment that backs up all
-the EC2 instances and EFS file system in the enterprise's backup vault.
+The module also creates an AWS Backup plan in the enterprise's backup vault. The current backup
+selection includes the primary EC2 instance, the first node instance (if any), and the EFS file
+system only when this deployment creates it. Additional node instances and reused EFS file
+systems are not selected by this plan; ensure they have separate backup coverage where required.
 
 All the created AWS resources are tagged with ArcGISEnterpriseID and ArcGISDeploymentID tags.
 
@@ -44,14 +46,14 @@ On the machine where Terraform is executed:
 
 ## Troubleshooting
 
-Use Session Manager connection in AWS Console for SSH access to the EC2 instances.
+Use Session Manager in the AWS Console to open a shell session on the EC2 instances; this is not an SSH connection.
 
 ## SSM Parameters
 
 The module reads the following SSM parameters:
 
 | SSM parameter name | Description |
-|--------------------|-------------|
+| -------------------- | ------------- |
 | /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is not null) |
 | /arcgis/${var.enterprise_id}/${var.fileserver_deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is not null) |
 | /arcgis/${var.enterprise_id}/${var.ingress_id}/alb/arn | ALB ARN |
@@ -66,6 +68,7 @@ The module reads the following SSM parameters:
 | /arcgis/${var.enterprise_id}/images/${var.deployment_id}/notebook-server-web-context | ArcGIS Notebook Server web context |
 | /arcgis/${var.enterprise_id}/s3/backup | S3 bucket for the backup |
 | /arcgis/${var.enterprise_id}/s3/logs | S3 bucket for SSM command output |
+| /arcgis/${var.enterprise_id}/s3/region | S3 buckets region code |
 | /arcgis/${var.enterprise_id}/s3/repository | S3 bucket for the private repository |
 | /arcgis/${var.enterprise_id}/vpc/hosted-zone-id | VPC hosted zone ID |
 | /arcgis/${var.enterprise_id}/vpc/id | VPC ID |
@@ -74,7 +77,8 @@ The module reads the following SSM parameters:
 The module writes the following SSM parameters:
 
 | SSM parameter name | Description |
-|--------------------|-------------|
+| -------------------- | ------------- |
+| /arcgis/${var.enterprise_id}/${var.deployment_id}/backup/plan-id | AWS Backup plan ID |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/file-system-id | EFS file system ID (if ${var.fileserver_deployment_id} is null) |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/fileserver/security-group-id | EFS file system security group ID (if ${var.fileserver_deployment_id} is null) |
 | /arcgis/${var.enterprise_id}/${var.deployment_id}/ingress-fqdn | Fully qualified domain name of the ingress |
@@ -86,14 +90,14 @@ The module writes the following SSM parameters:
 ## Providers
 
 | Name | Version |
-|------|---------|
+| ------ | --------- |
 | aws | ~> 6.10 |
 | random | n/a |
 
 ## Modules
 
 | Name | Source | Version |
-|------|--------|---------|
+| ------ | -------- | --------- |
 | cw_agent | ../../modules/cw_agent | n/a |
 | dashboard | ../../modules/dashboard | n/a |
 | efs_fileserver | ../../modules/efs_fileserver | n/a |
@@ -105,7 +109,7 @@ The module writes the following SSM parameters:
 ## Resources
 
 | Name | Type |
-|------|------|
+| ------ | ------ |
 | [aws_backup_plan.deployment_backup](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_plan) | resource |
 | [aws_backup_selection.infrastructure](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/backup_selection) | resource |
 | [aws_instance.nodes](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/instance) | resource |
@@ -121,6 +125,7 @@ The module writes the following SSM parameters:
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_ami.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_lb.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/lb) | data source |
 | [aws_ssm_parameter.alb_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.alb_ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -135,10 +140,13 @@ The module writes the following SSM parameters:
 ## Inputs
 
 | Name | Description | Type | Default | Required |
-|------|-------------|------|---------|:--------:|
+| ------ | ------------- | ------ | --------- | :--------: |
 | aws_region | AWS region ID | `string` | n/a | yes |
 | backup_retention | Number of days to retain backups | `number` | `14` | no |
 | backup_schedule | Backup schedule in cron format | `string` | `"cron(0 0 * * ? *)"` | no |
+| data_disk_iops | Data gp3 volume IOPS for primary and nodes | `number` | `3000` | no |
+| data_disk_size | Data EBS capacity in GiB, at least each role's AMI snapshot size | `number` | `256` | no |
+| data_disk_throughput | Data gp3 throughput in MiB/s for primary and nodes | `number` | `125` | no |
 | deployment_id | ArcGIS Notebook Server deployment ID | `string` | `"notebook-server-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_deployment_id | Use the EFS filesystem from the deployment with the given ID. If not specified, a dedicated EFS filesystem will be created for this deployment. | `string` | `null` | no |
@@ -147,14 +155,14 @@ The module writes the following SSM parameters:
 | key_name | EC2 key pair name | `string` | n/a | yes |
 | node_count | Number of node EC2 instances (excluding the primary EC2 instance) | `number` | `1` | no |
 | portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `"enterprise-base-linux"` | no |
-| root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `16000` | no |
-| root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
-| root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `1000` | no |
-| subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |
+| os_disk_iops | OS gp3 disk IOPS for primary and nodes | `number` | `3000` | no |
+| os_disk_size | OS disk capacity in GiB for primary and nodes (integer 256-16384) | `number` | `256` | no |
+| os_disk_throughput | OS gp3 disk throughput in MiB/s for primary and nodes | `number` | `125` | no |
+| subnet_ids | EC2 instance subnet IDs (defaults to the complete private VPC subnet list; the primary uses the first subnet and nodes are distributed starting from the second, wrapping as needed) | `list(string)` | `[]` | no |
 
 ## Outputs
 
 | Name | Description |
-|------|-------------|
+| ------ | ------------- |
 | deployment_url | ArcGIS Notebook Server URL |
 | security_group_id | EC2 security group ID |

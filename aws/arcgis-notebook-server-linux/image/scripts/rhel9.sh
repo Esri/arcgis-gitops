@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -23,6 +23,8 @@
 # * * Compute-only NVIDIA Driver open kernel modules (https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/)
 # * * CUDA Toolkit (https://docs.nvidia.com/cuda/cuda-installation-guide-linux/)
 # * * NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
+set -euo pipefail
 
 JSON_ATTRIBUTES_PARAMETER='<json_attributes_parameter>'
 DOCKER_CE_PACKAGE_VERSION='3:28.5.2-1.el9'
@@ -51,7 +53,14 @@ sudo systemctl enable --now iptables
 sudo dnf install -y dnf-plugins-core
 sudo dnf config-manager --add-repo https://download.docker.com/linux/rhel/docker-ce.repo
 sudo dnf install -y docker-ce-$DOCKER_CE_PACKAGE_VERSION docker-ce-cli-$DOCKER_CE_CLI_PACKAGE_VERSION containerd.io docker-buildx-plugin docker-compose-plugin
-echo '{"iptables": true}' | sudo tee /etc/docker/daemon.json
+sudo systemctl stop docker docker.socket containerd
+sudo mkdir -p /etc/docker /opt/docker
+echo '{"features": {"containerd-snapshotter": false}, "iptables": true, "data-root": "/opt/docker"}' | sudo tee /etc/docker/daemon.json
+if command -v selinuxenabled >/dev/null && selinuxenabled; then
+  sudo dnf install -y policycoreutils-python-utils
+  sudo semanage fcontext -a -e /var/lib/docker /opt/docker
+  sudo restorecon -RF /opt/docker /etc/docker/daemon.json
+fi
 sudo systemctl enable --now docker
 
 if [ "$GPU_READY" == "true" ]; then
@@ -80,3 +89,6 @@ if [ "$GPU_READY" == "true" ]; then
   sudo dnf install -y nvidia-container-toolkit
   sudo nvidia-ctk runtime configure --runtime=docker
 fi
+
+sudo systemctl restart docker
+[[ "$(sudo docker info --format '{{.DockerRootDir}}')" == /opt/docker ]]

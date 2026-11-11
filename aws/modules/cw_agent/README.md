@@ -40,6 +40,7 @@ On the machine where Terraform is executed:
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | platform | Platform (windows\|linux) | `string` | `"windows"` | no |
+| linux_disk_resources | Linux filesystem mounts monitored for free space; base enterprise passes `/` and `/opt` | `list(string)` | `["/"]` | no |
 
 ## Outputs
 

@@ -1,6 +1,6 @@
 # ArcGIS Server on Linux Deployment in AWS with Ansible
 
-This experimental template provides GitHub Actions workflows for [ArcGIS Server deployment](https://enterprise.arcgis.com/en/server/latest/install/linux/welcome-to-the-arcgis-for-server-install-guide.htm) operations on Linux platforms. The workflows use [Ansible](https://www.ansible.com/) with [Ansible Collections for ArcGIS](../ansible_collections/README.md) to install and configure ArcGIS Enterprise applications.
+This experimental template provides GitHub Actions workflows for [ArcGIS Server deployment](https://enterprise.arcgis.com/en/server/latest/install/linux/welcome-to-the-arcgis-for-server-install-guide.htm) operations on Linux platforms. The workflows use [Ansible](https://www.ansible.com/) with [Ansible Collections for ArcGIS](../../ansible_collections/README.md) to install and configure ArcGIS Enterprise applications.
 
 The template supports both standalone and federated ArcGIS Server deployments. Optionally, the deployments may include ArcGIS Web Adaptor and use Application Load Balancer of base ArcGIS Enterprise deployments.
 
@@ -38,7 +38,7 @@ Set the primary ArcGIS Server site administrator credentials in the GitHub Actio
 | ENTERPRISE_ADMIN_PASSWORD | ArcGIS Server administrator user password  |
 
 > The ArcGIS Server administrator user name must be between 6 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
-
+>
 > The ArcGIS Server administrator user password must be between 8 and 128 characters long and can consist only of uppercase and lowercase ASCII letters, numbers, and dots (.).
 
 ### 2. Build Images
@@ -81,7 +81,7 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
-2. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+2. If required, change "instance_type", "os_disk_size", and "data_disk_size" to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and disk capacities in GiB. Keep each capacity at least its selected AMI snapshot size; use "os_disk_iops" / "os_disk_throughput" and "data_disk_iops" / "data_disk_throughput" to adjust gp3 performance.
 3. If ArcGIS Web Adaptor is used, set "use_webadaptor" property to `true` and "server_web_context" property to the Web Adaptor name.
 4. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "portal_deployment_id" to ID of the Portal for ArcGIS deployment.
 5. Commit the changes to the Git branch and push the branch to GitHub.
@@ -114,7 +114,7 @@ Instructions:
 6. Run server-linux-ansible-aws-application workflow using the branch.
 
 > Starting with ArcGIS Server 12.0, for highly-available deployments, "config_store_type" property can be set to "AMAZON" to configure the ArcGIS Server site to use Amazon DynamoDB as the configuration store, S3 as the object store and server directories, and SQS for GeoProcessing service queues, instead of relying on the file system.
-
+>
 > '~/config/' path is linked to the repository's /config directory. It's recommended to use /config directory for the configuration files.
 
 ### 5. Test ArcGIS Server Deployment
@@ -200,7 +200,7 @@ Instructions:
 1. Run server-linux-ansible-aws-recover workflow using the main/default branch.
 
 > If "backup_time" property in recover.vars.json config file is set to `null`, the workflow will restore from the most recent backup. The "backup_time" property can be set to a backup timestamp in ISO 8601 format to restore from recovery points that were created before the specified timestamp.
-
+>
 > If the "test_mode" workflow input parameter is checked, the workflow will run in test mode and will not modify any resources.
 
 ## In-Place Updates and Upgrades

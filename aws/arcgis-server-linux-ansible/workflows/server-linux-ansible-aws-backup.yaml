@@ -55,7 +55,7 @@ jobs:
       run: ansible-galaxy collection install ${{ github.workspace }}/ansible_collections/arcgis -p /usr/share/ansible/collections
     - uses: hashicorp/setup-terraform@v4
       with:
-        terraform_version: "1.10.0"
+        terraform_version: "1.11.4"
     - name: Run Terraform
       id: terraform
       run: |

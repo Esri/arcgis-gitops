@@ -5,6 +5,7 @@
   ],
   "arcgis_version": "12.1",
   "arcgis_web_adaptor_patches": [],
+  "data_disk_size": 256,
   "deployment_id": "notebook-server-linux",
   "enterprise_id": "arcgis",
   "gpu_ready": false,

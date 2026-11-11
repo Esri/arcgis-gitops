@@ -61,13 +61,15 @@ data "aws_ssm_parameter" "shared_instance_arn" {
 }
 
 locals {
-  create_fileserver = var.fileserver_deployment_id == null
-  private_dns       = local.create_fileserver ? "fileserver.${var.deployment_id}.${var.enterprise_id}.internal" : nonsensitive(data.aws_ssm_parameter.shared_private_dns[0].value)
-  security_group_id = local.create_fileserver ? aws_security_group.fileserver[0].id : nonsensitive(data.aws_ssm_parameter.shared_security_group_id[0].value)
-  instance_id       = local.create_fileserver ? aws_instance.fileserver[0].id : nonsensitive(data.aws_ssm_parameter.shared_instance_id[0].value)
-  instance_arn      = local.create_fileserver ? aws_instance.fileserver[0].arn : nonsensitive(data.aws_ssm_parameter.shared_instance_arn[0].value)
-  data_snapshot_id  = local.create_fileserver ? one([for device in data.aws_ami.fileserver[0].block_device_mappings : lookup(device.ebs, "snapshot_id", null) if device.device_name == "/dev/sdf"]) : null
-  data_volume_id    = local.create_fileserver ? one([for device in aws_instance.fileserver[0].ebs_block_device : device.volume_id if device.device_name == "/dev/sdf"]) : null
+  create_fileserver  = var.fileserver_deployment_id == null
+  private_dns        = local.create_fileserver ? "fileserver.${var.deployment_id}.${var.enterprise_id}.internal" : nonsensitive(data.aws_ssm_parameter.shared_private_dns[0].value)
+  security_group_id  = local.create_fileserver ? aws_security_group.fileserver[0].id : nonsensitive(data.aws_ssm_parameter.shared_security_group_id[0].value)
+  instance_id        = local.create_fileserver ? aws_instance.fileserver[0].id : nonsensitive(data.aws_ssm_parameter.shared_instance_id[0].value)
+  instance_arn       = local.create_fileserver ? aws_instance.fileserver[0].arn : nonsensitive(data.aws_ssm_parameter.shared_instance_arn[0].value)
+  data_disk_mappings = local.create_fileserver ? [for device in data.aws_ami.fileserver[0].block_device_mappings : device if device.device_name == "/dev/sdf"] : []
+  data_disk_mapping  = try(one(local.data_disk_mappings), null)
+  data_snapshot_id   = try(local.data_disk_mapping.ebs.snapshot_id, null)
+  data_volume_id     = local.create_fileserver ? one([for device in aws_instance.fileserver[0].ebs_block_device : device.volume_id if device.device_name == "/dev/sdf"]) : null
 }
 
 resource "aws_security_group" "fileserver" {
@@ -160,17 +162,17 @@ resource "aws_instance" "fileserver" {
   }
 
   root_block_device {
-    volume_type = "gp3"
-    volume_size = 256
+    volume_type = var.os_disk_type
+    volume_size = var.os_disk_size
     encrypted   = true
-    iops        = 3000
-    throughput  = 125
+    iops        = var.os_disk_iops
+    throughput  = var.os_disk_throughput
   }
 
   ebs_block_device {
     device_name           = "/dev/sdf"
     snapshot_id           = local.data_snapshot_id
-    encrypted             = local.data_snapshot_id == null ? true : null
+    encrypted             = true
     volume_size           = var.data_volume_size
     volume_type           = var.data_volume_type
     iops                  = contains(["gp3", "io1", "io2"], var.data_volume_type) ? var.data_volume_iops : null
@@ -180,12 +182,8 @@ resource "aws_instance" "fileserver" {
 
   lifecycle {
     precondition {
-      condition = alltrue([
-        for device in data.aws_ami.fileserver[0].block_device_mappings :
-        lookup(device.ebs, "snapshot_id", "") != "" && tonumber(lookup(device.ebs, "volume_size", "0")) <= var.data_volume_size
-        if device.device_name == "/dev/sdf"
-      ])
-      error_message = "An AMI data mapping must contain a snapshot that fits the configured data capacity; blank replacement and shrink are prohibited."
+      condition     = try(length(local.data_disk_mappings) == 1 && length(local.data_snapshot_id) > 0 && tonumber(local.data_disk_mapping.ebs.volume_size) <= var.data_volume_size, false)
+      error_message = "File-server AMI must contain exactly one /dev/sdf data snapshot that fits the configured data capacity. Rebuild the image; blank replacement and shrink are prohibited."
     }
   }
 
@@ -222,6 +220,54 @@ resource "aws_instance" "fileserver" {
   }
 }
 
+resource "terraform_data" "data_disk_readiness" {
+  count = local.create_fileserver ? 1 : 0
+  triggers_replace = {
+    instance_id   = local.instance_id
+    volume_id     = local.data_volume_id
+    capacity_gib  = var.data_volume_size
+    script_sha256 = filesha256("${path.module}/scripts/grow_data_partition.ps1")
+  }
+}
+
+resource "aws_ssm_association" "grow_data_partition" {
+  count                            = local.create_fileserver ? 1 : 0
+  name                             = "AWS-RunPowerShellScript"
+  association_name                 = "${var.enterprise_id}-${var.deployment_id}-fileserver-data-disk"
+  wait_for_success_timeout_seconds = 1200
+
+  targets {
+    key    = "InstanceIds"
+    values = [local.instance_id]
+  }
+
+  parameters = {
+    executionTimeout = "600"
+    commands         = <<-POWERSHELL
+      $ErrorActionPreference = 'Stop'
+      try {
+        & {
+      ${file("${path.module}/scripts/grow_data_partition.ps1")}
+        } -VolumeId '${local.data_volume_id}' -ExpectedSizeGiB ${var.data_volume_size}
+        exit 0
+      } catch {
+        [Console]::Error.WriteLine($_.ToString())
+        exit 1
+      }
+    POWERSHELL
+  }
+
+  lifecycle {
+    replace_triggered_by = [terraform_data.data_disk_readiness[count.index]]
+  }
+
+  tags = {
+    ArcGISAutomation   = "arcgis-gitops"
+    ArcGISEnterpriseID = var.enterprise_id
+    ArcGISDeploymentID = var.deployment_id
+  }
+}
+
 removed {
   from = aws_ebs_volume.data
 
@@ -235,40 +281,6 @@ removed {
 
   lifecycle {
     destroy = false
-  }
-}
-
-resource "aws_ssm_association" "initialize_data_disk" {
-  count                            = local.create_fileserver ? 1 : 0
-  name                             = "AWS-RunPowerShellScript"
-  wait_for_success_timeout_seconds = 1200
-
-  targets {
-    key    = "InstanceIds"
-    values = [aws_instance.fileserver[0].id]
-  }
-
-  parameters = {
-    commands = join("\n", [
-      "$ErrorActionPreference = 'Stop'",
-      "$volumeId = '${replace(local.data_volume_id, "-", "")}'",
-      "$recoverData = ${local.data_snapshot_id != null ? "$true" : "$false"}",
-      "$dataDisks = @(Get-Disk | Where-Object { ((([string]$_.SerialNumber).Trim() -replace '_[0-9]+[.]?$', '' -replace '[^A-Za-z0-9]', '') -eq $volumeId) })",
-      "if ($dataDisks.Count -ne 1) { throw ('Expected exactly one disk for EBS volume ${local.data_volume_id}, found {0}. No disk was modified.' -f $dataDisks.Count) }",
-      "$dataDisk = $dataDisks[0]",
-      "$driveD = @(Get-Partition -DriveLetter D -ErrorAction SilentlyContinue)",
-      "if ($driveD.Count -gt 0 -and ($driveD.Count -ne 1 -or $driveD[0].DiskNumber -ne $dataDisk.Number)) { throw ('Drive D: is already assigned to disk {0}; expected EBS data disk {1}. No disk was modified.' -f $driveD[0].DiskNumber, $dataDisk.Number) }",
-      "if ($recoverData -and $dataDisk.PartitionStyle -eq 'RAW') { throw 'Recovered data disk is RAW; refusing to initialize or format it.' }",
-      "if ($dataDisk.IsOffline) { Set-Disk -Number $dataDisk.Number -IsOffline $false }",
-      "if ($dataDisk.IsReadOnly) { Set-Disk -Number $dataDisk.Number -IsReadOnly $false }",
-      "if ($dataDisk.PartitionStyle -eq 'RAW') { Initialize-Disk -Number $dataDisk.Number -PartitionStyle GPT | Out-Null }",
-      "$partitions = @(Get-Partition -DiskNumber $dataDisk.Number | Where-Object { $_.Type -ne 'Reserved' })",
-      "if ($recoverData -and $partitions.Count -ne 1) { throw 'Recovered data disk must contain exactly one existing data partition.' }",
-      "if ($partitions.Count -eq 0) { $partition = New-Partition -DiskNumber $dataDisk.Number -UseMaximumSize -DriveLetter D } elseif ($partitions.Count -eq 1) { $partition = $partitions[0]; if ($partition.DriveLetter -ne 'D') { Set-Partition -DiskNumber $dataDisk.Number -PartitionNumber $partition.PartitionNumber -NewDriveLetter D; $partition = Get-Partition -DiskNumber $dataDisk.Number -PartitionNumber $partition.PartitionNumber } } else { throw ('EBS data disk {0} has {1} data partitions; refusing to choose one.' -f $dataDisk.Number, $partitions.Count) }",
-      "$volume = $partition | Get-Volume -ErrorAction SilentlyContinue",
-      "if ($recoverData -and ($null -eq $volume -or $volume.FileSystemType -ne 'NTFS')) { throw 'Recovered data partition must contain NTFS; refusing to format it.' }",
-      "if ($null -eq $volume -or [string]::IsNullOrWhiteSpace([string]$volume.FileSystemType) -or $volume.FileSystemType -eq 'Unknown') { $partition | Format-Volume -FileSystem NTFS -NewFileSystemLabel 'ArcGISData' -Confirm:$false | Out-Null } elseif ($volume.FileSystemType -ne 'NTFS') { throw ('EBS data disk {0} uses unsupported filesystem {1}; refusing to format it.' -f $dataDisk.Number, $volume.FileSystemType) }"
-    ])
   }
 }
 
@@ -287,6 +299,7 @@ resource "aws_ssm_parameter" "security_group_id" {
   type        = "String"
   value       = aws_security_group.fileserver[0].id
   description = "Dedicated Windows file-server security group ID"
+  depends_on  = [aws_ssm_association.grow_data_partition]
 }
 
 resource "aws_ssm_parameter" "private_dns" {
@@ -295,6 +308,7 @@ resource "aws_ssm_parameter" "private_dns" {
   type        = "String"
   value       = local.private_dns
   description = "Private DNS name of the dedicated Windows file-server VM"
+  depends_on  = [aws_ssm_association.grow_data_partition]
 }
 
 resource "aws_ssm_parameter" "instance_id" {
@@ -303,6 +317,7 @@ resource "aws_ssm_parameter" "instance_id" {
   type        = "String"
   value       = aws_instance.fileserver[0].id
   description = "Dedicated Windows file-server EC2 instance ID"
+  depends_on  = [aws_ssm_association.grow_data_partition]
 }
 
 resource "aws_ssm_parameter" "instance_arn" {
@@ -311,6 +326,7 @@ resource "aws_ssm_parameter" "instance_arn" {
   type        = "String"
   value       = aws_instance.fileserver[0].arn
   description = "Dedicated Windows file-server EC2 instance ARN"
+  depends_on  = [aws_ssm_association.grow_data_partition]
 }
 
 moved {
@@ -326,11 +342,6 @@ moved {
 moved {
   from = aws_instance.fileserver
   to   = aws_instance.fileserver[0]
-}
-
-moved {
-  from = aws_ssm_association.initialize_data_disk
-  to   = aws_ssm_association.initialize_data_disk[0]
 }
 
 moved {

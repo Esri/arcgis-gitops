@@ -63,7 +63,7 @@ jobs:
           aws eks update-kubeconfig --region $AWS_REGION --name $ENTERPRISE_ID
       - uses: hashicorp/setup-terraform@v4
         with:
-          terraform_version: "1.10.0"
+          terraform_version: "1.11.4"
       - name: Destroy Organization
         id: destroy-organization
         working-directory: aws/arcgis-enterprise-k8s/organization

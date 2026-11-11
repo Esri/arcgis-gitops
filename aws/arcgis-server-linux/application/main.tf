@@ -202,6 +202,16 @@ module "copy_server_files" {
 }
 
 # Install Chef Client and Chef Cookbooks for ArcGIS on all EC2 instances of the deployment
+resource "terraform_data" "verify_data_disk" {
+  for_each = toset(concat([data.aws_instance.primary.id], data.aws_instances.nodes.ids))
+
+  triggers_replace = [timestamp()]
+
+  provisioner "local-exec" {
+    command = "bash ${path.module}/../image/scripts/initialize_image_data_disk.sh '${each.value}' '${var.aws_region}' verify-server"
+  }
+}
+
 module "bootstrap_deployment" {
   source           = "../../modules/bootstrap"
   os               = local.os
@@ -209,6 +219,7 @@ module "bootstrap_deployment" {
   deployment_id    = var.deployment_id
   machine_roles    = ["primary", "node"]
   output_s3_bucket = module.enterprise_core_info.s3_logs
+  depends_on       = [terraform_data.verify_data_disk]
 }
 
 # Download ArcGIS Server setup archives from the private repository S3 bucket

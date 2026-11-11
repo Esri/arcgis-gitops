@@ -156,5 +156,3 @@ The module reads the following SSM parameters:
 |------|-------------|
 | arcgis_portal_url | Portal for ArcGIS URL |
 | arcgis_server_url | ArcGIS Server URL |
-
-

@@ -130,12 +130,24 @@ module "az_copy_files" {
 }
 
 # Install Chef Client and Chef Cookbooks for ArcGIS on all VMs of the deployment
+resource "terraform_data" "verify_data_disk" {
+  triggers_replace = [timestamp()]
+
+  provisioner "local-exec" {
+    environment = {
+      JSON_PARAMETERS = base64encode(jsonencode({}))
+    }
+    command = "python -m az_run_shell_script -s ${var.enterprise_id} -d ${var.deployment_id} -m primary,node -f ${path.module}/../image/scripts/verify_data_disk.sh -v ${module.enterprise_core_info.vault_name}"
+  }
+}
+
 module "bootstrap_deployment" {
   source        = "../../modules/bootstrap"
   os            = nonsensitive(data.azurerm_key_vault_secret.vm_image_os.value)
   enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = ["primary", "node"]
+  depends_on    = [terraform_data.verify_data_disk]
 }
 
 # Download ArcGIS Notebook Server setup archives to primary and node EC2 instances

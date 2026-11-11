@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
- 
+
 packer {
   required_plugins {
     amazon = {
@@ -52,11 +52,11 @@ data "amazon-parameterstore" "s3_region" {
 }
 
 locals {
-  machine_role = "packer"
-  timestamp = formatdate("YYYYMMDDhhmm", timestamp())
-  ami_name  = "arcgis-server-${var.arcgis_version}-${var.os}-${local.timestamp}"
+  machine_role    = "packer"
+  timestamp       = formatdate("YYYYMMDDhhmm", timestamp())
+  ami_name        = "arcgis-server-${var.arcgis_version}-${var.os}-${local.timestamp}"
   ami_description = "ArcGIS Server ${var.arcgis_version} AMI for ${var.os}"
-  software_dir = "/opt/software/*"
+  software_dir    = "/opt/software/*"
 
   # Platform-specific attributes
 
@@ -73,105 +73,119 @@ locals {
 
   inventory = yamlencode({
     plugin = "amazon.aws.aws_ec2"
-    regions = [ 
+    regions = [
       var.aws_region
     ]
     compose = {
       ansible_host = "instance_id"
     }
     filters = {
-      "instance-state-name" = "running"
+      "instance-state-name"    = "running"
       "tag:ArcGISEnterpriseID" = var.enterprise_id
       "tag:ArcGISDeploymentID" = var.deployment_id
-      "tag:ArcGISMachineRole" = local.machine_role
+      "tag:ArcGISMachineRole"  = local.machine_role
     }
   })
 
-  arcgis_server_manifest_path =  "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
-  server_manifest    = jsondecode(file(local.arcgis_server_manifest_path))
-  archives_dir       = local.server_manifest.arcgis.repository.local_archives
-  patches_dir        = local.server_manifest.arcgis.repository.local_patches
+  arcgis_server_manifest_path = "${abspath(path.root)}/../manifests/arcgis-server-s3files-${var.arcgis_version}.json"
+  server_manifest             = jsondecode(file(local.arcgis_server_manifest_path))
+  archives_dir                = local.server_manifest.arcgis.repository.local_archives
+  patches_dir                 = local.server_manifest.arcgis.repository.local_patches
 
-  arcgis_webadaptor_manifest_path =  "${abspath(path.root)}/../manifests/arcgis-webadaptor-s3files-${var.arcgis_version}.json"
-  webadaptor_manifest = jsondecode(file(local.arcgis_webadaptor_manifest_path))
-  java_tarball        = local.webadaptor_manifest.arcgis.repository.metadata.java_tarball
-  java_version        = local.webadaptor_manifest.arcgis.repository.metadata.java_version
-  tomcat_tarball      = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_tarball
-  tomcat_version      = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_version  
+  arcgis_webadaptor_manifest_path = "${abspath(path.root)}/../manifests/arcgis-webadaptor-s3files-${var.arcgis_version}.json"
+  webadaptor_manifest             = jsondecode(file(local.arcgis_webadaptor_manifest_path))
+  java_tarball                    = local.webadaptor_manifest.arcgis.repository.metadata.java_tarball
+  java_version                    = local.webadaptor_manifest.arcgis.repository.metadata.java_version
+  tomcat_tarball                  = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_tarball
+  tomcat_version                  = local.webadaptor_manifest.arcgis.repository.metadata.tomcat_version
 
   server_vars = yamlencode({
     ansible_aws_ssm_bucket_name = data.amazon-parameterstore.s3_logs.value
-    ansible_aws_ssm_region = data.amazon-parameterstore.s3_region.value
-    ansible_connection = "aws_ssm"
-    arcgis_server_patches = var.arcgis_server_patches
-    arcgis_version = var.arcgis_version
-    bucket_name = data.amazon-parameterstore.s3_repository.value
-    local_repository =  local.archives_dir
-    patches_directory = local.patches_dir
-    manifest = local.arcgis_server_manifest_path
-    region = var.aws_region
-    run_as_user = var.run_as_user
+    ansible_aws_ssm_region      = data.amazon-parameterstore.s3_region.value
+    ansible_connection          = "aws_ssm"
+    arcgis_server_patches       = var.arcgis_server_patches
+    arcgis_version              = var.arcgis_version
+    bucket_name                 = data.amazon-parameterstore.s3_repository.value
+    local_repository            = local.archives_dir
+    patches_directory           = local.patches_dir
+    manifest                    = local.arcgis_server_manifest_path
+    region                      = var.aws_region
+    run_as_user                 = var.run_as_user
     # ansible_python_interpreter="/usr/bin/python3"
   })
 
   webadaptor_vars = yamlencode({
     ansible_aws_ssm_bucket_name = data.amazon-parameterstore.s3_logs.value
-    ansible_aws_ssm_region = data.amazon-parameterstore.s3_region.value
-    ansible_connection = "aws_ssm"
-    arcgis_version = var.arcgis_version
-    wa_name = var.server_web_context
-    bucket_name = data.amazon-parameterstore.s3_repository.value
-    local_repository =  local.archives_dir
-    manifest = local.arcgis_webadaptor_manifest_path
-    region = var.aws_region
-    jdk_version = local.java_version
-    jdk_setup_archive = local.java_tarball
-    tomcat_version = local.tomcat_version
-    tomcat_setup_archive = local.tomcat_tarball
+    ansible_aws_ssm_region      = data.amazon-parameterstore.s3_region.value
+    ansible_connection          = "aws_ssm"
+    arcgis_version              = var.arcgis_version
+    wa_name                     = var.server_web_context
+    bucket_name                 = data.amazon-parameterstore.s3_repository.value
+    local_repository            = local.archives_dir
+    manifest                    = local.arcgis_webadaptor_manifest_path
+    region                      = var.aws_region
+    jdk_version                 = local.java_version
+    jdk_setup_archive           = local.java_tarball
+    tomcat_version              = local.tomcat_version
+    tomcat_setup_archive        = local.tomcat_tarball
     # ansible_python_interpreter="/usr/bin/python3"
   })
 }
 
 source "amazon-ebs" "main" {
-  region        = var.aws_region
-  ami_name      = local.ami_name
-  ami_description = local.ami_description
-  instance_type = var.instance_type
-  source_ami    = data.amazon-parameterstore.source_ami.value
-  subnet_id     = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
+  region               = var.aws_region
+  ami_name             = local.ami_name
+  ami_description      = local.ami_description
+  instance_type        = var.instance_type
+  source_ami           = data.amazon-parameterstore.source_ami.value
+  subnet_id            = jsondecode(data.amazon-parameterstore.subnets.value).private[0]
   iam_instance_profile = data.amazon-parameterstore.instance_profile_name.value
-  communicator = "none"
-  user_data = local.user_data
-  
+  communicator         = "none"
+  user_data            = local.user_data
+
   launch_block_device_mappings {
     device_name = "/dev/sda1"
     volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_size = var.os_disk_size
     // encrypted   = true
-    iops        = 16000
-    throughput  = 1000
+    iops                  = 16000
+    throughput            = 1000
+    delete_on_termination = true
+  }
+
+  launch_block_device_mappings {
+    device_name           = "/dev/sdf"
+    volume_type           = "gp3"
+    volume_size           = var.data_disk_size
+    encrypted             = true
+    iops                  = 16000
+    throughput            = 1000
     delete_on_termination = true
   }
 
   run_tags = {
     Name               = local.ami_name
     ArcGISAutomation   = "arcgis-gitops"
-    ArcGISEnterpriseID = var.enterprise_id    
+    ArcGISEnterpriseID = var.enterprise_id
     ArcGISVersion      = var.arcgis_version
-    ArcGISDeploymentID = var.deployment_id    
+    ArcGISDeploymentID = var.deployment_id
     ArcGISMachineRole  = local.machine_role
-    OperatingSystem    = var.os    
+    OperatingSystem    = var.os
   }
 
   skip_create_ami = var.skip_create_ami
 }
 
 build {
-  name   = var.deployment_id
- 
+  name = var.deployment_id
+
   sources = [
     "source.amazon-ebs.main"
   ]
+
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' initialize-server"
+  }
 
   # Install CloudWatch Agent
   provisioner "shell-local" {
@@ -200,10 +214,10 @@ build {
     inline = [
       "echo '${local.server_vars}' > /tmp/server_vars.yaml",
       "echo '${local.inventory}' > /tmp/inventory.aws_ec2.yaml",
-      "python -m s3_copy_files -f ${local.arcgis_server_manifest_path} -b ${data.amazon-parameterstore.s3_repository.value}",      
+      "python -m s3_copy_files -f ${local.arcgis_server_manifest_path} -b ${data.amazon-parameterstore.s3_repository.value}",
       "ansible-playbook arcgis.common.s3_files -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
       "ansible-playbook arcgis.common.system -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
-      "ansible-playbook arcgis.server.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",      
+      "ansible-playbook arcgis.server.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
       "ansible-playbook arcgis.server.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
       "ansible-playbook arcgis.server.patch -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml",
       "ansible-playbook arcgis.common.clean -i /tmp/inventory.aws_ec2.yaml -e @/tmp/server_vars.yaml"
@@ -226,15 +240,19 @@ build {
       "ansible-playbook arcgis.webadaptor.firewalld -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
       "ansible-playbook arcgis.webadaptor.install -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml",
       "ansible-playbook arcgis.common.clean -i /tmp/inventory.aws_ec2.yaml -e @/tmp/webadaptor_vars.yaml"
-    ] : [
+      ] : [
       "echo 'ArcGIS Web Adaptor installation is not enabled.'"
     ]
+  }
+
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' verify-server"
   }
 
   # Save the build artifacts metadata in packer-manifest.json file.
   # Note: New builds add new artifacts to packer-manifest.json file.
   post-processor "manifest" {
-    output = "packer-manifest.json"
+    output     = "packer-manifest.json"
     strip_path = true
     custom_data = {
       ami_description = local.ami_description

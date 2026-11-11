@@ -21,7 +21,52 @@ resource "azurerm_portal_dashboard" "deployment" {
     lenses = {
       "0" = {
         order = 0
-        parts = {
+        parts = merge({
+          for index, metric in ["Data Disk Read Bytes/sec", "Data Disk Write Bytes/sec"] :
+          tostring(index + 8) => {
+            position = { x = index * 6, y = 16, colSpan = 6, rowSpan = 4 }
+            metadata = {
+              inputs = [
+                { name = "options", isOptional = true },
+                { name = "sharedTimeRange", isOptional = true }
+              ]
+              type = "Extension/HubsExtension/PartType/MonitorChartPart"
+              settings = {
+                content = {
+                  options = {
+                    chart = {
+                      metrics = [
+                        for id in local.monitored_vm_ids : {
+                          resourceMetadata    = { id = id }
+                          name                = metric
+                          namespace           = "microsoft.compute/virtualmachines"
+                          aggregationType     = 4
+                          metricVisualization = { displayName = metric }
+                        }
+                      ]
+                      title     = "${metric} (all deployment VMs, LUN 0)"
+                      titleKind = 1
+                      visualization = {
+                        chartType = 2
+                        legendVisualization = {
+                          isVisible      = true
+                          position       = 2
+                          hideHoverCard  = false
+                          hideLabelNames = false
+                        }
+                        axisVisualization = {
+                          x = { isVisible = true, axisType = 2 }
+                          y = { isVisible = true, axisType = 1 }
+                        }
+                        disablePinning = true
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          }, {
           "0" = { // Available Memory Bytes
             metadata = {
               inputs = [{
@@ -37,7 +82,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       name      = "Available Memory Bytes"
                       namespace = "microsoft.compute/virtualmachines"
                       resourceMetadata = {
-                        id = azurerm_windows_virtual_machine.vms[0].id
+                        id = module.vms[0].id
                       }
                     }]
                     timespan = {
@@ -157,7 +202,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       name      = "Percentage CPU"
                       namespace = "microsoft.compute/virtualmachines"
                       resourceMetadata = {
-                        id = azurerm_windows_virtual_machine.vms[0].id
+                        id = module.vms[0].id
                       }
                     }]
                     timespan = {
@@ -277,7 +322,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       name      = "OS Disk Read Bytes/sec"
                       namespace = "microsoft.compute/virtualmachines"
                       resourceMetadata = {
-                        id = azurerm_windows_virtual_machine.vms[0].id
+                        id = module.vms[0].id
                       }
                     }]
                     timespan = {
@@ -397,7 +442,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       name      = "OS Disk Write Bytes/sec"
                       namespace = "microsoft.compute/virtualmachines"
                       resourceMetadata = {
-                        id = azurerm_windows_virtual_machine.vms[0].id
+                        id = module.vms[0].id
                       }
                     }]
                     timespan = {
@@ -765,7 +810,7 @@ resource "azurerm_portal_dashboard" "deployment" {
               }
             }
           }
-        }
+        })
       }
     }
   })

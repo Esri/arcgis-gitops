@@ -19,7 +19,7 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
 - Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container.
 - Creates an Azure Monitor dashboard for monitoring key VM metrics.
-- Always creates a dedicated Windows file-server VM in the primary subnet, inheriting the same subnet NSG as the primary and standby VMs without a dedicated NSG or NIC-level NSG association. Includes a fixed 256 GB Standard SSD OS disk, configurable `D:` data disk, private DNS record, and Key Vault metadata. Base deployments cannot reference another deployment's file server.
+- Always creates a dedicated Windows file-server VM in the primary subnet, inheriting the same subnet NSG as the primary and standby VMs without a dedicated NSG or NIC-level NSG association. Includes a Standard SSD OS disk sized by `os_disk_size` (256 GiB by default), configurable `D:` data disk, private DNS record, and Key Vault metadata. Base deployments cannot reference another deployment's file server.
 - Protects the dedicated file-server VM and its OS/data disks with a daily Azure Backup policy in a deployment Recovery Services vault.
 - Tags all resources with ArcGISEnterpriseID and ArcGISDeploymentID for easy identification.
 
@@ -27,8 +27,11 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 
 On the machine where Terraform is executed:
 
+* Terraform 1.11.0 or later must be installed, as required by the shared `base_vm` module
 * OpenSSL must be installed and available in the system PATH
+* Azure CLI must be installed and available in the system PATH
 * Azure credentials must be configured using "az login" CLI command
+* Python 3.9 or later with the repository's Azure SDK for Python dependencies must be installed, and `azure/scripts` must be on `PYTHONPATH` for VM command execution
 
 ## Key Vault Secrets
 
@@ -37,8 +40,9 @@ On the machine where Terraform is executed:
 | Secret Name                             | Description |
 |-----------------------------------------|-------------|
 | ${var.deployment_id}-portal-web-context | Portal for ArcGIS web context |
+| ${var.deployment_id}-vm-image-fileserver | Dedicated file-server VM image ID |
 | ${var.deployment_id}-vm-image-primary   | Primary VM image ID |
-| ${var.deployment_id}-vm-image-standby   | Standby VM image ID |
+| ${var.deployment_id}-vm-image-standby   | Standby VM image ID (read only when is_ha is true) |
 | ${var.ingress_id}-backend-address-pools | Application Gateway backend address pools |
 | ${var.ingress_id}-ca-private-key        | Private key of the ingress CA root certificate |
 | ${var.ingress_id}-ca-root-cert          | Root certificate used by Application Gateway to validate the backend's identity |
@@ -66,8 +70,12 @@ On the machine where Terraform is executed:
 
 | Name | Version |
 |------|---------|
+| azapi | ~> 2.6 |
 | azurerm | ~> 4.46 |
+| local | n/a |
+| null | n/a |
 | random | n/a |
+| tls | ~> 4.2 |
 
 ## Modules
 
@@ -76,9 +84,12 @@ On the machine where Terraform is executed:
 | backend_cert | ../../modules/backend_cert | n/a |
 | azvm_fileserver | ../../modules/azvm_fileserver | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
-| loopback_alias | ../../modules/loopback_alias | n/a |
+| repair_data_disk_permissions | ../../modules/repair_data_disk_permissions | n/a |
+| vms | ../../modules/base_vm | n/a |
 
 ## Resources
+
+The following table lists resources and data sources declared in this root module.
 
 | Name | Type |
 |------|------|
@@ -114,7 +125,6 @@ On the machine where Terraform is executed:
 | [azurerm_storage_account.deployment_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
 | [azurerm_storage_container.object_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) | resource |
 | [azurerm_storage_container.portal_content](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) | resource |
-| [azurerm_windows_virtual_machine.vms](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/windows_virtual_machine) | resource |
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_password.pfx_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
@@ -129,6 +139,12 @@ On the machine where Terraform is executed:
 | [azurerm_private_dns_zone.privatelink_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
 | [azurerm_private_dns_zone.servicebus_private_dns_zone](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
 
+The `vms` module creates primary and standby VMs through `azapi_resource.vm` in
+the shared [base_vm module](../../modules/base_vm/main.tf). The
+[azvm_fileserver module](../../modules/azvm_fileserver/main.tf) manages the
+dedicated file-server VM, NIC, data disk, disk attachment, initialization
+extension, private DNS record, and file-server Key Vault metadata.
+
 ## Inputs
 
 | Name | Description | Type | Default | Required |
@@ -141,11 +157,12 @@ On the machine where Terraform is executed:
 | fileserver_data_disk_iops | Provisioned data disk IOPS for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
 | fileserver_data_disk_size_gb | Data disk size in GB for the dedicated Windows file-server VM | `number` | `1024` | no |
 | fileserver_data_disk_storage_account_type | Data disk storage account type for the dedicated Windows file-server VM | `string` | `"Premium_LRS"` | no |
-| fileserver_data_disk_throughput_mbps | Provisioned data disk throughput in MB/s for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
+| fileserver_data_disk_throughput | Provisioned data disk throughput in MB/s for PremiumV2_LRS and UltraSSD_LRS disks | `number` | `null` | no |
 | fileserver_vm_size | Azure VM size for the dedicated Windows file-server VM | `string` | `"Standard_D8s_v5"` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
-| os_disk_size | OS disk size in GB | `number` | `1024` | no |
+| os_disk_size | OS capacity in GiB, including the file server | `number` | `256` | no |
+| data_disk_size | Primary/standby data capacity in GiB; at least the image size | `number` | `1024` | no |
 | storage_replication_type | Deployment storage account replication type | `string` | `"ZRS"` | no |
 | storage_account_tier | Deployment storage account tier | `string` | `"Premium"` | no |
 | subnet_id | VMs subnet ID (by default, the first private subnet is used) | `string` | `null` | no |

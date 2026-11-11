@@ -17,6 +17,17 @@ variable "azure_region" {
   type        = string
 }
 
+variable "data_disk_size" {
+  description = "Per-VM /opt data disk capacity in GiB; must be at least the image data disk size"
+  type        = number
+  default     = 256
+
+  validation {
+    condition     = var.data_disk_size >= 1 && var.data_disk_size <= 32767 && floor(var.data_disk_size) == var.data_disk_size
+    error_message = "Data disk size must be an integer between 1 and 32767 GiB."
+  }
+}
+
 variable "deployment_id" {
   description = "ArcGIS Notebook Server deployment ID"
   type        = string

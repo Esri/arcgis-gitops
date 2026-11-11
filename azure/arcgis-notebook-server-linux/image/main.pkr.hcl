@@ -91,10 +91,12 @@ source "azure-arm" "main" {
   ssh_username = "packer"
   ssh_timeout = "5m"
 
-  location        = var.azure_region
-  vm_size         = var.vm_size
-  os_disk_size_gb = var.os_disk_size
-  os_type         = "Linux"
+  location             = var.azure_region
+  vm_size              = var.vm_size
+  os_disk_size_gb      = var.os_disk_size
+  disk_additional_size = [var.data_disk_size]
+  disk_additional_luns = [0]
+  os_type              = "Linux"
 
   managed_image_storage_account_type = "Premium_LRS"
   
@@ -147,6 +149,12 @@ build {
   sources = [
     "source.azure-arm.main"
   ]
+
+  provisioner "shell" {
+    script           = "../../arcgis-enterprise-base-linux/image/scripts/initialize_data_disk.sh"
+    environment_vars = ["ARCGIS_DATA_DEVICE=/dev/disk/azure/scsi1/lun0", "ARCGIS_DATA_SERVICES=docker containerd"]
+    execute_command  = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
+  }
 
   # Wait for cloud-init to finish and check its result. 
   # provisioner "shell" {
@@ -285,6 +293,11 @@ build {
     }
 
     command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-patches -v ${var.vault_name} -e 3600"
+  }
+
+  provisioner "shell" {
+    script          = "scripts/verify_data_disk.sh"
+    execute_command = "chmod +x {{ .Path }}; {{ .Vars }} sudo -E bash '{{ .Path }}'"
   }
 
   # Clean up

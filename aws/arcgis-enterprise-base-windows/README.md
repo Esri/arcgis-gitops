@@ -81,7 +81,7 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
-2. If required, change "instance_type" and "root_volume_size" for the ArcGIS machines. Every base deployment creates and owns a dedicated file-server VM in its primary subnet and security group. Configure it with "fileserver_instance_type" and the "fileserver_data_volume_*" properties.
+2. If required, change "instance_type", "os_disk_*", and "data_disk_*" for the ArcGIS machines. OS settings also apply to the dedicated file server; configure its data disk with "fileserver_data_disk_*" and its instance size with "fileserver_instance_type".
 3. Commit the changes to the Git branch and push the branch to GitHub.
 4. Run the enterprise-base-windows-aws-infrastructure workflow using the branch.
 

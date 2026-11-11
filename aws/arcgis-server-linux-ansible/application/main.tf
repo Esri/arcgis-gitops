@@ -87,6 +87,32 @@ data "aws_instance" "primary" {
   }
 }
 
+data "aws_instances" "application" {
+  filter {
+    name   = "tag:ArcGISEnterpriseID"
+    values = [var.enterprise_id]
+  }
+  filter {
+    name   = "tag:ArcGISDeploymentID"
+    values = [var.deployment_id]
+  }
+  filter {
+    name   = "tag:ArcGISMachineRole"
+    values = ["primary", "node"]
+  }
+  instance_state_names = ["pending", "running"]
+}
+
+resource "terraform_data" "verify_data_disk" {
+  for_each = toset(concat([data.aws_instance.primary.id], data.aws_instances.application.ids))
+
+  triggers_replace = [timestamp()]
+
+  provisioner "local-exec" {
+    command = "bash '${path.module}/../image/scripts/initialize_image_data_disk.sh' '${each.value}' '${var.aws_region}' verify-server"
+  }
+}
+
 data "aws_region" "current" {}
 
 locals {
@@ -175,6 +201,7 @@ module "arcgis_server_files" {
     region           = data.aws_region.current.region
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.copy_server_files
   ]
 }
@@ -191,6 +218,7 @@ module "unregister_web_adaptors" {
     admin_username = var.admin_username
     admin_password = var.admin_password
   }
+  depends_on = [terraform_data.verify_data_disk]
 }
 
 # Upgrade ArcGIS Server on primary and node EC2 instances
@@ -209,6 +237,7 @@ module "arcgis_server_upgrade" {
     run_as_user      = var.run_as_user
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.arcgis_server_files,
     module.unregister_web_adaptors
   ]
@@ -230,6 +259,7 @@ module "arcgis_server_patch" {
     run_as_user           = var.run_as_user
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.arcgis_server_upgrade
   ]
 }
@@ -249,6 +279,7 @@ module "arcgis_server_fileserver" {
     ]
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.arcgis_server_patch
   ]
 }
@@ -264,6 +295,7 @@ module "authorization_file" {
     src_file  = var.server_authorization_file_path
     dest_file = "${local.authorization_files_dir}/"
   }
+  depends_on = [terraform_data.verify_data_disk]
 }
 
 # Copy keystore file to primary and node EC2 instances
@@ -278,6 +310,7 @@ module "keystore_file" {
     src_file  = var.server_certificate_path
     dest_file = local.keystore_file
   }
+  depends_on = [terraform_data.verify_data_disk]
 }
 
 # Authorize ArcGIS Server on primary machine, create an ArcGIS Server site,
@@ -311,6 +344,7 @@ module "arcgis_server_primary" {
     cert_alias                     = local.ingress_fqdn
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.authorization_file,
     module.arcgis_server_fileserver
   ]
@@ -337,6 +371,7 @@ module "arcgis_server_node" {
     cert_alias            = local.ingress_fqdn
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.authorization_file,
     module.arcgis_server_primary
   ]
@@ -372,6 +407,7 @@ module "clean" {
     ]
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.arcgis_server_node,
     module.arcgis_webadaptor
   ]
@@ -398,6 +434,7 @@ module "arcgis_server_federation" {
     server_function  = join(",", var.server_functions)
   }
   depends_on = [
+    terraform_data.verify_data_disk,
     module.arcgis_server_node,
     module.arcgis_webadaptor
   ]

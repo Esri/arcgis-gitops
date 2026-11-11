@@ -2,8 +2,7 @@
 
 This reusable module creates or references a dedicated Windows Azure file-server VM. Azure ArcGIS Enterprise base deployments always call it without `fileserver_deployment_id` and therefore always own their file server.
 
-When `fileserver_deployment_id` is null, the module creates the VM, NIC, fixed OS disk, configurable data disk, private DNS record, and Key Vault metadata. The VM inherits the existing NSG attached to `subnet_id`, just like the primary and standby VMs in that subnet. The module does not create an NSG or a NIC-level NSG association, and rejects a subnet without an NSG. The nullable input is retained only for future non-base Windows consumers: when set, the module reads the owner's metadata from the same enterprise Key Vault without creating another VM.
-
+When `fileserver_deployment_id` is null, the module creates the VM, NIC, configurable OS disk, configurable data disk, private DNS record, and Key Vault metadata. The VM inherits the existing NSG attached to `subnet_id`, just like the primary and standby VMs in that subnet.
 The owning base deployment remains responsible for backup and lifecycle management. A future referenced deployment must use the same `enterprise_id` and enterprise Key Vault and must be in the enterprise VNet covered by the owner's subnet NSG rules.
 
 ## Network Security and Existing Deployments
@@ -27,7 +26,7 @@ association.
 
 The owning deployment attaches its managed data disk at LUN 0. The
 `initialize-fileserver-data-disk` Custom Script Extension runs
-[initialize_data_disk.ps1](initialize_data_disk.ps1) using Windows PowerShell.
+[initialize_data_disk.ps1](scripts/initialize_data_disk.ps1) using Windows PowerShell.
 Terraform embeds the script as a compressed payload, keeping the command below
 Windows `cmd.exe`'s 8191-character limit without downloading another file.
 

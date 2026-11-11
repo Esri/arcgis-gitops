@@ -72,7 +72,7 @@ variable "gpu_ready" {
 variable "instance_type" {
   description = "EC2 instance type"
   type        = string
-  default     = "m6i.2xlarge"
+  default     = "m7i.2xlarge"
 }
 
 variable "license_level" {
@@ -103,14 +103,25 @@ variable "os" {
   }
 }
 
-variable "root_volume_size" {
-  description = "Root EBS volume size in GB"
+variable "data_disk_size" {
+  description = "Image-backed /opt data volume capacity in GiB"
   type        = number
-  default     = 128
+  default     = 256
 
   validation {
-    condition     = var.root_volume_size >= 128   && var.root_volume_size <= 16384
-    error_message = "The root_volume_size value must be between 128 and 16384."
+    condition     = var.data_disk_size >= 32 && var.data_disk_size <= 16384 && floor(var.data_disk_size) == var.data_disk_size
+    error_message = "Data disk size must be an integer between 32 and 16384 GiB for 16000 IOPS gp3."
+  }
+}
+
+variable "os_disk_size" {
+  description = "OS EBS disk size in GiB"
+  type        = number
+  default     = 256
+
+  validation {
+    condition     = var.os_disk_size >= 256 && var.os_disk_size <= 16384 && floor(var.os_disk_size) == var.os_disk_size
+    error_message = "OS disk size must be an integer between 256 and 16384 GiB."
   }
 }
 

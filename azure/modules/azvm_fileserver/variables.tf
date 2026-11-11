@@ -17,6 +17,16 @@ variable "enterprise_id" {
   type        = string
 }
 
+variable "os_disk_size" {
+  description = "File-server OS disk capacity in GiB"
+  type        = number
+  default     = 256
+  validation {
+    condition     = var.os_disk_size >= 256 && var.os_disk_size <= 4095 && floor(var.os_disk_size) == var.os_disk_size
+    error_message = "OS disk capacity must be an integer between 256 and 4095 GiB."
+  }
+}
+
 variable "deployment_id" {
   description = "ArcGIS deployment ID"
   type        = string

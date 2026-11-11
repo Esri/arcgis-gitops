@@ -25,7 +25,12 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 
 On the machine where Terraform is executed:
 
+* Terraform 1.11.0 or later is required for AzAPI write-only `sensitive_body` password handling; the base-template workflows pin 1.11.4
 * OpenSSL must be installed and available in the system PATH
+* Python 3.9 or later must be installed
+* Azure Python SDK packages azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob must be installed
+* Path to azure/scripts directory must be added to PYTHONPATH
+* Azure CLI must be installed and available in the system PATH
 * Azure credentials must be configured using "az login" CLI command
 
 ## Key Vault Secrets
@@ -65,7 +70,10 @@ On the machine where Terraform is executed:
 |------|---------|
 | azapi | ~> 2.6 |
 | azurerm | ~> 4.46 |
+| local | n/a |
+| null | n/a |
 | random | n/a |
+| tls | ~> 4.2 |
 
 ## Modules
 
@@ -75,10 +83,14 @@ On the machine where Terraform is executed:
 | aznfs_mount | ../../modules/aznfs_mount | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
 | lv_extend | ../../modules/lv_extend | n/a |
+| primary | ../../modules/base_vm | n/a |
 | primary_backend_cert | ../../modules/backend_cert | n/a |
+| standby | ../../modules/base_vm | n/a |
 | standby_backend_cert | ../../modules/backend_cert | n/a |
 
 ## Resources
+
+The following table lists resources and data sources declared in this root module.
 
 | Name | Type |
 |------|------|
@@ -86,13 +98,10 @@ On the machine where Terraform is executed:
 | [azurerm_cosmosdb_sql_database.config_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_database) | resource |
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
 | [azurerm_cosmosdb_sql_role_assignment.cosmosdb_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/cosmosdb_sql_role_assignment) | resource |
-| [azurerm_key_vault_secret.aznfs_network_path](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.deployment_url](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.ingress_fqdn](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.pfx_password](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
 | [azurerm_key_vault_secret.storage_account_name](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/key_vault_secret) | resource |
-| [azurerm_linux_virtual_machine.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
-| [azurerm_linux_virtual_machine.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/linux_virtual_machine) | resource |
 | [azurerm_network_interface.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
 | [azurerm_network_interface.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface) | resource |
 | [azurerm_network_interface_application_gateway_backend_address_pool_association.primary](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/network_interface_application_gateway_backend_address_pool_association) | resource |
@@ -103,7 +112,6 @@ On the machine where Terraform is executed:
 | [azurerm_private_dns_a_record.standby](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_dns_a_record) | resource |
 | [azurerm_private_endpoint.blob_storage_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_private_endpoint.cosmos_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
-| [azurerm_private_endpoint.file_store_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_private_endpoint.servicebus_pe](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/private_endpoint) | resource |
 | [azurerm_resource_group.deployment_rg](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/resource_group) | resource |
 | [azurerm_role_assignment.cosmosdb_owner](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
@@ -116,10 +124,8 @@ On the machine where Terraform is executed:
 | [azurerm_role_assignment.storage_table_vm_identity](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/role_assignment) | resource |
 | [azurerm_servicebus_namespace.deployment_servicebus](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/servicebus_namespace) | resource |
 | [azurerm_storage_account.deployment_storage](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
-| [azurerm_storage_account.file_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_account) | resource |
 | [azurerm_storage_container.object_store](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) | resource |
 | [azurerm_storage_container.portal_content](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_container) | resource |
-| [azurerm_storage_share.fileserver](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/resources/storage_share) | resource |
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [random_password.pfx_password](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/password) | resource |
 | [azurerm_client_config.current](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/client_config) | data source |
@@ -134,8 +140,14 @@ On the machine where Terraform is executed:
 | [azurerm_key_vault_secret.vm_image_os](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/key_vault_secret) | data source |
 | [azurerm_private_dns_zone.cosmos_private_dns_zone](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
 | [azurerm_private_dns_zone.privatelink_blob](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
-| [azurerm_private_dns_zone.privatelink_file](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
 | [azurerm_private_dns_zone.servicebus_private_dns_zone](https://registry.terraform.io/providers/hashicorp/azurerm/latest/docs/data-sources/private_dns_zone) | data source |
+
+The `primary` and `standby` modules create VMs through `azapi_resource.vm` in the
+shared [base_vm module](../../modules/base_vm/main.tf). The
+[aznfs_fileserver module](../../modules/aznfs_fileserver/main.tf) manages the
+file-store storage account, private endpoint, network-path secret, and related
+data sources. It creates `azapi_resource.fileserver_v2` for the default V2 billing
+model or `azurerm_storage_share.fileserver` for V1.
 
 ## Inputs
 
@@ -144,13 +156,14 @@ On the machine where Terraform is executed:
 | azure_region | Azure region display name | `string` | n/a | yes |
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-base-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
-| fileserver_billing_model_version | Azure Files provisioning model. | `string` | `"V2"` | no |
+| fileserver_billing_model_version | Azure Files provisioning model. V2 is for new deployments; existing V1 file stores must explicitly retain V1 to avoid storage account replacement. | `string` | `"V2"` | no |
 | fileserver_iops | Provisioned V2 IOPS. Set to null for V1. | `number` | `10000` | no |
 | fileserver_size | Provisioned NFS file share capacity in GiB; V2 performance is configured separately. | `number` | `1024` | no |
-| fileserver_throughput | Provisioned V2 throughput in MiB/s. Set to null for V1. | `number` | `500` | no |
+| fileserver_throughput | Provisioned V2 throughput in MiB/s; the default is a trial profile requiring workload and cost review. Set to null for V1. | `number` | `500` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
+| data_disk_size | Primary/standby data capacity in GiB; at least the image size | `number` | `1024` | no |
 | storage_replication_type | The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage). | `string` | `"ZRS"` | no |
 | subnet_id | VMs subnet ID (by default, the first private subnet is used) | `string` | `null` | no |
 | vm_admin_password | VM administrator password | `string` | `null` | no |

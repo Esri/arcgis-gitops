@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License. 
- 
+
 variable "aws_region" {
   description = "AWS region ID"
   type        = string
@@ -112,36 +112,69 @@ variable "portal_deployment_id" {
   }
 }
 
-variable "root_volume_iops" {
-  description = "Root EBS volume IOPS of primary and standby EC2 instances"
+variable "data_disk_size" {
+  description = "Data EBS volume capacity in GiB; must be at least the AMI's /dev/sdf snapshot size"
+  type        = number
+  default     = 256
+
+  validation {
+    condition     = var.data_disk_size >= 1 && var.data_disk_size <= 16384 && floor(var.data_disk_size) == var.data_disk_size
+    error_message = "The data_disk_size value must be an integer between 1 and 16384 GiB."
+  }
+}
+
+variable "data_disk_iops" {
+  description = "Data gp3 EBS volume IOPS on primary and node instances"
   type        = number
   default     = 3000
 
   validation {
-    condition     = var.root_volume_iops >= 3000   && var.root_volume_iops <= 16000
-    error_message = "The root_volume_iops value must be between 3000 and 16000."
-  }    
+    condition     = floor(var.data_disk_iops) == var.data_disk_iops && var.data_disk_iops >= 3000 && var.data_disk_iops <= 16000 && var.data_disk_iops <= max(3000, var.data_disk_size * 500)
+    error_message = "Data disk IOPS must be an integer from 3000 to 16000 within the gp3 capacity limit."
+  }
 }
 
-variable "root_volume_throughput" {
-  description = "Root EBS volume throughput in MB/s of primary and standby EC2 instances"
+variable "data_disk_throughput" {
+  description = "Data gp3 EBS volume throughput in MiB/s on primary and node instances"
   type        = number
   default     = 125
 
   validation {
-    condition     = var.root_volume_throughput >= 125 && var.root_volume_throughput <= 1000
-    error_message = "The root_volume_throughput value must be between 125 and 1000."
+    condition     = var.data_disk_throughput >= 125 && var.data_disk_throughput <= 1000 && var.data_disk_throughput <= var.data_disk_iops * 0.25
+    error_message = "Data disk throughput must be between 125 and 1000 MiB/s and no more than one quarter of data_disk_iops."
   }
 }
 
-variable "root_volume_size" {
-  description = "Root EBS volume size in GB"
+variable "os_disk_iops" {
+  description = "OS gp3 disk IOPS for all deployment EC2 instances"
   type        = number
-  default     = 1024
+  default     = 3000
 
   validation {
-    condition     = var.root_volume_size >= 100 && var.root_volume_size <= 16384
-    error_message = "The root_volume_size value must be between 100 and 16384."
+    condition     = var.os_disk_iops >= 3000 && var.os_disk_iops <= 16000
+    error_message = "The os_disk_iops value must be between 3000 and 16000."
+  }
+}
+
+variable "os_disk_throughput" {
+  description = "OS gp3 disk throughput in MiB/s for all deployment EC2 instances"
+  type        = number
+  default     = 125
+
+  validation {
+    condition     = var.os_disk_throughput >= 125 && var.os_disk_throughput <= 1000 && var.os_disk_throughput <= var.os_disk_iops * 0.25
+    error_message = "OS throughput must be 125-1000 MiB/s and at most one quarter of OS IOPS."
+  }
+}
+
+variable "os_disk_size" {
+  description = "OS disk size in GiB for all deployment EC2 instances"
+  type        = number
+  default     = 256
+
+  validation {
+    condition     = var.os_disk_size >= 256 && var.os_disk_size <= 16384 && floor(var.os_disk_size) == var.os_disk_size
+    error_message = "The os_disk_size value must be an integer between 256 and 16384."
   }
 }
 

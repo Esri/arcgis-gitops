@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Copyright 2025 Esri
+# Copyright 2025-2026 Esri
 #
 # Licensed under the Apache License Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -22,6 +22,8 @@
 # * * Compute-only NVIDIA Driver open kernel modules (https://docs.nvidia.com/datacenter/tesla/driver-installation-guide/)
 # * * CUDA Toolkit (https://docs.nvidia.com/cuda/cuda-installation-guide-linux/)
 # * * NVIDIA Container Toolkit (https://docs.nvidia.com/datacenter/cloud-native/container-toolkit/latest/install-guide.html)
+
+set -euo pipefail
 
 JSON_ATTRIBUTES_PARAMETER='<json_attributes_parameter>'
 DOCKER_CE_PACKAGE_VERSION='5:28.5.2-1~ubuntu.24.04~noble'
@@ -57,6 +59,10 @@ sudo apt-get update -y
 # Install Docker CE
 sudo apt-get install -y docker-ce=$DOCKER_CE_PACKAGE_VERSION docker-ce-cli=$DOCKER_CE_CLI_PACKAGE_VERSION containerd.io docker-buildx-plugin docker-compose-plugin
 
+sudo systemctl stop docker docker.socket containerd
+sudo mkdir -p /etc/docker /opt/docker
+echo '{"features": {"containerd-snapshotter": false}, "iptables": true, "data-root": "/opt/docker"}' | sudo tee /etc/docker/daemon.json
+
 if [ "$GPU_READY" == "true" ]; then
   # Install gcc
   sudo apt-get install -y build-essential gcc-12
@@ -82,3 +88,7 @@ if [ "$GPU_READY" == "true" ]; then
   sudo apt-get install -y nvidia-container-toolkit 
   sudo nvidia-ctk runtime configure --runtime=docker 
 fi
+
+sudo systemctl enable --now docker
+sudo systemctl restart docker
+[[ "$(sudo docker info --format '{{.DockerRootDir}}')" == /opt/docker ]]

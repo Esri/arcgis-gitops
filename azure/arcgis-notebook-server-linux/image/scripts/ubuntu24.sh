@@ -81,6 +81,11 @@ sudo DEBIAN_FRONTEND=noninteractive apt-get update -y
 # 3. Install Docker CE
 sudo DEBIAN_FRONTEND=noninteractive apt-get install -y docker-ce=$DOCKER_CE_PACKAGE_VERSION docker-ce-cli=$DOCKER_CE_CLI_PACKAGE_VERSION containerd.io docker-buildx-plugin docker-compose-plugin
 
+sudo systemctl stop docker docker.socket containerd
+sudo mkdir -p /opt/docker
+echo '{"features": {"containerd-snapshotter": false}, "iptables": true, "data-root": "/opt/docker"}' | sudo tee /etc/docker/daemon.json
+sudo systemctl enable --now docker
+
 # Reject Docker containers access to the Azure VM metadata IP address.
 sudo iptables --insert DOCKER-USER --destination 169.254.169.254 --jump REJECT --verbose
 

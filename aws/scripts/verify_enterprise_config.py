@@ -25,12 +25,30 @@ import argparse
 
 
 # The properties that are skipped during the integrity check.
-# These properties are not expected to be the same across all config files.
+# Disk, compute, and operation-specific settings may differ within a config directory.
 SKIP_PROPERTIES = [
     "root_volume_size",
     "instance_type",
     "os_disk_size",
-    "vm_size"
+    "os_disk_type",
+    "os_disk_iops",
+    "os_disk_throughput",
+    "data_disk_size",
+    "data_disk_type",
+    "data_disk_iops",
+    "data_disk_throughput",
+    "fileserver_data_disk_size",
+    "fileserver_data_disk_type",
+    "fileserver_data_disk_iops",
+    "fileserver_data_disk_throughput",
+    "fileserver_data_disk_size_gb",
+    "fileserver_data_disk_storage_account_type",
+    "staging_volume_size",
+    "staging_volume_class",
+    "vm_size",
+    "execution_timeout",
+    "backup_restore_mode",
+    "subnet_id"
 ]
 
 # The properties that are checked for file existence.

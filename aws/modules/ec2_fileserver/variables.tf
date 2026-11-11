@@ -93,8 +93,48 @@ variable "data_volume_size" {
     )
     error_message = "The data_volume_size value must be 1-16384 GiB for gp3, 4-16384 GiB for io1, 4-65536 GiB for io2, or 125-16384 GiB for sc1 and st1."
   }
+
 }
 
+variable "os_disk_size" {
+  description = "File-server OS disk capacity in GiB"
+  type        = number
+  default     = 256
+  validation {
+    condition     = var.os_disk_size >= 256 && var.os_disk_size <= 16384 && floor(var.os_disk_size) == var.os_disk_size
+    error_message = "OS disk capacity must be an integer between 256 and 16384 GiB."
+  }
+}
+
+variable "os_disk_type" {
+  description = "File-server OS disk type (gp3)"
+  type        = string
+  default     = "gp3"
+  validation {
+    condition     = var.os_disk_type == "gp3"
+    error_message = "OS disks must use gp3."
+  }
+}
+
+variable "os_disk_iops" {
+  description = "File-server OS disk IOPS"
+  type        = number
+  default     = 3000
+  validation {
+    condition     = var.os_disk_iops >= 3000 && var.os_disk_iops <= 16000
+    error_message = "OS IOPS must be between 3000 and 16000."
+  }
+}
+
+variable "os_disk_throughput" {
+  description = "File-server OS disk throughput in MiB/s"
+  type        = number
+  default     = 125
+  validation {
+    condition     = var.os_disk_throughput >= 125 && var.os_disk_throughput <= 1000 && var.os_disk_throughput <= var.os_disk_iops * 0.25
+    error_message = "OS throughput must be 125-1000 MiB/s and at most one quarter of OS IOPS."
+  }
+}
 variable "data_volume_type" {
   description = "Data EBS volume type"
   type        = string

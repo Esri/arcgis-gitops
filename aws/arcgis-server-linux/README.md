@@ -83,7 +83,7 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property to the key pair name. Save the private key in a secure location.
-2. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+2. If required, change "instance_type" and "os_disk_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and OS EBS disk size (in GiB).
 3. If the ArcGIS Server needs to be federated with Portal for ArcGIS, set "portal_deployment_id" to ID of the Portal for ArcGIS deployment.
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run server-linux-aws-infrastructure workflow using the branch.

@@ -69,7 +69,7 @@ locals {
   archives_dir       = local.manifest.arcgis.repository.local_archives
   patches_dir        = local.manifest.arcgis.repository.local_patches
 
-  software_dir = "C:/Software/*"
+  software_dir = "D:/Software/*"
 
   storage_account_blob_endpoint = "https://${data.azure-keyvaultsecret.storage_account_name.value}.blob.core.windows.net"
 
@@ -89,14 +89,16 @@ source "azure-arm" "main" {
   winrm_timeout  = "5m"
   winrm_username = "packer"
 
-  location        = var.azure_region
-  os_disk_size_gb = var.os_disk_size
-  os_type         = "Windows"
-  vm_size         = var.vm_size
+  location             = var.azure_region
+  os_disk_size_gb      = var.os_disk_size
+  disk_additional_size = [var.data_disk_size]
+  disk_additional_luns = [0]
+  os_type              = "Windows"
+  vm_size              = var.vm_size
 
   # FORCE THE TEMPORARY BUILD VM DISK TO PREMIUM SSD
   managed_image_storage_account_type = "Premium_LRS"
-  
+
   accelerated_networking     = true
   async_resourcegroup_delete = true
 
@@ -135,7 +137,7 @@ source "azure-arm" "main" {
     "$userData = (Invoke-RestMethod -Headers @{Metadata=$true} -Method GET -Uri http://169.254.169.254/metadata/instance/compute/userData?api-version=2021-01-01$([char]38)format=text); ",
     "$contents = [System.Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($userData)); ",
     "set-content -path c:\\Windows\\Temp\\userdata.ps1 -value $contents -Encoding UTF8; ",
-    ". c:\\Windows\\Temp\\userdata.ps1 -AzureCliUrl ${var.azure_cli_url};\""])
+  ". c:\\Windows\\Temp\\userdata.ps1 -AzureCliUrl ${var.azure_cli_url};\""])
 
   user_data_file = "./scripts/userdata.ps1"
 
@@ -154,7 +156,7 @@ source "azure-arm" "fileserver" {
   winrm_username = "packer"
 
   location        = var.azure_region
-  os_disk_size_gb = 256
+  os_disk_size_gb = var.os_disk_size
   os_type         = "Windows"
   vm_size         = var.vm_size
 
@@ -179,7 +181,7 @@ source "azure-arm" "fileserver" {
     image_name     = "${var.deployment_id}-fileserver-${var.os}"
     image_version  = formatdate("YYYY.MMDD.HHMM", timestamp())
 
-    storage_account_type = "Standard_LRS"    
+    storage_account_type = "Standard_LRS"
   }
 
   user_assigned_managed_identities = [
@@ -212,6 +214,10 @@ build {
   ]
 
   # provisioner "windows-restart" {}
+
+  provisioner "powershell" {
+    script = "scripts/initialize_data_disk.ps1"
+  }
 
   # Bootstrap the VM
   provisioner "shell-local" {
@@ -251,7 +257,7 @@ build {
           configure_cloud_settings   = false
           repository = {
             archives = local.archives_dir
-            setups   = "C:\\Software\\Setups"
+            setups   = "D:\\Software\\Setups"
           }
           server = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\Server"
@@ -260,14 +266,14 @@ build {
           data_store = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
             setup_options               = "ADDLOCAL=relational"
-            data_dir                    = "C:\\arcgisdatastore"
+            data_dir                    = "D:\\arcgisdatastore"
             install_system_requirements = true
             preferredidentifier         = "ip"
           }
           portal = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
             install_system_requirements = true
-            data_dir                    = "C:\\arcgisportal"
+            data_dir                    = "D:\\arcgisportal"
             preferredidentifier         = "ip"
           }
         }
@@ -295,13 +301,15 @@ build {
             patches = local.patches_dir
           }
           portal = {
-            patches = var.arcgis_portal_patches
+            data_dir = "D:\\arcgisportal"
+            patches  = var.arcgis_portal_patches
           }
           server = {
             patches = var.arcgis_server_patches
           }
           data_store = {
-            patches = var.arcgis_data_store_patches
+            data_dir = "D:\\arcgisdatastore"
+            patches  = var.arcgis_data_store_patches
           }
         }
         run_list = [
@@ -311,6 +319,11 @@ build {
     }
 
     command = "python -m az_run_chef -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -j ${var.deployment_id}-patches -v ${var.vault_name} -e 3600"
+  }
+
+  provisioner "powershell" {
+    script           = "scripts/initialize_data_disk.ps1"
+    environment_vars = ["ARCGIS_INSTALL_STARTUP_TASK=1"]
   }
 
   # Clean up

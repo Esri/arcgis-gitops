@@ -12,10 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+variable "linux_disk_resources" {
+  description = "Linux filesystem mount points monitored for free space"
+  type        = list(string)
+  default     = ["/"]
+}
+
 variable "platform" {
   description = "Platform (windows|linux)"
-  type = string
-  default = "windows"
+  type        = string
+  default     = "windows"
 
   validation {
     condition     = can(regex("^(windows|linux)$", var.platform))
@@ -25,20 +31,20 @@ variable "platform" {
 
 variable "enterprise_id" {
   description = "ArcGIS Enterprise ID"
-  type = string
+  type        = string
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,6}$", var.enterprise_id))
     error_message = "The enterprise_id value must be between 3 and 6 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
-} 
+}
 
 variable "deployment_id" {
   description = "ArcGIS Enterprise deployment ID"
-  type = string
+  type        = string
 
   validation {
     condition     = can(regex("^[a-z0-9-]{3,25}$", var.deployment_id))
     error_message = "The deployment_id value must be between 3 and 25 characters long and can consist only of lowercase letters, numbers, and hyphens (-)."
   }
-} 
+}

@@ -14,7 +14,7 @@ The template uses Python scripts to run Azure Managed Run Command on the source 
 1. Install Azure CLI and NFS tools
 2. Install Cinc Client and Chef Cookbooks for ArcGIS
 3. Download setups from the private repository Azure Storage blob container
-4. Install OpenJDK, Apache Tomcat, Portal for ArcGIS, ArcGIS Server, ArcGIS Data Store, and ArcGIS Web Adaptor for Java
+4. Install Portal for ArcGIS, ArcGIS Web Styles, ArcGIS Server, and ArcGIS Data Store
 5. Install patches for the ArcGIS Enterprise components
 6. Delete temporary files and uninstall Cinc Client
 
@@ -23,11 +23,10 @@ and "${var.deployment_id}-vm-image-standby" Key Vault secrets.
 
 ## Requirements
 
-VM image definition "${var.deployment_id}-${var.arcgis_version}-${var.os}" 
-must be created in the enterprise Image Gallery before running the template.
-
 On the machine where Packer is executed:
 
+* Packer must be installed (the image workflow uses version `1.14.1`); run `packer init .` from this directory to install the required Azure plugin before building
+* The build machine must have SSH connectivity to the temporary Azure VM used by Packer
 * Python 3.9 or later must be installed
 * azure-identity, azure-keyvault-secrets, azure-mgmt-compute, and azure-storage-blob Azure Python SDK packages must be installed
 * Path to azure/scripts directory must be added to PYTHONPATH
@@ -67,11 +66,13 @@ The template writes the following Key Vault secrets:
 | arcgis_portal_patches | File names of Portal for ArcGIS patches to install | `list(string)` | `[]` | no |
 | arcgis_server_patches | File names of ArcGIS Server patches to install | `list(string)` | `[]` | no |
 | arcgis_version | ArcGIS Enterprise version | `string` | `"12.1"` | no |
+| azure_cli_version | Version of Azure CLI to install on the image | `string` | `"2.76.0"` | no |
 | azure_region | Azure region display name | `string` | `env("AZURE_DEFAULT_REGION")` | no |
 | deployment_id | Deployment ID | `string` | `"enterprise-base-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | os | Operating system ID | `string` | `"rhel9"` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
+| data_disk_size | Persistent data disk capacity baked into the gallery image in GiB | `number` | `256` | no |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
 | run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"server"` | no |

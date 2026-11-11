@@ -6,10 +6,20 @@ The Terraform module creates AWS resources for base ArcGIS Enterprise deployment
 
 The module launches two (or one, if "is_ha" input variable is set to false) SSM-managed ArcGIS EC2 instances and one dedicated Windows file-server EC2 instance. The file server is always owned by this base deployment, runs in the primary ArcGIS subnet, and uses its own security group. Base deployments cannot reference a file server from another deployment.
 
-Primary and standby EC2 instances are created after the fileserver module completes, including its DNS record, access rules, and data disk initialization, so recovered ArcGIS services can access the fileserver when they start.
+Primary and standby EC2 instances are created after the fileserver module completes, including its DNS record and access rules. Module completion does not verify guest-level file-server disk or service readiness.
 
 The EC2 instances are launched from images retrieved from "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}" SSM parameters.
 The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows.
+
+Primary and standby user data runs the shared
+[data-permissions repair](scripts/repair_data_disk_permissions.ps1). It resolves
+the current logon account of the `Portal for ArcGIS` Windows service, validates that
+D: is a writable non-OS NTFS disk, and grants the
+resolved SID Full Control on `D:\arcgisportal`, `D:\arcgisdatastore`, and all
+existing descendants, including protected child ACLs. Directory grants inherit
+to new entries. Existing owners, other ACL entries, and inheritance protection
+are preserved. No grants are made on D: itself or file-server shares, and no
+loopback registry settings are configured.
 
 For the EC2 instances the module creates "A" records in the VPC Route 53 private hosted zone
 to make the instances addressable using permanent DNS names.
@@ -146,18 +156,23 @@ The module writes the following SSM parameters:
 | backup_schedule | Backup schedule in cron format | `string` | `"cron(0 0 * * ? *)"` | no |
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
-| fileserver_data_volume_iops | Data EBS volume IOPS for the dedicated file-server VM | `number` | `10000` | no |
-| fileserver_data_volume_size | Data EBS volume size in GB for the dedicated file-server VM | `number` | `1024` | no |
-| fileserver_data_volume_throughput | Data EBS throughput in MB/s for the dedicated file-server VM | `number` | `250` | no |
-| fileserver_data_volume_type | Data EBS volume type for the dedicated file-server VM | `string` | `"gp3"` | no |
+| fileserver_data_disk_iops | Data EBS volume IOPS for the dedicated file-server VM | `number` | `10000` | no |
+| fileserver_data_disk_size | Data EBS disk size in GiB, at least the file-server image disk size | `number` | `1024` | no |
+| fileserver_data_disk_throughput | Data EBS throughput in MiB/s for the dedicated file-server VM | `number` | `250` | no |
+| fileserver_data_disk_type | Data EBS volume type for the dedicated file-server VM | `string` | `"gp3"` | no |
 | fileserver_instance_type | EC2 instance type for the dedicated Windows file-server VM | `string` | `"m7i.xlarge"` | no |
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | key_name | EC2 key pair name | `string` | n/a | yes |
-| root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |
-| root_volume_size | Root EBS volume size in GB of primary and standby EC2 instances | `number` | `1024` | no |
-| root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
+| os_disk_iops | OS gp3 disk IOPS, including the file server | `number` | `3000` | no |
+| os_disk_size | OS capacity in GiB, including the file server | `number` | `256` | no |
+| os_disk_throughput | OS gp3 throughput in MiB/s, including the file server | `number` | `125` | no |
+| os_disk_type | OS disk type (gp3) | `string` | `"gp3"` | no |
+| data_disk_iops | Primary/standby data disk IOPS | `number` | `3000` | no |
+| data_disk_size | Primary/standby data capacity in GiB; at least the image size | `number` | `1024` | no |
+| data_disk_throughput | Primary/standby throughput in MiB/s, gp3 only | `number` | `125` | no |
+| data_disk_type | Primary/standby data disk type (gp3, io1, io2) | `string` | `"gp3"` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |
 
 ## Outputs

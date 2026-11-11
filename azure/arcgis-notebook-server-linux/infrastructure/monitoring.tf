@@ -37,7 +37,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       name      = "Available Memory Bytes"
                       namespace = "microsoft.compute/virtualmachines"
                       resourceMetadata = {
-                        region = azurerm_resource_group.deployment_rg.location
+                        region       = azurerm_resource_group.deployment_rg.location
                         resourceType = "microsoft.compute/virtualmachines"
                         subscription = {
                           subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -92,7 +92,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         name      = "Available Memory Bytes"
                         namespace = "microsoft.compute/virtualmachines"
                         resourceMetadata = {
-                          region = azurerm_resource_group.deployment_rg.location
+                          region       = azurerm_resource_group.deployment_rg.location
                           resourceType = "microsoft.compute/virtualmachines"
                           subscription = {
                             subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -124,11 +124,11 @@ resource "azurerm_portal_dashboard" "deployment" {
                       filterCollection = {
                         filters = [
                           {
-                            key = "Microsoft.ResourceId"
+                            key      = "Microsoft.ResourceId"
                             operator = 0
                             values = concat(
-                              [azurerm_linux_virtual_machine.primary.id],
-                              azurerm_linux_virtual_machine.nodes.*.id
+                              [module.primary.id],
+                              module.nodes.*.id
                             )
                           }
                         ]
@@ -164,7 +164,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       name      = "Percentage CPU"
                       namespace = "microsoft.compute/virtualmachines"
                       resourceMetadata = {
-                        region = azurerm_resource_group.deployment_rg.location
+                        region       = azurerm_resource_group.deployment_rg.location
                         resourceType = "microsoft.compute/virtualmachines"
                         subscription = {
                           subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -219,7 +219,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         name      = "Percentage CPU"
                         namespace = "microsoft.compute/virtualmachines"
                         resourceMetadata = {
-                          region = azurerm_resource_group.deployment_rg.location
+                          region       = azurerm_resource_group.deployment_rg.location
                           resourceType = "microsoft.compute/virtualmachines"
                           subscription = {
                             subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -251,11 +251,11 @@ resource "azurerm_portal_dashboard" "deployment" {
                       filterCollection = {
                         filters = [
                           {
-                            key = "Microsoft.ResourceId"
+                            key      = "Microsoft.ResourceId"
                             operator = 0
                             values = concat(
-                              [azurerm_linux_virtual_machine.primary.id],
-                              azurerm_linux_virtual_machine.nodes.*.id
+                              [module.primary.id],
+                              module.nodes.*.id
                             )
                           }
                         ]
@@ -291,7 +291,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       name      = "OS Disk Read Bytes/sec"
                       namespace = "microsoft.compute/virtualmachines"
                       resourceMetadata = {
-                        region = azurerm_resource_group.deployment_rg.location
+                        region       = azurerm_resource_group.deployment_rg.location
                         resourceType = "microsoft.compute/virtualmachines"
                         subscription = {
                           subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -346,7 +346,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         name      = "OS Disk Read Bytes/sec"
                         namespace = "microsoft.compute/virtualmachines"
                         resourceMetadata = {
-                          region = azurerm_resource_group.deployment_rg.location
+                          region       = azurerm_resource_group.deployment_rg.location
                           resourceType = "microsoft.compute/virtualmachines"
                           subscription = {
                             subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -378,11 +378,11 @@ resource "azurerm_portal_dashboard" "deployment" {
                       filterCollection = {
                         filters = [
                           {
-                            key = "Microsoft.ResourceId"
+                            key      = "Microsoft.ResourceId"
                             operator = 0
                             values = concat(
-                              [azurerm_linux_virtual_machine.primary.id],
-                              azurerm_linux_virtual_machine.nodes.*.id
+                              [module.primary.id],
+                              module.nodes.*.id
                             )
                           }
                         ]
@@ -418,7 +418,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                       name      = "OS Disk Write Bytes/sec"
                       namespace = "microsoft.compute/virtualmachines"
                       resourceMetadata = {
-                        region = azurerm_resource_group.deployment_rg.location
+                        region       = azurerm_resource_group.deployment_rg.location
                         resourceType = "microsoft.compute/virtualmachines"
                         subscription = {
                           subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -473,7 +473,7 @@ resource "azurerm_portal_dashboard" "deployment" {
                         name      = "OS Disk Write Bytes/sec"
                         namespace = "microsoft.compute/virtualmachines"
                         resourceMetadata = {
-                          region = azurerm_resource_group.deployment_rg.location
+                          region       = azurerm_resource_group.deployment_rg.location
                           resourceType = "microsoft.compute/virtualmachines"
                           subscription = {
                             subscriptionId = data.azurerm_client_config.current.subscription_id
@@ -505,11 +505,11 @@ resource "azurerm_portal_dashboard" "deployment" {
                       filterCollection = {
                         filters = [
                           {
-                            key = "Microsoft.ResourceId"
+                            key      = "Microsoft.ResourceId"
                             operator = 0
                             values = concat(
-                              [azurerm_linux_virtual_machine.primary.id],
-                              azurerm_linux_virtual_machine.nodes.*.id
+                              [module.primary.id],
+                              module.nodes.*.id
                             )
                           }
                         ]
@@ -530,7 +530,7 @@ resource "azurerm_portal_dashboard" "deployment" {
               y       = 4
             }
           }
-        }, var.fileserver_deployment_id == null ? {
+          }, var.fileserver_deployment_id == null ? {
           "4" = { // Storage account metrics
             position = {
               x       = 0
@@ -559,9 +559,9 @@ resource "azurerm_portal_dashboard" "deployment" {
                           resourceMetadata = {
                             id = module.aznfs_fileserver.storage_account_id
                           }
-                          name = "Ingress"
+                          name            = "Ingress"
                           aggregationType = 1
-                          namespace = "microsoft.storage/storageaccounts"
+                          namespace       = "microsoft.storage/storageaccounts"
                           metricVisualization = {
                             displayName = "Ingress"
                           }
@@ -570,32 +570,32 @@ resource "azurerm_portal_dashboard" "deployment" {
                           resourceMetadata = {
                             id = module.aznfs_fileserver.storage_account_id
                           }
-                          name = "Egress"
+                          name            = "Egress"
                           aggregationType = 1
-                          namespace = "microsoft.storage/storageaccounts"
+                          namespace       = "microsoft.storage/storageaccounts"
                           metricVisualization = {
                             displayName = "Egress"
                           }
                         }
                       ]
-                      title = "File Store Account Ingress and Egress"
+                      title     = "File Store Account Ingress and Egress"
                       titleKind = 1
                       visualization = {
                         chartType = 2
                         legendVisualization = {
-                          isVisible = true
-                          position = 2
-                          hideHoverCard = false
+                          isVisible      = true
+                          position       = 2
+                          hideHoverCard  = false
                           hideLabelNames = true
                         }
                         axisVisualization = {
                           x = {
                             isVisible = true
-                            axisType = 2
+                            axisType  = 2
                           }
                           y = {
                             isVisible = true
-                            axisType = 1
+                            axisType  = 1
                           }
                         }
                         disablePinning = true
@@ -608,8 +608,8 @@ resource "azurerm_portal_dashboard" "deployment" {
           },
           "5" = { // Storage account Used Capacity metric
             position = {
-              x = 6
-              y = 8
+              x       = 6
+              y       = 8
               colSpan = 6
               rowSpan = 4
             },
@@ -634,32 +634,32 @@ resource "azurerm_portal_dashboard" "deployment" {
                           resourceMetadata = {
                             id = module.aznfs_fileserver.storage_account_id
                           }
-                          name = "UsedCapacity",
+                          name            = "UsedCapacity",
                           aggregationType = 4,
-                          namespace = "microsoft.storage/storageaccounts",
+                          namespace       = "microsoft.storage/storageaccounts",
                           metricVisualization = {
                             displayName = "Used capacity"
                           }
                         }
                       ],
-                      title = "File Store Account Used Capacity",
+                      title     = "File Store Account Used Capacity",
                       titleKind = 1,
                       visualization = {
                         chartType = 2,
                         legendVisualization = {
-                          isVisible = true,
-                          position = 2,
-                          hideHoverCard = false,
+                          isVisible      = true,
+                          position       = 2,
+                          hideHoverCard  = false,
                           hideLabelNames = true
                         },
                         axisVisualization = {
                           x = {
                             isVisible = true,
-                            axisType = 2
+                            axisType  = 2
                           },
                           y = {
                             isVisible = true,
-                            axisType = 1
+                            axisType  = 1
                           }
                         },
                         disablePinning = true

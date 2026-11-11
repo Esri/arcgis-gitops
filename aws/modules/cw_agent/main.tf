@@ -59,7 +59,7 @@ locals {
           }
         }
         disk = {
-          resources = ["/"]
+          resources = var.linux_disk_resources
           measurement = [
             {
               name   = "free"

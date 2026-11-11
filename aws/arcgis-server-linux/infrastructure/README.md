@@ -9,6 +9,13 @@ in the private VPC subnets or subnets specified by the subnet_ids input variable
 The instances are launched from images retrieved from '/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}' SSM parameters.
 The images must be created by the Packer Template for ArcGIS Server on Linux AMI.
 
+Each primary and node instance restores its encrypted gp3 `/dev/sdf` volume from
+the corresponding AMI snapshot. `/opt` holds the local application installation;
+the existing EFS mount at `/mnt/efs` is unchanged. The module rejects AMIs without
+the data snapshot and rejects `data_disk_size` smaller than that snapshot. Larger
+volumes are grown by the image's data-disk service at boot. `os_disk_size`,
+`os_disk_iops`, and `os_disk_throughput` control only the OS disk.
+
 For the primary EC2 instance the module creates an "A" record in the VPC Route 53 private hosted zone
 to make the instance addressable using a permanent DNS name.
 
@@ -45,6 +52,33 @@ On the machine where Terraform is executed:
 ## Troubleshooting
 
 Use Session Manager connection in AWS Console for SSH access to the EC2 instances.
+
+Check `findmnt /opt`, `/etc/arcgis-data-disk.uuid`, and
+`systemctl status arcgis-data-disk.service` before application configuration.
+
+## Compatibility and Recovery
+
+OS disk input names now use the `os_disk_*` prefix. Update older Packer and
+Terraform variable files and automation overrides before running the templates;
+the previous input names are no longer accepted. OS disk defaults match the base
+Linux template: 256 GiB, 3000 IOPS, and 125 MiB/s. Review disk resizing or instance
+replacement in the Terraform plan before applying this configuration change.
+
+Existing OS-only AMIs cannot be used with this module. Rebuild both role images
+and review the Terraform replacement plan through the approved workflow before
+applying; this change is not an in-place migration of existing `/opt` data.
+Do not reduce the root disk on existing instances without reviewing the resulting
+replacement. Keep the root disk at least as large as the OS snapshot.
+
+Both root and data volumes are deleted when their instance is terminated. Verify
+that AWS Backup recovery points cover both EBS volumes and the deployment's EFS
+data, and retain the prior AMIs and snapshots before replacing instances. For
+rollback, restore compatible root/data volumes together so the saved filesystem
+UUID matches the restored data disk, and use the prior reviewed Terraform and
+configuration revision for OS-only images. Recover application state using the
+documented deployment backup/restore workflows; an AMI snapshot contains the
+image installation, not subsequent runtime changes. Validate a restored `/opt`
+mount and ArcGIS Server startup before returning traffic to the deployment.
 
 ## SSM Parameters
 
@@ -127,6 +161,7 @@ The module writes the following SSM parameters:
 | [aws_ssm_parameter.security_group_id](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/ssm_parameter) | resource |
 | [random_id.unique_name_suffix](https://registry.terraform.io/providers/hashicorp/random/latest/docs/resources/id) | resource |
 | [aws_ami.ami](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
+| [aws_ami.application](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ami) | data source |
 | [aws_lb.alb](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/lb) | data source |
 | [aws_ssm_parameter.alb_arn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
 | [aws_ssm_parameter.alb_ingress_fqdn](https://registry.terraform.io/providers/hashicorp/aws/latest/docs/data-sources/ssm_parameter) | data source |
@@ -145,6 +180,9 @@ The module writes the following SSM parameters:
 | aws_region | AWS region ID | `string` | n/a | yes |
 | backup_retention | Number of days to retain backups | `number` | `14` | no |
 | backup_schedule | Backup schedule in cron format | `string` | `"cron(0 0 * * ? *)"` | no |
+| data_disk_iops | Data gp3 volume IOPS on primary and node instances | `number` | `3000` | no |
+| data_disk_size | Data volume capacity in GiB, at least the AMI snapshot size | `number` | `256` | no |
+| data_disk_throughput | Data gp3 volume throughput in MiB/s | `number` | `125` | no |
 | deployment_id | ArcGIS Server deployment ID | `string` | `"server-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_deployment_id | Use the EFS filesystem from the deployment with the given ID. If not specified, a dedicated EFS filesystem will be created for this deployment. | `string` | `null` | no |
@@ -154,9 +192,9 @@ The module writes the following SSM parameters:
 | listener_rule_priority | Priority of the ALB listener rule that forwards traffic to this deployment. The priority must be unique among all listener rules associated with the same ALB listener. | `number` | `110` | no |
 | node_count | Number of node EC2 instances (excluding the primary EC2 instance) | `number` | `1` | no |
 | portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `null` | no |
-| root_volume_iops | Root EBS volume IOPS of primary and standby EC2 instances | `number` | `3000` | no |
-| root_volume_size | Root EBS volume size in GB | `number` | `1024` | no |
-| root_volume_throughput | Root EBS volume throughput in MB/s of primary and standby EC2 instances | `number` | `125` | no |
+| os_disk_iops | OS gp3 disk IOPS for all deployment EC2 instances | `number` | `3000` | no |
+| os_disk_size | OS disk size in GiB for all deployment EC2 instances | `number` | `256` | no |
+| os_disk_throughput | OS gp3 disk throughput in MiB/s for all deployment EC2 instances | `number` | `125` | no |
 | subnet_ids | EC2 instances subnet IDs (by default, the first two private VPC subnets are used) | `list(string)` | `[]` | no |
 
 ## Outputs

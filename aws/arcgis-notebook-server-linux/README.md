@@ -68,7 +68,7 @@ Workflow Outputs:
 Instructions:
 
 1. Create an EC2 key pair in the selected AWS region and set "key_name" property in the config file to the key pair name. Save the private key in a secure location.
-2. If required, change "instance_type" and "root_volume_size" properties to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and root EBS volume size (in GB).
+2. If required, change "instance_type", "os_disk_size", and "data_disk_size" to the required [EC2 instance type](https://aws.amazon.com/ec2/instance-types/) and OS/data EBS capacities in GiB.
 3. If required, change "portal_deployment_id" property to the deployment ID of Portal for ArcGIS the ArcGIS Notebook Server will be federated with.
 4. Commit the changes to the Git branch and push the branch to GitHub.
 5. Run the notebook-server-linux-aws-infrastructure workflow using the branch.

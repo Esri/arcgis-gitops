@@ -4,6 +4,16 @@ Terraform module lv_extend extends the logical volume on Azure VMs in a deployme
 
 The module uses az_run_shell_script python module to run ${var.os}.sh scripts on the deployment's VMs in specific roles.
 
+For RHEL 9, the script discovers the root LVM logical volume, its physical volume,
+and the backing disk and partition instead of relying on device enumeration order.
+It requires exactly one partition-backed physical volume in the root volume group
+and stops before resizing if that layout cannot be verified. The application data
+disk mounted at `/opt` is not resized. An already-grown partition is accepted only
+when `growpart` reports `NOCHANGE`; logical volume extension is skipped when no
+free extents remain. Review the Terraform plan and rerun the approved deployment
+workflow to apply this change. Disk growth cannot be undone by shrinking; recovery
+requires restoring a VM/disk backup or redeploying from the approved image.
+
 ## Requirements
 
 On the machine where Terraform is executed:

@@ -105,10 +105,20 @@ source "amazon-ebs" "main" {
   launch_block_device_mappings {
     device_name = "/dev/sda1"
     volume_type = "gp3"
-    volume_size = var.root_volume_size
+    volume_size = var.os_disk_size
     // encrypted   = true
     iops        = 16000
     throughput  = 1000
+    delete_on_termination = true
+  }
+
+  launch_block_device_mappings {
+    device_name           = "/dev/sdf"
+    volume_type           = "gp3"
+    volume_size           = var.data_disk_size
+    encrypted             = true
+    iops                  = 16000
+    throughput            = 1000
     delete_on_termination = true
   }
 
@@ -149,7 +159,11 @@ build {
 
     command = "python -m ssm_install_awscli -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.machine_role} -b ${data.amazon-parameterstore.s3_logs.value}"
   }
-  
+
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' initialize-server"
+  }
+
   # Install CloudWatch Agent
   provisioner "shell-local" {
     env = {
@@ -269,6 +283,10 @@ build {
   }
 
   # Clean up
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' verify-server"
+  }
+
   provisioner "shell-local" {
     env = {
       AWS_DEFAULT_REGION = var.aws_region

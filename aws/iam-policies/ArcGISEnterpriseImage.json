@@ -78,6 +78,7 @@
                 "ssm:DeleteParameter",
                 "ssm:DescribeInstanceInformation",
                 "ssm:DescribeParameters",
+                "ssm:GetCommandInvocation",
                 "ssm:GetParameter",
                 "ssm:ListCommandInvocations",
                 "ssm:ListTagsForResource",

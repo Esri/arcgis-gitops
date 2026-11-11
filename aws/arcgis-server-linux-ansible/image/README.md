@@ -30,17 +30,8 @@ If `use_webadaptor` is `true`, the template copies the additional media listed i
 4. Configure firewall rules and install ArcGIS Web Adaptor with the name specified by `server_web_context`
 5. Clean up downloaded setup files
 
-After installation, `verify-server` checks that `/opt/arcgis/server` resides on
-the saved data filesystem. The installed `arcgis-data-disk.service` verifies
-the UUID mount and grows ext4 when a larger volume is restored. Systemd drop-ins
-make `arcgisserver` and optional `tomcat_arcgis` wait for that guard and `/opt`;
-the guard does not require or start an absent Tomcat service. EFS remains at
-`/mnt/efs` and is not part of this disk.
-
-The wrapper modes are `initialize`, `verify`, `initialize-server`, and
-`verify-server`; this template uses the two Server modes. Both select the
-`arcgisserver tomcat_arcgis` service list. The guest script receives this list
-and verification flags as environment variables, not positional arguments.
+After installation, `verify-server` checks that `/opt` exists and is mounted
+on the data volume.
 
 ID of the built AMI is saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/node" SSM parameters.
 

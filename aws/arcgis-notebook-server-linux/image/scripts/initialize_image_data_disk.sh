@@ -14,18 +14,19 @@
 
 set -euo pipefail
 if (( $# < 2 || $# > 3 )); then
-    echo "Usage: $0 INSTANCE_ID REGION [initialize-notebook|verify-notebook]" >&2
+    echo "Usage: $0 INSTANCE_ID REGION [initialize|verify|initialize-server|verify-server|initialize-notebook|verify-notebook]" >&2
     exit 1
 fi
 instance_id=$1
 region=$2
-mode=${3:-initialize-notebook}
+mode=${3:-initialize}
 case "$mode" in
-    initialize-notebook) verify=0 ;;
-    verify-notebook) verify=1 ;;
-    *) echo "Unsupported Notebook data disk mode: $mode." >&2; exit 1 ;;
+    initialize|initialize-server|initialize-notebook) disk_mode=initialize ;;
+    verify|verify-server|verify-notebook) disk_mode=verify ;;
+    *) echo "Unsupported Linux data disk mode: $mode." >&2; exit 1 ;;
 esac
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
+script="$script_dir/initialize_data_disk.sh"
 ready=0
 for ((attempt=0; attempt<60; attempt++)); do
     status=$(aws ssm describe-instance-information --region "$region" \
@@ -43,8 +44,15 @@ volume_id=$(aws ec2 describe-instances --region "$region" --instance-ids "$insta
 [[ "$volume_id" =~ ^vol-[0-9a-f]+$ ]] || { echo "Missing /dev/sdf EBS volume." >&2; exit 1; }
 parameters=$(mktemp)
 trap 'rm -f "$parameters"' EXIT
-encoded=$(base64 -w0 "$script_dir/initialize_data_disk.sh")
-command="printf '%s' '$encoded' | base64 -d > /tmp/arcgis-data-disk.sh && ARCGIS_DATA_VOLUME_ID='$volume_id' ARCGIS_DATA_SERVICES='docker containerd' ARCGIS_VERIFY_NOTEBOOK='$verify' bash /tmp/arcgis-data-disk.sh"
+encoded=$(base64 -w0 "$script")
+command="bash -s <<'ARCGIS_DATA_DISK'
+set -euo pipefail
+umask 077
+workdir=\$(mktemp -d /tmp/arcgis-data-disk.XXXXXX)
+trap 'rm -rf -- \"\$workdir\"' EXIT
+printf '%s' '$encoded' | base64 -d > \"\$workdir/initialize_data_disk.sh\"
+ARCGIS_DATA_VOLUME_ID='$volume_id' ARCGIS_DATA_DISK_MODE='$disk_mode' bash \"\$workdir/initialize_data_disk.sh\"
+ARCGIS_DATA_DISK"
 jq -n --arg command "$command" '{commands:[$command], executionTimeout:["600"]}' > "$parameters"
 command_id=$(aws ssm send-command --region "$region" --instance-ids "$instance_id" \
     --document-name AWS-RunShellScript --parameters "file://$parameters" --query Command.CommandId --output text)

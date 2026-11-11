@@ -17,7 +17,7 @@ Then the template uses Python and Bash scripts to run SSM commands on the source
  5. Install OpenJDK and Apache Tomcat.
  6. Install ArcGIS Server and ArcGIS Web Adaptor with name specified by `server_web_context`.
  7. Install ArcGIS Server and ArcGIS Web Adaptor patches.
- 8. Verify that `/opt/arcgis/server` resides on the data filesystem.
+ 8. Verify that `/opt` exists and is mounted on the intended data volume.
  9. Delete unused files.
 
 On a successful AMI build, the same AMI ID is saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/node" SSM parameters.

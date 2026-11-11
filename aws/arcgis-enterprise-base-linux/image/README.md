@@ -18,7 +18,7 @@ Then the template uses Python and Bash scripts to run SSM commands on the source
 6. Download setups from the private repository S3 bucket
 7. Install base ArcGIS Enterprise applications
 8. Install patches for the base ArcGIS Enterprise applications
-9. Verify the data disk and Portal data directory
+9. Verify that `/opt` exists and is mounted on the intended data volume
 10. Delete unused files and uninstall Cinc Client
 
 The ID of the built AMI is saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby" SSM parameters.

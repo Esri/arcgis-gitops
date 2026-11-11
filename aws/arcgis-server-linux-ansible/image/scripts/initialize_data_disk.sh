@@ -15,12 +15,46 @@
 set -euo pipefail
 
 fail() { echo "ArcGIS data disk: $*" >&2; exit 1; }
-read -r -a services <<< "${ARCGIS_DATA_SERVICES:-arcgisserver tomcat_arcgis}"
-[[ ${#services[@]} -gt 0 ]] || fail "At least one data disk service is required."
-for service in "${services[@]}"; do
-    [[ "$service" =~ ^[a-zA-Z0-9_-]+$ ]] || fail "Invalid data disk service name: $service."
-done
+mode=${ARCGIS_DATA_DISK_MODE:-initialize}
+case "$mode" in
+    initialize|verify) ;;
+    *) fail "Unsupported data disk mode: $mode." ;;
+esac
 identity=/etc/arcgis-data-disk.uuid
+resolve_data_device() {
+    if [[ -n "${ARCGIS_DATA_VOLUME_ID:-}" ]]; then
+        [[ "$ARCGIS_DATA_VOLUME_ID" =~ ^vol-[0-9a-f]+$ ]] || fail "Invalid EBS volume ID."
+        local serial=${ARCGIS_DATA_VOLUME_ID//-/}
+        mapfile -t disks < <(lsblk -dnro PATH,SERIAL | awk -v serial="$serial" '$2 == serial { print $1 }')
+        if [[ ${#disks[@]} -eq 1 ]]; then
+            device=${disks[0]}
+        elif [[ ${#disks[@]} -eq 0 && -b /dev/xvdf ]]; then
+            device=/dev/xvdf
+        else
+            fail "Expected one EBS disk matching $ARCGIS_DATA_VOLUME_ID."
+        fi
+    else
+        device=${ARCGIS_DATA_DEVICE:?Set the explicit data disk device.}
+    fi
+    device=$(readlink -f "$device") || fail "Could not resolve the data device."
+    [[ -b "$device" ]] || fail "Device $device does not exist."
+}
+if [[ "$mode" == verify ]]; then
+    [[ -d /opt && ! -L /opt ]] || fail "/opt must be an existing real directory."
+    [[ -f "$identity" && -s "$identity" ]] || fail "Missing saved data disk identity."
+    uuid=$(cat "$identity")
+    mapfile -t disks < <(blkid -t "UUID=$uuid" -o device)
+    [[ ${#disks[@]} -eq 1 ]] || fail "Expected exactly one saved data filesystem $uuid."
+    device=${disks[0]}
+    if [[ -n "${ARCGIS_DATA_VOLUME_ID:-}" || -n "${ARCGIS_DATA_DEVICE:-}" ]]; then
+        resolve_data_device
+        [[ "$(blkid -s UUID -o value "$device")" == "$uuid" ]] || fail "Selected data volume does not match the saved filesystem."
+    fi
+    mounted_uuid=$(findmnt -rn -M /opt -o UUID) || fail "/opt is not a mountpoint."
+    [[ -n "$mounted_uuid" && "$mounted_uuid" == "$uuid" ]] || fail "/opt is not on the intended data volume."
+    echo "Verified data filesystem $uuid on $device at /opt."
+    exit 0
+fi
 fresh=0
 staging=
 fstab_tmp=
@@ -45,32 +79,22 @@ for option in "${source_options[@]}"; do
 done
 if [[ -f "$identity" ]]; then
     uuid=$(cat "$identity")
+    [[ -n "$uuid" ]] || fail "Saved data disk identity is empty."
     mapfile -t disks < <(blkid -t "UUID=$uuid" -o device)
     [[ ${#disks[@]} -eq 1 ]] || fail "Expected exactly one saved data filesystem $uuid."
     device=${disks[0]}
+    if [[ -n "${ARCGIS_DATA_VOLUME_ID:-}" || -n "${ARCGIS_DATA_DEVICE:-}" ]]; then
+        resolve_data_device
+        [[ "$(blkid -s UUID -o value "$device")" == "$uuid" ]] || fail "Selected data volume does not match the saved filesystem."
+    fi
     awk -v source="UUID=$uuid" '$1 !~ /^#/ && $2 == "/opt" && $1 != source { exit 1 }' /etc/fstab ||
         fail "Conflicting /opt entry in fstab."
 else
-    if [[ -n "${ARCGIS_DATA_VOLUME_ID:-}" ]]; then
-        serial=${ARCGIS_DATA_VOLUME_ID//-/}
-        mapfile -t disks < <(lsblk -dnro PATH,SERIAL | awk -v serial="$serial" '$2 == serial { print $1 }')
-        if [[ ${#disks[@]} -eq 1 ]]; then
-            device=${disks[0]}
-        elif [[ ${#disks[@]} -eq 0 && -b /dev/xvdf ]]; then
-            device=/dev/xvdf
-        else
-            fail "Expected one EBS disk matching $ARCGIS_DATA_VOLUME_ID."
-        fi
-    else
-        device=${ARCGIS_DATA_DEVICE:?Set the explicit data disk device.}
-    fi
-    device=$(readlink -f "$device") || fail "Could not resolve the data device."
-    [[ -b "$device" ]] || fail "Device $device does not exist."
+    resolve_data_device
     [[ "$(lsblk -dnro TYPE "$device")" == disk ]] || fail "Expected a whole data disk."
     [[ "$(lsblk -nrpo NAME "$device" | wc -l)" -eq 1 ]] || fail "Data disk has partitions; refusing to format."
     [[ -z "$(lsblk -nro MOUNTPOINT "$device")" ]] || fail "Data disk is already mounted."
     [[ -z "$(wipefs -n --noheadings "$device")" ]] || fail "Data disk has signatures; refusing to format."
-    [[ ! -e /opt/arcgis ]] || fail "Source image already contains ArcGIS; existing deployments require a reviewed migration."
     [[ ! -e /etc/fstab.arcgis-before-opt ]] || fail "An earlier /opt initialization backup exists without a saved disk identity."
     mounts=$(findmnt -rn -o TARGET)
     if awk '$0 ~ "^/opt/" { found=1 } END { exit !found }' <<< "$mounts"; then
@@ -96,7 +120,6 @@ mkdir -p /opt
 if findmnt -rn -M /opt >/dev/null; then
     [[ "$(findmnt -rn -M /opt -o UUID)" == "$uuid" ]] || fail "/opt is mounted from another disk."
 else
-    [[ ! -e /opt/arcgis ]] || fail "Unmounted /opt contains an OS-disk ArcGIS installation."
     mount -o "$mount_options" "$device" /opt
 fi
 [[ "$(findmnt -rn -M /opt -o UUID)" == "$uuid" ]] || fail "/opt mount verification failed."
@@ -111,40 +134,20 @@ if ! awk -v source="UUID=$uuid" '$1 == source && $2 == "/opt" { found=1 } END { 
 fi
 if [[ "$fresh" == 1 ]]; then printf '%s\n' "$uuid" > "$identity"; fi
 resize2fs "$device"
-if [[ "${ARCGIS_VERIFY_PORTAL:-0}" == 1 ]]; then
-    portal_data=/opt/arcgis/portal/usr/arcgisportal
-    [[ -d "$portal_data" && ! -L "$portal_data" ]] || fail "Portal's default local data directory is missing."
-    [[ "$(findmnt -rn -T "$portal_data" -o UUID)" == "$uuid" ]] ||
-        fail "Portal data is not on the intended /opt filesystem."
-fi
-if [[ "${ARCGIS_VERIFY_SERVER:-0}" == 1 ]]; then
-    server_dir=/opt/arcgis/server
-    [[ -d "$server_dir" && ! -L "$server_dir" ]] || fail "ArcGIS Server installation directory is missing."
-    [[ "$(findmnt -rn -T "$server_dir" -o UUID)" == "$uuid" ]] ||
-        fail "ArcGIS Server is not on the intended /opt filesystem."
-fi
 if [[ "$0" != /usr/local/sbin/arcgis-data-disk ]]; then
     install -m 0755 "$0" /usr/local/sbin/arcgis-data-disk
 fi
-service_units=$(printf '%s.service ' "${services[@]}")
-cat > /etc/systemd/system/arcgis-data-disk.service <<UNIT
+cat > /etc/systemd/system/arcgis-data-disk.service <<'UNIT'
 [Unit]
 Description=Verify and grow the ArcGIS data filesystem
 RequiresMountsFor=/opt
-Before=$service_units
 [Service]
 Type=oneshot
-Environment="ARCGIS_DATA_SERVICES=${services[*]}"
 ExecStart=/bin/bash /usr/local/sbin/arcgis-data-disk
 RemainAfterExit=yes
 [Install]
 WantedBy=multi-user.target
 UNIT
-for service in "${services[@]}"; do
-    mkdir -p "/etc/systemd/system/$service.service.d"
-    printf '[Unit]\nRequires=arcgis-data-disk.service\nAfter=arcgis-data-disk.service\nRequiresMountsFor=/opt\n' \
-        > "/etc/systemd/system/$service.service.d/data-disk.conf"
-done
 systemctl daemon-reload
 systemctl enable arcgis-data-disk.service
-echo "Verified ArcGIS application filesystem $uuid on $device at /opt."
+echo "Prepared data filesystem $uuid on $device at /opt."

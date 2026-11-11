@@ -14,14 +14,15 @@
 
 set -euo pipefail
 if (( $# < 2 || $# > 3 )); then
-    echo "Usage: $0 INSTANCE_ID REGION [initialize|verify|initialize-server|verify-server]" >&2
+    echo "Usage: $0 INSTANCE_ID REGION [initialize|verify|initialize-server|verify-server|initialize-notebook|verify-notebook]" >&2
     exit 1
 fi
 instance_id=$1
 region=$2
 mode=${3:-initialize}
 case "$mode" in
-    initialize|verify|initialize-server|verify-server) ;;
+    initialize|initialize-server|initialize-notebook) disk_mode=initialize ;;
+    verify|verify-server|verify-notebook) disk_mode=verify ;;
     *) echo "Unsupported Linux data disk mode: $mode." >&2; exit 1 ;;
 esac
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
@@ -44,16 +45,14 @@ volume_id=$(aws ec2 describe-instances --region "$region" --instance-ids "$insta
 parameters=$(mktemp)
 trap 'rm -f "$parameters"' EXIT
 encoded=$(base64 -w0 "$script")
-verify=0
-case "$mode" in
-    verify|verify-server) verify=1 ;;
-esac
-if [[ "$mode" == *-server ]]; then
-    attributes="ARCGIS_DATA_SERVICES='arcgisserver tomcat_arcgis' ARCGIS_VERIFY_SERVER='$verify'"
-else
-    attributes="ARCGIS_VERIFY_PORTAL='$verify'"
-fi
-command="printf '%s' '$encoded' | base64 -d > /tmp/arcgis-data-disk.sh && ARCGIS_DATA_VOLUME_ID='$volume_id' $attributes bash /tmp/arcgis-data-disk.sh"
+command="bash -s <<'ARCGIS_DATA_DISK'
+set -euo pipefail
+umask 077
+workdir=\$(mktemp -d /tmp/arcgis-data-disk.XXXXXX)
+trap 'rm -rf -- \"\$workdir\"' EXIT
+printf '%s' '$encoded' | base64 -d > \"\$workdir/initialize_data_disk.sh\"
+ARCGIS_DATA_VOLUME_ID='$volume_id' ARCGIS_DATA_DISK_MODE='$disk_mode' bash \"\$workdir/initialize_data_disk.sh\"
+ARCGIS_DATA_DISK"
 jq -n --arg command "$command" '{commands:[$command], executionTimeout:["600"]}' > "$parameters"
 command_id=$(aws ssm send-command --region "$region" --instance-ids "$instance_id" \
     --document-name AWS-RunShellScript --parameters "file://$parameters" --query Command.CommandId --output text)

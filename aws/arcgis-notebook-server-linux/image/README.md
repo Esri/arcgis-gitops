@@ -21,7 +21,7 @@ Then the template uses scripts to run SSM commands on the source EC2 instance to
 7. Install ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
 8. Install patches for the ArcGIS Notebook Server and ArcGIS Web Adaptor for Java
 9. Delete unused files and uninstall Cinc Client
-10. Verify the saved `/opt` filesystem UUID, Notebook installation, and effective Docker root before publishing the AMI
+10. Verify that `/opt` exists and is mounted on the intended data volume before publishing the AMI
 
 ID of the built AMI is saved in "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/node" SSM parameters.
 

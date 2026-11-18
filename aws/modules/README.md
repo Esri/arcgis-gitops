@@ -13,6 +13,7 @@ A Terraform module can call other modules to include their resources into the co
 * [efs_mount](efs_mount/README.md) - mounts EFS file system targets on EC2 instances in a deployment
 * [ec2_fileserver](ec2_fileserver/README.md) - creates or references a dedicated Windows EC2 file-server VM
 * [enterprise_core_info](enterprise_core_info/README.md) - retrieves names and Ids of core AWS resources from AWS Systems Manager parameters
+* [prepare_windows_disks](prepare_windows_disks/README.md) - synchronously verifies and expands Windows C: and D: on owned EC2 instances
 * [run_chef](run_chef/README.md) - runs Cinc Client in local mode on EC2 instances
 * [s3_copy_files](s3_copy_files/README.md) - copies files from local file system, public URLs, and, My Esri repository to S3 bucket
 * [security_group](security_group/README.md) - creates and configures EC2 security group for a deployment

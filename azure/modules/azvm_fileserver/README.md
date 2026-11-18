@@ -5,6 +5,46 @@ This reusable module creates or references a dedicated Windows Azure file-server
 When `fileserver_deployment_id` is null, the module creates the VM, NIC, configurable OS disk, configurable data disk, private DNS record, and Key Vault metadata. The VM inherits the existing NSG attached to `subnet_id`, just like the primary and standby VMs in that subnet.
 The owning base deployment remains responsible for backup and lifecycle management. A future referenced deployment must use the same `enterprise_id` and enterprise Key Vault and must be in the enterprise VNet covered by the owner's subnet NSG rules.
 
+`os_disk_storage_account_type` independently configures the OS tier and defaults
+to `Premium_LRS`. Supported OS tiers are `Standard_LRS`, `StandardSSD_LRS`,
+and `Premium_LRS`. Check VM-size/regional compatibility, cost, performance, backup
+readiness, and the Terraform conversion/replacement plan before changing tiers.
+
+## Requirements
+
+Terraform with AzureRM credentials authorized to read image/metadata secrets and
+manage file-server resources. The owning deployment must supply an existing
+subnet with an NSG, user-assigned VM identity, Key Vault, and file-server image.
+
+## Providers
+
+| Name | Version |
+|------|---------|
+| azurerm | ~> 4.46 |
+
+## Modules
+
+None.
+
+## Resources
+
+| Name | Type |
+|------|------|
+| azurerm_network_interface.fileserver | resource |
+| azurerm_windows_virtual_machine.fileserver | resource |
+| azurerm_managed_disk.data | resource |
+| azurerm_virtual_machine_data_disk_attachment.data | resource |
+| azurerm_virtual_machine_extension.initialize_data_disk | resource |
+| azurerm_private_dns_a_record.fileserver | resource |
+| azurerm_key_vault_secret.private_dns | resource |
+| azurerm_key_vault_secret.security_group_id | resource |
+| azurerm_key_vault_secret.vm_id | resource |
+| azurerm_key_vault_secret.image | data source |
+| azurerm_key_vault_secret.shared_private_dns | data source |
+| azurerm_key_vault_secret.shared_security_group_id | data source |
+| azurerm_key_vault_secret.shared_vm_id | data source |
+| azurerm_subnet.fileserver | data source |
+
 ## Network Security and Existing Deployments
 
 The `security_group_id` output and `${deployment_id}-fileserver-security-group-id`
@@ -73,7 +113,9 @@ that error is resolved.
 
 ## Key Vault Secrets
 
-The module reads or writes these secrets for the owning deployment:
+The module reads `${deployment_id}-vm-image-fileserver` when creating a VM.
+It writes the following metadata for the owning deployment. When referencing an
+owner, it reads these names using `${fileserver_deployment_id}` instead:
 
 | Name | Description |
 | --- | --- |
@@ -81,16 +123,27 @@ The module reads or writes these secrets for the owning deployment:
 | `${deployment_id}-fileserver-security-group-id` | Inherited subnet NSG ID |
 | `${deployment_id}-fileserver-vm-id` | Virtual machine ID |
 
-## Key Inputs
+## Inputs
 
-| Name | Description | Default |
-| --- | --- | --- |
-| `deployment_id` | Current deployment ID | Required |
-| `enterprise_id` | ArcGIS Enterprise ID | Required |
-| `fileserver_deployment_id` | Existing owning deployment ID | `null` |
-| `resource_group_name` | Current deployment resource group | Required |
-| `subnet_id` | Subnet shared with primary and standby VMs, with an existing NSG | Required |
-| `vault_id` | Enterprise Key Vault ID | Required |
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
+| deployment_id | ArcGIS deployment ID | `string` | n/a | yes |
+| fileserver_deployment_id | Existing owning deployment ID; otherwise creates a dedicated VM | `string` | `null` | no |
+| azure_region | Azure region | `string` | n/a | yes |
+| resource_group_name | Deployment resource group name | `string` | n/a | yes |
+| subnet_id | Subnet shared with primary/standby VMs, with an existing NSG | `string` | n/a | yes |
+| vault_id | Enterprise Key Vault ID | `string` | n/a | yes |
+| vm_identity_id | User-assigned managed identity ID | `string` | n/a | yes |
+| vm_size | Azure file-server VM size | `string` | n/a | yes |
+| admin_username | VM administrator username | `string` | n/a | yes |
+| admin_password | Sensitive VM administrator password | `string` | n/a | yes |
+| os_disk_size | File-server OS disk capacity in GiB | `number` | `256` | no |
+| os_disk_storage_account_type | File-server OS disk storage account type | `string` | `"Premium_LRS"` | no |
+| data_disk_size_gb | Data disk capacity in GB | `number` | n/a | yes |
+| data_disk_storage_account_type | Data disk storage account type | `string` | n/a | yes |
+| data_disk_iops | Provisioned data disk IOPS where supported | `number` | `null` | no |
+| data_disk_throughput_mbps | Provisioned data disk throughput in MB/s where supported | `number` | `null` | no |
 
 ## Outputs
 

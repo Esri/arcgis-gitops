@@ -7,6 +7,7 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 ## Features
 
 - Launches one or two VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
+- Pins the primary and dedicated file-server VMs to availability zone "1" and, when `is_ha` is true, the standby VM to zone "2". The file-server data disk is also in zone "1".
 - VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-${vm_role}".
   These images must be built using the Packer template for ArcGIS Enterprise on Windows.
 - Creates "A" records in the VNet's private hosted DNS zone, enabling permanent DNS names for the VMs.
@@ -19,8 +20,10 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 - Adds VM network interfaces to the "enterprise-base" backend address pool of the Application Gateway deployed by the ingress module.
 - Creates a certificate for backend services/endpoints signed by the ingress CA and uploads the certificate to the repository storage container.
 - Creates an Azure Monitor dashboard for monitoring key VM metrics.
-- Always creates a dedicated Windows file-server VM in the primary subnet, inheriting the same subnet NSG as the primary and standby VMs without a dedicated NSG or NIC-level NSG association. Includes a Standard SSD OS disk sized by `os_disk_size` (256 GiB by default), configurable `D:` data disk, private DNS record, and Key Vault metadata. Base deployments cannot reference another deployment's file server.
+- Always creates a dedicated Windows file-server VM in the primary subnet, inheriting the same subnet NSG as the primary and standby VMs without a dedicated NSG or NIC-level NSG association. Includes a configurable OS disk (Premium SSD by default) sized by `os_disk_size` (256 GiB by default), configurable `D:` data disk, private DNS record, and Key Vault metadata. Base deployments cannot reference another deployment's file server.
 - Protects the dedicated file-server VM and its OS/data disks with a daily Azure Backup policy in a deployment Recovery Services vault.
+- Expands C: into available OS disk capacity on primary, standby (when enabled), and the dedicated file server on every apply. Verifies both partition and NTFS volume sizes; fails before resizing if another partition blocks unused capacity.
+- Prepares primary/standby D: disks, expands image partitions to the deployed disk capacity, and verifies the image-time Users root grant without changing ACLs or controlling services.
 - Tags all resources with ArcGISEnterpriseID and ArcGISDeploymentID for easy identification.
 
 ## Requirements
@@ -84,7 +87,8 @@ On the machine where Terraform is executed:
 | backend_cert | ../../modules/backend_cert | n/a |
 | azvm_fileserver | ../../modules/azvm_fileserver | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
-| repair_data_disk_permissions | ../../modules/repair_data_disk_permissions | n/a |
+| prepare_data_disk | ../../modules/prepare_data_disk | n/a |
+| prepare_os_disk | ../../modules/prepare_os_disk | n/a |
 | vms | ../../modules/base_vm | n/a |
 
 ## Resources
@@ -162,7 +166,9 @@ extension, private DNS record, and file-server Key Vault metadata.
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | os_disk_size | OS capacity in GiB, including the file server | `number` | `256` | no |
+| os_disk_storage_account_type | Primary, standby, and dedicated Windows file-server OS disk storage account type | `string` | `"Premium_LRS"` | no |
 | data_disk_size | Primary/standby data capacity in GiB; at least the image size | `number` | `1024` | no |
+| data_disk_storage_account_type | Primary/standby data disk storage account type | `string` | `"Premium_LRS"` | no |
 | storage_replication_type | Deployment storage account replication type | `string` | `"ZRS"` | no |
 | storage_account_tier | Deployment storage account tier | `string` | `"Premium"` | no |
 | subnet_id | VMs subnet ID (by default, the first private subnet is used) | `string` | `null` | no |

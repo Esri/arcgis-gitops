@@ -325,7 +325,7 @@ build {
   }
 
   provisioner "shell-local" {
-    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' startup"
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' prepare application"
   }
 
   # Clean up
@@ -401,6 +401,10 @@ build {
     }
 
     command = "python -m ssm_package -s ${var.enterprise_id} -d ${var.deployment_id} -m ${local.fileserver_machine_role} -p AmazonCloudWatchAgent -b ${data.amazon-parameterstore.s3_logs.value}"
+  }
+
+  provisioner "shell-local" {
+    command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' prepare fileserver"
   }
 
   provisioner "shell-local" {

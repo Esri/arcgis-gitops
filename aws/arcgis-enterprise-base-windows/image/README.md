@@ -15,7 +15,7 @@ Then the application build uses Python and Bash scripts to run SSM commands on i
 5. Download setups from the private repository S3 bucket
 6. Install base ArcGIS Enterprise applications
 7. Install patches for the base ArcGIS Enterprise applications
-8. Reverify the data disk and install the `ArcGISDataDisk` startup task, which validates the existing disk.
+8. Validate the existing data disk and grant built-in Users Full Control on D: drive and every existing descendant.
 9. Delete unused files, uninstall Cinc Client, and run Sysprep
 
 The application AMI ID is saved in both "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby" SSM parameters.

@@ -322,8 +322,7 @@ build {
   }
 
   provisioner "powershell" {
-    script           = "scripts/initialize_data_disk.ps1"
-    environment_vars = ["ARCGIS_INSTALL_STARTUP_TASK=1"]
+    script = "scripts/prepare_image_data_disk.ps1"
   }
 
   # Clean up
@@ -336,12 +335,7 @@ build {
 
   # Generalize the image
   provisioner "powershell" {
-    inline = [
-      "Write-Output 'Starting Sysprep...'",
-      # Use /quit instead of /shutdown so the script can finish
-      "& $env:SystemRoot\\System32\\Sysprep\\Sysprep.exe /oobe /generalize /quiet /quit /mode:vm",
-      # Wait for the process to actually finish in the background before exiting the script
-    "while($true) { $p = Get-Process Sysprep -ErrorAction SilentlyContinue; if(!$p) { break }; Start-Sleep -s 5 }"]
+    script = "scripts/generalize_image.ps1"
   }
 
   # Save the build artifacts metadata in packer-manifest.json file.
@@ -389,10 +383,7 @@ build {
   }
 
   provisioner "powershell" {
-    inline = [
-      "& $env:SystemRoot\\System32\\Sysprep\\Sysprep.exe /oobe /generalize /quiet /quit /mode:vm",
-      "while (Get-Process Sysprep -ErrorAction SilentlyContinue) { Start-Sleep -Seconds 5 }"
-    ]
+    script = "scripts/generalize_image.ps1"
   }
 
   post-processor "manifest" {

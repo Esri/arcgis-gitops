@@ -75,8 +75,9 @@ resource "azapi_resource" "vm" {
     identity_ids = [var.settings.identity_id]
   }
   tags                             = var.settings.tags
-  replace_triggers_external_values = [var.settings.image_id]
+  replace_triggers_external_values = [var.settings.image_id, var.settings.zone]
   body = {
+    zones = [var.settings.zone]
     properties = {
       hardwareProfile        = { vmSize = var.settings.size }
       virtualMachineScaleSet = { id = var.settings.scale_set_id }
@@ -99,7 +100,7 @@ resource "azapi_resource" "vm" {
           caching      = "ReadWrite"
           diskSizeGB   = var.settings.os_disk_size
           deleteOption = "Delete"
-          managedDisk  = { storageAccountType = "StandardSSD_LRS" }
+          managedDisk  = { storageAccountType = var.settings.os_disk_storage_account_type }
         }
         dataDisks = [{
           name         = "${var.settings.name}-data"
@@ -108,7 +109,7 @@ resource "azapi_resource" "vm" {
           caching      = "None"
           diskSizeGB   = var.settings.data_disk_size
           deleteOption = "Delete"
-          managedDisk  = { storageAccountType = "Premium_LRS" }
+          managedDisk  = { storageAccountType = var.settings.data_disk_storage_account_type }
         }]
       }
     }

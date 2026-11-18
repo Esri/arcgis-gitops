@@ -177,14 +177,6 @@ resource "aws_instance" "primary" {
     }
   }
 
-  user_data = <<-EOF
-  <powershell>
-  ${file("${path.module}/scripts/repair_data_disk_permissions.ps1")}
-  </powershell>
-  EOF
-
-  user_data_replace_on_change = false
-
   tags = {
     Name              = "${var.enterprise_id}/${var.deployment_id}/primary"
     ArcGISTemplateId  = local.arcgis_template_id
@@ -279,14 +271,6 @@ resource "aws_instance" "standby" {
     }
   }
 
-  user_data = <<-EOF
-  <powershell>
-  ${file("${path.module}/scripts/repair_data_disk_permissions.ps1")}
-  </powershell>
-  EOF
-
-  user_data_replace_on_change = false
-
   tags = {
     Name              = "${var.enterprise_id}/${var.deployment_id}/standby"
     ArcGISTemplateId  = local.arcgis_template_id
@@ -302,6 +286,29 @@ resource "aws_instance" "standby" {
   }
 
   depends_on = [module.ec2_fileserver]
+}
+
+module "prepare_primary_disks" {
+  source         = "../../modules/prepare_windows_disks"
+  enterprise_id  = var.enterprise_id
+  deployment_id  = var.deployment_id
+  machine_role   = "primary"
+  instance_id    = aws_instance.primary.id
+  data_volume_id = one([for device in aws_instance.primary.ebs_block_device : device.volume_id if device.device_name == "/dev/sdf"])
+  os_disk_size   = var.os_disk_size
+  data_disk_size = var.data_disk_size
+}
+
+module "prepare_standby_disks" {
+  count          = var.is_ha ? 1 : 0
+  source         = "../../modules/prepare_windows_disks"
+  enterprise_id  = var.enterprise_id
+  deployment_id  = var.deployment_id
+  machine_role   = "standby"
+  instance_id    = aws_instance.standby[count.index].id
+  data_volume_id = one([for device in aws_instance.standby[count.index].ebs_block_device : device.volume_id if device.device_name == "/dev/sdf"])
+  os_disk_size   = var.os_disk_size
+  data_disk_size = var.data_disk_size
 }
 
 resource "aws_route53_record" "primary" {
@@ -393,8 +400,8 @@ module "cw_agent" {
   enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   depends_on = [
-    aws_instance.primary,
-    aws_instance.standby,
+    module.prepare_primary_disks,
+    module.prepare_standby_disks,
     module.ec2_fileserver
   ]
 }

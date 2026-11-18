@@ -26,7 +26,7 @@ data "azurerm_key_vault" "enterprise_vault" {
   resource_group_name = data.azurerm_resources.enterprise_vault.resource_group_name
 }
 
-resource "null_resource" "repair" {
+resource "null_resource" "prepare" {
   triggers = {
     always_run = timestamp()
   }
@@ -36,6 +36,6 @@ resource "null_resource" "repair" {
       JSON_PARAMETERS = base64encode(jsonencode({}))
     }
 
-    command = "python -m az_run_shell_script -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${path.module}/scripts/repair_data_disk_permissions.ps1 -v ${data.azurerm_key_vault.enterprise_vault.name}"
+    command = "python -m az_run_shell_script -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${path.module}/scripts/prepare_data_disk.ps1 -v ${data.azurerm_key_vault.enterprise_vault.name}"
   }
 }

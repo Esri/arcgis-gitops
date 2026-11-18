@@ -13,29 +13,33 @@
 # limitations under the License.
 
 set -euo pipefail
-if (( $# < 2 || $# > 3 )); then
-    echo "Usage: $0 INSTANCE_ID REGION [initialize|startup]" >&2
+if (( $# < 2 || $# > 4 )); then
+    echo "Usage: $0 INSTANCE_ID REGION [initialize|prepare] [application|fileserver]" >&2
     exit 1
 fi
 instance_id=$1
 region=$2
-mode=${3:-initialize}
-case "$mode" in
-    initialize|startup) ;;
-    *) echo "Unsupported Windows data disk mode: $mode." >&2; exit 1 ;;
-esac
+stage=${3:-initialize}
+role=${4:-application}
 script_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")" && pwd)
-script="$script_dir/initialize_data_disk.ps1"
+case "$stage" in
+    initialize) script="$script_dir/initialize_data_disk.ps1" ;;
+    prepare) script="$script_dir/prepare_image_data_disk.ps1" ;;
+    *) echo "Unsupported image disk stage: $stage." >&2; exit 1 ;;
+esac
+case "$role" in
+    application|fileserver) ;;
+    *) echo "Unsupported image role: $role." >&2; exit 1 ;;
+esac
 volume_id=$(aws ec2 describe-instances --region "$region" --instance-ids "$instance_id" \
     --query "Reservations[0].Instances[0].BlockDeviceMappings[?DeviceName=='/dev/sdf'].Ebs.VolumeId | [0]" --output text)
 [[ "$volume_id" =~ ^vol-[0-9a-f]+$ ]] || { echo "Missing /dev/sdf EBS volume." >&2; exit 1; }
 parameters=$(mktemp)
 trap 'rm -f "$parameters"' EXIT
 encoded=$(iconv -f UTF-8 -t UTF-16LE "$script" | base64 -w0)
-if [[ "$mode" == startup ]]; then
-    arguments="-VolumeId '$volume_id' -InstallStartupTask"
-else
-    arguments="-VolumeId '$volume_id'"
+arguments="-VolumeId '$volume_id'"
+if [[ "$stage" == prepare && "$role" == application ]]; then
+    arguments+=" -ApplicationImage"
 fi
 command="\$ErrorActionPreference='Stop'; \$script=[Text.Encoding]::Unicode.GetString([Convert]::FromBase64String('$encoded')); [IO.File]::WriteAllText('C:\\Windows\\Temp\\arcgis-data-disk.ps1',\$script); & 'C:\\Windows\\Temp\\arcgis-data-disk.ps1' $arguments"
 jq -n --arg command "$command" '{commands:[$command], executionTimeout:["600"]}' > "$parameters"

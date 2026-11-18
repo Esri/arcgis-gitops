@@ -6,20 +6,19 @@ The Terraform module creates AWS resources for base ArcGIS Enterprise deployment
 
 The module launches two (or one, if "is_ha" input variable is set to false) SSM-managed ArcGIS EC2 instances and one dedicated Windows file-server EC2 instance. The file server is always owned by this base deployment, runs in the primary ArcGIS subnet, and uses its own security group. Base deployments cannot reference a file server from another deployment.
 
-Primary and standby EC2 instances are created after the fileserver module completes, including its DNS record and access rules. Module completion does not verify guest-level file-server disk or service readiness.
+Primary and standby EC2 instances are created after the fileserver module completes,
+including its DNS/access rules and successful C:/D: disk preparation. Disk
+readiness does not prove application-level SMB/service readiness.
 
 The EC2 instances are launched from images retrieved from "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/{instance role}" SSM parameters.
 The images must be created by the Packer Template for Base ArcGIS Enterprise on Windows.
 
-Primary and standby user data runs the shared
-[data-permissions repair](scripts/repair_data_disk_permissions.ps1). It resolves
-the current logon account of the `Portal for ArcGIS` Windows service, validates that
-D: is a writable non-OS NTFS disk, and grants the
-resolved SID Full Control on `D:\arcgisportal`, `D:\arcgisdatastore`, and all
-existing descendants, including protected child ACLs. Directory grants inherit
-to new entries. Existing owners, other ACL entries, and inheritance protection
-are preserved. No grants are made on D: itself or file-server shares, and no
-loopback registry settings are configured.
+Primary, optional standby, and the owned file server use the shared
+[Windows disk preparation module](../../modules/prepare_windows_disks/README.md).
+On every infrastructure apply, Terraform waits for SSM to verify and expand C:
+then D: on each instance. Data disks are identified by their actual `/dev/sdf`
+EBS volume IDs, not disk numbers. The file server is prepared inside its owning
+module before application instances are created; monitoring waits for all roles.
 
 For the EC2 instances the module creates "A" records in the VPC Route 53 private hosted zone
 to make the instances addressable using permanent DNS names.
@@ -106,6 +105,8 @@ The module writes the following SSM parameters:
 | dashboard | ../../modules/dashboard | n/a |
 | ec2_fileserver | ../../modules/ec2_fileserver | n/a |
 | enterprise_core_info | ../../modules/enterprise_core_info | n/a |
+| prepare_primary_disks | ../../modules/prepare_windows_disks | n/a |
+| prepare_standby_disks | ../../modules/prepare_windows_disks | n/a |
 | portal_https_alb_target | ../../modules/alb_target_group | n/a |
 | security_group | ../../modules/security_group | n/a |
 | server_https_alb_target | ../../modules/alb_target_group | n/a |

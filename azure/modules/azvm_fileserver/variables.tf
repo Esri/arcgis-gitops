@@ -27,6 +27,18 @@ variable "os_disk_size" {
   }
 }
 
+variable "os_disk_storage_account_type" {
+  description = "File-server OS disk storage account type"
+  type        = string
+  default     = "Premium_LRS"
+  nullable    = false
+
+  validation {
+    condition     = contains(["Standard_LRS", "StandardSSD_LRS", "Premium_LRS"], var.os_disk_storage_account_type)
+    error_message = "OS disk storage account type must be Standard_LRS, StandardSSD_LRS, or Premium_LRS."
+  }
+}
+
 variable "deployment_id" {
   description = "ArcGIS deployment ID"
   type        = string

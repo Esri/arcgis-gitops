@@ -20,6 +20,10 @@ images.
 |------|---------|
 | azapi | ~> 2.6 |
 
+## Modules
+
+None.
+
 ## Resources
 
 | Name | Type |
@@ -36,22 +40,25 @@ images.
 
 The `settings` object has these fields:
 
-| Field | Description | Type | Required |
-|-------|-------------|------|:--------:|
-| name | VM resource name and guest computer name | `string` | yes |
-| resource_group_id | Resource ID of the existing resource group | `string` | yes |
-| location | Azure region | `string` | yes |
-| size | Azure VM size | `string` | yes |
-| image_id | Azure Compute Gallery image version resource ID | `string` | yes |
-| nic_id | Existing network interface resource ID | `string` | yes |
-| identity_id | Existing user-assigned managed identity resource ID | `string` | yes |
-| scale_set_id | Existing VM scale set resource ID | `string` | yes |
-| os_disk_size | OS disk capacity in GiB, at least the image OS disk size | `number` | yes |
-| data_disk_size | Data disk capacity in GiB, at least the image data LUN 0 size | `number` | yes |
-| windows | Whether the VM runs Windows rather than Linux | `bool` | yes |
-| admin_username | Guest administrator account name | `string` | yes |
-| public_key | Linux public SSH key; defaults to null and disables password authentication when provided | `string` | no |
-| tags | Tags applied to the VM resource | `map(string)` | yes |
+| Field | Description | Type | Default | Required |
+|-------|-------------|------|---------|:--------:|
+| name | VM resource name and guest computer name | `string` | n/a | yes |
+| resource_group_id | Resource ID of the existing resource group | `string` | n/a | yes |
+| location | Azure region | `string` | n/a | yes |
+| zone | Availability zone supported by the region, VM size, and scale set | `string` | n/a | yes |
+| size | Azure VM size | `string` | n/a | yes |
+| image_id | Azure Compute Gallery image version resource ID | `string` | n/a | yes |
+| nic_id | Existing network interface resource ID | `string` | n/a | yes |
+| identity_id | Existing user-assigned managed identity resource ID | `string` | n/a | yes |
+| scale_set_id | Existing VM scale set resource ID | `string` | n/a | yes |
+| os_disk_size | OS disk capacity in GiB, at least the image OS disk size | `number` | n/a | yes |
+| data_disk_size | Data disk capacity in GiB, at least the image data LUN 0 size | `number` | n/a | yes |
+| os_disk_storage_account_type | OS disk tier | `string` | `"Premium_LRS"` | no |
+| data_disk_storage_account_type | Data disk tier | `string` | `"Premium_LRS"` | no |
+| windows | Whether the VM runs Windows rather than Linux | `bool` | n/a | yes |
+| admin_username | Guest administrator account name | `string` | n/a | yes |
+| public_key | Linux public SSH key; disables password authentication when provided | `string` | `null` | no |
+| tags | Tags applied to the VM resource | `map(string)` | n/a | yes |
 
 ## Outputs
 

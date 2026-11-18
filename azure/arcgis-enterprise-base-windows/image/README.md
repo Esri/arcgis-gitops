@@ -13,13 +13,13 @@ Then the template uses python scripts to run Azure Managed Run Command on the so
 3. Download setups from the private "repository" blob container in Azure storage account.
 4. Install base ArcGIS Enterprise applications
 5. Install patches for the base ArcGIS Enterprise applications
-6. Delete unused files, uninstall Cinc Client, run sysprep
+6. Grant Users group Full Control on D: drive and every existing descendant
+7. Delete unused files, uninstall Cinc Client, run sysprep
 
 IDs of the ArcGIS images are saved in "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-standby" Key Vault secrets. A separate Packer build creates a generalized file-server gallery image version from the same base Windows OS image without installing the ArcGIS application stack. Its built image version ID is saved in "${var.deployment_id}-vm-image-fileserver" after the build succeeds.
 
 The file-server image installs Azure CLI using the same user-data script and `azure_cli_url` as the ArcGIS image. Before Sysprep, the build refreshes PATH, verifies that `az` resolves, and runs `az version`; a missing or nonfunctional CLI fails the build before image publication. Azure CLI is required for application bootstrap to authenticate using the VM's managed identity.
 
-For deployments using a file-server image built without Azure CLI, rerun the image workflow and recreate the failed file-server VM through the approved deployment workflow using the new image version. Existing images and VMs are not updated by this template change. For rollback, use a previously verified file-server gallery image version.
 
 ## Requirements
 

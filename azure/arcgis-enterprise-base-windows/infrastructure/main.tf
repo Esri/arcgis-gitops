@@ -173,6 +173,7 @@ module "azvm_fileserver" {
   data_disk_iops                 = var.fileserver_data_disk_iops
   data_disk_throughput_mbps      = var.fileserver_data_disk_throughput
   os_disk_size                   = var.os_disk_size
+  os_disk_storage_account_type   = var.os_disk_storage_account_type
 }
 
 module "vms" {
@@ -180,18 +181,21 @@ module "vms" {
   source         = "../../modules/base_vm"
   admin_password = var.vm_admin_password
   settings = {
-    name              = local.vm_roles[count.index]
-    resource_group_id = azurerm_resource_group.deployment_rg.id
-    location          = azurerm_resource_group.deployment_rg.location
-    scale_set_id      = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
-    size              = var.vm_size
-    admin_username    = var.vm_admin_username
-    windows           = true
-    image_id          = data.azurerm_key_vault_secret.vm_image_ids[count.index].value
-    nic_id            = azurerm_network_interface.nics[count.index].id
-    os_disk_size      = var.os_disk_size
-    data_disk_size    = var.data_disk_size
-    identity_id       = data.azurerm_key_vault_secret.vm_identity_id.value
+    name                           = local.vm_roles[count.index]
+    zone                           = local.zones[count.index]
+    resource_group_id              = azurerm_resource_group.deployment_rg.id
+    location                       = azurerm_resource_group.deployment_rg.location
+    scale_set_id                   = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+    size                           = var.vm_size
+    admin_username                 = var.vm_admin_username
+    windows                        = true
+    image_id                       = data.azurerm_key_vault_secret.vm_image_ids[count.index].value
+    nic_id                         = azurerm_network_interface.nics[count.index].id
+    os_disk_size                   = var.os_disk_size
+    data_disk_size                 = var.data_disk_size
+    os_disk_storage_account_type   = var.os_disk_storage_account_type
+    data_disk_storage_account_type = var.data_disk_storage_account_type
+    identity_id                    = data.azurerm_key_vault_secret.vm_identity_id.value
     tags = {
       ArcGISEnterpriseID = var.enterprise_id
       ArcGISDeploymentID = var.deployment_id
@@ -526,15 +530,28 @@ resource "azurerm_role_assignment" "servicebus_vm_identity" {
   skip_service_principal_aad_check = true
 }
 
-module "repair_data_disk_permissions" {
+module "prepare_os_disk" {
+  source        = "../../modules/prepare_os_disk"
+  enterprise_id = var.enterprise_id
+  deployment_id = var.deployment_id
+  machine_roles = concat(local.vm_roles, ["fileserver"])
+  os_disk_size  = var.os_disk_size
+
+  depends_on = [
+    module.vms,
+    module.azvm_fileserver
+  ]
+}
+
+module "prepare_data_disk" {
   count         = length(local.vm_roles)
-  source        = "../../modules/repair_data_disk_permissions"
+  source        = "../../modules/prepare_data_disk"
   enterprise_id = var.enterprise_id
   deployment_id = var.deployment_id
   machine_roles = [local.vm_roles[count.index]]
 
   depends_on = [
-    module.vms
+    module.prepare_os_disk
   ]
 }
 

@@ -17,6 +17,30 @@ variable "azure_region" {
   type        = string
 }
 
+variable "os_disk_storage_account_type" {
+  description = "Primary and worker node OS disk storage account type"
+  type        = string
+  default     = "Premium_LRS"
+  nullable    = false
+
+  validation {
+    condition     = contains(["Standard_LRS", "StandardSSD_LRS", "Premium_LRS"], var.os_disk_storage_account_type)
+    error_message = "OS disk storage account type must be Standard_LRS, StandardSSD_LRS, or Premium_LRS."
+  }
+}
+
+variable "data_disk_storage_account_type" {
+  description = "Primary and worker node data disk storage account type"
+  type        = string
+  default     = "Premium_LRS"
+  nullable    = false
+
+  validation {
+    condition     = contains(["Standard_LRS", "StandardSSD_LRS", "Premium_LRS"], var.data_disk_storage_account_type)
+    error_message = "Data disk storage account type must be Standard_LRS, StandardSSD_LRS, or Premium_LRS."
+  }
+}
+
 variable "data_disk_size" {
   description = "Per-VM /opt data disk capacity in GiB; must be at least the image data disk size"
   type        = number

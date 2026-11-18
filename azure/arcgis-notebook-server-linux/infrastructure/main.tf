@@ -181,24 +181,26 @@ resource "azurerm_orchestrated_virtual_machine_scale_set" "vmss" {
   }
 }
 
-# Create the primary VM as part of the scale set to ensure it is distributed in a different zone than the node VMs.
 module "primary" {
   source         = "../../modules/base_vm"
   admin_password = var.vm_admin_password
   settings = {
-    name              = "primary"
-    resource_group_id = azurerm_resource_group.deployment_rg.id
-    location          = azurerm_resource_group.deployment_rg.location
-    scale_set_id      = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
-    size              = var.vm_size
-    admin_username    = var.vm_admin_username
-    public_key        = var.vm_admin_public_ssh_key_path == null ? null : file(var.vm_admin_public_ssh_key_path)
-    windows           = false
-    image_id          = data.azurerm_key_vault_secret.primary_vm_image_id.value
-    nic_id            = azurerm_network_interface.primary.id
-    os_disk_size      = var.os_disk_size
-    data_disk_size    = var.data_disk_size
-    identity_id       = data.azurerm_key_vault_secret.vm_identity_id.value
+    name                           = "primary"
+    zone                           = "1"
+    resource_group_id              = azurerm_resource_group.deployment_rg.id
+    location                       = azurerm_resource_group.deployment_rg.location
+    scale_set_id                   = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+    size                           = var.vm_size
+    admin_username                 = var.vm_admin_username
+    public_key                     = var.vm_admin_public_ssh_key_path == null ? null : file(var.vm_admin_public_ssh_key_path)
+    windows                        = false
+    image_id                       = data.azurerm_key_vault_secret.primary_vm_image_id.value
+    nic_id                         = azurerm_network_interface.primary.id
+    os_disk_size                   = var.os_disk_size
+    data_disk_size                 = var.data_disk_size
+    os_disk_storage_account_type   = var.os_disk_storage_account_type
+    data_disk_storage_account_type = var.data_disk_storage_account_type
+    identity_id                    = data.azurerm_key_vault_secret.vm_identity_id.value
     tags = {
       ArcGISEnterpriseID = var.enterprise_id
       ArcGISDeploymentID = var.deployment_id
@@ -207,25 +209,27 @@ module "primary" {
   }
 }
 
-# Create node VMs in a scale set to ensure they are automatically distributed across availability zones.
 module "nodes" {
   count          = var.node_count
   source         = "../../modules/base_vm"
   admin_password = var.vm_admin_password
   settings = {
-    name              = "node-${count.index + 1}"
-    resource_group_id = azurerm_resource_group.deployment_rg.id
-    location          = azurerm_resource_group.deployment_rg.location
-    scale_set_id      = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
-    size              = var.vm_size
-    admin_username    = var.vm_admin_username
-    public_key        = var.vm_admin_public_ssh_key_path == null ? null : file(var.vm_admin_public_ssh_key_path)
-    windows           = false
-    image_id          = data.azurerm_key_vault_secret.node_vm_image_id.value
-    nic_id            = azurerm_network_interface.nodes[count.index].id
-    os_disk_size      = var.os_disk_size
-    data_disk_size    = var.data_disk_size
-    identity_id       = data.azurerm_key_vault_secret.vm_identity_id.value
+    name                           = "node-${count.index + 1}"
+    zone                           = local.zones[(count.index + 1) % length(local.zones)]
+    resource_group_id              = azurerm_resource_group.deployment_rg.id
+    location                       = azurerm_resource_group.deployment_rg.location
+    scale_set_id                   = azurerm_orchestrated_virtual_machine_scale_set.vmss.id
+    size                           = var.vm_size
+    admin_username                 = var.vm_admin_username
+    public_key                     = var.vm_admin_public_ssh_key_path == null ? null : file(var.vm_admin_public_ssh_key_path)
+    windows                        = false
+    image_id                       = data.azurerm_key_vault_secret.node_vm_image_id.value
+    nic_id                         = azurerm_network_interface.nodes[count.index].id
+    os_disk_size                   = var.os_disk_size
+    data_disk_size                 = var.data_disk_size
+    os_disk_storage_account_type   = var.os_disk_storage_account_type
+    data_disk_storage_account_type = var.data_disk_storage_account_type
+    identity_id                    = data.azurerm_key_vault_secret.vm_identity_id.value
     tags = {
       ArcGISEnterpriseID = var.enterprise_id
       ArcGISDeploymentID = var.deployment_id

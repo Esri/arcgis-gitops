@@ -13,5 +13,6 @@ A Terraform module can call other modules to include their resources into the co
 * [enterprise_core_info](enterprise_core_info/README.md) - retrieves names and Ids of core Azure resources from the enterprise Key Vault
 * [loopback_alias](loopback_alias/README.md) - adds the specified hostname to BackConnectionHostNames registry key on the deployment VMs
 * [lv_extend](lv_extend/README.md) - extends logical volumes on Azure VMs in a deployment
-* [repair_data_disk_permissions](repair_data_disk_permissions/README.md) - grants the Portal service account Full Control on Windows Portal and Data Store data directories
+* [prepare_data_disk](prepare_data_disk/README.md) - prepares and expands the existing Windows data partition and verifies image-time Users permissions
+* [prepare_os_disk](prepare_os_disk/README.md) - safely expands the existing Windows C: partition and verifies configured OS disk capacity
 * [run_chef](run_chef/README.md) - runs Cinc Client in local mode on the deployment VMs

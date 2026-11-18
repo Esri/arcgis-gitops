@@ -7,6 +7,7 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 ## Features
 
 - Launches one or two Linux VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
+- Pins the primary VM to availability zone "1" and, when `is_ha` is true, the standby VM to zone "2".
 - VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-standby".
   These images must be built using the Packer template for ArcGIS Enterprise on Linux.
   > Note: VMs will be replaced if the module is re-applied after updating Key Vault secrets with new image builds.
@@ -163,7 +164,9 @@ model or `azurerm_storage_share.fileserver` for V1.
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | is_ha | If true, the deployment is in high availability mode | `bool` | `true` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
+| os_disk_storage_account_type | Primary/standby OS disk tier: Standard_LRS, StandardSSD_LRS, or Premium_LRS | `string` | `"Premium_LRS"` | no |
 | data_disk_size | Primary/standby data capacity in GiB; at least the image size | `number` | `1024` | no |
+| data_disk_storage_account_type | Primary/standby data disk tier: Standard_LRS, StandardSSD_LRS, or Premium_LRS | `string` | `"Premium_LRS"` | no |
 | storage_replication_type | The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage). | `string` | `"ZRS"` | no |
 | subnet_id | VMs subnet ID (by default, the first private subnet is used) | `string` | `null` | no |
 | vm_admin_password | VM administrator password | `string` | `null` | no |

@@ -56,6 +56,30 @@ variable "is_ha" {
   default     = true
 }
 
+variable "os_disk_storage_account_type" {
+  description = "OS disk storage account type for primary, standby, and dedicated Windows file-server VMs"
+  type        = string
+  default     = "Premium_LRS"
+  nullable    = false
+
+  validation {
+    condition     = contains(["Standard_LRS", "StandardSSD_LRS", "Premium_LRS"], var.os_disk_storage_account_type)
+    error_message = "OS disk storage account type must be Standard_LRS, StandardSSD_LRS, or Premium_LRS."
+  }
+}
+
+variable "data_disk_storage_account_type" {
+  description = "Primary and standby data disk storage account type"
+  type        = string
+  default     = "Premium_LRS"
+  nullable    = false
+
+  validation {
+    condition     = contains(["Standard_LRS", "StandardSSD_LRS", "Premium_LRS"], var.data_disk_storage_account_type)
+    error_message = "Data disk storage account type must be Standard_LRS, StandardSSD_LRS, or Premium_LRS."
+  }
+}
+
 variable "os_disk_size" {
   description = "OS disk size in GB"
   type        = number

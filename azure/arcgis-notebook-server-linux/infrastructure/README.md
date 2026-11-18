@@ -6,10 +6,13 @@ The Terraform module provisions Azure resources for ArcGIS Notebook Server deplo
 
 The module creates network interfaces in the first private subnet or the subnet specified by subnet_id input variable and
 launches one primary and N node VMs (configurable via node_count) in a Virtual Machine Scale Set (VMSS) across two different zones of the specified Azure region.
+The primary VM is pinned to zone "1". Node VMs alternate between zones "2" and
+"1", starting with the first node in zone "2"; the primary and nodes together
+are distributed as evenly as possible across the two zones.
 The VMs are launched from images retrieved from "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-node" secrets of the enterprise's Key Vault.
 The images must be created by the Packer Template for ArcGIS Notebook Server on Linux.
 
-Each VM is created through the shared `base_vm` module with its own Premium SSD
+Each VM is created through the shared `base_vm` module with its own configurable
 managed data disk restored from gallery image LUN 0 (`FromImage`), not a blank
 replacement disk. The disk contains `/opt`, including Notebook Server and
 `/opt/docker`. `data_disk_size` defaults to 256 GiB and must be at least the
@@ -155,6 +158,7 @@ The following table lists resources and data sources declared in this root modul
 |------|-------------|------|---------|:--------:|
 | azure_region | Azure region display name | `string` | n/a | yes |
 | data_disk_size | Per-VM /opt data disk capacity in GiB; must be at least the image data disk size | `number` | `256` | no |
+| data_disk_storage_account_type | Primary/worker data disk storage account type | `string` | `"Premium_LRS"` | no |
 | deployment_id | ArcGIS Notebook Server deployment ID | `string` | `"notebook-server-linux"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_billing_model_version | Azure Files provisioning model. V2 is for new deployments; existing deployments must explicitly retain V1 to avoid storage replacement. | `string` | `"V2"` | no |
@@ -165,6 +169,7 @@ The following table lists resources and data sources declared in this root modul
 | ingress_id | ArcGIS Enterprise ingress ID | `string` | `"enterprise-ingress"` | no |
 | node_count | Number of node VMs (excluding the primary VM) | `number` | `1` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
+| os_disk_storage_account_type | Primary/worker OS disk storage account type | `string` | `"Premium_LRS"` | no |
 | portal_deployment_id | Portal for ArcGIS deployment ID | `string` | `"enterprise-base-windows"` | no |
 | storage_replication_type | The replication type of the storage accounts. Possible values are: LRS (Locally-redundant storage), ZRS (Zone-redundant storage) . | `string` | `"ZRS"` | no |
 | subnet_id | VMs subnet ID (by default, the first private subnet is used) | `string` | `null` | no |

@@ -220,52 +220,16 @@ resource "aws_instance" "fileserver" {
   }
 }
 
-resource "terraform_data" "data_disk_readiness" {
-  count = local.create_fileserver ? 1 : 0
-  triggers_replace = {
-    instance_id   = local.instance_id
-    volume_id     = local.data_volume_id
-    capacity_gib  = var.data_volume_size
-    script_sha256 = filesha256("${path.module}/scripts/grow_data_partition.ps1")
-  }
-}
-
-resource "aws_ssm_association" "grow_data_partition" {
-  count                            = local.create_fileserver ? 1 : 0
-  name                             = "AWS-RunPowerShellScript"
-  association_name                 = "${var.enterprise_id}-${var.deployment_id}-fileserver-data-disk"
-  wait_for_success_timeout_seconds = 1200
-
-  targets {
-    key    = "InstanceIds"
-    values = [local.instance_id]
-  }
-
-  parameters = {
-    executionTimeout = "600"
-    commands         = <<-POWERSHELL
-      $ErrorActionPreference = 'Stop'
-      try {
-        & {
-      ${file("${path.module}/scripts/grow_data_partition.ps1")}
-        } -VolumeId '${local.data_volume_id}' -ExpectedSizeGiB ${var.data_volume_size}
-        exit 0
-      } catch {
-        [Console]::Error.WriteLine($_.ToString())
-        exit 1
-      }
-    POWERSHELL
-  }
-
-  lifecycle {
-    replace_triggered_by = [terraform_data.data_disk_readiness[count.index]]
-  }
-
-  tags = {
-    ArcGISAutomation   = "arcgis-gitops"
-    ArcGISEnterpriseID = var.enterprise_id
-    ArcGISDeploymentID = var.deployment_id
-  }
+module "prepare_disks" {
+  count          = local.create_fileserver ? 1 : 0
+  source         = "../prepare_windows_disks"
+  enterprise_id  = var.enterprise_id
+  deployment_id  = var.deployment_id
+  machine_role   = "fileserver"
+  instance_id    = local.instance_id
+  data_volume_id = local.data_volume_id
+  os_disk_size   = var.os_disk_size
+  data_disk_size = var.data_volume_size
 }
 
 removed {
@@ -299,7 +263,7 @@ resource "aws_ssm_parameter" "security_group_id" {
   type        = "String"
   value       = aws_security_group.fileserver[0].id
   description = "Dedicated Windows file-server security group ID"
-  depends_on  = [aws_ssm_association.grow_data_partition]
+  depends_on  = [module.prepare_disks]
 }
 
 resource "aws_ssm_parameter" "private_dns" {
@@ -308,7 +272,7 @@ resource "aws_ssm_parameter" "private_dns" {
   type        = "String"
   value       = local.private_dns
   description = "Private DNS name of the dedicated Windows file-server VM"
-  depends_on  = [aws_ssm_association.grow_data_partition]
+  depends_on  = [module.prepare_disks]
 }
 
 resource "aws_ssm_parameter" "instance_id" {
@@ -317,7 +281,7 @@ resource "aws_ssm_parameter" "instance_id" {
   type        = "String"
   value       = aws_instance.fileserver[0].id
   description = "Dedicated Windows file-server EC2 instance ID"
-  depends_on  = [aws_ssm_association.grow_data_partition]
+  depends_on  = [module.prepare_disks]
 }
 
 resource "aws_ssm_parameter" "instance_arn" {
@@ -326,7 +290,7 @@ resource "aws_ssm_parameter" "instance_arn" {
   type        = "String"
   value       = aws_instance.fileserver[0].arn
   description = "Dedicated Windows file-server EC2 instance ARN"
-  depends_on  = [aws_ssm_association.grow_data_partition]
+  depends_on  = [module.prepare_disks]
 }
 
 moved {

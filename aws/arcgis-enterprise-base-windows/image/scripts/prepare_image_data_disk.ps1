@@ -127,7 +127,5 @@ foreach ($item in $items) {
         $_.PropagationFlags -eq [Security.AccessControl.PropagationFlags]::None
     }).Count -eq 0) { throw "Users Full Control grant verification failed on $($item.FullName)." }
 }
-# if ($ApplicationImage) {
-#     foreach ($name in 'Portal for ArcGIS', 'ArcGIS Data Store') { Set-Service -Name $name -StartupType Manual }
-# }
+
 Write-Output "Granted Users ($($sid.Value)) Full Control on $($items.Count) D: entries; existing owners and other ACL entries were preserved."

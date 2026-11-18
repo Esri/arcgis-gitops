@@ -125,7 +125,5 @@ foreach ($item in $items) {
     })
     if ($allow.Count -eq 0) { throw "Users Full Control grant verification failed on $($item.FullName)." }
 }
-# foreach ($service in 'Portal for ArcGIS', 'ArcGIS Data Store') {
-#     Set-Service -Name $service -StartupType Manual
-# }
+
 Write-Output "Granted Users ($($sid.Value)) Full Control on $($items.Count) D: entries; existing owners and other ACL entries were preserved. Portal/Data Store startup is Manual."

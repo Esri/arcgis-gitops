@@ -76,6 +76,31 @@ function Get-VolumeTarget($Volume) {
     $target
 }
 
+function Assert-IndependentDiskBinding($Disk, $Partition, $IdentityPath, $Binding) {
+    $currentDisk = Get-TargetDisk
+    $current = Get-DriveInventory
+    $mappedPartitions = @($current.Partitions | Where-Object { $_.DriveLetter -eq 'D' })
+    $mappedVolumes = @($current.Volumes | Where-Object { $_.DriveLetter -eq 'D' })
+    if ($currentDisk.Number -ne $Disk.Number -or $currentDisk.UniqueId -ne $Disk.UniqueId -or
+        $currentDisk.IsOffline -or
+        $mappedPartitions.Count -ne 1 -or $mappedPartitions[0].DiskNumber -ne $Disk.Number -or
+        $mappedPartitions[0].PartitionNumber -ne $Partition.PartitionNumber -or
+        $mappedVolumes.Count -ne 1 -or $mappedVolumes[0].FileSystemType -ne 'NTFS' -or
+        [ArcGISDrivePaths]::GetTarget('D:') -ne (Get-VolumeTarget $mappedVolumes[0]) -or
+        ($current.OpticalDrives | Where-Object { $_.Drive -eq 'D:' }) -or
+        ($current.LogicalDisks | Where-Object { $_.DeviceID -eq 'D:' -and $_.DriveType -ne 3 }) -or
+        ($current.PSDrives | Where-Object { $_.Name -eq 'D' -and ($_.Root -ne 'D:\' -or $_.DisplayRoot) })) {
+        throw 'D: verification failed before checking the file-server disk binding.'
+    }
+    Assert-ArcGISIdentityParent $IdentityPath
+    Assert-ArcGISIdentityPath $IdentityPath
+    $marker = Join-Path $IdentityPath 'independent-disk.txt'
+    Assert-ArcGISIdentityPath $marker
+    if ((Get-Content -LiteralPath $marker -Raw) -cne $Binding) {
+        throw 'Initialized file-server disk does not match this Azure VM and image. Use an approved recovery.'
+    }
+}
+
 $disk = Get-TargetDisk
 if ([string]::IsNullOrWhiteSpace($disk.UniqueId)) { throw 'LUN 0 disk identity is missing.' }
 $freshDisk = $disk.PartitionStyle -eq 'RAW'
@@ -102,15 +127,6 @@ if ($IndependentFileServer) {
         throw 'Expected an independent Azure file-server image with no baked service account.'
     }
     $independentBinding = "$($record.lineage)|$(Get-ArcGISAzureVmId)|$($disk.UniqueId)"
-    if (-not $freshDisk) {
-        Assert-ArcGISIdentityParent $identityPaths.data
-        Assert-ArcGISIdentityPath $identityPaths.data
-        $marker = Join-Path $identityPaths.data 'independent-disk.txt'
-        Assert-ArcGISIdentityPath $marker
-        if ((Get-Content -LiteralPath $marker -Raw) -cne $independentBinding) {
-            throw 'Initialized file-server disk does not match this Azure VM and image. Use an approved recovery.'
-        }
-    }
 }
 if (-not ('ArcGISDrivePaths' -as [type])) {
 Add-Type -TypeDefinition @'
@@ -151,7 +167,8 @@ if ($partitions.Count -eq 1) {
     }
     $existingVolumes = @($partitions[0] | Get-Volume)
     if ($existingVolumes.Count -ne 1 -or $existingVolumes[0].FileSystemType -notin @('NTFS', 'RAW', 'Unknown') -or
-        ($RequireExisting -and $existingVolumes[0].FileSystemType -ne 'NTFS')) {
+        (($RequireExisting -or ($IndependentFileServer -and -not $freshDisk)) -and
+            $existingVolumes[0].FileSystemType -ne 'NTFS')) {
         throw 'Existing LUN 0 volume is missing or uses an unsupported filesystem; refusing to format it.'
     }
 }
@@ -222,16 +239,26 @@ if ($movePartition -or $moveOptical) {
     }
 }
 
-if ($disk.IsReadOnly) { Set-Disk -Number $disk.Number -IsReadOnly $false }
-if ($disk.PartitionStyle -eq 'RAW') { Initialize-Disk -Number $disk.Number -PartitionStyle GPT | Out-Null }
-if ($partitions.Count -eq 0) {
-    $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D
-} else {
+if ($disk.IsReadOnly -and (-not $IndependentFileServer -or $freshDisk)) {
+    Set-Disk -Number $disk.Number -IsReadOnly $false
+}
+if ($partitions.Count -eq 1) {
     $partition = $partitions[0]
     if ($partition.DriveLetter -ne 'D') {
         Set-Partition -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber -NewDriveLetter D
     }
     $partition = Get-Partition -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber
+    if ($IndependentFileServer -and -not $freshDisk) {
+        Assert-IndependentDiskBinding $disk $partitions[0] $identityPaths.data $independentBinding
+    }
+}
+
+if ($disk.IsReadOnly -and $IndependentFileServer -and -not $freshDisk) {
+    Set-Disk -Number $disk.Number -IsReadOnly $false
+}
+if ($disk.PartitionStyle -eq 'RAW') { Initialize-Disk -Number $disk.Number -PartitionStyle GPT | Out-Null }
+if ($partitions.Count -eq 0) {
+    $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D
 }
 if (@($partition).Count -ne 1 -or $partition.DiskNumber -ne $disk.Number -or $partition.DriveLetter -ne 'D') {
     throw 'Partition assignment did not return the intended D: partition; refusing to format it.'

@@ -94,6 +94,13 @@ An offline target disk is brought online to inspect its existing partitions.
 If a later safety check fails, it may remain online, but no partition is created
 or formatted before the disk layout and D: occupant have been checked.
 
+For an initialized independent file-server disk, the script first relocates any
+recognized D: occupant and assigns D: to the identified LUN 0 partition. It
+then verifies the disk, partition, NTFS volume, and native D: mapping before
+checking the protected disk binding. A missing, untrusted, or mismatched binding
+stops initialization before disk data or ACL changes; drive-letter relocation
+and bringing an offline disk online may already have occurred.
+
 Only a new RAW disk or a recognized RAW/Unknown volume is formatted. Existing
 NTFS data is preserved on reruns; unsupported filesystems and missing volumes
 fail explicitly. Before success, the script rechecks the disk identity, D:

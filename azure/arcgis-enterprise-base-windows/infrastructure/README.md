@@ -6,7 +6,7 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 
 ## Features
 
-- Launches one or two VMs (based on the "is_ha" variable) in the first private VNet subnet or a specified subnet.
+- Launches a primary VM and a dedicated file-server VM in the first private VNet subnet or a specified subnet. When `is_ha` is true, it also launches a standby VM in the same subnet.
 - Pins the primary and dedicated file-server VMs to availability zone "1" and, when `is_ha` is true, the standby VM to zone "2". The file-server data disk is also in zone "1".
 - VM images are retrieved from Key Vault secrets named "${var.deployment_id}-vm-image-${vm_role}".
   These images must be built using the Packer template for ArcGIS Enterprise on Windows.
@@ -23,7 +23,7 @@ This Terraform module provisions Azure resources required for a base ArcGIS Ente
 - Always creates a dedicated Windows file-server VM in the primary subnet, inheriting the same subnet NSG as the primary and standby VMs without a dedicated NSG or NIC-level NSG association. Includes a configurable OS disk (Premium SSD by default) sized by `os_disk_size` (256 GiB by default), configurable `D:` data disk, private DNS record, and Key Vault metadata. Base deployments cannot reference another deployment's file server.
 - Protects the dedicated file-server VM and its OS/data disks with a daily Azure Backup policy in a deployment Recovery Services vault.
 - Expands C: into available OS disk capacity on primary, standby (when enabled), and the dedicated file server on every apply. Verifies both partition and NTFS volume sizes; fails before resizing if another partition blocks unused capacity.
-- Prepares primary/standby D: disks, expands image partitions to the deployed disk capacity, and verifies the image-time Users root grant without changing ACLs or controlling services.
+- Prepares primary/standby D: disks and expands the existing partitions to use the available disk capacity. Verifies the image-time Users grant on `D:\data` without reapplying it. After validating the disk and image identities, it replaces references to the original local service-account SID in owners and DACL entries with the deployed account's SID. It does not change service startup.
 - Tags all resources with ArcGISEnterpriseID and ArcGISDeploymentID for easy identification.
 
 ## Requirements
@@ -53,6 +53,7 @@ On the machine where Terraform is executed:
 | storage-account-key                     | Storage account key |
 | storage-account-name                    | Storage account name |
 | subnets                                 | VNet subnet IDs |
+| vm-identity-client-id                   | Client ID of the user-assigned VM identity used to upload Run Command logs |
 | vm-identity-id                          | User-assigned VM identity resource ID |
 | vm-identity-principal-id                | User-assigned VM identity principal ID |
 | vnet-id                                 | VNet ID |
@@ -146,8 +147,28 @@ The following table lists resources and data sources declared in this root modul
 The `vms` module creates primary and standby VMs through `azapi_resource.vm` in
 the shared [base_vm module](../../modules/base_vm/main.tf). The
 [azvm_fileserver module](../../modules/azvm_fileserver/main.tf) manages the
-dedicated file-server VM, NIC, data disk, disk attachment, initialization
-extension, private DNS record, and file-server Key Vault metadata.
+dedicated file-server VM, NIC, data disk, disk attachment, disk initialization
+command, private DNS record, and file-server Key Vault metadata.
+
+### Windows provisioning logs
+
+Apply and CI logs label stdout and stderr separately for OS preparation, data
+preparation, and owned file-server initialization. Managed Run Command publishes
+both streams to the private enterprise `logs` container. The runner tails the
+blobs as bytes become visible and drains them at completion, including after a
+guest failure. The runner needs blob read access; the VM's managed identity
+needs write access. Output is not a Terraform state output. The blob retention
+policy controls how long the remote log remains available.
+
+For an in-place migration from the former file-server initialization extension,
+verify that the file-server image includes identity support and that the
+initialized data disk has a marker matching the image, VM, and disk. The new
+command refuses to initialize an existing disk without a valid marker. If
+either prerequisite is missing, stop and use an approved migration procedure.
+Review the plan to confirm that the extension is removed and the command runner
+is created without replacing the file-server VM or disk. Before retrying or
+reverting, confirm that no initialization command is still running. Preserve
+the existing disk and identity markers.
 
 ## Inputs
 

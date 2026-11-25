@@ -162,36 +162,27 @@ resource "azurerm_virtual_machine_data_disk_attachment" "data" {
   caching            = contains(["PremiumV2_LRS", "UltraSSD_LRS"], var.data_disk_storage_account_type) ? "None" : "ReadWrite"
 }
 
-resource "azurerm_virtual_machine_extension" "initialize_data_disk" {
-  count                = local.create_fileserver ? 1 : 0
-  name                 = "initialize-fileserver-data-disk"
-  virtual_machine_id   = azurerm_windows_virtual_machine.fileserver[0].id
-  publisher            = "Microsoft.Compute"
-  type                 = "CustomScriptExtension"
-  type_handler_version = "1.10"
+resource "terraform_data" "initialize_data_disk" {
+  count = local.create_fileserver ? 1 : 0
 
-  tags = {
-    ArcGISEnterpriseID = var.enterprise_id
-    ArcGISDeploymentID = var.deployment_id
-  }
+  triggers_replace = [
+    azurerm_windows_virtual_machine.fileserver[0].id,
+    azurerm_virtual_machine_data_disk_attachment.data[0].id,
+    sha256(file("${path.module}/scripts/initialize_data_disk.ps1")),
+  ]
 
-  settings = jsonencode({
-    # Compress the embedded script to stay below cmd.exe's 8191-character limit.
-    commandToExecute = join(" ", [
-      "powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -Command \"& {",
-      "$ErrorActionPreference = 'Stop'; try {",
-      "$bytes = [Convert]::FromBase64String('${base64gzip(file("${path.module}/scripts/initialize_data_disk.ps1"))}');",
-      "$stream = [IO.MemoryStream]::new($bytes);",
-      "$gzip = [IO.Compression.GzipStream]::new($stream, [IO.Compression.CompressionMode]::Decompress);",
-      "$reader = [IO.StreamReader]::new($gzip);",
-      "& ([scriptblock]::Create($reader.ReadToEnd())); exit 0",
-      "} catch { [Console]::Error.WriteLine($_.ToString()); [Console]::Error.WriteLine($_.ScriptStackTrace); exit 1 }",
-      "finally { if ($reader) { $reader.Dispose() }; if ($gzip) { $gzip.Dispose() }; if ($stream) { $stream.Dispose() } }",
-      "}\""
+  provisioner "local-exec" {
+    environment = {
+      JSON_PARAMETERS = base64encode("{}")
+    }
+
+    command = join(" ", [
+      "python -u -m az_run_shell_script --stream-output --independent-fileserver",
+      "-s ${var.enterprise_id} -d ${var.deployment_id} -m fileserver",
+      "--vm-resource-id \"${azurerm_windows_virtual_machine.fileserver[0].id}\"",
+      "-f \"${path.module}/scripts/initialize_data_disk.ps1\" -v ${basename(var.vault_id)}"
     ])
-  })
-
-  depends_on = [azurerm_virtual_machine_data_disk_attachment.data]
+  }
 }
 
 resource "azurerm_private_dns_a_record" "fileserver" {
@@ -201,6 +192,7 @@ resource "azurerm_private_dns_a_record" "fileserver" {
   resource_group_name = "${var.enterprise_id}-infrastructure-core"
   ttl                 = 300
   records             = [azurerm_windows_virtual_machine.fileserver[0].private_ip_address]
+  depends_on          = [terraform_data.initialize_data_disk]
 }
 
 resource "azurerm_key_vault_secret" "private_dns" {
@@ -208,6 +200,7 @@ resource "azurerm_key_vault_secret" "private_dns" {
   name         = "${var.deployment_id}-fileserver-private-dns"
   value        = local.private_dns
   key_vault_id = var.vault_id
+  depends_on   = [terraform_data.initialize_data_disk]
 
   tags = {
     ArcGISEnterpriseID = var.enterprise_id
@@ -257,11 +250,6 @@ moved {
 moved {
   from = azurerm_virtual_machine_data_disk_attachment.data
   to   = azurerm_virtual_machine_data_disk_attachment.data[0]
-}
-
-moved {
-  from = azurerm_virtual_machine_extension.initialize_data_disk
-  to   = azurerm_virtual_machine_extension.initialize_data_disk[0]
 }
 
 moved {

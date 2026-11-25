@@ -280,7 +280,7 @@ resource "null_resource" "ssm_cloudwatch_config" {
       AWS_DEFAULT_REGION = data.aws_region.current.region
     }
 
-    command = "python -m ssm_cloudwatch_config -s ${var.enterprise_id} -d ${var.deployment_id} -p ${aws_ssm_parameter.cloudwatch_agent_config.name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
+    command = "python -u -m ssm_cloudwatch_config ${var.platform == "windows" ? "--apply-output" : ""} -s ${var.enterprise_id} -d ${var.deployment_id} -p ${aws_ssm_parameter.cloudwatch_agent_config.name} -b ${nonsensitive(data.aws_ssm_parameter.output_s3_bucket.value)}"
   }
 
   depends_on = [

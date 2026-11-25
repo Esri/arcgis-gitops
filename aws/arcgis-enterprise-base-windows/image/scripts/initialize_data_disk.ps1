@@ -12,6 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Finds the intended EBS volume by ID, initializes a blank disk as GPT, 
+# formats a new volume as NTFS, assigns D:, and verifies it can write and read a file.
+# It preserves an existing NTFS filesystem and expands the partition if space is available.
+
 param(
     [Parameter(Mandatory = $true)]
     [ValidatePattern('^vol-[0-9a-f]+$')]

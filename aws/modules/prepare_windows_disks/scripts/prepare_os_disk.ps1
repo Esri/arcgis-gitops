@@ -12,6 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Prepares the OS disk for use with an ArcGIS image, ensuring it meets the expected configuration and security requirements.
+#
+# Parameters:
+#   -ExpectedSizeGiB: The expected size of the OS disk in GiB.
+#
+# Returns:
+#   None. Throws an error if the OS disk does not meet the expected configuration and security requirements.
 param(
     [Parameter(Mandatory = $true)]
     [ValidateRange(256, 16384)]

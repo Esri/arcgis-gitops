@@ -81,6 +81,18 @@ public static class ArcGISDrivePaths {
 }
 '@
 }
+if ($EncodedExpectedAccount) {
+    $partition = Get-Partition -DriveLetter D
+    $volume = $partition | Get-Volume
+    if ($partition.DiskNumber -ne $disk.Number -or $volume.FileSystemType -ne 'NTFS' -or
+        [ArcGISDrivePaths]::GetTarget('D:') -ne (Get-VolumeTarget $volume)) {
+        throw 'The prepared disk does not match the mounted D: volume.'
+    }
+    $account = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($EncodedExpectedAccount))
+    Invoke-ArcGISImageSidReconciliation -VerifyOnly -ExpectedAccount $account -Role application `
+        -DeploymentDisk $disk.UniqueId -Machine (Get-ArcGISAzureVmId) -Partition $partition.Guid -VolumePath $volume.Path
+    return
+}
 if ($disk.IsOffline) {
     Write-Output "Bringing the identified LUN 0 disk $($disk.Number) online for partition inspection."
     Set-Disk -Number $disk.Number -IsOffline $false
@@ -202,9 +214,9 @@ if ($verifiedDisk.Number -ne $disk.Number -or $verifiedDisk.UniqueId -ne $disk.U
     ($inventory.PSDrives | Where-Object { $_.Name -eq 'D' -and ($_.Root -ne 'D:\' -or $_.DisplayRoot) })) {
     throw 'Final D: verification failed: expected writable NTFS on the intended LUN 0 disk.'
 }
-$drive = Get-Item -LiteralPath 'D:\' -Force
-if (-not $drive.PSIsContainer -or ($drive.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-    throw 'D: must be a local directory, not a redirected path.'
+$data = Get-Item -LiteralPath 'D:\data' -Force
+if (-not $data.PSIsContainer -or ($data.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+    throw 'D:\data must be a local directory, not a redirected path.'
 }
 $probe = Join-Path 'D:\' ("arcgis-disk-probe-{0}.tmp" -f [guid]::NewGuid())
 $value = [guid]::NewGuid().ToString()
@@ -218,7 +230,7 @@ try {
 $sid = [Security.Principal.SecurityIdentifier]::new('S-1-5-32-545')
 $fullControl = [Security.AccessControl.FileSystemRights]::FullControl
 $inheritance = [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
-$acl = Get-Acl -LiteralPath 'D:\'
+$acl = Get-Acl -LiteralPath 'D:\data'
 $rules = @($acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
 $deny = @($rules | Where-Object {
     $_.IdentityReference.Value -in @($sid.Value, 'S-1-1-0', 'S-1-5-11') -and
@@ -233,5 +245,7 @@ $allow = @($rules | Where-Object {
     ($_.InheritanceFlags -band $inheritance) -eq $inheritance -and
     $_.PropagationFlags -eq [Security.AccessControl.PropagationFlags]::None
 })
-if ($allow.Count -eq 0) { throw 'Users Full Control root grant is missing. Rebuild the Windows image before deploying.' }
-Write-Output "Verified writable NTFS D: on LUN 0 disk $($disk.Number) ($($disk.UniqueId)); image-time Users permissions are intact. No ACLs or service settings were changed."
+if ($allow.Count -eq 0) { throw 'Users Full Control grant on D:\data is missing. Rebuild the Windows image before deploying.' }
+Invoke-ArcGISImageSidReconciliation -Role application -DeploymentDisk $verifiedDisk.UniqueId -Machine (Get-ArcGISAzureVmId) `
+    -Partition $verifiedPartitions[0].Guid -VolumePath $verifiedVolumes[0].Path
+Write-Output "Verified writable NTFS D: on LUN 0 disk $($disk.Number) ($($disk.UniqueId))."

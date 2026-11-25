@@ -12,6 +12,9 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Runs Sysprep before Packer captures the application or file-server image.
+# Collects diagnostics and blocks capture unless Windows is ready to be captured.
+
 $ErrorActionPreference = 'Stop'
 $imageStatePath = 'HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Setup\State'
 

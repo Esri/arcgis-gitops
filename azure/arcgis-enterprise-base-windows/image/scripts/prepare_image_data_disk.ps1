@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Prepares the image data disk for ArcGIS by validating the LUN 0 disk and its D: volume, 
-# ensuring it is NTFS and properly mounted.
+# Runs after ArcGIS installation and patching in the Packer application image build.
+# Verifies that D: is the intended NTFS volume on LUN 0, creates D:\data, and
+# grants built-in Users inheritable Full Control on D:\data, not on the drive root.
+# Does not format or resize the disk. Packer records image identity separately.
 
 $ErrorActionPreference = 'Stop'
 $disks = @(Get-Disk | Where-Object {
@@ -65,65 +67,48 @@ if (-not $volumeTarget -or [ArcGISDrivePaths]::GetTarget('D:') -ne $volumeTarget
     ($psDriveD | Where-Object { $_.Root -ne 'D:\' -or $_.DisplayRoot })) {
     throw 'D: is ambiguous or redirected; refusing to grant image permissions.'
 }
-$drive = Get-Item -LiteralPath 'D:\' -Force
-if (-not $drive.PSIsContainer -or ($drive.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-    throw 'D: must be a local directory, not a redirected path.'
-}
-$portalData = Get-Item -LiteralPath 'D:\arcgisportal' -Force
-if (-not $portalData.PSIsContainer -or ($portalData.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-    throw 'Portal setup did not initialize a local D:\arcgisportal directory. Check the Chef cookbook version.'
-}
 
-$items = [Collections.Generic.List[object]]::new()
-$pending = [Collections.Generic.Stack[string]]::new()
-$pending.Push('D:\')
-while ($pending.Count -gt 0) {
-    $path = $pending.Pop()
-    $item = Get-Item -LiteralPath $path -Force
-    if ($item.Attributes -band [IO.FileAttributes]::ReparsePoint) {
-        throw "Refusing to grant Users permissions through a reparse point: $path"
+$root = Get-Item -LiteralPath 'D:\' -Force
+if ($root.Attributes.HasFlag([IO.FileAttributes]::ReparsePoint)) {
+    throw 'D:\ is a reparse point; refusing to change image permissions.'
+}
+$rootAcl = Get-Acl -LiteralPath $root.FullName
+$ownerType = [Security.Principal.SecurityIdentifier]
+if ($rootAcl.GetOwner($ownerType).Value -eq 'S-1-5-20') {
+    # Network Service must not own the parent of the protected image identity directory.
+    $administrators = [Security.Principal.SecurityIdentifier]::new('S-1-5-32-544')
+    $rootAcl.SetOwner($administrators)
+    Set-Acl -LiteralPath $root.FullName -AclObject $rootAcl
+    if ((Get-Acl -LiteralPath $root.FullName).GetOwner($ownerType) -ne $administrators) {
+        throw 'D:\ root ownership did not change to built-in Administrators.'
     }
-    $items.Add($item)
-    if ($item.PSIsContainer) {
-        foreach ($child in Get-ChildItem -LiteralPath $path -Force) {
-            $pending.Push($child.FullName)
-        }
-    }
+    Write-Output 'Changed D:\ root owner from Network Service to built-in Administrators.'
 }
 
 $sid = [Security.Principal.SecurityIdentifier]::new('S-1-5-32-545')
 $fullControl = [Security.AccessControl.FileSystemRights]::FullControl
-foreach ($item in $items) {
-    $inheritance = if ($item.PSIsContainer) {
-        [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
-    } else {
-        [Security.AccessControl.InheritanceFlags]::None
+$inheritance = [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
+$rule = [Security.AccessControl.FileSystemAccessRule]::new(
+    $sid, $fullControl, $inheritance,
+    [Security.AccessControl.PropagationFlags]::None,
+    [Security.AccessControl.AccessControlType]::Allow)
+
+function Grant-ArcGISFullControl {
+    param(
+        [Parameter(Mandatory = $true)]
+        [string]$Path
+    )
+
+    $item = Get-Item -LiteralPath $Path -Force
+    if (-not $item.PSIsContainer -or ($item.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+        throw "$Path must be a local directory, not a reparse path."
     }
     $acl = Get-Acl -LiteralPath $item.FullName
-    $rule = [Security.AccessControl.FileSystemAccessRule]::new(
-        $sid, $fullControl, $inheritance,
-        [Security.AccessControl.PropagationFlags]::None,
-        [Security.AccessControl.AccessControlType]::Allow)
     $acl.AddAccessRule($rule)
     Set-Acl -LiteralPath $item.FullName -AclObject $acl
-    $verified = Get-Acl -LiteralPath $item.FullName
-    $rules = @($verified.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
-    $deny = @($rules | Where-Object {
-        $_.IdentityReference.Value -in @($sid.Value, 'S-1-1-0', 'S-1-5-11') -and
-        $_.AccessControlType -eq [Security.AccessControl.AccessControlType]::Deny -and
-        ($_.FileSystemRights -band $fullControl) -ne 0
-    })
-    if ($deny.Count -gt 0) {
-        throw "Conflicting Users, Everyone, or Authenticated Users Deny rule on $($item.FullName). Existing ACLs were not reset."
-    }
-    $allow = @($rules | Where-Object {
-        $_.IdentityReference.Value -eq $sid.Value -and
-        $_.AccessControlType -eq [Security.AccessControl.AccessControlType]::Allow -and
-        ($_.FileSystemRights -band $fullControl) -eq $fullControl -and
-        ($_.InheritanceFlags -band $inheritance) -eq $inheritance -and
-        $_.PropagationFlags -eq [Security.AccessControl.PropagationFlags]::None
-    })
-    if ($allow.Count -eq 0) { throw "Users Full Control grant verification failed on $($item.FullName)." }
 }
 
-Write-Output "Granted Users ($($sid.Value)) Full Control on $($items.Count) D: entries; existing owners and other ACL entries were preserved. Portal/Data Store startup is Manual."
+$dataItem = New-Item -ItemType Directory -Path 'D:\data' -Force
+Grant-ArcGISFullControl -Path $dataItem.FullName
+
+Write-Output "Created D:\data and granted Users ($($sid.Value)) Full Control with inheritance to descendants; existing owners and other ACL entries were preserved."

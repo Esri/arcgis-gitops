@@ -289,26 +289,30 @@ resource "aws_instance" "standby" {
 }
 
 module "prepare_primary_disks" {
-  source         = "../../modules/prepare_windows_disks"
-  enterprise_id  = var.enterprise_id
-  deployment_id  = var.deployment_id
-  machine_role   = "primary"
-  instance_id    = aws_instance.primary.id
-  data_volume_id = one([for device in aws_instance.primary.ebs_block_device : device.volume_id if device.device_name == "/dev/sdf"])
-  os_disk_size   = var.os_disk_size
-  data_disk_size = var.data_disk_size
+  source                 = "../../modules/prepare_windows_disks"
+  log_to_apply           = true
+  allow_data_disk_rebind = var.allow_data_disk_rebind
+  enterprise_id          = var.enterprise_id
+  deployment_id          = var.deployment_id
+  machine_role           = "primary"
+  os_disk_size           = var.os_disk_size
+  data_disk_size         = var.data_disk_size
+  expected_snapshot_id   = local.data_disk_mappings.primary.ebs.snapshot_id
+  depends_on             = [aws_instance.primary]
 }
 
 module "prepare_standby_disks" {
-  count          = var.is_ha ? 1 : 0
-  source         = "../../modules/prepare_windows_disks"
-  enterprise_id  = var.enterprise_id
-  deployment_id  = var.deployment_id
-  machine_role   = "standby"
-  instance_id    = aws_instance.standby[count.index].id
-  data_volume_id = one([for device in aws_instance.standby[count.index].ebs_block_device : device.volume_id if device.device_name == "/dev/sdf"])
-  os_disk_size   = var.os_disk_size
-  data_disk_size = var.data_disk_size
+  count                  = var.is_ha ? 1 : 0
+  source                 = "../../modules/prepare_windows_disks"
+  log_to_apply           = true
+  allow_data_disk_rebind = var.allow_data_disk_rebind
+  enterprise_id          = var.enterprise_id
+  deployment_id          = var.deployment_id
+  machine_role           = "standby"
+  os_disk_size           = var.os_disk_size
+  data_disk_size         = var.data_disk_size
+  expected_snapshot_id   = local.data_disk_mappings.standby.ebs.snapshot_id
+  depends_on             = [aws_instance.standby]
 }
 
 resource "aws_route53_record" "primary" {

@@ -12,7 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Prepare Azure LUN 0 as NTFS D: before installing ArcGIS in the Packer image.
+# Runs before ArcGIS installation in the Packer application image build.
+# Initializes a blank non-OS disk at Azure LUN 0 as GPT/NTFS, or preserves its
+# existing NTFS filesystem, then assigns D: and verifies write/read access.
+# The file-server image skips this step; its data disk is initialized at deployment.
 
 $ErrorActionPreference = 'Stop'
 

@@ -111,6 +111,26 @@ The module writes the following SSM parameters:
 | security_group | ../../modules/security_group | n/a |
 | server_https_alb_target | ../../modules/alb_target_group | n/a |
 
+## Windows provisioning logs
+
+Windows guest preparation sends SSM stdout and stderr only to the private
+enterprise S3 log bucket under `<deployment>/disk-preparation/<role>/`. Terraform
+prints both streams after the command finishes, including on failure. The
+managed CloudWatch agent setup command also replays its streams from S3.
+
+Disk preparation targets the enterprise, deployment, and machine-role tags.
+The runner validates each matching instance's data volume and waits for every
+invocation. It needs EC2 instance/volume discovery, SSM readiness,
+`ssm:SendCommand`, `ssm:ListCommandInvocations`, and S3 list/read access to the
+deployment's log prefix. The instances need S3 write
+access to that prefix. No CloudWatch Logs access is needed for provisioning
+output; existing CloudWatch monitoring is unchanged. Restrict CI
+log access as for the backing logs; the streams are not Terraform outputs.
+Before retrying a timeout, confirm the original command is no longer running.
+If a legacy State Manager association still exists, follow the
+[disk module upgrade procedure](../../modules/prepare_windows_disks/README.md#upgrade-from-state-manager)
+before the first full apply.
+
 ## Resources
 
 | Name | Type |
@@ -153,6 +173,7 @@ The module writes the following SSM parameters:
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
 | aws_region | AWS region ID | `string` | n/a | yes |
+| allow_data_disk_rebind | Allow application data disk bindings to be replaced during an approved AWS Backup recovery | `bool` | `false` | no |
 | backup_retention | Number of days to retain backups | `number` | `14` | no |
 | backup_schedule | Backup schedule in cron format | `string` | `"cron(0 0 * * ? *)"` | no |
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | `"enterprise-base-windows"` | no |

@@ -544,11 +544,12 @@ module "prepare_os_disk" {
 }
 
 module "prepare_data_disk" {
-  count         = length(local.vm_roles)
-  source        = "../../modules/prepare_data_disk"
-  enterprise_id = var.enterprise_id
-  deployment_id = var.deployment_id
-  machine_roles = [local.vm_roles[count.index]]
+  count          = length(local.vm_roles)
+  source         = "../../modules/prepare_data_disk"
+  enterprise_id  = var.enterprise_id
+  deployment_id  = var.deployment_id
+  machine_roles  = [local.vm_roles[count.index]]
+  vm_resource_id = module.vms[count.index].id
 
   depends_on = [
     module.prepare_os_disk

@@ -266,14 +266,14 @@ build {
           data_store = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
             setup_options               = "ADDLOCAL=relational"
-            data_dir                    = "D:\\arcgisdatastore"
+            data_dir                    = "D:\\data\\arcgisdatastore"
             install_system_requirements = true
             preferredidentifier         = "ip"
           }
           portal = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
             install_system_requirements = true
-            data_dir                    = "D:\\arcgisportal"
+            data_dir                    = "D:\\data\\arcgisportal"
             preferredidentifier         = "ip"
           }
         }
@@ -301,14 +301,14 @@ build {
             patches = local.patches_dir
           }
           portal = {
-            data_dir = "D:\\arcgisportal"
+            data_dir = "D:\\data\\arcgisportal"
             patches  = var.arcgis_portal_patches
           }
           server = {
             patches = var.arcgis_server_patches
           }
           data_store = {
-            data_dir = "D:\\arcgisdatastore"
+            data_dir = "D:\\data\\arcgisdatastore"
             patches  = var.arcgis_data_store_patches
           }
         }
@@ -323,6 +323,14 @@ build {
 
   provisioner "powershell" {
     script = "scripts/prepare_image_data_disk.ps1"
+  }
+
+  provisioner "powershell" {
+    inline = [
+      "$ErrorActionPreference = 'Stop'",
+      ". ([scriptblock]::Create([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64encode(file("${path.root}/scripts/image_identity.ps1"))}'))))",
+      "Initialize-ArcGISImageIdentity -Role application -Account ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64encode(var.run_as_user)}')))"
+    ]
   }
 
   # Clean up
@@ -379,6 +387,15 @@ build {
       "Get-Command az -ErrorAction Stop | Out-Null",
       "az version --output json",
       "if ($LASTEXITCODE -ne 0) { throw 'Azure CLI validation failed.' }"
+    ]
+  }
+
+  provisioner "powershell" {
+    inline = [
+      "$ErrorActionPreference = 'Stop'",
+      ". ([scriptblock]::Create([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64encode(file("${path.root}/scripts/image_identity.ps1"))}'))))",
+      "Initialize-ArcGISImageIdentity -Role fileserver -IndependentDisk",
+      "Write-ArcGISIdentityFile (Join-Path (Get-ArcGISIdentityPaths).os 'image_identity.ps1') ([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('${base64encode(file("${path.root}/scripts/image_identity.ps1"))}')))"
     ]
   }
 

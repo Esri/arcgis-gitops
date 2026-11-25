@@ -25,4 +25,5 @@ output "security_group_id" {
 output "private_dns" {
   description = "Private DNS name of the file-server VM"
   value       = local.private_dns
+  depends_on  = [terraform_data.initialize_data_disk]
 }

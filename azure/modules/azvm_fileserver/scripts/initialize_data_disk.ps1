@@ -16,7 +16,8 @@ param(
     [string]$VolumeId,
     [guid]$DiskGuid = [guid]::Empty,
     [switch]$RequireExisting,
-    [switch]$InstallStartupTask
+    [switch]$InstallStartupTask,
+    [switch]$IndependentFileServer
 )
 
 $ErrorActionPreference = 'Stop'
@@ -75,8 +76,58 @@ function Get-VolumeTarget($Volume) {
     $target
 }
 
+function Assert-IndependentDiskBinding($Disk, $Partition, $IdentityPath, $Binding) {
+    $currentDisk = Get-TargetDisk
+    $current = Get-DriveInventory
+    $mappedPartitions = @($current.Partitions | Where-Object { $_.DriveLetter -eq 'D' })
+    $mappedVolumes = @($current.Volumes | Where-Object { $_.DriveLetter -eq 'D' })
+    if ($currentDisk.Number -ne $Disk.Number -or $currentDisk.UniqueId -ne $Disk.UniqueId -or
+        $currentDisk.IsOffline -or
+        $mappedPartitions.Count -ne 1 -or $mappedPartitions[0].DiskNumber -ne $Disk.Number -or
+        $mappedPartitions[0].PartitionNumber -ne $Partition.PartitionNumber -or
+        $mappedVolumes.Count -ne 1 -or $mappedVolumes[0].FileSystemType -ne 'NTFS' -or
+        [ArcGISDrivePaths]::GetTarget('D:') -ne (Get-VolumeTarget $mappedVolumes[0]) -or
+        ($current.OpticalDrives | Where-Object { $_.Drive -eq 'D:' }) -or
+        ($current.LogicalDisks | Where-Object { $_.DeviceID -eq 'D:' -and $_.DriveType -ne 3 }) -or
+        ($current.PSDrives | Where-Object { $_.Name -eq 'D' -and ($_.Root -ne 'D:\' -or $_.DisplayRoot) })) {
+        throw 'D: verification failed before checking the file-server disk binding.'
+    }
+    Assert-ArcGISIdentityParent $IdentityPath
+    Assert-ArcGISIdentityPath $IdentityPath
+    $marker = Join-Path $IdentityPath 'independent-disk.txt'
+    Assert-ArcGISIdentityPath $marker
+    if ((Get-Content -LiteralPath $marker -Raw) -cne $Binding) {
+        throw 'Initialized file-server disk does not match this Azure VM and image. Use an approved recovery.'
+    }
+}
+
 $disk = Get-TargetDisk
 if ([string]::IsNullOrWhiteSpace($disk.UniqueId)) { throw 'LUN 0 disk identity is missing.' }
+$freshDisk = $disk.PartitionStyle -eq 'RAW'
+if ($IndependentFileServer) {
+    $helper = Join-Path $env:SystemRoot 'ArcGIS-ImageIdentity\image_identity.ps1'
+    if (-not (Test-Path -LiteralPath $helper -PathType Leaf)) {
+        throw 'Missing Azure file-server image identity support. Rebuild the image or use an approved migration.'
+    }
+    foreach ($path in @((Split-Path -Parent $helper), $helper)) {
+        $item = Get-Item -LiteralPath $path -Force
+        $acl = Get-Acl -LiteralPath $path
+        $trusted = @('S-1-5-18', 'S-1-5-32-544')
+        if ($item.Attributes.HasFlag([IO.FileAttributes]::ReparsePoint) -or
+            $acl.GetOwner([Security.Principal.SecurityIdentifier]).Value -notin $trusted -or
+            @($acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]) | Where-Object {
+                $_.IdentityReference.Value -notin $trusted
+            }).Count) { throw "Untrusted file-server image identity path '$path'." }
+    }
+    . $helper
+    $identityPaths = Get-ArcGISIdentityPaths
+    $record = Get-ArcGISImageRecord $identityPaths.os | ConvertFrom-Json
+    if ($record.schema -ne 1 -or $record.role -ne 'fileserver' -or $record.kind -ne 'none' -or
+        $record.account -or $record.sid -or $record.partition -or [guid]$record.lineage -eq [guid]::Empty) {
+        throw 'Expected an independent Azure file-server image with no baked service account.'
+    }
+    $independentBinding = "$($record.lineage)|$(Get-ArcGISAzureVmId)|$($disk.UniqueId)"
+}
 if (-not ('ArcGISDrivePaths' -as [type])) {
 Add-Type -TypeDefinition @'
 using System;
@@ -116,7 +167,8 @@ if ($partitions.Count -eq 1) {
     }
     $existingVolumes = @($partitions[0] | Get-Volume)
     if ($existingVolumes.Count -ne 1 -or $existingVolumes[0].FileSystemType -notin @('NTFS', 'RAW', 'Unknown') -or
-        ($RequireExisting -and $existingVolumes[0].FileSystemType -ne 'NTFS')) {
+        (($RequireExisting -or ($IndependentFileServer -and -not $freshDisk)) -and
+            $existingVolumes[0].FileSystemType -ne 'NTFS')) {
         throw 'Existing LUN 0 volume is missing or uses an unsupported filesystem; refusing to format it.'
     }
 }
@@ -187,16 +239,26 @@ if ($movePartition -or $moveOptical) {
     }
 }
 
-if ($disk.IsReadOnly) { Set-Disk -Number $disk.Number -IsReadOnly $false }
-if ($disk.PartitionStyle -eq 'RAW') { Initialize-Disk -Number $disk.Number -PartitionStyle GPT | Out-Null }
-if ($partitions.Count -eq 0) {
-    $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D
-} else {
+if ($disk.IsReadOnly -and (-not $IndependentFileServer -or $freshDisk)) {
+    Set-Disk -Number $disk.Number -IsReadOnly $false
+}
+if ($partitions.Count -eq 1) {
     $partition = $partitions[0]
     if ($partition.DriveLetter -ne 'D') {
         Set-Partition -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber -NewDriveLetter D
     }
     $partition = Get-Partition -DiskNumber $disk.Number -PartitionNumber $partition.PartitionNumber
+    if ($IndependentFileServer -and -not $freshDisk) {
+        Assert-IndependentDiskBinding $disk $partitions[0] $identityPaths.data $independentBinding
+    }
+}
+
+if ($disk.IsReadOnly -and $IndependentFileServer -and -not $freshDisk) {
+    Set-Disk -Number $disk.Number -IsReadOnly $false
+}
+if ($disk.PartitionStyle -eq 'RAW') { Initialize-Disk -Number $disk.Number -PartitionStyle GPT | Out-Null }
+if ($partitions.Count -eq 0) {
+    $partition = New-Partition -DiskNumber $disk.Number -UseMaximumSize -DriveLetter D
 }
 if (@($partition).Count -ne 1 -or $partition.DiskNumber -ne $disk.Number -or $partition.DriveLetter -ne 'D') {
     throw 'Partition assignment did not return the intended D: partition; refusing to format it.'
@@ -242,7 +304,41 @@ try {
 } finally {
     if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Force }
 }
-Write-Output "Verified writable NTFS D: on LUN 0 disk $($disk.Number) ($($disk.UniqueId))."
+
+$dataItem = New-Item -ItemType Directory -Path 'D:\data' -Force
+$sid = [Security.Principal.SecurityIdentifier]::new('S-1-5-32-545')
+$fullControl = [Security.AccessControl.FileSystemRights]::FullControl
+$inheritance = [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
+$acl = Get-Acl -LiteralPath $dataItem.FullName
+$rule = [Security.AccessControl.FileSystemAccessRule]::new(
+    $sid, $fullControl, $inheritance,
+    [Security.AccessControl.PropagationFlags]::None,
+    [Security.AccessControl.AccessControlType]::Allow)
+$acl.AddAccessRule($rule)
+Set-Acl -LiteralPath $dataItem.FullName -AclObject $acl
+
+Write-Output "Verified writable NTFS D: on LUN 0 disk $($disk.Number) ($($disk.UniqueId)); created D:\data and granted inherited Users Full Control."
+
+if ($IndependentFileServer -and $freshDisk) {
+    $root = Get-Item -LiteralPath 'D:\' -Force
+    if ($root.Attributes.HasFlag([IO.FileAttributes]::ReparsePoint)) {
+        throw 'D:\ is a reparse point; refusing to set file-server disk ownership.'
+    }
+    $ownerType = [Security.Principal.SecurityIdentifier]
+    $rootAcl = Get-Acl -LiteralPath $root.FullName
+    if ($rootAcl.GetOwner($ownerType).Value -eq 'S-1-5-20') {
+        # Network Service must not own the parent of the protected disk binding.
+        $administrators = [Security.Principal.SecurityIdentifier]::new('S-1-5-32-544')
+        $rootAcl.SetOwner($administrators)
+        Set-Acl -LiteralPath $root.FullName -AclObject $rootAcl
+        if ((Get-Acl -LiteralPath $root.FullName).GetOwner($ownerType) -ne $administrators) {
+            throw 'D:\ root ownership did not change to built-in Administrators.'
+        }
+        Write-Output 'Changed D:\ root owner from Network Service to built-in Administrators.'
+    }
+    New-ArcGISIdentityDirectory $identityPaths.data
+    Write-ArcGISIdentityFile (Join-Path $identityPaths.data 'independent-disk.txt') $independentBinding
+}
 
 if ($InstallStartupTask) {
     if (-not $disk.Guid -or [guid]$disk.Guid -eq [guid]::Empty) {

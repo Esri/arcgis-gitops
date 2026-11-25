@@ -15,7 +15,10 @@
 import os
 import sys
 import time
+import codecs
 from datetime import datetime, timezone
+from typing import Optional
+from uuid import uuid4
 from azure.identity import DefaultAzureCredential
 from azure.mgmt.compute import ComputeManagementClient
 from azure.mgmt.compute.models import VirtualMachineRunCommand
@@ -24,9 +27,100 @@ from azure.mgmt.compute.models import RunCommandInputParameter
 from azure.mgmt.compute.models import RunCommandManagedIdentity
 from azure.keyvault.secrets import SecretClient
 from azure.storage.blob import BlobClient
-from azure.core.exceptions import ResourceExistsError
+from azure.core.exceptions import AzureError, ResourceExistsError, ResourceNotFoundError
 
 SLEEP_TIME = 10
+
+
+class CommandOutput:
+    def __init__(self, blob: BlobClient, label: str, stream: str):
+        self.blob = blob
+        self.label = f"{label} [{stream}]"
+        self.destination = sys.stderr if stream == "stderr" else sys.stdout
+        self.offset = 0
+        self.pending = ""
+        self.decoder = codecs.getincrementaldecoder("utf-8-sig")(errors="replace")
+
+    def read(self) -> bool:
+        try:
+            size = self.blob.get_blob_properties().size
+        except ResourceNotFoundError:
+            return False
+        if size < self.offset:
+            raise ValueError("Command output blob shrank.")
+        if size > self.offset:
+            download = self.blob.download_blob(offset=self.offset, length=size - self.offset)
+            for chunk in download.chunks():
+                self.offset += len(chunk)
+                self._write(self.decoder.decode(chunk))
+        return True
+
+    def finish(self):
+        self._write(self.decoder.decode(b"", final=True), final=True)
+
+    def _write(self, text: str, final: bool = False):
+        *lines, self.pending = (self.pending + text).split("\n")
+        if final and self.pending:
+            lines.append(self.pending)
+            self.pending = ""
+        for line in lines:
+            for part in line.rstrip("\r").split("\r"):
+                safe = part.replace(chr(27), r"\x1b")
+                print(f"{self.label} {safe}", file=self.destination, flush=True)
+
+
+def wait_with_output(commands, resource_group, vm, name, outputs, timeout):
+    label = outputs[0].label.rsplit(" ", 1)[0]
+    deadline = time.monotonic() + timeout + 600
+    status = None
+    while time.monotonic() < deadline:
+        status = commands.get_by_virtual_machine(
+            resource_group_name=resource_group, vm_name=vm, run_command_name=name,
+            expand="instanceView").instance_view
+        if status and status.execution_state not in (None, "Unknown", "Pending", "Running"):
+            break
+        for stream in outputs:
+            try:
+                stream.read()
+            except (AzureError, ValueError):
+                # Retry from the last consumed byte during the final drain.
+                pass
+        time.sleep(SLEEP_TIME)
+    else:
+        print(f"{label} Wait timed out; command may still be running.", file=sys.stderr, flush=True)
+        return False, False
+
+    print(f"{label} {status.execution_state} (exit {status.exit_code})", flush=True)
+    collected = True
+    for stream, excerpt in zip(outputs, (status.output, status.error)):
+        drain_deadline = time.monotonic() + 30
+        previous_size = None
+        while True:
+            try:
+                exists = stream.read()
+                if exists and previous_size == stream.offset and (stream.offset or not excerpt):
+                    stream.finish()
+                    break
+                if not exists and not excerpt and previous_size == 0:
+                    stream.finish()
+                    break
+                previous_size = stream.offset
+            except (AzureError, ValueError) as exc:
+                print(f"{stream.label} Could not retrieve full output ({type(exc).__name__}).",
+                      file=sys.stderr, flush=True)
+                collected = False
+                stream.finish()
+                break
+            if time.monotonic() >= drain_deadline:
+                print(f"{stream.label} Full output blob unavailable.", file=sys.stderr, flush=True)
+                collected = False
+                stream.finish()
+                break
+            time.sleep(3)
+        if excerpt and stream.offset == 0:
+            print(f"{stream.label} Provider excerpt may be truncated.", file=sys.stderr, flush=True)
+            stream._write(excerpt, final=True)
+    return status.execution_state == "Succeeded" and status.exit_code == 0 and collected, True
 
 # Runs a PowerShell script on VMs of the specified enterprise ID, deployment ID, and machine roles
 # using Azure Managed Run Command. Waits for the script to complete on all targeted VMs.
@@ -40,7 +134,9 @@ def run_command(
     linux_script: str,        # Shell script to execute
     parameters: list[RunCommandInputParameter], # Script parameters
     vault_name: str,    # Azure Key Vault name
-    timeout: int        # Execution timeout in seconds
+    timeout: int,       # Execution timeout in seconds
+    vm_resource_id: Optional[str] = None,
+    stream_output: bool = False,
 ): 
     if not enterprise_id:
         print("ArcGIS Enterprise ID parameter is required.")
@@ -98,7 +194,8 @@ def run_command(
     
     for vm in vms:
         if (
-            vm.tags
+            (not vm_resource_id or vm.id.casefold() == vm_resource_id.casefold())
+            and vm.tags
             and vm.tags.get("ArcGISEnterpriseID") == enterprise_id
             and vm.tags.get("ArcGISDeploymentID") == deployment_id
             and vm.tags.get("ArcGISRole") in roles
@@ -135,6 +232,8 @@ def run_command(
             return False
     
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%d%H%M%S")
+    if stream_output:
+        command_name = f"{command_name}-{uuid4().hex[:12]}"
     # Start timer
     start_time = time.time()
 
@@ -176,6 +275,8 @@ def run_command(
                 run_command=run_command
             )
         except ResourceExistsError as e:
+            if stream_output:
+                raise
             print(f"Command '{command_name}' on '{vm.name}' VM already exists: {e}")
 
             # Delete the existing command and try again
@@ -195,6 +296,34 @@ def run_command(
         run_command = create_run_command_poller.result()
         print(f"Command '{run_command.name}' on '{vm.name}' VM created.")
 
+        if stream_output:
+            label = f"[Azure {vm.tags['ArcGISRole']} {vm.name} {command_name}]"
+            outputs = [
+                CommandOutput(BlobClient.from_blob_url(f"{command_log}/{suffix}", credential=credential),
+                              label, stream)
+                for suffix, stream in (("output", "stdout"), ("error", "stderr"))
+            ]
+            commands = compute_client.virtual_machine_run_commands
+            try:
+                succeeded, terminal = wait_with_output(commands, resource_group, vm.name,
+                                                       command_name, outputs, timeout)
+            except AzureError as exc:
+                print(f"{label} Could not determine command state ({type(exc).__name__}); "
+                      "check Managed Run Command before retrying.", file=sys.stderr, flush=True)
+                return False
+            if terminal:
+                try:
+                    commands.begin_delete(resource_group_name=resource_group, vm_name=vm.name,
+                                          run_command_name=command_name).wait(timeout=60)
+                except AzureError as exc:
+                    print(f"{label} Cleanup failed ({type(exc).__name__}).", file=sys.stderr, flush=True)
+                    succeeded = False
+            if not succeeded:
+                return False
+
+    if stream_output:
+        return True
+
     ret = True
     for vm in filtered_vms:
         resource_group = vm.id.split("/")[4]
@@ -209,12 +338,12 @@ def run_command(
                     expand="instanceView"
                 )
 
-                if status.instance_view.execution_state != "Running":
+                if status.instance_view and status.instance_view.execution_state not in (None, "Unknown", "Pending", "Running"):
                     elapsed_time = time.time() - start_time
 
                     instance_view = status.instance_view
                     
-                    if instance_view.exit_code != 0:
+                    if instance_view.execution_state != "Succeeded" or instance_view.exit_code != 0:
                         ret = False
 
                     print(f"Command '{command_name}' on '{vm.name}' VM completed with status '{instance_view.execution_state}' ({instance_view.exit_code}) in {elapsed_time:.1f} seconds.")

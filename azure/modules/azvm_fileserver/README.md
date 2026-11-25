@@ -5,6 +5,20 @@ This reusable module creates or references a dedicated Windows Azure file-server
 When `fileserver_deployment_id` is null, the module creates the VM, NIC, configurable OS disk, configurable data disk, private DNS record, and Key Vault metadata. The VM inherits the existing NSG attached to `subnet_id`, just like the primary and standby VMs in that subnet.
 The owning base deployment remains responsible for backup and lifecycle management. A future referenced deployment must use the same `enterprise_id` and enterprise Key Vault and must be in the enterprise VNet covered by the owner's subnet NSG rules.
 
+The owned VM requires an image that explicitly records that it has no baked
+service account or data disk. Managed Run Command initializes a new RAW disk at LUN 0.
+After verifying that the new NTFS disk is mounted at `D:`, it transfers root
+ownership from Network Service to built-in Administrators if needed, without
+changing root access rules, and writes a protected VM/image binding. The command
+does not substitute SIDs or repair a shared file server.
+
+An already initialized disk must have a matching binding. If initialization
+failed after formatting but before writing the binding, rerunning apply will
+not adopt the initialized disk. Preserve any disk with data and use a reviewed
+recovery workflow. If the disk is confirmed disposable, review a Terraform
+plan to replace only the data disk and its attachment and rerun initialization.
+Rebuild old images that lack independent disk identity support before deployment.
+
 `os_disk_storage_account_type` independently configures the OS tier and defaults
 to `Premium_LRS`. Supported OS tiers are `Standard_LRS`, `StandardSSD_LRS`,
 and `Premium_LRS`. Check VM-size/regional compatibility, cost, performance, backup
@@ -34,7 +48,7 @@ None.
 | azurerm_windows_virtual_machine.fileserver | resource |
 | azurerm_managed_disk.data | resource |
 | azurerm_virtual_machine_data_disk_attachment.data | resource |
-| azurerm_virtual_machine_extension.initialize_data_disk | resource |
+| terraform_data.initialize_data_disk | resource |
 | azurerm_private_dns_a_record.fileserver | resource |
 | azurerm_key_vault_secret.private_dns | resource |
 | azurerm_key_vault_secret.security_group_id | resource |
@@ -64,11 +78,10 @@ association.
 
 ## Data Disk Initialization
 
-The owning deployment attaches its managed data disk at LUN 0. The
-`initialize-fileserver-data-disk` Custom Script Extension runs
-[initialize_data_disk.ps1](scripts/initialize_data_disk.ps1) using Windows PowerShell.
-Terraform embeds the script as a compressed payload, keeping the command below
-Windows `cmd.exe`'s 8191-character limit without downloading another file.
+The owning deployment attaches its managed data disk at LUN 0. Terraform then
+runs [initialize_data_disk.ps1](scripts/initialize_data_disk.ps1) through Azure
+Managed Run Command against the exact VM. The runner prints stdout and stderr
+in the apply log and keeps the full streams in the private enterprise log container.
 
 Initialization selects exactly one non-OS disk at LUN 0 and inventories
 partitions, volumes, logical disks, optical drives (including empty drives),
@@ -81,35 +94,21 @@ An offline target disk is brought online to inspect its existing partitions.
 If a later safety check fails, it may remain online, but no partition is created
 or formatted before the disk layout and D: occupant have been checked.
 
+For an initialized independent file-server disk, the script first relocates any
+recognized D: occupant and assigns D: to the identified LUN 0 partition. It
+then verifies the disk, partition, NTFS volume, and native D: mapping before
+checking the protected disk binding. A missing, untrusted, or mismatched binding
+stops initialization before disk data or ACL changes; drive-letter relocation
+and bringing an offline disk online may already have occurred.
+
 Only a new RAW disk or a recognized RAW/Unknown volume is formatted. Existing
 NTFS data is preserved on reruns; unsupported filesystems and missing volumes
 fail explicitly. Before success, the script rechecks the disk identity, D:
 partition, NTFS filesystem, native mount mapping, and online/writable state,
-then writes, reads, and deletes a uniquely named probe. Any error returns exit
-code 1 with its original message and script stack trace.
-
-### Recovery from an Earlier False Success
-
-Do not start application configuration until the file-server extension reports
-`Verified writable NTFS D: on LUN 0 disk ...`. Inspect extension stdout/stderr and
-guest disk/volume inventories if initialization fails. A workflow's earlier
-success alone does not prove D: is usable.
-
-Review an infrastructure Terraform plan using the updated module before applying
-it. Changed extension settings should rerun initialization. If an unchanged
-extension must be rerun, use the owning infrastructure state and explicitly
-replace only
-`module.azvm_fileserver.azurerm_virtual_machine_extension.initialize_data_disk[0]`
-through an approved Terraform operation. Do not recreate the VM or managed data
-disk, format an unknown volume, or manually change OS drive letters. Verify that
-the plan preserves the VM, managed disk, and backups. If guest Run Command is
-already in progress, wait for it to finish rather than issuing overlapping
-diagnostic requests.
-
-After successful initialization, rerun application configuration, deployment
-tests, and backup validation. If Cinc still reports `ReportEvent`, investigate
-its event-logging failure independently; the disk correction does not prove
-that error is resolved.
+then writes, reads, and deletes a uniquely named probe. It creates `D:\data`
+and grants inherited built-in Users Full Control on that directory so
+namespace-specific file-server directories inherit the required permissions.
+Any error returns exit code 1 with its original message and script stack trace.
 
 ## Key Vault Secrets
 

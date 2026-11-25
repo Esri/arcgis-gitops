@@ -338,7 +338,7 @@ def run_command(
                     expand="instanceView"
                 )
 
-                if status.instance_view.execution_state not in ("Pending", "Running"):
+                if status.instance_view and status.instance_view.execution_state not in (None, "Unknown", "Pending", "Running"):
                     elapsed_time = time.time() - start_time
 
                     instance_view = status.instance_view

@@ -69,7 +69,6 @@ locals {
   data_disk_mappings = local.create_fileserver ? [for device in data.aws_ami.fileserver[0].block_device_mappings : device if device.device_name == "/dev/sdf"] : []
   data_disk_mapping  = try(one(local.data_disk_mappings), null)
   data_snapshot_id   = try(local.data_disk_mapping.ebs.snapshot_id, null)
-  data_volume_id     = local.create_fileserver ? one([for device in aws_instance.fileserver[0].ebs_block_device : device.volume_id if device.device_name == "/dev/sdf"]) : null
 }
 
 resource "aws_security_group" "fileserver" {
@@ -181,25 +180,14 @@ resource "aws_instance" "fileserver" {
   }
 
   lifecycle {
+    # Existing instances retain inert launch data to avoid an EC2 stop/start.
+    ignore_changes = [user_data]
+
     precondition {
       condition     = try(length(local.data_disk_mappings) == 1 && length(local.data_snapshot_id) > 0 && tonumber(local.data_disk_mapping.ebs.volume_size) <= var.data_volume_size, false)
       error_message = "File-server AMI must contain exactly one /dev/sdf data snapshot that fits the configured data capacity. Rebuild the image; blank replacement and shrink are prohibited."
     }
   }
-
-  user_data = <<-EOF
-  <powershell>
-  $registryPath = "HKLM:\SYSTEM\CurrentControlSet\Control\Lsa\MSV1_0"
-  if (-not (Test-Path $registryPath)) {
-    New-Item $registryPath -Force
-  }
-  New-ItemProperty -Path $registryPath -Name "BackConnectionHostNames" `
-                   -Value @($env:COMPUTERNAME, "${local.private_dns}", "localhost", "127.0.0.1") `
-                   -PropertyType MultiString -Force
-  </powershell>
-  EOF
-
-  user_data_replace_on_change = false
 
   tags = {
     Name               = "${var.enterprise_id}/${var.deployment_id}/fileserver"
@@ -221,15 +209,19 @@ resource "aws_instance" "fileserver" {
 }
 
 module "prepare_disks" {
-  count          = local.create_fileserver ? 1 : 0
-  source         = "../prepare_windows_disks"
-  enterprise_id  = var.enterprise_id
-  deployment_id  = var.deployment_id
-  machine_role   = "fileserver"
-  instance_id    = local.instance_id
-  data_volume_id = local.data_volume_id
-  os_disk_size   = var.os_disk_size
-  data_disk_size = var.data_volume_size
+  count                      = local.create_fileserver ? 1 : 0
+  source                     = "../prepare_windows_disks"
+  enterprise_id              = var.enterprise_id
+  deployment_id              = var.deployment_id
+  machine_role               = "fileserver"
+  image_role                 = "fileserver"
+  os_disk_size               = var.os_disk_size
+  data_disk_size             = var.data_volume_size
+  expected_snapshot_id       = local.data_snapshot_id
+  log_to_apply               = true
+  fileserver_private_dns     = local.private_dns
+  fileserver_registry_script = file("${path.module}/scripts/configure_back_connection.ps1")
+  depends_on                 = [aws_instance.fileserver]
 }
 
 removed {

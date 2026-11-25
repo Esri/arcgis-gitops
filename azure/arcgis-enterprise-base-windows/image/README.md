@@ -1,29 +1,27 @@
 # Packer Template for Base ArcGIS Enterprise on Windows Images
 
-The Packer template builds VM images for a specific base ArcGIS Enterprise deployment on Windows and publishes it to the enterprise Image Gallery.
+The Packer template builds application and file-server VM images for a base ArcGIS Enterprise deployment on Windows and publishes them to the enterprise Image Gallery.
 
 The images are built from a Windows OS base image specified by Key Vault secret "vm-image-${var.os}".
 
-The template first copies installation media for the ArcGIS Enterprise version and required third party dependencies from My Esri and public repositories to the private "repository" blob container in Azure storage account specified by "storage-account-name" Key Vault Secret. The files to copy are specified in ../manifests/arcgis-enterprise-azure-files-${var.arcgis_version}.json index file.
+The application build runs these steps:
 
-Then the template uses python scripts to run Azure Managed Run Command on the source VM instances.
+1. Install Azure CLI on the build VM through the builder's user-data script.
+2. Use Packer's PowerShell provisioner to initialize and verify the persistent LUN 0 data disk as NTFS at `D:`.
+3. Bootstrap the VM with Cinc Client and Chef Cookbooks for ArcGIS through Azure Managed Run Command.
+4. Copy installation media and third-party dependencies from My Esri and public repositories to the private `repository` blob container in the account named by the `storage-account-name` Key Vault secret. The files are listed in `../manifests/arcgis-enterprise-azure-files-${var.arcgis_version}.json`.
+5. Use Azure Managed Run Command to download the setups to the VM, install the ArcGIS Enterprise applications, and apply the configured patches.
+6. Use Packer's PowerShell provisioner to prepare `D:\data`, grant built-in Users inheritable Full Control there, and record the exact service-account SID and matching data disk lineage.
+7. Remove unused files through Azure Managed Run Command, leaving Cinc Client installed. Run Sysprep through Packer's PowerShell provisioner before image capture.
 
-1. Install Azure CLI
-2. Install Cinc Client and Chef Cookbooks for ArcGIS
-3. Download setups from the private "repository" blob container in Azure storage account.
-4. Install base ArcGIS Enterprise applications
-5. Install patches for the base ArcGIS Enterprise applications
-6. Grant Users group Full Control on D: drive and every existing descendant
-7. Delete unused files, uninstall Cinc Client, run sysprep
+Before recording the application image identity, the build changes the verified
+`D:\` root owner from Network Service (`S-1-5-20`) to built-in Administrators
+if needed. It does not change the root access rules or relax the identity
+parent checks.
 
-IDs of the ArcGIS images are saved in "${var.deployment_id}-vm-image-primary" and "${var.deployment_id}-vm-image-standby" Key Vault secrets. A separate Packer build creates a generalized file-server gallery image version from the same base Windows OS image without installing the ArcGIS application stack. Its built image version ID is saved in "${var.deployment_id}-vm-image-fileserver" after the build succeeds.
-
-The file-server image installs Azure CLI using the same user-data script and `azure_cli_url` as the ArcGIS image. Before Sysprep, the build refreshes PATH, verifies that `az` resolves, and runs `az version`; a missing or nonfunctional CLI fails the build before image publication. Azure CLI is required for application bootstrap to authenticate using the VM's managed identity.
-
+The same application gallery image version ID is saved in the `${var.deployment_id}-vm-image-primary` and `${var.deployment_id}-vm-image-standby` Key Vault secrets. A separate Packer build creates a generalized file-server gallery image version from the same base Windows OS image without installing the ArcGIS application stack. Its version ID is saved in `${var.deployment_id}-vm-image-fileserver`.
 
 ## Requirements
-
-VM image definitions "${var.deployment_id}-${var.arcgis_version}-${var.os}" and "${var.deployment_id}-fileserver-${var.os}" must exist in the enterprise Image Gallery before running the template. The image workflow creates both definitions; create both before running Packer directly. The destroy workflow removes both definitions and their versions.
 
 On the machine where Packer is executed:
 
@@ -48,7 +46,7 @@ The template reads the following Key Vault secrets:
 | vm-identity-id            | Managed identity resource ID |
 | vm-image-${var.os}        | Source VM Image ID |
 
-The template saves the built image ID in the following Key Vault secrets:
+The template writes the following image version IDs and deployment metadata to Key Vault:
 
 | Key Vault secret name                   | Description |
 |-----------------------------------------|-------------|
@@ -73,9 +71,9 @@ The template saves the built image ID in the following Key Vault secrets:
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | os | Operating system ID | `string` | `"windows2025"` | no |
 | os_disk_size | OS disk size in GB | `number` | `256` | no |
-| data_disk_size | Persistent application data disk capacity baked into the gallery image in GiB | `number` | `256` | no |
+| data_disk_size | Persistent application data disk capacity baked into the gallery image, in whole GiB (128 to 32,767) | `number` | `256` | no |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |
-| run_as_password | Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `env("RUN_AS_PASSWORD")` | yes |
+| run_as_password | Password for the account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. Supply a value for the application build through this input or `RUN_AS_PASSWORD`. | `string` | `env("RUN_AS_PASSWORD")` | no (defaults to the environment variable) |
 | run_as_user | User account used to run ArcGIS Server, Portal for ArcGIS, and ArcGIS Data Store. | `string` | `"arcgis"` | no |
 | server_web_context | ArcGIS Server web context | `string` | `"server"` | no |
 | skip_create_image | If true, Packer will not create the image | `bool` | `false` | no |

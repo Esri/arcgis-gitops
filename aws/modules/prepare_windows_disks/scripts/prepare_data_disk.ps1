@@ -12,13 +12,33 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+# Prepares the data disk for use with an ArcGIS image, ensuring it meets the expected configuration and security requirements.
+#
+# Parameters:
+#   -VolumeId: The identifier of the EBS volume to prepare.
+#   -ExpectedSizeGiB: The expected size of the data disk in GiB.
+#   -ImageRole: The role of the image ('application' or 'fileserver').
+#   -InstanceId: The identifier of the current EC2 instance.
+#   -PreflightOnly: If specified, only performs preflight checks without making changes.
+#   -VerifyOnly: If specified, only verifies the disk without making changes.
+#   -EncodedExpectedAccount: The expected service account for the image, encoded as a string.
 param(
     [Parameter(Mandatory = $true)]
     [ValidatePattern('^vol-[0-9a-f]+$')]
     [string]$VolumeId,
     [Parameter(Mandatory = $true)]
     [ValidateRange(1, 65536)]
-    [long]$ExpectedSizeGiB
+    [long]$ExpectedSizeGiB,
+    [Parameter(Mandatory = $true)]
+    [ValidateSet('application', 'fileserver')]
+    [string]$ImageRole,
+    [Parameter(Mandatory = $true)]
+    [ValidatePattern('^i-[0-9a-f]+$')]
+    [string]$InstanceId,
+    [switch]$PreflightOnly,
+    [switch]$VerifyOnly,
+    [switch]$AllowDataDiskRebind,
+    [string]$EncodedExpectedAccount
 )
 
 $ErrorActionPreference = 'Stop'
@@ -72,6 +92,7 @@ function Get-VolumeTarget($Volume) {
 
 Update-HostStorageCache
 $disk = Get-TargetDisk
+if ($PreflightOnly) { return }
 if (-not ('ArcGISDrivePaths' -as [type])) {
 Add-Type -TypeDefinition @'
 using System;
@@ -89,6 +110,18 @@ public static class ArcGISDrivePaths {
     }
 }
 '@
+}
+if ($VerifyOnly) {
+    $partition = Get-Partition -DriveLetter D
+    $volume = $partition | Get-Volume
+    if ($partition.DiskNumber -ne $disk.Number -or $volume.FileSystemType -ne 'NTFS' -or
+        [ArcGISDrivePaths]::GetTarget('D:') -ne (Get-VolumeTarget $volume)) {
+        throw 'The prepared disk does not match the mounted D: volume.'
+    }
+    $account = [Text.Encoding]::UTF8.GetString([Convert]::FromBase64String($EncodedExpectedAccount))
+    Invoke-ArcGISImageSidReconciliation -VerifyOnly -ExpectedAccount $account -Role $ImageRole `
+        -DeploymentDisk $VolumeId -Machine $InstanceId -Partition $partition.Guid -VolumePath $volume.Path
+    return
 }
 if ($disk.IsOffline) { Set-Disk -Number $disk.Number -IsOffline $false }
 $inventory = Get-DriveInventory
@@ -198,14 +231,14 @@ if ($afterDisk.Number -ne $disk.Number -or $afterDisk.UniqueId -ne $disk.UniqueI
     ($after.PSDrives | Where-Object { $_.Name -eq 'D' -and ($_.Root -ne 'D:\' -or $_.DisplayRoot) })) {
     throw 'D: partition/NTFS expansion verification failed or disk identity changed.'
 }
-$root = Get-Item -LiteralPath 'D:\' -Force
-if (-not $root.PSIsContainer -or ($root.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
-    throw 'D: must be a local directory, not a reparse path.'
+$data = Get-Item -LiteralPath 'D:\data' -Force
+if (-not $data.PSIsContainer -or ($data.Attributes -band [IO.FileAttributes]::ReparsePoint)) {
+    throw 'D:\data must be a local directory, not a reparse path.'
 }
 $sid = [Security.Principal.SecurityIdentifier]::new('S-1-5-32-545')
 $fullControl = [Security.AccessControl.FileSystemRights]::FullControl
 $inheritance = [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
-$acl = Get-Acl -LiteralPath 'D:\'
+$acl = Get-Acl -LiteralPath 'D:\data'
 $rules = @($acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]))
 if (@($rules | Where-Object {
     $_.IdentityReference.Value -in @($sid.Value, 'S-1-1-0', 'S-1-5-11') -and
@@ -218,7 +251,7 @@ if (@($rules | Where-Object {
     ($_.FileSystemRights -band $fullControl) -eq $fullControl -and
     ($_.InheritanceFlags -band $inheritance) -eq $inheritance -and
     $_.PropagationFlags -eq [Security.AccessControl.PropagationFlags]::None
-}).Count -eq 0) { throw 'Users Full Control root grant is missing. Rebuild the Windows AMI before deploying.' }
+}).Count -eq 0) { throw 'Users Full Control grant on D:\data is missing. Rebuild the Windows AMI before deploying.' }
 $probe = 'D:\arcgis-disk-probe-{0}.tmp' -f [guid]::NewGuid()
 $value = [guid]::NewGuid().ToString()
 try {
@@ -227,4 +260,6 @@ try {
 } finally {
     if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Force }
 }
-Write-Output "Verified $VolumeId NTFS D: partition $originalSize -> $($afterPartitions[0].Size) bytes on a $($afterDisk.Size)-byte disk. Image-time Users permissions are intact; ACLs and services were not changed."
+Invoke-ArcGISImageSidReconciliation -Role $ImageRole -DeploymentDisk $VolumeId -Machine $InstanceId `
+    -Partition $afterPartitions[0].Guid -VolumePath $afterVolumes[0].Path -AllowDataDiskRebind:$AllowDataDiskRebind
+Write-Output "Verified $VolumeId NTFS D: partition $originalSize -> $($afterPartitions[0].Size) bytes on a $($afterDisk.Size)-byte disk."

@@ -34,6 +34,9 @@ Portal content uses Amazon S3 by default. For new deployments, set content_store
 to FILESYSTEM to use `\\${fileserver_hostname}\${namespace}\arcgisportal\content` on the existing dedicated fileserver.
 This setting is independent of config_store_type and does not migrate existing Portal content.
 
+On deployment VMs, Data Store data is stored in `D:\data\arcgisdatastore`, Portal data and logs are stored under
+`D:\data\arcgisportal`, and Server logs are stored in `D:\data\arcgisserver\logs`.
+
 ## Requirements
 
 The AWS resources for the deployment must be provisioned by Infrastructure terraform module for base ArcGIS Enterprise on Windows.

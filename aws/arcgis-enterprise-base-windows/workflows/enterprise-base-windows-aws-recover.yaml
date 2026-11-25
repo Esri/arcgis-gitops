@@ -71,6 +71,8 @@ jobs:
     - name: Terraform Apply
       id: apply
       if: ${{ inputs.test_mode == false }}
+      env:
+        TF_VAR_allow_data_disk_rebind: "true"
       run: terraform apply -var-file $INFRASTRUCTURE_CONFIG_FILE -auto-approve -input=false
     - name: Terraform Plan
       id: plan

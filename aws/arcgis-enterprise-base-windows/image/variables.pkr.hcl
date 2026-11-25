@@ -142,6 +142,12 @@ variable "run_as_user" {
   default     = "arcgis"
 }
 
+variable "fileserver_image_account" {
+  description = "Pre-existing service account on a customized file-server base image; leave empty for the standard OS image."
+  type        = string
+  default     = ""
+}
+
 variable "server_web_context" {
   description = "ArcGIS Server web context"
   type        = string

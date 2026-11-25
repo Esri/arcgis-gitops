@@ -34,6 +34,9 @@ This setting is independent of config_store_type and does not migrate existing P
 
 New deployments use the deployment storage-account name as the namespace for fileserver subfolders, cloud Server configuration, and Data Store backup prefixes.
 
+On deployment VMs, Data Store data is stored in `D:\data\arcgisdatastore`, Portal data and logs are stored under
+`D:\data\arcgisportal`, and Server logs are stored in `D:\data\arcgisserver\logs`.
+
 ## Requirements
 
 The Azure resources for the deployment must be provisioned by Infrastructure Terraform module for base ArcGIS Enterprise on Windows.

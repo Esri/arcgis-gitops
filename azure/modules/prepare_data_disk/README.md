@@ -2,8 +2,8 @@
 
 Prepares the existing D: data disk on primary/standby deployment VMs in the
 specified roles. The `prepare_data_disk` module validates and expands the
-existing partition and verifies image-time Users permissions. It does not
-repair ACLs or control services.
+existing partition, verifies image-time Users permissions, and reconciles the
+original local service-account SID.
 
 The deployment script:
 
@@ -15,8 +15,13 @@ The deployment script:
    It cannot initialize disks, create partitions, or format volumes. It
    expands the existing partition to the largest supported MiB-aligned size,
    verifies the result, and refuses to initialize or format a missing/blank disk.
-3. Verifies the inheritable Users Full Control root grant and rejects common
+3. Verifies the inheritable Users Full Control grant on `D:\data` and rejects common
    Users/Everyone/Authenticated Users Deny rules. It does not grant permissions.
+4. Matches the OS and data disk identity records, then replaces only the recorded
+   local SID in owners and DACL entries across the verified volume. It binds the
+   disk to the VM's unique identity. Nonlocal accounts are verified but unchanged.
+   The application apply checks the completion marker and configured account
+   before starting bootstrap.
 
 ## Requirements
 
@@ -28,14 +33,15 @@ On the Terraform execution machine:
   existing `az_run_shell_script` VM Run Command workflow. No new role assignments
   are created by this module.
 
-Target VMs must have the persistent LUN 0 NTFS disk with image-time Users
-permissions and the Azure VM agent. Run Command executes
-with the guest privileges required to prepare the disk and read its root ACL.
+Target VMs must have the persistent LUN 0 NTFS disk with `D:\data` and
+image-time Users permissions, plus the Azure VM agent. Run Command executes
+with the guest privileges required to prepare the disk and read the `D:\data` ACL.
 
 Disk initialization and recursive ACL grants belong to the image's separate
 [initial](../../arcgis-enterprise-base-windows/image/scripts/initialize_data_disk.ps1)
 and [final](../../arcgis-enterprise-base-windows/image/scripts/prepare_image_data_disk.ps1)
-preparation scripts. This module does not change service startup or grant ACLs.
+preparation scripts. Run the infrastructure apply before application configuration.
+The recorded local account must already exist when disk preparation runs.
 
 ## Providers
 
@@ -63,21 +69,10 @@ None.
 | deployment_id | ArcGIS Enterprise deployment ID | `string` | n/a | yes |
 | enterprise_id | ArcGIS Enterprise ID | `string` | n/a | yes |
 | machine_roles | List of machine roles | `list(string)` | n/a | yes |
+| vm_resource_id | Exact Azure VM resource ID | `string` | n/a | yes |
+| expected_account | Configured application account for read-only verification mode | `string` | `null` | no |
 
 ## Outputs
 
 None.
 
-## Validation
-
-Run the shared stage-boundary tests from this module directory:
-
-```powershell
-powershell.exe -NoProfile -Command "Invoke-Pester -Script ..\..\arcgis-enterprise-base-windows\image\scripts\tests\data_disk_scripts.Tests.ps1"
-```
-
-Tests mock all disk, file, ACL, and service operations. Before rollout, use an
-approved disposable Azure VM to verify post-Sysprep Users/service-account access,
-LUN 0/D: mapping, larger-disk expansion, application health, and reboot behavior.
-Disk expansion is not automatically reversible; restore a verified backup rather
-than shrink the partition. No production build or apply is part of local tests.

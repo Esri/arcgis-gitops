@@ -4,7 +4,15 @@ Terraform module cw_agent configures CloudWatch agents on the deployment's EC2 i
 
 The module also creates a CloudWatch log group used by the CloudWatch agents to send logs to.
 
-The module uses ssm_cloudwatch_config.py script to run AmazonCloudWatch-ManageAgent SSM command on the deployment's EC2 instances in specific roles.
+The module uses [ssm_cloudwatch_config.py](../../scripts/ssm_cloudwatch_config.py) to run
+`AmazonCloudWatch-ManageAgent` on the deployment's EC2 instances. On Windows, the
+script resolves the deployment tags to an exact set of EC2 instance IDs, waits
+for all of them to come online in SSM, and reports each invocation's result.
+Command stdout and stderr from the Windows step are stored in S3 and replayed
+into the Terraform apply log. The collector does not wait for files from the
+document's Linux/macOS steps or for empty streams. This is separate from ongoing
+CloudWatch agent monitoring. If the apply fails after submission, check the
+command ID in SSM before reapplying.
 
 ## Requirements
 

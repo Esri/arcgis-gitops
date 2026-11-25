@@ -16,7 +16,8 @@ param(
     [string]$VolumeId,
     [guid]$DiskGuid = [guid]::Empty,
     [switch]$RequireExisting,
-    [switch]$InstallStartupTask
+    [switch]$InstallStartupTask,
+    [switch]$IndependentFileServer
 )
 
 $ErrorActionPreference = 'Stop'
@@ -77,6 +78,40 @@ function Get-VolumeTarget($Volume) {
 
 $disk = Get-TargetDisk
 if ([string]::IsNullOrWhiteSpace($disk.UniqueId)) { throw 'LUN 0 disk identity is missing.' }
+$freshDisk = $disk.PartitionStyle -eq 'RAW'
+if ($IndependentFileServer) {
+    $helper = Join-Path $env:SystemRoot 'ArcGIS-ImageIdentity\image_identity.ps1'
+    if (-not (Test-Path -LiteralPath $helper -PathType Leaf)) {
+        throw 'Missing Azure file-server image identity support. Rebuild the image or use an approved migration.'
+    }
+    foreach ($path in @((Split-Path -Parent $helper), $helper)) {
+        $item = Get-Item -LiteralPath $path -Force
+        $acl = Get-Acl -LiteralPath $path
+        $trusted = @('S-1-5-18', 'S-1-5-32-544')
+        if ($item.Attributes.HasFlag([IO.FileAttributes]::ReparsePoint) -or
+            $acl.GetOwner([Security.Principal.SecurityIdentifier]).Value -notin $trusted -or
+            @($acl.GetAccessRules($true, $true, [Security.Principal.SecurityIdentifier]) | Where-Object {
+                $_.IdentityReference.Value -notin $trusted
+            }).Count) { throw "Untrusted file-server image identity path '$path'." }
+    }
+    . $helper
+    $identityPaths = Get-ArcGISIdentityPaths
+    $record = Get-ArcGISImageRecord $identityPaths.os | ConvertFrom-Json
+    if ($record.schema -ne 1 -or $record.role -ne 'fileserver' -or $record.kind -ne 'none' -or
+        $record.account -or $record.sid -or $record.partition -or [guid]$record.lineage -eq [guid]::Empty) {
+        throw 'Expected an independent Azure file-server image with no baked service account.'
+    }
+    $independentBinding = "$($record.lineage)|$(Get-ArcGISAzureVmId)|$($disk.UniqueId)"
+    if (-not $freshDisk) {
+        Assert-ArcGISIdentityParent $identityPaths.data
+        Assert-ArcGISIdentityPath $identityPaths.data
+        $marker = Join-Path $identityPaths.data 'independent-disk.txt'
+        Assert-ArcGISIdentityPath $marker
+        if ((Get-Content -LiteralPath $marker -Raw) -cne $independentBinding) {
+            throw 'Initialized file-server disk does not match this Azure VM and image. Use an approved recovery.'
+        }
+    }
+}
 if (-not ('ArcGISDrivePaths' -as [type])) {
 Add-Type -TypeDefinition @'
 using System;
@@ -242,7 +277,41 @@ try {
 } finally {
     if (Test-Path -LiteralPath $probe) { Remove-Item -LiteralPath $probe -Force }
 }
-Write-Output "Verified writable NTFS D: on LUN 0 disk $($disk.Number) ($($disk.UniqueId))."
+
+$dataItem = New-Item -ItemType Directory -Path 'D:\data' -Force
+$sid = [Security.Principal.SecurityIdentifier]::new('S-1-5-32-545')
+$fullControl = [Security.AccessControl.FileSystemRights]::FullControl
+$inheritance = [Security.AccessControl.InheritanceFlags]'ContainerInherit, ObjectInherit'
+$acl = Get-Acl -LiteralPath $dataItem.FullName
+$rule = [Security.AccessControl.FileSystemAccessRule]::new(
+    $sid, $fullControl, $inheritance,
+    [Security.AccessControl.PropagationFlags]::None,
+    [Security.AccessControl.AccessControlType]::Allow)
+$acl.AddAccessRule($rule)
+Set-Acl -LiteralPath $dataItem.FullName -AclObject $acl
+
+Write-Output "Verified writable NTFS D: on LUN 0 disk $($disk.Number) ($($disk.UniqueId)); created D:\data and granted inherited Users Full Control."
+
+if ($IndependentFileServer -and $freshDisk) {
+    $root = Get-Item -LiteralPath 'D:\' -Force
+    if ($root.Attributes.HasFlag([IO.FileAttributes]::ReparsePoint)) {
+        throw 'D:\ is a reparse point; refusing to set file-server disk ownership.'
+    }
+    $ownerType = [Security.Principal.SecurityIdentifier]
+    $rootAcl = Get-Acl -LiteralPath $root.FullName
+    if ($rootAcl.GetOwner($ownerType).Value -eq 'S-1-5-20') {
+        # Network Service must not own the parent of the protected disk binding.
+        $administrators = [Security.Principal.SecurityIdentifier]::new('S-1-5-32-544')
+        $rootAcl.SetOwner($administrators)
+        Set-Acl -LiteralPath $root.FullName -AclObject $rootAcl
+        if ((Get-Acl -LiteralPath $root.FullName).GetOwner($ownerType) -ne $administrators) {
+            throw 'D:\ root ownership did not change to built-in Administrators.'
+        }
+        Write-Output 'Changed D:\ root owner from Network Service to built-in Administrators.'
+    }
+    New-ArcGISIdentityDirectory $identityPaths.data
+    Write-ArcGISIdentityFile (Join-Path $identityPaths.data 'independent-disk.txt') $independentBinding
+}
 
 if ($InstallStartupTask) {
     if (-not $disk.Guid -or [guid]$disk.Guid -eq [guid]::Empty) {

@@ -12,8 +12,4 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-output "instance_id" {
-  description = "EC2 instance ID after successful C: and D: preparation"
-  value       = var.instance_id
-  depends_on  = [aws_ssm_association.prepare]
-}
+param([string]$EncodedExpectedAccount)

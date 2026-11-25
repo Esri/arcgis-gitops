@@ -261,14 +261,14 @@ build {
           data_store = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\DataStore"
             setup_options               = "ADDLOCAL=relational"
-            data_dir                    = "D:\\arcgisdatastore"
+            data_dir                    = "D:\\data\\arcgisdatastore"
             install_system_requirements = true
             preferredidentifier         = "ip"
           }
           portal = {
             install_dir                 = "C:\\Program Files\\ArcGIS\\Portal"
             install_system_requirements = true
-            data_dir                    = "D:\\arcgisportal"
+            data_dir                    = "D:\\data\\arcgisportal"
             preferredidentifier         = "hostname"
             wa_name                     = var.portal_web_context
           }
@@ -301,14 +301,14 @@ build {
             patches = local.patches_dir
           }
           portal = {
-            data_dir = "D:\\arcgisportal"
+            data_dir = "D:\\data\\arcgisportal"
             patches  = var.arcgis_portal_patches
           }
           server = {
             patches = var.arcgis_server_patches
           }
           data_store = {
-            data_dir = "D:\\arcgisdatastore"
+            data_dir = "D:\\data\\arcgisdatastore"
             patches  = var.arcgis_data_store_patches
           }
           web_adaptor = {
@@ -325,6 +325,9 @@ build {
   }
 
   provisioner "shell-local" {
+    env = {
+      ARCGIS_IMAGE_ACCOUNT = base64encode(var.run_as_user)
+    }
     command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' prepare application"
   }
 
@@ -404,6 +407,9 @@ build {
   }
 
   provisioner "shell-local" {
+    env = {
+      ARCGIS_IMAGE_ACCOUNT = base64encode(var.fileserver_image_account)
+    }
     command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' prepare fileserver"
   }
 

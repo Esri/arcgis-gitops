@@ -36,6 +36,6 @@ resource "null_resource" "prepare" {
       JSON_PARAMETERS = base64encode(jsonencode({ ExpectedSizeGiB = tostring(var.os_disk_size) }))
     }
 
-    command = "python -m az_run_shell_script -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${path.module}/scripts/prepare_os_disk.ps1 -v ${data.azurerm_key_vault.enterprise_vault.name}"
+    command = "python -u -m az_run_shell_script --stream-output -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f \"${path.module}/scripts/prepare_os_disk.ps1\" -v ${data.azurerm_key_vault.enterprise_vault.name}"
   }
 }

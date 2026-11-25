@@ -36,3 +36,14 @@ variable "machine_roles" {
   description = "List of machine roles"
   type        = list(string)
 }
+
+variable "vm_resource_id" {
+  description = "Exact Azure virtual machine resource ID in the selected role."
+  type        = string
+}
+
+variable "expected_account" {
+  description = "When set, verify completed disk preparation and match the configured account without changing the disk."
+  type        = string
+  default     = null
+}

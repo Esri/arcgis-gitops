@@ -16,7 +16,7 @@ For owned file servers, the module invokes
 C: then the restored D: partition on every apply. It waits for successful SSM
 completion before exposing dependent outputs and publishing metadata.
 Preparation verifies guest-visible EBS capacity and partition/NTFS sizes and
-requires the image-time Users Full Control grant on D:. It does not initialize,
+requires the image-time `D:\data` directory and Users Full Control grant on it. It does not initialize,
 format, repair ACLs, start services, or change WinRE/recovery partitions.
 Partition growth cannot be undone by reducing `data_volume_size`.
 Verify application-level file-server service readiness separately through an

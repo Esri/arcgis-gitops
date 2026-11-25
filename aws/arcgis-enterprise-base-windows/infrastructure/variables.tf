@@ -17,6 +17,12 @@ variable "aws_region" {
   type        = string
 }
 
+variable "allow_data_disk_rebind" {
+  description = "Explicitly allow application data disk bindings to be replaced during an approved AWS Backup recovery"
+  type        = bool
+  default     = false
+}
+
 variable "backup_retention" {
   description = "Number of days to retain backups"
   type        = number

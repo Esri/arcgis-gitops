@@ -33,9 +33,19 @@ resource "null_resource" "prepare" {
 
   provisioner "local-exec" {
     environment = {
-      JSON_PARAMETERS = base64encode(jsonencode({}))
+      JSON_PARAMETERS = base64encode(jsonencode(var.expected_account == null ? {} : {
+        EncodedExpectedAccount = base64encode(var.expected_account)
+      }))
     }
 
-    command = "python -m az_run_shell_script -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)} -f ${path.module}/scripts/prepare_data_disk.ps1 -v ${data.azurerm_key_vault.enterprise_vault.name}"
+    command = join(" ", [
+      "python -u -m az_run_shell_script ${var.expected_account == null ? "--stream-output" : ""} -s ${var.enterprise_id} -d ${var.deployment_id} -m ${join(",", var.machine_roles)}",
+      "--vm-resource-id \"${var.vm_resource_id}\"",
+      "--prepend \"${path.module}/scripts/parameters.ps1\"",
+      "--prepend \"${path.module}/scripts/image_identity.ps1\"",
+      "--prepend \"${path.module}/scripts/replace_sid_in_descriptor.ps1\"",
+      "--prepend \"${path.module}/scripts/reconcile_image_sid.ps1\"",
+      "-f \"${path.module}/scripts/prepare_data_disk.ps1\" -v ${data.azurerm_key_vault.enterprise_vault.name}"
+    ])
   }
 }

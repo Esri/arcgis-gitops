@@ -202,10 +202,20 @@ options:
 
 Runs AmazonCloudWatch-ManageAgent SSM command on all EC2 instances in a deployment.
 
+With `--apply-output` (used by the Windows Terraform module), the script resolves the
+deployment tags to pending or running EC2 instance IDs and checks that every ID is
+online in SSM. It submits one command to that exact set (up to 50 instances),
+waits for each invocation, and replays stdout and stderr from S3 into the apply
+log. No `ssm:ListCommands` or `ssm:GetCommandInvocation` permission is required
+for this path. Without the flag, the script continues to submit by tag.
+
+If waiting for results fails, use the command ID in the apply log to check that
+the previous command has finished before retrying.
+
 usage:
 
 ```shell
-python -m ssm_cloudwatch_config [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-p PARAMETER] [-b S3_BUCKET]
+python -m ssm_cloudwatch_config [-h] [-s ENTERPRISE_ID] [-d DEPLOYMENT_ID] [-p PARAMETER] [-b S3_BUCKET] [--apply-output]
 ```
 
 options:
@@ -216,6 +226,7 @@ options:
   -d DEPLOYMENT_ID  ArcGIS Enterprise deployment ID
   -p PARAMETER      SSM parameter name with CloudWatch agent configuration JSON
   -b S3_BUCKET      Output S3 bucket
+  --apply-output    Collect both streams from all invocations
 ```
 
 ## ssm_efs_mount

@@ -19,7 +19,7 @@
 #   [initialize|prepare] - Stage of the disk setup
 #   [application|fileserver] - Role of the image
 # Environment variables:
-#   ARCGIS_IMAGE_ACCOUNT - Account used for the image (required for prepare stage)
+#   ARCGIS_IMAGE_ACCOUNT - Base64-encoded account used to prepare the application image
 #   RUN_AS_PASSWORD - Password for the account used to run ArcGIS services (required for application role)
 
 set -euo pipefail
@@ -49,8 +49,11 @@ trap 'rm -f "$parameters"' EXIT
 encoded=$(iconv -f UTF-8 -t UTF-16LE "$script" | base64 -w0)
 arguments="-VolumeId '$volume_id'"
 if [[ "$stage" == prepare ]]; then
-    account=${ARCGIS_IMAGE_ACCOUNT:-}
-    [[ "$account" =~ ^[A-Za-z0-9+/]*={0,2}$ ]] || { echo "Invalid account encoding." >&2; exit 1; }
+    account=
+    if [[ "$role" == application ]]; then
+        account=${ARCGIS_IMAGE_ACCOUNT:-}
+        [[ "$account" =~ ^[A-Za-z0-9+/]*={0,2}$ ]] || { echo "Invalid account encoding." >&2; exit 1; }
+    fi
     identity=$(base64 -w0 "$script_dir/image_identity.ps1")
     arguments+=" -ImageRole '$role' -EncodedAccount '$account'"
     bootstrap=". ([scriptblock]::Create([Text.Encoding]::UTF8.GetString([Convert]::FromBase64String('$identity')))); "

@@ -27,7 +27,7 @@ or broaden root access.
 
 The application AMI ID is saved in both "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/primary" and "/arcgis/${var.enterprise_id}/images/${var.deployment_id}/standby" SSM parameters.
 
-A separate Packer build creates the file-server AMI from the same base Windows OS AMI without installing the ArcGIS application stack. It installs AWS CLI, initializes and verifies the attached data disk as writable NTFS `D:`, and installs Amazon CloudWatch Agent. It then creates `D:\data`, grants built-in Users Full Control on that directory with inheritance to descendants, records the image identity, and runs Sysprep with Cinc Client uninstallation disabled.
+A separate Packer build creates the file-server AMI from the same base Windows OS AMI without installing the ArcGIS application stack. It installs AWS CLI, initializes and verifies the attached data disk as writable NTFS `D:`, and installs Amazon CloudWatch Agent. It then creates `D:\data`, grants built-in Users Full Control on that directory with inheritance to descendants, records disk lineage without a service-account SID, and runs Sysprep with Cinc Client uninstallation disabled.
 
 The disk initialization and preparation commands target the exact build instance ID; the other file-server provisioning commands select instances by the `packer-fileserver` role and deployment tags. Deployment configuration later creates the namespace-specific `D:\data\${namespace}` tree. After the file-server AMI is built, its ID is published to `/arcgis/${var.enterprise_id}/images/${var.deployment_id}/fileserver`.
 
@@ -88,7 +88,6 @@ The Chef runner also creates temporary `SecureString` parameters for the downloa
 | deployment_id | Deployment ID | `string` | `"enterprise-base-windows"` | no |
 | enterprise_id | ArcGIS Enterprise ID | `string` | `"arcgis"` | no |
 | fileserver_data_disk_size | Persistent file-server data disk capacity baked into its AMI in GiB | `number` | `256` | no |
-| fileserver_image_account | Pre-existing account on a customized file-server base image | `string` | `""` | no |
 | instance_type | EC2 instance type | `string` | `"m7i.2xlarge"` | no |
 | os | Operating system ID | `string` | `"windows2025"` | no |
 | portal_web_context | Portal for ArcGIS web context | `string` | `"portal"` | no |

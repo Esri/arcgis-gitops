@@ -407,9 +407,6 @@ build {
   }
 
   provisioner "shell-local" {
-    env = {
-      ARCGIS_IMAGE_ACCOUNT = base64encode(var.fileserver_image_account)
-    }
     command = "bash scripts/initialize_image_data_disk.sh '${build.ID}' '${var.aws_region}' prepare fileserver"
   }
 
